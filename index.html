@@ -432,7 +432,7 @@ const tstat=e=>{const t=+e.t;if(e.t===''||e.t==null||isNaN(t))return null;const 
 const BADGE={temp:tstat,desp:e=>{const p=+e.a?+e.b/+e.a*100:0;return[p.toFixed(1)+'% · '+money(+e.b*+e.c),p>5?'no':p>2?'wa':'ok']},os:e=>e.st?[e.st,e.st==='Liberado para uso'?'ok':e.st==='Interditado'?'no':'wa']:null};
 function seed(){return{team:[],runs:{},done:{},ev:[],log:{}}}
 const hsh=(u,p)=>{let h=2166136261;const t='supertudo|'+String(u).toLowerCase()+'|'+String(p);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+'x'+t.length};
-const K='supertudo-v2-inicial';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null,authChecking:true};
+const K='supertudo-cloud-v1';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null,authChecking:true};
 
 /* ---- Supabase ---- */
 const SUPA_URL='https://xsvcjfsgkropzdfcehsh.supabase.co';
@@ -1033,6 +1033,10 @@ function rMenu(){
 }
 const GRP=['Controle de Qualidade','Prevenção','Encarregado','Compras'],EMPT=['painel','cro','ck','atr'];
 const meOf=id=>{
+  if(String(id).startsWith('cloud:')){
+    const x=V.cloudIdentity;
+    return x&&String(x.id)===String(id).slice(6)?x:null;
+  }
   if(String(id).startsWith('p:')){const p=person(id.slice(2));return p?{id:p.id,u:p.u,n:p.n,c:[p.f,p.s].filter(Boolean).join(' · '),role:p.adm?'master':'emp',perm:p.adm?['*']:(p.perm||[])}:null}
   if(String(id).startsWith('sb:')){const u=id.slice(3);const p=S.team.find(y=>y.u&&y.u.toLowerCase()===u.toLowerCase());if(p)return{id:p.id,u:p.u,n:p.n,c:[p.f,p.s].filter(Boolean).join(' · '),role:p.adm?'master':'emp',perm:p.adm?['*']:(p.perm||[])};return null}
   return S.users.find(y=>y.id===id)
@@ -1043,74 +1047,38 @@ function rLogin(){return `<div class="lgw"><div class="lgc"><div class="lgt">${I
 
 async function doLogin(){
   const u=($('lg_u').value||'').trim().toLowerCase(),p=$('lg_p').value||'';
-
-  if(!u||!p){
-    V.lgE='Informe o usuário e a senha.';
-    R();
-    return;
-  }
-
-  V.lgL=1;
-   const inicioLogin=performance.now();
-  V.lgE='';
-  R();
-
+  if(!u||!p){V.lgE='Informe o usuário e a senha.';R();return;}
+  V.lgL=1;V.lgE='';R();
   try{
-    const res=await fetch(LOGIN_URL,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'apikey':SUPA_KEY
-      },
-      body:JSON.stringify({
-        username:u,
-        password:p
-      })
-    });
-
+    const res=await fetch(LOGIN_URL,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPA_KEY},body:JSON.stringify({username:u,password:p})});
     const json=await res.json();
-     console.log('Tempo de resposta do login:', ((performance.now()-inicioLogin)/1000).toFixed(2), 'segundos');
-
-    if(!res.ok||!json.session){
-      V.lgL=0;
-      V.lgE=json.error||'Usuário ou senha inválidos.';
-      R();
-      return;
+    if(!res.ok||!json.session||!json.profile||!json.membership){
+      V.lgL=0;V.lgE=json.error||'Não foi possível validar seu acesso.';R();return;
     }
-
-    await supa.auth.setSession({
-      access_token:json.session.access_token,
-      refresh_token:json.session.refresh_token
-    });
-
+    if(json.membership.role!=='admin'){
+      V.lgL=0;V.lgE='O acesso de funcionário será liberado após vincular o cadastro da equipe. Por enquanto, teste com o administrador.';
+      R();return;
+    }
+    const auth=await supa.auth.setSession({access_token:json.session.access_token,refresh_token:json.session.refresh_token});
+    if(auth.error)throw auth.error;
     V.sbSession=json.session;
-
-    /* mantém o fluxo de boas-vindas existente */
-    const username=json.username||u;
-
-    const e=S.team.find(
-      y=>y.u&&y.u.toLowerCase()===username.toLowerCase()
-    );
-
-    const a=S.users.find(
-      y=>y.u&&y.u.toLowerCase()===username.toLowerCase()
-    );
-
-    if(e)V.wel='p:'+e.id;
-    else if(a)V.wel=a.id;
-    else V.wel='sb:'+username;
-    localStorage.setItem('st_auth_state',JSON.stringify({version:APP_VERSION,wel:V.wel}));
-
-    V.lgL=0;
-    R();
-
+    V.cloudIdentity={
+      id:String(json.profile.id),
+      u:json.profile.username||json.username||u,
+      n:json.profile.display_name||json.profile.full_name||json.username||u,
+      c:'Administração',
+      role:'master',
+      perm:['*'],
+      sb_uid:String(json.profile.id),
+      org_id:json.membership.org_id
+    };
+    V.wel='cloud:'+V.cloudIdentity.id;
+    localStorage.setItem('st_auth_state',JSON.stringify({version:APP_VERSION,wel:V.wel,identity:V.cloudIdentity}));
+    V.lgL=0;R();
   }catch(err){
-    V.lgL=0;
-    V.lgE='Falha na conexão. Verifique a internet.';
-    R();
+    V.lgL=0;V.lgE='Falha na conexão. Verifique a internet.';R();
   }
 }
-
 /* ---- funcionário ---- */
 const myT=(p,dt)=>dayTasks(dt).filter(x=>(x.r||[]).some(r=>(p.g||[]).includes(r)||nrm(r)===nrm(p.n)));
 const pdn=(dt,x,p)=>!!S.done[dt+'|'+x.i+'|'+p.id];
@@ -1549,21 +1517,17 @@ async function restoreLogin(){
   try{
     const {data:{session}}=await supa.auth.getSession();
     const saved=JSON.parse(localStorage.getItem('st_auth_state')||'null');
-    if(session&&saved&&saved.version===APP_VERSION&&saved.wel){
+    if(session&&saved&&saved.version===APP_VERSION&&saved.wel&&saved.identity&&saved.identity.role==='master'){
       V.sbSession=session;
+      V.cloudIdentity=saved.identity;
       V.wel=saved.wel;
       V.authChecking=false;
       if(meOf(V.wel)){enterApp();return;}
     }
     localStorage.removeItem('st_auth_state');
     if(session)await supa.auth.signOut();
-  }catch(err){
-    console.warn('Não foi possível restaurar a sessão:',err);
-  }
-  V.sbSession=null;
-  V.wel=null;
-  V.authChecking=false;
-  R();
+  }catch(err){console.warn('Não foi possível restaurar a sessão:',err);}
+  V.sbSession=null;V.cloudIdentity=null;V.wel=null;V.authChecking=false;R();
 }
 restoreLogin();
 document.addEventListener('toggle',e=>{const d=e.target;if(!(d instanceof HTMLDetailsElement)||!d.open||!d.parentElement)return;d.parentElement.querySelectorAll(':scope > details[open]').forEach(x=>{if(x!==d)x.open=false})},true);
