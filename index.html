@@ -1037,8 +1037,8 @@ const meOf=id=>{
     const x=V.cloudIdentity;
     if(!x||String(x.id)!==String(id).slice(6))return null;
     if(x.role==='encarregado'){
-      const p=(S.team||[]).find(y=>y.sb_uid&&String(y.sb_uid)===String(x.sb_uid));
-      if(p)return {...p,role:'encarregado',perm:Array.isArray(x.perm)?x.perm:[],sb_uid:x.sb_uid,cloud_id:x.id,org_id:x.org_id};
+      const p=(S.team||[]).find(y=>String(y.id)===String(x.team_member_id))||(S.team||[]).find(y=>y.sb_uid&&String(y.sb_uid)===String(x.sb_uid));
+      if(p)return {...p,role:'encarregado',perm:Array.isArray(x.perm)?x.perm:[],sb_uid:x.sb_uid,cloud_id:x.id,org_id:x.org_id,team_member_id:x.team_member_id};
     }
     return x;
   }
@@ -1064,10 +1064,12 @@ async function doLogin(){
       V.lgL=0;V.lgE='Perfil de acesso não autorizado.';
       R();return;
     }
+    const isAdmin=json.membership.role==='admin';
+    const teamMemberId=String(json.membership.team_member_id||'').trim();
+    if(!isAdmin&&!teamMemberId){V.lgL=0;V.lgE='Este login ainda não está vinculado ao cadastro de um funcionário. Peça ao administrador para revisar o acesso.';R();return;}
     const auth=await supa.auth.setSession({access_token:json.session.access_token,refresh_token:json.session.refresh_token});
     if(auth.error)throw auth.error;
     V.sbSession=json.session;
-    const isAdmin=json.membership.role==='admin';
     V.cloudIdentity={
       id:String(json.profile.id),
       u:json.profile.username||json.username||u,
@@ -1076,7 +1078,8 @@ async function doLogin(){
       role:isAdmin?'master':'encarregado',
       perm:isAdmin?['*']:(Array.isArray(json.membership.permissions)?json.membership.permissions.filter(x=>typeof x==='string'):[]),
       sb_uid:String(json.profile.id),
-      org_id:json.membership.org_id
+      org_id:json.membership.org_id,
+      team_member_id:teamMemberId
     };
     V.wel='cloud:'+V.cloudIdentity.id;
     localStorage.setItem('st_auth_state',JSON.stringify({version:APP_VERSION,wel:V.wel,identity:V.cloudIdentity}));
@@ -1415,9 +1418,10 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.7';
+const APP_VERSION='3.31.8';
 const APP_HIST=[
-{v:'3.31.5',d:'15/11/2026',t:'Correção de permissões (PATCH)',n:['Permissões: menu Equipe alinhado à chave r:eqp usada pelo perfil e pelo Supabase.'],c:[]},
+{v:'3.31.8',d:'15/11/2026',t:'Vínculo do login com a equipe (PATCH)',n:['Login: encarregado passa a ser associado ao cadastro correto da equipe pelo team_member_id retornado pelo Supabase.','Login: impede entrada de encarregado sem vínculo com um cadastro da equipe.'],c:[]},
+{v:'3.31.5',d:'15/11/2026',t:'Correção de permissões (PATCH)',n:['Permissões: menu Equipe alinhado à chave r:eqp usada pelo perfil e pelo Supabase.'],c:[]}, 
 {v:'3.31.4',d:'15/11/2026',t:'Correções e melhorias (PATCH)',n:['Login: a sessão permanece ativa ao atualizar ou reabrir a página; uma nova versão do código solicita autenticação novamente.','Login: corrigido erro que impedia abrir o sistema quando um elemento opcional não existia.','Registros: menus transferidos para Lançamentos não reaparecem duplicados na barra lateral ao abrir suas telas.'],c:[]},
 {v:'3.31.3',d:'07/11/2026',t:'Ajuste (PATCH)',n:['Progresso: o botão Recolher saiu. Tocar no painel aberto recolhe o funcionário; botões, campos e seletores dentro do painel não recolhem.'],c:[]},
 {v:'3.31.2',d:'07/11/2026',t:'Correção (PATCH)',n:['Progresso: uma só lista de funcionários. O painel completo de desempenho abre dentro da própria linha do funcionário, com botão Recolher. Removido o painel duplicado que ficava embaixo da lista.'],c:[]},
