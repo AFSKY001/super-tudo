@@ -1312,15 +1312,53 @@ if(x){const pf=pfOf(x),sel=(x.perm||[]).filter(k=>ALLK().includes(k));
 return `<button class="ch" onclick="V.accE=null;rMenu()">‹ Acessos</button><h3 class="u-mt8b">${esc(x.n)}</h3><div class="mu">${esc(x.f||'')}${x.s?' · '+esc(x.s):''}</div>${x.u?`<div class="c"><b>🔑 Login ativo</b><div class="mu">Usuário: ${esc(x.u)}</div></div>`:''}<div class="c"><h3>${x.u?'Usuário e senha':'Criar login'}</h3><label>Usuário<input id="ac_u" value="${esc(x.u||'')}" autocapitalize="none" autocomplete="off" ${x.sb_uid?'disabled':''}></label><label>${x.sb_uid?'Nova senha (vazio mantém a atual)':'Senha (Senha (mínimo 8 caracteres, com letras e números))'}<input id="ac_p" type="password" autocomplete="new-password"></label><label>Repita a senha<input id="ac_p2" type="password" autocomplete="new-password"></label><p class="mu">A própria pessoa também troca a senha em ⋮ › Trocar senha.</p></div><div class="c"><h3>🧩 Funções liberadas</h3><p class="mu">Perfil atual: <b>${pf?esc(pf.n):(sel.length?'personalizado':'nenhuma função liberada')}</b>. Toque num perfil para preencher e depois ajuste o que quiser.</p><div class="chs">${(S.presets||[]).map(f=>`<button class="ch ${pf&&pf.id===f.id?'on':''}" data-pf="${f.id}" onclick="accApply('${f.id}')">${esc(f.e||'🧩')} ${esc(f.n)}</button>`).join('')}</div><p class="mu" id="acpm"></p>${permBox(sel,'apm')}</div><p class="mu" id="acm"></p><button class="bt" onclick="saveAcc()">${x.u?'Salvar alterações':'Criar login'}</button>${x.u?`<button class="bt d u-ml8" onclick="delAcc('${x.id}')">Remover login</button>`:''}`}
 const T=S.team.filter(loginRoleOK),old=S.users.filter(u=>u.role!=='master');
 return `<h3>👤 Acessos e logins</h3><p class="mu">${T.filter(p=>p.u).length} de ${T.length} pessoas em funções de liderança com login. Somente gerentes, subgerentes, supervisores e encarregados aparecem aqui. Funcionários comuns ficam fora desta lista.</p><button class="bt g u-w100" onclick="V.accP='list';rMenu()">🧩 Perfis de acesso (${(S.presets||[]).length})</button>`+T.map(p=>{const q=pfOf(p);return `<div class="c tap" onclick="V.accE='${p.id}';rMenu()"><div class="row sp"><b>${esc(p.n)}</b><span class="b ${p.u?'ok':'wa'}">${p.u?'🔑 '+esc(p.u):'Sem login'}</span></div><div class="mu">${esc(p.f||'')}${p.s?' · '+esc(p.s):''} · ${q?esc(q.n):((p.perm||[]).length?'personalizado':'sem funções extras')} ›</div></div>`}).join('')+(old.length?`<h4>Logins antigos</h4>${old.map(u=>`<div class="it"><div>${esc(u.n)} <span class="mu">· ${esc(u.u)}</span></div><button class="bt d" onclick="delAcc('${u.id}')">✕</button></div>`).join('')}`:'')}
-async function acessoServidor(payload){
- const {data:{session}}=await supa.auth.getSession();
- const token=session?.access_token||V.sbSession?.access_token;
- if(!token)throw new Error('Sua sessão expirou. Entre novamente como administrador.');
- const res=await fetch(CREATE_USER_URL,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+token},body:JSON.stringify(payload)});
- let data={};try{data=await res.json()}catch(e){}
- if(!res.ok||!data.ok)throw new Error(data.error||'Não foi possível concluir a operação no servidor.');
- return data;
+
+async function acessoServidor(payload) {
+  const { data: { session } } = await supa.auth.getSession();
+
+  const token = session?.access_token || V.sbSession?.access_token;
+
+  if (!token) {
+    throw new Error('Sua sessão expirou. Entre novamente como administrador.');
+  }
+
+  const body = { ...payload };
+
+  if (body.action === 'create' || body.action === 'update') {
+    body.team_member_id = String(body.team_member_id ?? '').trim();
+
+    if (!body.team_member_id) {
+      throw new Error(
+        'O identificador do funcionário não foi enviado. Confira o cadastro da equipe.'
+      );
+    }
+  }
+
+  const res = await fetch(CREATE_USER_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + token
+    },
+    body: JSON.stringify(body)
+  });
+
+  let data = {};
+
+  try {
+    data = await res.json();
+  } catch (e) {}
+
+  if (!res.ok || !data.ok) {
+    throw new Error(
+      data.error || 'Não foi possível concluir a operação no servidor.'
+    );
+  }
+
+  return data;
 }
+
 async function saveAcc(){
  const x=person(V.accE),u=$('ac_u').value.trim().toLowerCase(),pw=$('ac_p').value,m=t=>{$('acm').textContent=t};
  if(!x)return;
