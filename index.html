@@ -1441,8 +1441,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.3';
+const APP_VERSION='3.31.4';
 const APP_HIST=[
+{v:'3.31.4',d:'15/11/2026',t:'Correções e melhorias (PATCH)',n:['Login: a sessão permanece ativa ao atualizar ou reabrir a página; uma nova versão do código solicita autenticação novamente.','Login: corrigido erro que impedia abrir o sistema quando um elemento opcional não existia.','Registros: menus transferidos para Lançamentos não reaparecem duplicados na barra lateral ao abrir suas telas.'],c:[]},
 {v:'3.31.3',d:'07/11/2026',t:'Ajuste (PATCH)',n:['Progresso: o botão Recolher saiu. Tocar no painel aberto recolhe o funcionário; botões, campos e seletores dentro do painel não recolhem.'],c:[]},
 {v:'3.31.2',d:'07/11/2026',t:'Correção (PATCH)',n:['Progresso: uma só lista de funcionários. O painel completo de desempenho abre dentro da própria linha do funcionário, com botão Recolher. Removido o painel duplicado que ficava embaixo da lista.'],c:[]},
 {v:'3.31.1',d:'07/11/2026',t:'Correção (PATCH)',n:['Progresso: removida a lista duplicada de funcionários. A seção Por funcionário que já existia agora abre o painel de desempenho ao tocar; só um fica aberto por vez.'],c:[]},
