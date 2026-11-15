@@ -1310,7 +1310,7 @@ if(pw&&!/[0-9]/.test(pw))return m('A senha precisa conter pelo menos um número.
  const permissions=[...document.querySelectorAll('input[name=apm]:checked')].map(i=>i.value);
  const btn=document.querySelector('#sh .bt:not(.g):not(.d)');if(btn){btn.disabled=true;btn.textContent='Salvando no servidor…'}
  try{
-  const result=await acessoServidor({action:x.sb_uid?'update':'create',username:u,password:pw,display_name:x.n,job_title:x.f,permissions,target_user_id:x.sb_uid||undefined});
+  const result=await acessoServidor({action:x.sb_uid?'update':'create',username:u,password:pw,display_name:x.n,job_title:x.f,team_member_id:x.id,permissions,target_user_id:x.sb_uid||undefined});
   x.u=u;x.h='';x.sb_uid=result.user_id||x.sb_uid;x.perm=permissions;
   if(!save())throw new Error('Não foi possível salvar o vínculo neste aparelho. O acesso foi criado no servidor; reabra o cadastro para conferir.');
   V.accE=null;rMenu();
