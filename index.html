@@ -1579,3 +1579,4 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
  b.innerHTML=`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICN[ic]}</svg><span class="sr-only">${esc(t)}</span>`})}
 (function(){let q=false;const run=()=>{q=false;enhBtns()};const mo=new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}});const go=()=>mo.observe(document.body,{childList:true,subtree:true});if(document.body)go();else document.addEventListener('DOMContentLoaded',go)})();
 </script></body></html>
+<!-- Teste de atualização automática -->
