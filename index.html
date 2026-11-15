@@ -1359,7 +1359,9 @@ async function saveAcc(){
  if(x.sb_uid&&u!==String(x.u||'').toLowerCase())return m('O usuário não pode ser alterado depois da criação.');
  if(pw!==$('ac_p2').value)return m('As senhas não conferem.');
  if(!x.sb_uid&&!pw)return m('Defina uma senha para criar o acesso.');
- if(pw&&pw.length<8)return m('A senha precisa ter pelo menos 8 caracteres.');
+if(pw&&pw.length<8)return m('A senha precisa ter pelo menos 8 caracteres.');
+if(pw&&!/[a-zA-Z]/.test(pw))return m('A senha precisa conter pelo menos uma letra.');
+if(pw&&!/[0-9]/.test(pw))return m('A senha precisa conter pelo menos um número.');
  const permissions=[...document.querySelectorAll('input[name=apm]:checked')].map(i=>i.value);
  const btn=document.querySelector('#sh .bt:not(.g):not(.d)');if(btn){btn.disabled=true;btn.textContent='Salvando no servidor…'}
  try{
