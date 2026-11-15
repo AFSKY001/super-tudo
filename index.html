@@ -432,7 +432,7 @@ const tstat=e=>{const t=+e.t;if(e.t===''||e.t==null||isNaN(t))return null;const 
 const BADGE={temp:tstat,desp:e=>{const p=+e.a?+e.b/+e.a*100:0;return[p.toFixed(1)+'% · '+money(+e.b*+e.c),p>5?'no':p>2?'wa':'ok']},os:e=>e.st?[e.st,e.st==='Liberado para uso'?'ok':e.st==='Interditado'?'no':'wa']:null};
 function seed(){return{team:[],runs:{},done:{},ev:[],log:{}}}
 const hsh=(u,p)=>{let h=2166136261;const t='supertudo|'+String(u).toLowerCase()+'|'+String(p);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+'x'+t.length};
-const K='supertudo-v2-inicial';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null};
+const K='supertudo-v2-inicial';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null,authChecking:true};
 
 /* ---- Supabase ---- */
 const SUPA_URL='https://xsvcjfsgkropzdfcehsh.supabase.co';
@@ -1099,6 +1099,7 @@ async function doLogin(){
     if(e)V.wel='p:'+e.id;
     else if(a)V.wel=a.id;
     else V.wel='sb:'+username;
+    localStorage.setItem('st_auth_state',JSON.stringify({version:APP_VERSION,wel:V.wel}));
 
     V.lgL=0;
     R();
@@ -1357,7 +1358,7 @@ const helpOff=()=>!!V.me&&localStorage.getItem('sthelp_'+V.me.id)==='1';
 function helpSteps(){const st=[['👋 Bem-vindo, '+V.me.n.split(' ')[0],'Este guia mostra o que você pode fazer. Toque em Próximo para avançar. Para rever depois: ⋮ › Ajuda.']];TABS.filter(t=>canTab(t[0])).forEach(t=>{if(t[0]==='reg'){const K=LANC_KEYS.filter(k=>can('l:'+k));st.push(['📝 Registros','Use o botão 📝 da lateral para escolher o que lançar. Liberado para você: '+RSEC.filter(x=>canR(x[0])).map(x=>x[1]+' '+x[2]).join(', ')+'.']);if(K.length)st.push(['📝 Seus lançamentos',K.map(k=>FS[k].e+' '+FS[k].n+' — '+(HL[k]||'')).join('\n')])}else st.push([t[1]+' '+t[2],HT[t[0]]||''])});if(can('adm'))st.push(['👤 Acessos e logins','Em ⋮ › Acessos e logins aparecem somente gerentes, subgerentes, supervisores e encarregados. Você cria logins, troca senhas e escolhe as funções de cada pessoa. Lá também ficam os perfis prontos (Repositor, Encarregado, Master…).']);st.push(['🔔 Avisos e senha','O sino 🔔 mostra avisos, como pedidos de compra. Em ⋮ você troca a senha, abre esta ajuda e sai.']);return st}
 function helpHTML(){const L=helpSteps(),i=Math.min(V.hs||0,L.length-1),last=i===L.length-1;return `<div class="row sp"><b>${esc(L[i][0])}</b><span class="mu">${i+1}/${L.length}</span></div>${bar((i+1)/L.length*100)}<div style="white-space:pre-line;margin:10px 0">${esc(L[i][1])}</div><label class="u-row-c"><input type="checkbox" ${V.hoff?'checked':''} onchange="V.hoff=this.checked" class="u-wauto">Não mostrar mais ao entrar</label><div class="row u-mt10">${i?'<button class="bt g" onclick="V.hs--;rMenu()">Voltar</button>':''}<button class="bt" onclick="${last?'closeHelp()':'V.hs=(V.hs||0)+1;rMenu()'}">${last?'Concluir':'Próximo'}</button></div>`}
 function closeHelp(){if(V.me){V.hoff?localStorage.setItem('sthelp_'+V.me.id,'1'):localStorage.removeItem('sthelp_'+V.me.id)}V.sh=0;V.hs=0;rMenu()}
-async function logout(){supa.auth.signOut().catch(()=>{});V.sbSession=null;V.me=null;V.wel=null;V.lgE='';V.lgL=0;V.sh=0;V.mn=0;rMenu();R()}
+async function logout(){localStorage.removeItem('st_auth_state');supa.auth.signOut().catch(()=>{});V.sbSession=null;V.me=null;V.wel=null;V.lgE='';V.lgL=0;V.sh=0;V.mn=0;rMenu();R()}
 function rWelcome(){const x=meOf(V.wel);if(!x)return rLogin();const L=x.role==='emp'?['📊 Painel do seu setor','🗓️ Seu cronograma','✅ Seus checklists','📋 Suas atribuições'].concat((x.perm||[]).some(k=>/^[rl]:/.test(k))?['📝 Registros']:[]).concat((x.perm||[]).includes('ava')?['⭐ Avaliação']:[],(x.perm||[]).includes('pro')?['📈 Progresso']:[],(x.perm||[]).includes('adm')?['👤 Acessos e logins']:[]):x.role==='master'?['Acesso total (administrador)']:PGFLAT.filter(([k])=>x.perm.includes(k)).map(([k,l])=>l);
 return `<div class="lgw"><div class="lgc u-tc"><div class="u-fs44">👋</div><h2 class="u-mv6">Bem-vindo, ${esc(x.n)}!</h2><p class="mu">${esc(x.c||'')}<br>Atacarejo Super Tudo</p><div class="c u-tl"><b>Você precisa alimentar:</b><ul style="margin:6px 0 0;padding-left:18px">${L.map(l=>`<li>${l}</li>`).join('')||'<li>Nada liberado ainda. Fale com o administrador.</li>'}</ul></div><button class="bt u-w100" onclick="enterApp()">Entrar no sistema</button></div></div>`}
 function enterApp(){const x=meOf(V.wel);V.me=x||null;V.wel=null;V.lgE='';V.dir=0;if(V.me){const L=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));V.tab=L.length?L[0][0]:'painel'}V.hs=0;V.hoff=helpOff();V.sh=V.me&&V.me.role!=='master'&&!V.hoff?'help':0;R();rMenu()}
@@ -1530,7 +1531,7 @@ for(let d=1;d<=nd;d++){const dt=m+'-'+String(d).padStart(2,'0');dayTasks(dt).fil
 G.forEach(g=>{const items=Object.values(seen).filter(b=>b.g===g).map(b=>({id:uid(),t:b.t,days:[...b.days].sort(),time:''}));if(items.length)S.tmod.push({id:'tmfx-'+g.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-'),n:g,items})});
 S.migrations=S.migrations||[];S.migrations.push('fixmodels-2026');save()}
 function R0(){bell();Object.keys(CK).forEach(k=>{if(CK[k]&&CK[k].nw&&k!==V.ce&&k!==V.ck)delete CK[k]});migVenc();migAdm();migJunior();migMovUnif();migMovBack();migFix();if(!V.add)V.ed=null;
-if(!V.me){$('app').innerHTML=V.wel?rWelcome():rLogin();$('nav').innerHTML='';$('hd').textContent='';if($('snd'))$('snd').style.display='none';$('dt').style.display='none';return}
+if(!V.me){$('app').innerHTML=V.authChecking?'<div class="lgw"><div class="lgc"><div class="spin"></div><p class="mu" style="text-align:center">Verificando sua sessão…</p></div></div>':(V.wel?rWelcome():rLogin());$('nav').innerHTML='';$('hd').textContent='';if($('snd'))$('snd').style.display='none';$('dt').style.display='none';return}
 $('dt').style.display='';if(V.me.role==='emp'){const q=person(V.me.id);V.me.perm=q&&q.perm||[]}const A=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));if(!A.some(t=>t[0]===V.tab))V.tab=A.length?A[0][0]:'painel';
 const T=TABS.find(t=>t[0]===V.tab);const sg=[V.tab,V.pv,V.eq,V.ev,V.evt,V.ck,V.ce,V.reg,V.rs,V.cff,V.te,V.pe,V.date,V.ss,V.sm,V.fr,V.wedit,V.bal,V.eqm,V.evm,V.mm].join();const dc=V.dir>0?' dr':V.dir<0?' dl':'';$('app').className=sg!==V.sg?'an'+dc:'';V.sg=sg;
 $('app').innerHTML=((V.me.role==='emp'&&EMPR[V.tab])||T[3])();cnt();initSigs();
@@ -1542,6 +1543,27 @@ let SX=0,SY=0;
 document.addEventListener('touchstart',e=>{SX=e.touches[0].clientX;SY=e.touches[0].clientY},{passive:true});
 document.addEventListener('touchend',e=>{if(!V.me||V.mn||V.sh)return;const dx=e.changedTouches[0].clientX-SX,dy=e.changedTouches[0].clientY-SY;if(Math.abs(dx)<70||Math.abs(dy)>60)return;if(e.target.closest&&e.target.closest('nav,.chs,.sc,input,textarea,select,canvas,table,.rail,.balloon,.sig,.dd,.sheet,.month-grid'))return;const L=TABS.map(x=>x[0]).filter(k=>canTab(k)&&!NAV_MOVED.includes(k)),i=L.indexOf(V.tab),j=i+(dx<0?1:-1);if(j<0||j>=L.length)return;V.bal=null;go(L[j])},{passive:true});
 R();
+async function restoreLogin(){
+  try{
+    const {data:{session}}=await supa.auth.getSession();
+    const saved=JSON.parse(localStorage.getItem('st_auth_state')||'null');
+    if(session&&saved&&saved.version===APP_VERSION&&saved.wel){
+      V.sbSession=session;
+      V.wel=saved.wel;
+      V.authChecking=false;
+      if(meOf(V.wel)){enterApp();return;}
+    }
+    localStorage.removeItem('st_auth_state');
+    if(session)await supa.auth.signOut();
+  }catch(err){
+    console.warn('Não foi possível restaurar a sessão:',err);
+  }
+  V.sbSession=null;
+  V.wel=null;
+  V.authChecking=false;
+  R();
+}
+restoreLogin();
 document.addEventListener('toggle',e=>{const d=e.target;if(!(d instanceof HTMLDetailsElement)||!d.open||!d.parentElement)return;d.parentElement.querySelectorAll(':scope > details[open]').forEach(x=>{if(x!==d)x.open=false})},true);
 
 /* ---- padronização dos botões: adicionar (+), voltar (‹) e excluir (×) ---- */
