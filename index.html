@@ -1511,8 +1511,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.9';
+const APP_VERSION='3.31.10';
 const APP_HIST=[
+{v:'3.31.10',d:'16/11/2026',t:'Atualização de versão para disparar nova publicação (PATCH)',n:['Versão incrementada sem alterar funcionalidades do sistema.'],c:[]},
 {v:'3.31.9',d:'16/11/2026',t:'Sincronização inicial da equipe (PATCH)',n:['Login: carrega os cadastros de funcionários autorizados pela nuvem antes de abrir o sistema.','Sessão: atualiza a equipe ao restaurar o login e mantém os dados locais disponíveis quando estiver offline.'],c:[]},
 {v:'3.31.8',d:'15/11/2026',t:'Vínculo do login com a equipe (PATCH)',n:['Login: encarregado passa a ser associado ao cadastro correto da equipe pelo team_member_id retornado pelo Supabase.','Login: impede entrada de encarregado sem vínculo com um cadastro da equipe.'],c:[]},
 {v:'3.31.5',d:'15/11/2026',t:'Correção de permissões (PATCH)',n:['Permissões: menu Equipe alinhado à chave r:eqp usada pelo perfil e pelo Supabase.'],c:[]}, 
