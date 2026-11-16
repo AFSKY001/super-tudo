@@ -984,7 +984,7 @@ function lotHTML(k){if(V.lot){const lid=V.lot;if(lid==='legacy'||lid==='manual'|
 function lotSel(id){const a=V.lsel||[];V.lsel=a.includes(id)?a.filter(x=>x!==id):[...a,id];R()}
 function lotSelAll(k,lid,on){const L=(S.log[k]||[]).filter(e=>lid==='legacy'?!e.lot:e.lot===lid);V.lsel=on?L.map(e=>e.id):[];R()}
 function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert('Escolha o responsável.');const sel=V.lsel||[];if(!sel.length)return;const L=S.log[k]||[];let n=0;L.forEach(e=>{if(sel.includes(e.id)){e.rh=[...(e.rh||[]),{de:e.r||'',para:name,por:V.me?V.me.n:'',em:Date.now()}];e.r=name;n++}});V.lsel=[];if(!save())return;alert(n+' produto(s) atribuído(s) a '+name+'.');R()}
-function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?perdIndHTML()+h:h}
+function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?h+perdIndHTML():h}
 function rRegLancMain(){if(V.reg==='ck'){V.ckOnly=null;return rCkLanc()}if(V.reg==='chrec')return rChRec();if(V.reg==='temp'&&V.eqm&&eqOK())return '<button class="ch" onclick="V.eqm=0;V.eqe=null;R();scrollTo(0,0)">‹ Temperaturas</button><h3 class="u-m10">🛠️ Equipamentos</h3>'+rEqp();const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse();
 let h=`<div class="row sp"><b>${F.e} ${F.n}</b>${V.reg==='perd'?`<button class="bt" title="Importar planilha" aria-label="Importar planilha" onclick="V.pim={setor:'',res:null};R()">+</button>`:'<span class="mu">Troque pelo botão 📝 ao lado</span>'}</div>`;
 if(V.reg==='ped'&&V.add)return h+pedForm();
@@ -1511,8 +1511,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.11';
+const APP_VERSION='3.31.12';
 const APP_HIST=[
+{v:'3.31.12',d:'16/11/2026',t:'Correção da ordem do cabeçalho de perdas (PATCH)',n:['Perdas de perecíveis: título e botão de importar aparecem no topo, antes dos indicadores, seguindo o padrão das demais telas.'],c:[]},
 {v:'3.31.11',d:'16/11/2026',t:'Padronização de perdas de perecíveis (PATCH)',n:['Lançamentos: tela de perdas de perecíveis segue o padrão dos demais menus, com nome do menu no topo e botão + para importar planilha.'],c:[]},
 {v:'3.31.10',d:'16/11/2026',t:'Atualização de versão para disparar nova publicação (PATCH)',n:['Versão incrementada sem alterar funcionalidades do sistema.'],c:[]},
 {v:'3.31.9',d:'16/11/2026',t:'Sincronização inicial da equipe (PATCH)',n:['Login: carrega os cadastros de funcionários autorizados pela nuvem antes de abrir o sistema.','Sessão: atualiza a equipe ao restaurar o login e mantém os dados locais disponíveis quando estiver offline.'],c:[]},
