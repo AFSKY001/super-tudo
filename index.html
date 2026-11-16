@@ -1630,7 +1630,7 @@ $('dt').style.display='';if(V.me.role==='emp'){const q=person(V.me.id);V.me.perm
 const T=TABS.find(t=>t[0]===V.tab);const sg=[V.tab,V.pv,V.eq,V.ev,V.evt,V.ck,V.ce,V.reg,V.rs,V.cff,V.te,V.pe,V.date,V.ss,V.sm,V.fr,V.wedit,V.bal,V.eqm,V.evm,V.mm].join();const dc=V.dir>0?' dr':V.dir<0?' dl':'';$('app').className=sg!==V.sg?'an'+dc:'';V.sg=sg;
 const pageText={painel:'Resumo da operação e acompanhamento da equipe.',cro:'Organize as atividades, responsáveis e tarefas do dia.',ck:'Acompanhe modelos, aplicações e execução dos checklists.',ava:'Consulte avaliações, pesquisas e resultados da equipe.',pro:'Acompanhe indicadores e evolução por setor e funcionário.',atr:'Consulte atribuições e responsabilidades da equipe.',reg:'Acesse lançamentos, cadastros, importações e conferências.'};
 const pageContent=((!isFullAccess()&&EMPR[V.tab])||T[3])();
-$('app').innerHTML=`<main class="page-shell"><header class="page-heading"><div><h1>${esc(T[2])}</h1><p>${pageText[V.tab]||'Consulte e gerencie as informações desta área.'}</p></div></header><div class="page-content">${pageContent}</div></main>`;cnt();initSigs();
+$('app').innerHTML=`<div class="page-shell"><div class="page-heading"><div><h1>${esc(T[2])}</h1><p>${pageText[V.tab]||'Consulte e gerencie as informações desta área.'}</p></div></div><div class="page-content">${pageContent}</div></div>`;cnt();initSigs();
 $('nav').innerHTML=A.map(t=>`<button class="${t[0]===V.tab?'on':''}" onclick="go('${t[0]}')" aria-label="${t[2]}"><span class="ni">${IC(t[0])||t[1]}</span><span class="nl">${t[2]}</span></button>`).join('');
 
 $('hd').textContent=V.tab==='painel'?T[2]+' · '+DN[dow(today())]+', '+br(today()):T[2]}
