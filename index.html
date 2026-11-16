@@ -1050,6 +1050,26 @@ function migrateV5(){if(S.migrations.includes('v5-perfis'))return;if(!Array.isAr
 function migrateV4(){if(S.migrations.includes('v4-login'))return;const m={'Controle de qualidade':['Controle de Qualidade'],'Prevenção de perdas':['Prevenção'],'Encarregado':['Encarregado'],'Comprador':['Compras']};S.team.forEach(p=>{if(!p.g)p.g=m[p.f]?[...m[p.f]]:[];if(/^vin[ií]cius$/i.test(p.n))p.g=['Controle de Qualidade','Prevenção'];p.lead=p.lead||[];p.l=!!p.l||p.lead.length>0});S.migrations.push('v4-login');save()}
 function rLogin(){return `<div class="lgw"><div class="lgc"><div class="lgt">${IC('logo')}</div><h2 style="text-align:center;margin:4px 0 2px">Atacarejo Super Tudo</h2><p class="mu" style="text-align:center;margin:0 0 12px">Entre com o usuário e a senha do seu cadastro</p>${V.lgL?'<div class="lgs"><div class="spin"></div><p class="mu">Entrando…</p></div>':`<label>Usuário<input id="lg_u" autocomplete="username" autocapitalize="none" onkeydown="if(event.key==='Enter')$('lg_p').focus()"></label><label>Senha<input id="lg_p" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></label>${V.lgE?`<p style="color:var(--no);margin:8px 0 0">${V.lgE}</p>`:''}<button class="bt" style="width:100%;margin-top:14px" onclick="doLogin()">Entrar</button>`}</div></div>`}
 
+async function pullCloudTeam(){
+  const {data,error}=await supa.rpc('sync_pull',{p_since:null});
+  if(error)throw error;
+  const records=Array.isArray(data&&data.records)?data.records:[];
+  S.team=S.team||[];
+  let changed=false;
+  records.forEach(rec=>{
+    if(!rec||rec.kind!=='cfg:team'||!rec.data||typeof rec.data!=='object')return;
+    const id=String(rec.record_id||rec.data.id||'').trim();
+    if(!id)return;
+    const incoming={...rec.data,id};
+    const index=S.team.findIndex(p=>String(p.id)===id);
+    if(index>=0)S.team[index]={...S.team[index],...incoming};
+    else S.team.push(incoming);
+    changed=true;
+  });
+  if(changed)save();
+  return records;
+}
+
 async function doLogin(){
   const u=($('lg_u').value||'').trim().toLowerCase(),p=$('lg_p').value||'';
   if(!u||!p){V.lgE='Informe o usuário e a senha.';R();return;}
@@ -1083,6 +1103,16 @@ async function doLogin(){
     };
     V.wel='cloud:'+V.cloudIdentity.id;
     localStorage.setItem('st_auth_state',JSON.stringify({version:APP_VERSION,wel:V.wel,identity:V.cloudIdentity}));
+    let pullOk=true;
+    try{await pullCloudTeam()}catch(syncErr){pullOk=false;console.warn('Falha ao carregar equipe da nuvem:',syncErr)}
+    if(!meOf(V.wel)){
+      localStorage.removeItem('st_auth_state');
+      await supa.auth.signOut();
+      V.sbSession=null;V.cloudIdentity=null;V.wel=null;
+      V.lgL=0;
+      V.lgE=pullOk?'Cadastro do funcionário não encontrado na nuvem. Peça ao administrador para conferir o cadastro.':'Não foi possível carregar seu cadastro da nuvem. Verifique a conexão e tente novamente.';
+      R();return;
+    }
     V.lgL=0;R();
   }catch(err){
     V.lgL=0;V.lgE='Falha na conexão. Verifique a internet.';R();
@@ -1418,8 +1448,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.8';
+const APP_VERSION='3.31.9';
 const APP_HIST=[
+{v:'3.31.9',d:'16/11/2026',t:'Sincronização inicial da equipe (PATCH)',n:['Login: carrega os cadastros de funcionários autorizados pela nuvem antes de abrir o sistema.','Sessão: atualiza a equipe ao restaurar o login e mantém os dados locais disponíveis quando estiver offline.'],c:[]},
 {v:'3.31.8',d:'15/11/2026',t:'Vínculo do login com a equipe (PATCH)',n:['Login: encarregado passa a ser associado ao cadastro correto da equipe pelo team_member_id retornado pelo Supabase.','Login: impede entrada de encarregado sem vínculo com um cadastro da equipe.'],c:[]},
 {v:'3.31.5',d:'15/11/2026',t:'Correção de permissões (PATCH)',n:['Permissões: menu Equipe alinhado à chave r:eqp usada pelo perfil e pelo Supabase.'],c:[]}, 
 {v:'3.31.4',d:'15/11/2026',t:'Correções e melhorias (PATCH)',n:['Login: a sessão permanece ativa ao atualizar ou reabrir a página; uma nova versão do código solicita autenticação novamente.','Login: corrigido erro que impedia abrir o sistema quando um elemento opcional não existia.','Registros: menus transferidos para Lançamentos não reaparecem duplicados na barra lateral ao abrir suas telas.'],c:[]},
@@ -1532,6 +1563,7 @@ async function restoreLogin(){
       V.cloudIdentity=saved.identity;
       V.wel=saved.wel;
       V.authChecking=false;
+      try{await pullCloudTeam()}catch(syncErr){console.warn('Falha ao atualizar equipe da nuvem; usando dados locais:',syncErr)}
       if(meOf(V.wel)){enterApp();return;}
     }
     localStorage.removeItem('st_auth_state');
