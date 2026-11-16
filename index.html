@@ -342,6 +342,22 @@ button.ibtn:focus-visible{outline:2px solid var(--pr,#4f46e5);outline-offset:2px
 button.ibtn-add{background:var(--pr,#4f46e5);color:#fff;border:0;box-shadow:0 2px 6px rgba(0,0,0,.12)}
 button.ibtn-back{background:transparent;color:var(--tx);border:1px solid var(--bd);min-width:40px}
 button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);min-width:36px;min-height:36px}
+
+/* Estrutura visual comum a todas as áreas */
+.page-shell{width:100%;max-width:1180px;margin:0 auto;padding:4px 0 28px;min-width:0}
+.page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 16px;padding:0 2px 12px;border-bottom:1px solid var(--bd)}
+.page-heading h1{font:750 clamp(21px,3vw,27px)/1.2 var(--fn);letter-spacing:-.035em;margin:0;color:var(--tx)}
+.page-heading p{font:400 13px/1.45 var(--fn);color:var(--mu);margin:5px 0 0;max-width:680px}
+.page-content{min-width:0}
+.page-content>.c:first-child{margin-top:0}
+.page-content h2{font:700 16px/1.3 var(--fn);letter-spacing:-.015em;margin:20px 2px 9px}
+.page-content h3{font:650 15px/1.35 var(--fn)}
+.page-content .c{border-radius:var(--r-l,18px)}
+.page-content .row{row-gap:9px}
+.page-content button.bt,.page-content button.ch{min-height:40px}
+.page-content input,.page-content select,.page-content textarea{max-width:100%}
+@media(min-width:720px){.page-shell{padding:8px 10px 36px}.page-heading{margin-bottom:20px;padding-bottom:15px}.page-content>.g2{gap:14px}}
+@media(max-width:520px){.page-shell{padding:2px 0 24px}.page-heading{margin-bottom:12px;padding-bottom:10px}.page-heading p{font-size:12px}.page-content h2{margin-top:17px}}
 </style></head><body>
 <header><div><h1><span class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.2l2 10h9.6l2-7.5H6.5"/><circle cx="9" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/></svg></span>Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
@@ -1511,8 +1527,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.12';
+const APP_VERSION='3.31.13';
 const APP_HIST=[
+{v:'3.31.13',d:'16/11/2026',t:'Padronização geral de layout (MINOR)',n:['Todas as áreas passam a usar a mesma estrutura externa de página, com título, descrição, largura, espaçamento e hierarquia visual consistentes.','A padronização é apenas visual: ações, permissões, dados e fluxos existentes foram preservados.'],c:[]},
 {v:'3.31.12',d:'16/11/2026',t:'Correção da ordem do cabeçalho de perdas (PATCH)',n:['Perdas de perecíveis: título e botão de importar aparecem no topo, antes dos indicadores, seguindo o padrão das demais telas.'],c:[]},
 {v:'3.31.11',d:'16/11/2026',t:'Padronização de perdas de perecíveis (PATCH)',n:['Lançamentos: tela de perdas de perecíveis segue o padrão dos demais menus, com nome do menu no topo e botão + para importar planilha.'],c:[]},
 {v:'3.31.10',d:'16/11/2026',t:'Atualização de versão para disparar nova publicação (PATCH)',n:['Versão incrementada sem alterar funcionalidades do sistema.'],c:[]},
@@ -1611,7 +1628,9 @@ function R0(){bell();Object.keys(CK).forEach(k=>{if(CK[k]&&CK[k].nw&&k!==V.ce&&k
 if(!V.me){$('app').innerHTML=V.authChecking?'<div class="lgw"><div class="lgc"><div class="spin"></div><p class="mu" style="text-align:center">Verificando sua sessão…</p></div></div>':(V.wel?rWelcome():rLogin());$('nav').innerHTML='';$('hd').textContent='';if($('snd'))$('snd').style.display='none';$('dt').style.display='none';return}
 $('dt').style.display='';if(V.me.role==='emp'){const q=person(V.me.id);V.me.perm=q&&q.perm||[]}const A=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));if(!A.some(t=>t[0]===V.tab))V.tab=A.length?A[0][0]:'painel';
 const T=TABS.find(t=>t[0]===V.tab);const sg=[V.tab,V.pv,V.eq,V.ev,V.evt,V.ck,V.ce,V.reg,V.rs,V.cff,V.te,V.pe,V.date,V.ss,V.sm,V.fr,V.wedit,V.bal,V.eqm,V.evm,V.mm].join();const dc=V.dir>0?' dr':V.dir<0?' dl':'';$('app').className=sg!==V.sg?'an'+dc:'';V.sg=sg;
-$('app').innerHTML=((!isFullAccess()&&EMPR[V.tab])||T[3])();cnt();initSigs();
+const pageText={painel:'Resumo da operação e acompanhamento da equipe.',cro:'Organize as atividades, responsáveis e tarefas do dia.',ck:'Acompanhe modelos, aplicações e execução dos checklists.',ava:'Consulte avaliações, pesquisas e resultados da equipe.',pro:'Acompanhe indicadores e evolução por setor e funcionário.',atr:'Consulte atribuições e responsabilidades da equipe.',reg:'Acesse lançamentos, cadastros, importações e conferências.'};
+const pageContent=((!isFullAccess()&&EMPR[V.tab])||T[3])();
+$('app').innerHTML=`<main class="page-shell"><header class="page-heading"><div><h1>${esc(T[2])}</h1><p>${pageText[V.tab]||'Consulte e gerencie as informações desta área.'}</p></div></header><div class="page-content">${pageContent}</div></main>`;cnt();initSigs();
 $('nav').innerHTML=A.map(t=>`<button class="${t[0]===V.tab?'on':''}" onclick="go('${t[0]}')" aria-label="${t[2]}"><span class="ni">${IC(t[0])||t[1]}</span><span class="nl">${t[2]}</span></button>`).join('');
 
 $('hd').textContent=V.tab==='painel'?T[2]+' · '+DN[dow(today())]+', '+br(today()):T[2]}
