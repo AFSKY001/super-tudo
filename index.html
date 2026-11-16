@@ -549,7 +549,7 @@ function dupCk(){const c=CK[V.ce],id='c'+uid();CK[id]={...c,n:c.n+' (cópia)',l:
 function ckDelModel(k){if(!ask('cm'+k))return;delete CK[k];if(V.mdl===k)V.mdl=null;save();R()}
 function delCk(){if(!confirm('Excluir este checklist?'))return;delete CK[V.ce];V.ce=null;ceRet();save();R()}
 function rMenuOld(){
- $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&(V.me.role==='master'||can('adm'))?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button>':''}<button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
+ $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&V.me.role==='master'?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button>':''}<button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
  $('sh').innerHTML='';
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(V.mn||V.sh)){V.mn=0;V.sh=0;rMenu()}});
@@ -777,8 +777,8 @@ function delEq(id){if(!confirm('Excluir este equipamento? Os registros antigos f
 function rEqp(){const L=S.equip||[];return (V.eqe?eqForm(V.eqe==='new'?{}:(L.find(e=>e.id===V.eqe)||{})):'<button class="bt" onclick="V.eqe=\'new\';R()">+ Cadastrar equipamento</button>')+'<p class="mu">Cadastre aqui os equipamentos que têm temperatura medida. Ao registrar uma temperatura, escolha o equipamento e o sistema classifica como ideal, tolerável ou risco.</p>'+(L.map(x=>`<div class="c"><div class="row sp"><b>${esc(x.num?x.num+' · ':'')}${esc(x.n)}</b><span class="mu">${esc(x.k||'')}</span></div><div class="mu">Ideal ≤ ${x.ideal} °C · Tolerável ≤ ${x.tol} °C · acima: risco</div><div class="row u-mt6"><button class="bt g" onclick="V.eqe='${x.id}';R()">Editar</button><button class="bt d" onclick="delEq('${x.id}')">Excluir</button></div></div>`).join('')||'<div class="c mu">Nenhum equipamento cadastrado.</div>')}
 const PDC_U=['un','kg','cx','pct','L'];
 const PDC_ST=[{v:'',l:'Aguardando'},{v:'Comprado',l:'Comprado'},{v:'Parcial',l:'Parcialmente comprado'},{v:'Não comprado',l:'Não conseguiu comprar'}];
-const pdcCanCreate=()=>!!V.me&&(V.me.role==='master'||(V.me.perm||[]).includes('r:pdc'));
-const pdcIsBuyer=()=>!!V.me&&(V.me.role==='master'||(!!person(V.me.id)&&isBuyer(person(V.me.id))));
+const pdcCanCreate=()=>!!V.me&&(isFullAccess()||(V.me.perm||[]).includes('r:pdc'));
+const pdcIsBuyer=()=>!!V.me&&(isFullAccess()||(!!person(V.me.id)&&isBuyer(person(V.me.id))));
 function pdcAddItem(){const p=(($('pdc_p')||{}).value||'').trim(),q=(($('pdc_q')||{}).value||'').trim(),u=($('pdc_u')||{}).value||'un',o=(($('pdc_o')||{}).value||'').trim();if(!p||!q)return alert('Informe o produto e a quantidade.');V.pdcL=[...(V.pdcL||[]),{p,q,u,o}];R()}
 function pdcDelItem(j){V.pdcL=(V.pdcL||[]).filter((_,x)=>x!==j);R()}
 function pdcSend(){const L=V.pdcL||[];if(!L.length)return alert('Adicione ao menos um produto.');const rp=person((($('pdc_rp')||{}).value)||'');if(!rp)return alert('Escolha o repositor que está fazendo o pedido.');S.pdc=S.pdc||[];const now=new Date(),id=uid();
@@ -787,8 +787,8 @@ const ids=[...S.team.filter(x=>isBuyer(x)).map(x=>x.id),'adm'];notify(ids,'🧾 
 function pdcRecalc(o){if(o.st==='Encerrado')return;const st=o.items.map(i=>i.ps);if(st.every(x=>!x)){o.st='Pendente';return}if(!st.every(x=>x)){o.st='Em andamento';return}const c=st.filter(x=>x==='Comprado').length;o.st=c===st.length?'Atendido':c>0||st.some(x=>x==='Parcial')?'Parcialmente atendido':'Em andamento'}
 function pdcSaveAt(oid){const o=(S.pdc||[]).find(x=>x.id===oid);if(!o)return;const before=o.st;o.items.forEach(it=>{const sv=($('pst_'+it.id)||{}).value;if(sv===undefined)return;it.ps=sv;it.buyer=V.me.n;it.qc=(($('pq_'+it.id)||{}).value||'').trim();it.mot=(($('pm_'+it.id)||{}).value||'').trim()});pdcRecalc(o);o.upd=Date.now();o.dirty=true;
 if(o.st!==before)notify([o.by,o.rp].filter(Boolean),'🧾 Pedido #'+o.n+': '+o.st+' ('+V.me.n+')',{t:'pdc',id:o.id},'pdcu|'+o.id+'|'+o.st+'|'+o.upd,'tar');save();R()}
-function pdcClose(oid){const o=(S.pdc||[]).find(x=>x.id===oid);if(!o||!(o.by===V.me.id||o.rp===V.me.id||V.me.role==='master'))return;o.st='Encerrado';o.upd=Date.now();o.dirty=true;notify([o.by,o.rp].filter(Boolean),'🧾 Pedido #'+o.n+' encerrado',{t:'pdc',id:o.id},'pdcx|'+o.id,'tar');save();R()}
-function pdcDetail(o){const buy=pdcIsBuyer(),owner=o.by===V.me.id||o.rp===V.me.id||V.me.role==='master';
+function pdcClose(oid){const o=(S.pdc||[]).find(x=>x.id===oid);if(!o||!(o.by===V.me.id||o.rp===V.me.id||isFullAccess()))return;o.st='Encerrado';o.upd=Date.now();o.dirty=true;notify([o.by,o.rp].filter(Boolean),'🧾 Pedido #'+o.n+' encerrado',{t:'pdc',id:o.id},'pdcx|'+o.id,'tar');save();R()}
+function pdcDetail(o){const buy=pdcIsBuyer(),owner=o.by===V.me.id||o.rp===V.me.id||isFullAccess();
 const rows=o.items.map(it=>{const base=`<b>${esc(it.p)}</b> <span class="mu">${esc(it.q)} ${esc(it.u)}${it.o?' · '+esc(it.o):''}</span>`;
 if(!buy)return `<div class="it"><div>${base}<div class="mu">${it.ps?'Situação: '+esc(it.ps):'Aguardando compra'}${it.qc?' · comprado: '+esc(it.qc)+' '+esc(it.u):''}${it.mot?' · motivo: '+esc(it.mot):''}${it.buyer?' · atendido por '+esc(it.buyer):''}${pdcConfText(it)}</div></div></div>`;
 return `<div class="c">${base}${it.cf?`<div class="mu">Enviado para conferência${pdcConfText(it)}</div>`:((it.ps==='Comprado'||it.ps==='Parcial')?`<label class="ind-ck"><input type="checkbox" id="pcf_${it.id}" checked> Encaminhar para conferência</label>`:'')}${dsel('pst_'+it.id,PDC_ST,it.ps||'')}<div class="row u-mt6"><input id="pq_${it.id}" placeholder="Qtd. comprada" value="${esc(it.qc||'')}" class="u-fx1" inputmode="decimal"><input id="pm_${it.id}" placeholder="Motivo / observação" value="${esc(it.mot||'')}" class="u-fx1"></div></div>`}).join('');
@@ -888,9 +888,9 @@ function migMovBack(){if(!S||!S.migrations)return;if(S.migrations.includes('mov-
   if(pre.length)S.conf.push(movConf(pre,'preco','mov_pre','Alteração de preço · '+(b.arq||''),b.sig||''))});
  S.movB=S.movB.map(b=>({...b,items:b.items.filter(x=>x.fila==='MAN')})).filter(b=>b.items.length);
  S.migrations.push('mov-back-2026');save()}
-function movOK(){return !!(V.me&&(V.me.role==='master'||can('l:rup')||can('l:etiq')))}
+function movOK(){return !!(V.me&&(isFullAccess()||can('l:rup')||can('l:etiq')))}
 function rReg(){const LK=LANC_KEYS.filter(k=>k!=='w5'&&k!=='rup'&&k!=='etiq'&&k!=='trf'&&can('l:'+k)),RS=RSEC.filter(x=>x[0]==='pdc'||(x[0]==='mov'?movOK():(x[0]==='w5'||x[0]==='semv')?(V.me&&V.me.role==='master'):canR(x[0])));let sec=V.rs||'lanc';if(!RS.some(x=>x[0]===sec))sec=RS.length?RS[0][0]:'lanc';if(LK.length&&(!V.reg||!FS[V.reg]||!can('l:'+V.reg)||V.reg==='trf'))V.reg=LK[0];const LKV=LK.filter(k=>k!=='ped'&&k!=='w5');if(sec==='lanc'&&(V.reg==='ped'||V.reg==='w5'))V.reg=LKV[0]||LK[0];
-const bal=V.bal==='lanc'&&sec==='lanc'&&LK.length?`<div class="balloon">${LKV.map(k=>`<button class="${V.reg===k?'on':''}" onclick="V.reg='${k}';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;R()">${FS[k].e} ${FS[k].n}</button>`).join('')}${['cro','ck','ava'].filter(k=>canTab(k)).concat(['pdc']).concat(V.me&&V.me.role==='master'?['semv']:[]).concat(movOK()?['mov']:[]).map(k=>{const t=TABS.find(x=>x[0]===k)||RSEC.find(x=>x[0]===k);return `<button onclick="V.tab='reg';V.rs='${k}';V.ck=null;V.bal=null;R()">${t[1]} ${t[2]}</button>`}).join('')}</div>`:'';
+const bal=V.bal==='lanc'&&sec==='lanc'&&LK.length?`<div class="balloon">${LKV.map(k=>`<button class="${V.reg===k?'on':''}" onclick="V.reg='${k}';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;R()">${FS[k].e} ${FS[k].n}</button>`).join('')}${['cro','ck','ava'].filter(k=>canTab(k)).concat(['pdc']).concat(V.me&&isFullAccess()?['semv']:[]).concat(movOK()?['mov']:[]).map(k=>{const t=TABS.find(x=>x[0]===k)||RSEC.find(x=>x[0]===k);return `<button onclick="V.tab='reg';V.rs='${k}';V.ck=null;V.bal=null;R()">${t[1]} ${t[2]}</button>`}).join('')}</div>`:'';
 const btn=([k,e,n])=>{const on=sec===k,oc=k==='lanc'?"V.rs='lanc';V.ck=null;V.dir=0;V.bal=V.bal==='lanc'?null:'lanc';V.add=0;scrollTo(0,0);R()":`V.rs='${k}';V.ck=null;V.eqm=0;V.cb=null;V.mdl=null;V.dir=0;V.bal=null;V.add=0;scrollTo(0,0);R()`;const b=`<button class="rb ${on?'on':''}" title="${n}" onclick="${oc}">${IC(k)||e}${on?`<small>${n}</small>`:''}</button>`;return k==='lanc'?`<div class="rwrap">${b}${bal}</div>`:b};
 const body={cro:rCroReg,ck:rCkReg,ava:rAvaReg,conf:rConf,eqp:rEqp,eq:rEq,set:rSet,pdc:rPdc,semv:rSemv,mov:rMov,w5:()=>{V.reg='w5';return rRegLanc()}}[sec]||rRegLanc;
 return `<div class="regwrap"><div class="rail">${RS.filter(x=>!REG_MOVED.includes(x[0])).map(btn).join('')}<div class="u-ver">Super Tudo · v${APP_VERSION}</div></div><div class="regbody">${body()}</div></div>`}
@@ -1017,13 +1017,15 @@ function rPro(){const rr=rankRows(),rows=S.team.map(p=>{const ks=Object.keys(CK)
 secs=S.sectors.map(s=>{const L=rows.filter(x=>x.p.s===s);if(!L.length)return null;const cs=L.filter(x=>x.c!=null),gs=L.filter(x=>x.g!=null);return {s,n:L.length,c:cs.length?cs.reduce((a,x)=>a+x.c,0)/cs.length:null,g:gs.length?gs.reduce((a,x)=>a+x.g,0)/gs.length:null}}).filter(Boolean);
 const info=(c,g)=>`Checklists hoje: ${c!=null?Math.round(c*100)+'%':'—'} · Nota: ${g!=null?g.toFixed(1)+'/10':'—'}`;
 return '<h2>Por setor</h2>'+(secs.length?secs.map(x=>`<div class="c"><div class="row sp"><b>${esc(x.s)}</b><span class="mu">${x.n} pessoa(s)</span></div><div class="mu">${info(x.c,x.g)}</div>${bar((x.c||0)*100)}</div>`).join(''):'<div class="c mu">Sem pessoas cadastradas.</div>')+'<h2>Por funcionário</h2>'+rows.map(x=>`<div class="c tap" onclick="V.proX=V.proX==='${x.p.id}'?null:'${x.p.id}';R()"><div class="row sp"><b>${esc(x.p.n)}</b><span class="mu">${esc(x.p.s||'Sem setor')}</span></div><div class="mu">${info(x.c,x.g)}</div>${bar((x.c||0)*100)}${ldrInfo(x.p)}${V.proX===x.p.id?`<div class="u-mt6" onclick="if(event.target.closest('button,select,input,textarea,label,a'))event.stopPropagation()">${perfHTML(x.p)}</div>`:''}</div>`).join('')}
-const can=k=>!!V.me&&(V.me.role==='master'||V.me.perm.includes(k));
+const isMaster=()=>!!V.me&&V.me.role==='master';
+ const isFullAccess=()=>!!V.me&&(V.me.role==='master'||V.me.role==='gerente');
+ const can=k=>!!V.me&&(isFullAccess()||V.me.perm.includes(k));
 const canR=k=>can('r:'+k);
-const canTab=k=>!V.me?false:V.me.role!=='master'?(EMPT.includes(k)||(k==='reg'&&(V.me.perm.some(p=>/^[rl]:/.test(p))||(S.pdc||[]).some(o=>o.rp===V.me.id||o.by===V.me.id)))||((k==='ava'||k==='pro')&&V.me.perm.includes(k))):k==='atr'?false:k==='reg'?true:can(k);
+const canTab=k=>!V.me?false:!isFullAccess()?(EMPT.includes(k)||(k==='reg'&&(V.me.perm.some(p=>/^[rl]:/.test(p))||(S.pdc||[]).some(o=>o.rp===V.me.id||o.by===V.me.id)))||((k==='ava'||k==='pro')&&V.me.perm.includes(k))):k==='atr'?false:k==='reg'?true:can(k);
 const PG=[['Menus',[['painel','📊 Painel'],['cro','🗓️ Cronograma'],['ck','✅ Checklists'],['ava','⭐ Avaliação'],['pro','📈 Progresso']]],['Registros – seções',[['r:lanc','📝 Lançamentos'],['r:cro','🗓️ Cronograma'],['r:ck','✅ Checklists'],['r:ava','⭐ Avaliações'],['r:conf','🔎 Conferências'],['r:eqp','👥 Equipe'],['r:set','🏬 Setores']]],['Registros – lançamentos',LANC_KEYS.map(k=>['l:'+k,FS[k].e+' '+FS[k].n])]];
 const PGFLAT=PG.flatMap(g=>g[1]);
-const ownBy=()=>V.me&&V.me.role!=='master'?{by:V.me.id,sent:false}:{};
-const canImp=()=>!!V.me&&(V.me.role==='master'||(typeof can==='function'&&can('adm')));
+const ownBy=()=>V.me&&!isFullAccess()?{by:V.me.id,sent:false}:{};
+const canImp=()=>!!V.me&&(isFullAccess()||(typeof can==='function'&&can('adm')));
 function histHTML(){return `<h3>📜 Histórico de atualizações</h3><p class="mu">Versão atual: <b>v${APP_VERSION}</b>. A versão muda só nas atualizações do programa, não nos cadastros ou lançamentos.</p>`+APP_HIST.map((h,i)=>`<details ${i===0?'open':''}><summary><b>v${h.v}</b> · ${h.d} · ${esc(h.t)}</summary><div class="u-mt6">${h.n.length?`<b>Novidades</b><ul>${h.n.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}${h.c.length?`<b>Correções</b><ul>${h.c.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}</div></details>`).join('')}
 async function refreshCloudAccessLinks(){
   if(!V.cloudIdentity||V.cloudIdentity.role!=='master'||!V.cloudIdentity.org_id)return;
@@ -1104,13 +1106,14 @@ async function doLogin(){
     if(!res.ok||!json.session||!json.profile||!json.membership){
       V.lgL=0;V.lgE=json.error||'Não foi possível validar seu acesso.';R();return;
     }
-    if(!['admin','encarregado'].includes(json.membership.role)){
+    if(!['admin','gerente','encarregado'].includes(json.membership.role)){
       V.lgL=0;V.lgE='Perfil de acesso não autorizado.';
       R();return;
     }
     const isAdmin=json.membership.role==='admin';
+     const isManager=json.membership.role==='gerente';
     const teamMemberId=String(json.membership.team_member_id||'').trim();
-    if(!isAdmin&&!teamMemberId){V.lgL=0;V.lgE='Este login ainda não está vinculado ao cadastro de um funcionário. Peça ao administrador para revisar o acesso.';R();return;}
+    if(!isAdmin&&!isManager&&!teamMemberId){V.lgL=0;V.lgE='Este login ainda não está vinculado ao cadastro de um funcionário. Peça ao administrador para revisar o acesso.';R();return;}
     const auth=await supa.auth.setSession({access_token:json.session.access_token,refresh_token:json.session.refresh_token});
     if(auth.error)throw auth.error;
     V.sbSession=json.session;
@@ -1118,9 +1121,9 @@ async function doLogin(){
       id:String(json.profile.id),
       u:json.profile.username||json.username||u,
       n:json.profile.display_name||json.profile.full_name||json.username||u,
-      c:isAdmin?'Administração':'Encarregado',
-      role:isAdmin?'master':'encarregado',
-      perm:isAdmin?['*']:(Array.isArray(json.membership.permissions)?json.membership.permissions.filter(x=>typeof x==='string'):[]),
+      c:isAdmin?'Administração':isManager?'Gerência':'Encarregado',
+      role:isAdmin?'master':isManager?'gerente':'encarregado',
+      perm:isAdmin||isManager?['*']:(Array.isArray(json.membership.permissions)?json.membership.permissions.filter(x=>typeof x==='string'):[]),
       sb_uid:String(json.profile.id),
       org_id:json.membership.org_id,
       team_member_id:teamMemberId
@@ -1422,13 +1425,13 @@ async function delAcc(id){
 const HT={painel:'Mostra seu progresso de hoje e o do seu setor. Toque nos cartões para ir direto às tarefas e aos checklists.',cro:'Suas atividades do dia. Toque em ⬜ para marcar como feita e use as setas e os dias para ver outras datas.',ck:'Escolha o checklist e toque em Preencher. Responda cada item e salve. Líderes escolhem no topo entre os seus e os da equipe.',atr:'A lista de tudo o que é responsabilidade sua.',ava:'Avaliações de desempenho.',pro:'Progresso das pessoas e dos setores.'},
 HL={ck:'preencher o checklist de um funcionário',temp:'temperatura dos equipamentos',trf:'transformação de produto',req:'pedir produto à compra para a produção',ped:'pedir produto à compra para a prateleira',perd:'importar planilha de perdas',desp:'desperdício da padaria',etiq:'entrega de etiquetas ao funcionário',fita:'retirada de fitas',rup:'ruptura e chegada de produtos',vtc:'vencidos com troca',vsc:'vencidos sem troca',atc:'avariados com troca',asc:'avariados sem troca',ach:'achados e perdidos',os:'ordem de serviço de refrigeração',w5:'plano de ação 5W2H',ent:'entregas',cx:'vendas por caixa',lote:'identificação de lotes'};
 const helpOff=()=>!!V.me&&localStorage.getItem('sthelp_'+V.me.id)==='1';
-function helpSteps(){const st=[['👋 Bem-vindo, '+V.me.n.split(' ')[0],'Este guia mostra o que você pode fazer. Toque em Próximo para avançar. Para rever depois: ⋮ › Ajuda.']];TABS.filter(t=>canTab(t[0])).forEach(t=>{if(t[0]==='reg'){const K=LANC_KEYS.filter(k=>can('l:'+k));st.push(['📝 Registros','Use o botão 📝 da lateral para escolher o que lançar. Liberado para você: '+RSEC.filter(x=>canR(x[0])).map(x=>x[1]+' '+x[2]).join(', ')+'.']);if(K.length)st.push(['📝 Seus lançamentos',K.map(k=>FS[k].e+' '+FS[k].n+' — '+(HL[k]||'')).join('\n')])}else st.push([t[1]+' '+t[2],HT[t[0]]||''])});if(can('adm'))st.push(['👤 Acessos e logins','Em ⋮ › Acessos e logins aparecem somente gerentes, subgerentes, supervisores e encarregados. Você cria logins, troca senhas e escolhe as funções de cada pessoa. Lá também ficam os perfis prontos (Repositor, Encarregado, Master…).']);st.push(['🔔 Avisos e senha','O sino 🔔 mostra avisos, como pedidos de compra. Em ⋮ você troca a senha, abre esta ajuda e sai.']);return st}
+function helpSteps(){const st=[['👋 Bem-vindo, '+V.me.n.split(' ')[0],'Este guia mostra o que você pode fazer. Toque em Próximo para avançar. Para rever depois: ⋮ › Ajuda.']];TABS.filter(t=>canTab(t[0])).forEach(t=>{if(t[0]==='reg'){const K=LANC_KEYS.filter(k=>can('l:'+k));st.push(['📝 Registros','Use o botão 📝 da lateral para escolher o que lançar. Liberado para você: '+RSEC.filter(x=>canR(x[0])).map(x=>x[1]+' '+x[2]).join(', ')+'.']);if(K.length)st.push(['📝 Seus lançamentos',K.map(k=>FS[k].e+' '+FS[k].n+' — '+(HL[k]||'')).join('\n')])}else st.push([t[1]+' '+t[2],HT[t[0]]||''])});if(isMaster())st.push(['👤 Acessos e logins','Em ⋮ › Acessos e logins aparecem somente gerentes, subgerentes, supervisores e encarregados. Você cria logins, troca senhas e escolhe as funções de cada pessoa. Lá também ficam os perfis prontos (Repositor, Encarregado, Master…).']);st.push(['🔔 Avisos e senha','O sino 🔔 mostra avisos, como pedidos de compra. Em ⋮ você troca a senha, abre esta ajuda e sai.']);return st}
 function helpHTML(){const L=helpSteps(),i=Math.min(V.hs||0,L.length-1),last=i===L.length-1;return `<div class="row sp"><b>${esc(L[i][0])}</b><span class="mu">${i+1}/${L.length}</span></div>${bar((i+1)/L.length*100)}<div style="white-space:pre-line;margin:10px 0">${esc(L[i][1])}</div><label class="u-row-c"><input type="checkbox" ${V.hoff?'checked':''} onchange="V.hoff=this.checked" class="u-wauto">Não mostrar mais ao entrar</label><div class="row u-mt10">${i?'<button class="bt g" onclick="V.hs--;rMenu()">Voltar</button>':''}<button class="bt" onclick="${last?'closeHelp()':'V.hs=(V.hs||0)+1;rMenu()'}">${last?'Concluir':'Próximo'}</button></div>`}
 function closeHelp(){if(V.me){V.hoff?localStorage.setItem('sthelp_'+V.me.id,'1'):localStorage.removeItem('sthelp_'+V.me.id)}V.sh=0;V.hs=0;rMenu()}
 async function logout(){localStorage.removeItem('st_auth_state');supa.auth.signOut().catch(()=>{});V.sbSession=null;V.me=null;V.wel=null;V.lgE='';V.lgL=0;V.sh=0;V.mn=0;rMenu();R()}
-function rWelcome(){const x=meOf(V.wel);if(!x)return rLogin();const L=x.role!=='master'?['📊 Painel da sua função','🗓️ Seu cronograma','✅ Seus checklists','📋 Suas atribuições'].concat((x.perm||[]).some(k=>/^[rl]:/.test(k))?['📝 Registros']:[]).concat((x.perm||[]).includes('ava')?['⭐ Avaliação']:[],(x.perm||[]).includes('pro')?['📈 Progresso']:[],(x.perm||[]).includes('adm')?['👤 Acessos e logins']:[]):['Acesso total (administrador)'];
+function rWelcome(){const x=meOf(V.wel);if(!x)return rLogin();const L=!['master','gerente'].includes(x.role)?['📊 Painel da sua função','🗓️ Seu cronograma','✅ Seus checklists','📋 Suas atribuições'].concat((x.perm||[]).some(k=>/^[rl]:/.test(k))?['📝 Registros']:[]).concat((x.perm||[]).includes('ava')?['⭐ Avaliação']:[],(x.perm||[]).includes('pro')?['📈 Progresso']:[],(x.perm||[]).includes('adm')?['👤 Acessos e logins']:[]):['Acesso total (administrador)'];
 return `<div class="lgw"><div class="lgc u-tc"><div class="u-fs44">👋</div><h2 class="u-mv6">Bem-vindo, ${esc(x.n)}!</h2><p class="mu">${esc(x.c||'')}<br>Atacarejo Super Tudo</p><div class="c u-tl"><b>Você precisa alimentar:</b><ul style="margin:6px 0 0;padding-left:18px">${L.map(l=>`<li>${l}</li>`).join('')||'<li>Nada liberado ainda. Fale com o administrador.</li>'}</ul></div><button class="bt u-w100" onclick="enterApp()">Entrar no sistema</button></div></div>`}
-function enterApp(){const x=meOf(V.wel);V.me=x||null;V.wel=null;V.lgE='';V.dir=0;if(V.me){const L=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));V.tab=L.length?L[0][0]:'painel'}V.hs=0;V.hoff=helpOff();V.sh=V.me&&V.me.role!=='master'&&!V.hoff?'help':0;R();rMenu()}
+function enterApp(){const x=meOf(V.wel);V.me=x||null;V.wel=null;V.lgE='';V.dir=0;if(V.me){const L=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));V.tab=L.length?L[0][0]:'painel'}V.hs=0;V.hoff=helpOff();V.sh=V.me&&!['master','gerente'].includes(V.me.role)&&!V.hoff?'help':0;R();rMenu()}
 const nrm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const nmv=x=>{if(typeof x==='number')return x;let s=String(x||'').replace(/[R$\s]/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s)||0};
 const dtI=v=>{if(v===''||v==null)return '';if(typeof v==='number'){const d=new Date(Math.round((v-25569)*864e5));return d.getUTCFullYear()+'-'+pd(d.getUTCMonth()+1)+'-'+pd(d.getUTCDate())}const m=String(v).match(/^(\d{2})\/(\d{2})\/(\d{4})/);return m?m[3]+'-'+m[2]+'-'+m[1]:String(v).slice(0,10)};
@@ -1605,7 +1608,7 @@ function R0(){bell();Object.keys(CK).forEach(k=>{if(CK[k]&&CK[k].nw&&k!==V.ce&&k
 if(!V.me){$('app').innerHTML=V.authChecking?'<div class="lgw"><div class="lgc"><div class="spin"></div><p class="mu" style="text-align:center">Verificando sua sessão…</p></div></div>':(V.wel?rWelcome():rLogin());$('nav').innerHTML='';$('hd').textContent='';if($('snd'))$('snd').style.display='none';$('dt').style.display='none';return}
 $('dt').style.display='';if(V.me.role==='emp'){const q=person(V.me.id);V.me.perm=q&&q.perm||[]}const A=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));if(!A.some(t=>t[0]===V.tab))V.tab=A.length?A[0][0]:'painel';
 const T=TABS.find(t=>t[0]===V.tab);const sg=[V.tab,V.pv,V.eq,V.ev,V.evt,V.ck,V.ce,V.reg,V.rs,V.cff,V.te,V.pe,V.date,V.ss,V.sm,V.fr,V.wedit,V.bal,V.eqm,V.evm,V.mm].join();const dc=V.dir>0?' dr':V.dir<0?' dl':'';$('app').className=sg!==V.sg?'an'+dc:'';V.sg=sg;
-$('app').innerHTML=((V.me.role!=='master'&&EMPR[V.tab])||T[3])();cnt();initSigs();
+$('app').innerHTML=((!isFullAccess()&&EMPR[V.tab])||T[3])();cnt();initSigs();
 $('nav').innerHTML=A.map(t=>`<button class="${t[0]===V.tab?'on':''}" onclick="go('${t[0]}')" aria-label="${t[2]}"><span class="ni">${IC(t[0])||t[1]}</span><span class="nl">${t[2]}</span></button>`).join('');
 
 $('hd').textContent=V.tab==='painel'?T[2]+' · '+DN[dow(today())]+', '+br(today()):T[2]}
