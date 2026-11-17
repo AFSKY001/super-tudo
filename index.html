@@ -541,7 +541,7 @@ function syncApplyRecord(rec){
  if(m==='pdc'||m==='conf'||m==='ev'||m==='evm'||m==='amod'||m==='imod'||m==='indc'||m==='tasks'||m==='tmod'||m==='pt'||m==='movB'||m==='semvB'||m==='semvH'||m==='impVA'||m==='impPerd'||m==='presets'){arr(m,false);return}
  if(m.indexOf('log:')===0){const k=m.slice(4);S.log=S.log||{};S.log[k]=Array.isArray(S.log[k])?S.log[k]:[];const i=S.log[k].findIndex(x=>String(x.id)===id);if(del){if(i>=0)S.log[k].splice(i,1)}else{const x={...(d||{}),id};if(i>=0)S.log[k][i]=x;else S.log[k].push(x)}return}
  if(m==='runs'||m==='done'||m==='taskEdits'){obj(m);return}
- if(m==='ck'){if(del)delete CK[id];else CK[id]=d.value;return}
+ if(m==='ck'){if(del)delete CK[id];else CK[id]=d.value;lz();return}
  if(m==='sectors'||m==='roles'||m==='optd'||m==='semvCod'){if(!del)S[m]=d.value;return}
 }
 function syncNotice(rec){
