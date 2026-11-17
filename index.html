@@ -488,10 +488,10 @@ try{S=JSON.parse(localStorage.getItem(K))}catch(e){}S=S||seed();fix();applyCk();
 
 /* ---- sincronização geral da nuvem ---- */
 let syncReady=false,syncApplying=false,syncBusy=false,syncPullBusy=false,syncPullAgain=false,syncSendingKey='',syncSendingId='',syncBaseline=null,syncChannel=null,syncTimer=null,syncListeners=false;
-let syncMeta={revisions:{},queue:[],conflicts:{}};
-try{const z=JSON.parse(localStorage.getItem('st_cloud_sync_v1')||'null');if(z&&typeof z==='object')syncMeta={...syncMeta,...z,revisions:z.revisions||{},queue:z.queue||[],conflicts:z.conflicts||{}}}catch(e){}
+let syncMeta={owner:'',revisions:{},queue:[],conflicts:{}};
+function syncUseIdentity(){if(!V.cloudIdentity)return;const owner=String(V.cloudIdentity.org_id||'')+':'+String(V.cloudIdentity.id||'');if(syncMeta.owner===owner)return;syncMeta={owner,revisions:{},queue:[],conflicts:{}};try{const z=JSON.parse(localStorage.getItem('st_cloud_sync_v1:'+owner)||'null');if(z&&typeof z==='object')syncMeta={...syncMeta,...z,owner,revisions:z.revisions||{},queue:z.queue||[],conflicts:z.conflicts||{}}}catch(e){}syncReady=false;syncBaseline=null;syncPersist()}
 function syncStatusUpdate(){const el=$('syncStatus');if(!el)return;const off=typeof navigator!=='undefined'&&!navigator.onLine,conf=Object.keys(syncMeta.conflicts||{}).length,q=(syncMeta.queue||[]).length;if(conf){el.textContent='☁️ Revisar conflito';el.style.color='#c2410c'}else if(off){el.textContent='☁️ Sem conexão';el.style.color='#b45309'}else if(!syncReady){el.textContent='☁️ Conectando';el.style.color='#64748b'}else if(q){el.textContent='☁️ Enviando '+q;el.style.color='#b45309'}else{el.textContent='☁️ Sincronizado';el.style.color='#15803d'}}
-function syncPersist(){try{localStorage.setItem('st_cloud_sync_v1',JSON.stringify(syncMeta))}catch(e){console.warn('Não foi possível salvar a fila de sincronização:',e)}syncStatusUpdate()}
+function syncPersist(){try{localStorage.setItem('st_cloud_sync_v1'+(syncMeta.owner?':'+syncMeta.owner:''),JSON.stringify(syncMeta))}catch(e){console.warn('Não foi possível salvar a fila de sincronização:',e)}syncStatusUpdate()}
 function syncUuid(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)})}
 function syncCanon(v){if(Array.isArray(v))return '['+v.map(syncCanon).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+syncCanon(v[k])).join(',')+'}';return JSON.stringify(v)}
 function syncAddArray(M,bucket,kind,arr){(Array.isArray(arr)?arr:[]).forEach(function(x){if(!x||x.id==null)return;const id=String(x.id),key=bucket+'|'+id;M.set(key,{key,module:bucket,record_id:id,kind,data:x})})}
@@ -1296,6 +1296,7 @@ async function doLogin(){
       org_id:json.membership.org_id,
       team_member_id:teamMemberId
     };
+    syncUseIdentity();
     V.wel='cloud:'+V.cloudIdentity.id;
     localStorage.setItem('st_auth_state',JSON.stringify({version:APP_VERSION,wel:V.wel,identity:V.cloudIdentity}));
     let pullOk=true;
@@ -1800,6 +1801,7 @@ async function restoreLogin(){
     if(session&&saved&&saved.version===APP_VERSION&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
       V.sbSession=session;
       V.cloudIdentity=saved.identity;
+      syncUseIdentity();
       V.wel=saved.wel;
       V.authChecking=false;
       try{await pullCloudTeam()}catch(syncErr){console.warn('Falha ao atualizar equipe da nuvem; usando dados locais:',syncErr)}
