@@ -1662,6 +1662,7 @@ function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
 const APP_VERSION='3.31.16';
 const APP_HIST=[
+{v:'3.31.16',d:'17/11/2026',t:'Correção da sincronização na nuvem (PATCH)',n:['Removida uma declaração duplicada que impedia a rotina completa de sincronização de concluir a leitura e enviar lançamentos para a nuvem.'],c:[]},
 {v:'3.31.15',d:'17/11/2026',t:'Sincronização geral na nuvem (MINOR)',n:['Lançamentos, cadastros, checklists, avaliações, cronogramas e conferências passam a entrar na fila de sincronização após alterações.','Atualizações de outros aparelhos são baixadas automaticamente, com atualização ao reconectar e verificação periódica.','Alterações pendentes ficam preservadas no aparelho; conflitos não sobrescrevem dados silenciosamente.'],c:[]},
 {v:'3.31.14',d:'16/11/2026',t:'Exibição do login administrador (PATCH)',n:['Administradores vinculados à equipe passam a aparecer em Acessos e logins, em seção somente leitura.']},
 {v:'3.31.13',d:'16/11/2026',t:'Padronização geral de layout (MINOR)',n:['Todas as áreas passam a usar a mesma estrutura externa de página, com título, descrição, largura, espaçamento e hierarquia visual consistentes.','A padronização é apenas visual: ações, permissões, dados e fluxos existentes foram preservados.'],c:[]},
