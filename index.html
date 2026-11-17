@@ -1627,11 +1627,7 @@ if(!items.length)return alert('Nenhum produto encontrado. A planilha precisa de 
 const nome=prompt('Nome desta conferência',(lab||CFN[t])+' · '+br(today()))||(lab||CFN[t]);const c={id:uid(),t,nome,d:today(),r:V.cfR||'',items,u:Date.now(),src:V.reg||'',...ownBy()};S.conf.push(c);save();V.cfO=c.id;V.rs='conf';V.bal=null;R()})};i.click()}
 function delConf(id){if(!confirm('Excluir esta conferência?'))return;S.conf=S.conf.filter(c=>c.id!==id);tomb('@conf',id);V.cfO=null;save();R()}
 function pdcConfText(it){const cf=S.conf.find(c=>c.id===it.cf),ci=cf&&(cf.items||[]).find(x=>x.iid===it.id);if(!cf)return '';if(!ci||ci.ok===undefined||ci.ok===null)return ' · aguardando conferência';if(ci.ok===true)return ' · conferido ✓';return ' · divergência: '+esc(ci.dv||'—')+(ci.qcf?' · conferido: '+esc(ci.qcf):'')+(ci.ob?' · '+esc(ci.ob):'')}
-function pdcForward(oid){const o=(S.pdc||[]).find(x=>x.id===oid);if(!o)return;if(o.confId){V.tab='reg';V.rs='conf';V.cfO=o.confId;R();return}return alert('Este pedido ainda não possui conferência vinculada.');/*
-const cf={id:uid(),t:'compra',nome:'Pedido #'+o.n+' · '+(o.rpN||o.byN),d:today(),r:o.rpN||o.byN,pedId:o.id,by:V.me.id,u:Date.now(),sent:false,
-items:sel.map(it=>({p:it.p,c:it.q+' '+it.u,qc:it.qc||'',u:it.u,iid:it.id,ok:null,dv:'',qcf:'',ob:''}))};
-S.conf=S.conf||[];S.conf.push(cf);sel.forEach(it=>{it.cf=cf.id});o.dirty=true;o.upd=Date.now();
-*/}
+function pdcForward(oid){const o=(S.pdc||[]).find(x=>x.id===oid);if(!o)return;if(o.confId){V.tab='reg';V.rs='conf';V.cfO=o.confId;R();return}return alert('Este pedido ainda não possui conferência vinculada.');}
 function pdcPurchaseSave(cid,i){const c=(S.conf||[]).find(x=>x.id===cid),it=c&&c.items[i],o=c&&(S.pdc||[]).find(x=>x.id===c.pedId);if(!c||!it||!o)return;const ps=(($('cps_'+cid+'_'+i)||{}).value)||'',qc=(($('cpq_'+cid+'_'+i)||{}).value||'').trim(),mot=(($('cpm_'+cid+'_'+i)||{}).value||'').trim();Object.assign(it,{ps,qc,mot,buyer:V.me.n,ok:ps==='Comprado'?true:null});const pi=o.items.find(x=>x.id===it.iid);if(pi)Object.assign(pi,{ps,qc,mot,buyer:V.me.n});pdcRecalc(o);o.upd=Date.now();o.dirty=true;c.u=Date.now();c.sent=false;save();R()}
 function pdcConfSet(cid,i,patch){const c=S.conf.find(x=>x.id===cid);if(!c)return;Object.assign(c.items[i],patch);c.cb=V.me.id;c.u=Date.now();c.sent=false;save();R()}
 function pdcConfSave(cid,i){const dv=(($('cdv_'+cid+'_'+i)||{}).value)||'';if(!dv)return alert('Escolha o tipo de divergência.');const qcf=(($('cqc_'+cid+'_'+i)||{}).value||'').trim(),ob=(($('cob_'+cid+'_'+i)||{}).value||'').trim();
