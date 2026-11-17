@@ -69,7 +69,7 @@ AS $function$
       )
       OR (p_record_id IS NOT NULL AND public.can_access_team_member(p_record_id))
     WHEN k = 'cfg:sectors' OR k = 'cfg:roles' THEN
-      public.has_perm('r:set')
+      public.has_perm('r:set') OR EXISTS (SELECT 1 FROM public.org_members om JOIN public.profiles p ON p.id=om.user_id WHERE om.user_id=auth.uid() AND om.org_id=public.current_org_id() AND om.role='gerente' AND om.active=true AND p.active=true)
     WHEN k = 'cfg:checklists' THEN
       public.has_perm('r:ck')
     WHEN k = 'cfg:tasks' THEN
@@ -78,6 +78,7 @@ AS $function$
       public.has_perm('r:eqp') OR public.has_perm('l:temp')
     WHEN k = 'r:eqp' THEN
       public.has_perm('r:eqp') OR public.has_perm('l:temp')
+    WHEN EXISTS (SELECT 1 FROM public.org_members om JOIN public.profiles p ON p.id=om.user_id WHERE om.user_id=auth.uid() AND om.org_id=public.current_org_id() AND om.role='gerente' AND om.active=true AND p.active=true) THEN true
     WHEN left(coalesce(k, ''), 2) = 'l:' THEN
       public.has_perm(k)
       OR public.has_perm('r:' || substring(k from 3))
@@ -101,7 +102,29 @@ SECURITY DEFINER
 SET search_path TO ''
 AS $function$
   SELECT CASE
+    WHEN k = 'cfg:team' THEN
+      public.is_admin()
+      OR EXISTS (
+        SELECT 1
+        FROM public.org_members om
+        JOIN public.profiles p ON p.id = om.user_id
+        WHERE om.user_id = auth.uid()
+          AND om.org_id = public.current_org_id()
+          AND om.role = 'gerente'
+          AND om.active = true
+          AND p.active = true
+      )
     WHEN left(coalesce(k, ''), 4) = 'cfg:' THEN public.is_admin()
+    WHEN EXISTS (
+      SELECT 1
+      FROM public.org_members om
+      JOIN public.profiles p ON p.id = om.user_id
+      WHERE om.user_id = auth.uid()
+        AND om.org_id = public.current_org_id()
+        AND om.role = 'gerente'
+        AND om.active = true
+        AND p.active = true
+    ) THEN true
     WHEN k = 'r:eqp' THEN public.has_perm('r:eqp') OR public.has_perm('l:temp')
     ELSE public.has_perm(k)
   END;
