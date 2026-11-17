@@ -510,8 +510,9 @@ function syncRows(state){
 }
 function syncCanWrite(kind){
  const x=V.cloudIdentity||{},p=Array.isArray(x.perm)?x.perm:[];
+ if(kind==='cfg:team')return x.role==='master'||x.role==='gerente';
  if(kind.indexOf('cfg:')===0)return x.role==='master';
- if(x.role==='master')return true;
+ if(x.role==='master'||x.role==='gerente')return true;
  if(kind==='r:eqp')return p.includes('r:eqp')||p.includes('l:temp');
  if(kind.indexOf('l:')===0)return p.includes(kind);
  return p.includes(kind);
