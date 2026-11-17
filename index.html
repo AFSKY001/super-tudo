@@ -359,7 +359,7 @@ button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);
 @media(min-width:720px){.page-shell{padding:8px 10px 36px}.page-heading{margin-bottom:20px;padding-bottom:15px}.page-content>.g2{gap:14px}}
 @media(max-width:520px){.page-shell{padding:2px 0 24px}.page-heading{margin-bottom:12px;padding-bottom:10px}.page-heading p{font-size:12px}.page-content h2{margin-top:17px}}
 </style></head><body>
-<header><div><h1><span class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.2l2 10h9.6l2-7.5H6.5"/><circle cx="9" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/></svg></span>Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
+<header><div><h1><span class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.2l2 10h9.6l2-7.5H6.5"/><circle cx="9" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/></svg></span>Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
 <main id="app"></main>
 <nav id="nav"></nav>
@@ -490,7 +490,8 @@ try{S=JSON.parse(localStorage.getItem(K))}catch(e){}S=S||seed();fix();applyCk();
 let syncReady=false,syncApplying=false,syncBusy=false,syncSendingKey='',syncSendingId='',syncBaseline=null,syncChannel=null,syncTimer=null,syncListeners=false;
 let syncMeta={revisions:{},queue:[],conflicts:{}};
 try{const z=JSON.parse(localStorage.getItem('st_cloud_sync_v1')||'null');if(z&&typeof z==='object')syncMeta={...syncMeta,...z,revisions:z.revisions||{},queue:z.queue||[],conflicts:z.conflicts||{}}}catch(e){}
-function syncPersist(){try{localStorage.setItem('st_cloud_sync_v1',JSON.stringify(syncMeta))}catch(e){console.warn('Não foi possível salvar a fila de sincronização:',e)}}
+function syncStatusUpdate(){const el=$('syncStatus');if(!el)return;const off=typeof navigator!=='undefined'&&!navigator.onLine,conf=Object.keys(syncMeta.conflicts||{}).length,q=(syncMeta.queue||[]).length;if(conf){el.textContent='☁️ Revisar conflito';el.style.color='#c2410c'}else if(off){el.textContent='☁️ Sem conexão';el.style.color='#b45309'}else if(!syncReady){el.textContent='☁️ Conectando';el.style.color='#64748b'}else if(q){el.textContent='☁️ Enviando '+q;el.style.color='#b45309'}else{el.textContent='☁️ Sincronizado';el.style.color='#15803d'}}
+function syncPersist(){try{localStorage.setItem('st_cloud_sync_v1',JSON.stringify(syncMeta))}catch(e){console.warn('Não foi possível salvar a fila de sincronização:',e)}syncStatusUpdate()}
 function syncUuid(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)})}
 function syncCanon(v){if(Array.isArray(v))return '['+v.map(syncCanon).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+syncCanon(v[k])).join(',')+'}';return JSON.stringify(v)}
 function syncAddArray(M,bucket,kind,arr){(Array.isArray(arr)?arr:[]).forEach(function(x){if(!x||x.id==null)return;const id=String(x.id),key=bucket+'|'+id;M.set(key,{key,module:bucket,record_id:id,kind,data:x})})}
@@ -525,7 +526,7 @@ function syncQueueChanges(){
   if(!after&&!syncMeta.revisions[key])return;
   let item=null;
   for(let i=syncMeta.queue.length-1;i>=0;i--){if(syncMeta.queue[i].key===key&&syncMeta.queue[i].client_id!==syncSendingId){item=syncMeta.queue[i];break}}
-  if(item){item.deleted=!after;item.status='';}
+  if(item){item.deleted=!after;}
   else syncMeta.queue.push({key,module:ref.module,record_id:ref.record_id,kind:ref.kind,deleted:!after,client_id:syncUuid(),status:''});
  });
  syncBaseline=cur;syncPersist();syncFlush();
@@ -617,7 +618,7 @@ function syncBootstrapTeam(){
  syncPersist();
 }
 function startCloudSync(){
- if(!V.cloudIdentity)return;
+ if(!V.cloudIdentity)return;syncStatusUpdate();
  if(!syncListeners){window.addEventListener('online',function(){pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao retomar sincronização:',e))});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&V.cloudIdentity)pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao atualizar dados:',e))});syncListeners=true}
  if(!syncReady)pullCloudTeam().then(function(){syncBootstrapTeam();syncFlush()}).catch(e=>console.warn('Sincronização inicial indisponível:',e));
  else{syncBootstrapTeam();syncFlush()}
