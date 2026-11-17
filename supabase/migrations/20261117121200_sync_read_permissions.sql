@@ -1,6 +1,52 @@
 -- Super Tudo: separar permissão de leitura da permissão de gravação.
 -- Esta migration é uma etapa de fundação; não envia dados locais para a nuvem.
 
+-- A equipe subordinada também pode ser reconhecida pelo campo lead do cadastro,
+-- sem depender exclusivamente da tabela auxiliar team_lead_members.
+CREATE OR REPLACE FUNCTION public.can_access_team_member(p_member_id text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+  SELECT
+    public.is_admin()
+    OR (
+      public.has_perm('r:eqp')
+      AND EXISTS (
+        SELECT 1
+        FROM public.org_members om
+        JOIN public.profiles p ON p.id = om.user_id
+        WHERE om.user_id = auth.uid()
+          AND om.org_id = public.current_org_id()
+          AND om.role = 'encarregado'
+          AND om.active = true
+          AND p.active = true
+          AND (
+            om.team_member_id = p_member_id
+            OR EXISTS (
+              SELECT 1
+              FROM public.team_lead_members tlm
+              WHERE tlm.org_id = om.org_id
+                AND tlm.leader_team_member_id = om.team_member_id
+                AND tlm.member_team_member_id = p_member_id
+            )
+            OR EXISTS (
+              SELECT 1
+              FROM public.app_records leader
+              WHERE leader.org_id = om.org_id
+                AND leader.module = 'team'
+                AND leader.kind = 'cfg:team'
+                AND leader.record_id = om.team_member_id
+                AND leader.deleted_at IS NULL
+                AND coalesce(leader.data->'lead', '[]'::jsonb) ? p_member_id
+            )
+          )
+      )
+    );
+$function$;
+
 CREATE OR REPLACE FUNCTION public.can_read_kind(k text, p_record_id text DEFAULT NULL::text)
 RETURNS boolean
 LANGUAGE sql
