@@ -862,7 +862,7 @@ function ckDefault(){return {a:{},temps:[],who:dw(),av:'',obs:''}}
 function run(){const k=[V.ck,V.ckd,V.ckt].join('|');if(!V.ckdr||V.ckdr.k!==k){const b=S.runs[k];V.ckdr={k,r:b?JSON.parse(JSON.stringify(b)):ckDefault()}}return V.ckdr.r}
 function ckNorm(r){return JSON.stringify([r.a||{},r.temps||[],r.obs||'',r.who||'',r.av||'',r.photo||'',r.company||''])}
 function ckDirty(){const d=V.ckdr;if(!d)return false;const b=S.runs[d.k];return ckNorm(d.r)!==ckNorm(b||ckDefault())}
-function ckBack(ed){if(ckDirty()&&!confirm('Há alterações não salvas neste checklist. Sair sem salvar?'))return;const k=V.ck,rec=CK[k]&&CK[k].rc;if(CK[k]&&CK[k].nw&&!ed&&!rec)delete CK[k];V.ckdr=null;V.ce=ed?k:null;V.ck=null;R()}
+function ckBack(ed){if(ckDirty()&&!confirm('Há alterações não salvas neste checklist. Sair sem salvar?'))return;const k=V.ck;if(CK[k]&&CK[k].nw&&!ed)delete CK[k];V.ckdr=null;V.ce=ed?k:null;V.ck=null;R()}
 function ckSaveRun(){const d=V.ckdr;if(!d)return;const r=d.r,cc=CK[V.ck];if(cc&&isRec(cc)){if(!String(r.who||'').trim())return alert('Escolha o responsável pelo recebimento.');if(!(r.temps||[]).some(v=>v!==''&&v!=null&&isFinite(+v)))return alert('Informe pelo menos uma temperatura.');}r.by=V.me?V.me.id:'';r.sent=false;S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();ckNote(r);if(cc)delete cc.nw;if(!save())return;alert('Checklist salvo.');R()}
 function updTemp(i,v){const r=run();r.temps=r.temps||[];r.temps[i]=v;save()}
 function setA(i,v){const r=run();if(r.a[i]===v)delete r.a[i];else r.a[i]=v;const y=scrollY;R();scrollTo(0,y)}
