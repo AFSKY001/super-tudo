@@ -1195,7 +1195,7 @@ return '<h2>Por setor</h2>'+(secs.length?secs.map(x=>`<div class="c"><div class=
 const isMaster=()=>!!V.me&&V.me.role==='master';
  const isFullAccess=()=>!!V.me&&(V.me.role==='master'||V.me.role==='gerente');
  const can=k=>!!V.me&&(isFullAccess()||V.me.perm.includes(k));
-const canR=k=>can('r:'+k);
+const canR=k=>can('r:'+k)||((k==='conf'||k==='pdc')&&pdcCanCreate());
 const canTab=k=>!V.me?false:!isFullAccess()?(EMPT.includes(k)||(k==='reg'&&(V.me.perm.some(p=>/^[rl]:/.test(p))||(S.pdc||[]).some(o=>o.rp===V.me.id||o.by===V.me.id)))||((k==='ava'||k==='pro')&&V.me.perm.includes(k))):k==='atr'?false:k==='reg'?true:can(k);
 const PG=[['Menus',[['painel','📊 Painel'],['cro','🗓️ Cronograma'],['ck','✅ Checklists'],['ava','⭐ Avaliação'],['pro','📈 Progresso']]],['Registros – seções',[['r:lanc','📝 Lançamentos'],['r:cro','🗓️ Cronograma'],['r:ck','✅ Checklists'],['r:ava','⭐ Avaliações'],['r:conf','🔎 Conferências'],['r:eqp','👥 Equipe'],['r:set','🏬 Setores']]],['Registros – lançamentos',LANC_KEYS.map(k=>['l:'+k,FS[k].e+' '+FS[k].n])]];
 const PGFLAT=PG.flatMap(g=>g[1]);
