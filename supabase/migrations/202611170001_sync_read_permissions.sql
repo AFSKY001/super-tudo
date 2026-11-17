@@ -85,6 +85,8 @@ BEGIN
         'module', module,
         'record_id', record_id,
         'kind', kind,
+        'created_by', created_by,
+        'updated_by', updated_by,
         'data', CASE WHEN deleted_at IS NULL THEN data ELSE NULL END,
         'revision', revision,
         'updated_at', updated_at,
