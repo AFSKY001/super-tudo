@@ -520,6 +520,7 @@ function syncCanWrite(kind){
  if(kind.indexOf('cfg:')===0)return x.role==='master';
  if(x.role==='master'||x.role==='gerente')return true;
  if(kind==='r:eqp')return p.includes('r:eqp')||p.includes('l:temp');
+ if(kind==='r:pdc'||kind==='r:conf')return ['master','gerente','encarregado','supervisor','subgerente'].includes(x.role)||p.includes(kind);
  if(kind.indexOf('l:')===0)return p.includes(kind);
  return p.includes(kind);
 }
@@ -552,15 +553,15 @@ function syncApplyRecord(rec){
 }
 function syncNotice(rec){
  const who=String(rec.updated_by||rec.created_by||''),actor=(S.team||[]).find(p=>String(p.sb_uid||'')===who),actorName=actor?actor.n:(V.cloudIdentity&&String(V.cloudIdentity.id)===who?V.cloudIdentity.n:'Outro usuário');
- const module=String(rec.module||''),name=module.indexOf('log:')===0?(FS[module.slice(4)]||{}).n||module.slice(4):({team:'equipe',equip:'equipamentos',pdc:'pedido de compras',conf:'conferência',runs:'checklist',done:'cronograma',ev:'avaliação',evm:'modelo de avaliação',tasks:'cronograma',pt:'tarefas',sectors:'setores',roles:'funções'}[module]||module);
+ const module=String(rec.module||''),data=rec.data||{},name=module.indexOf('log:')===0?(FS[module.slice(4)]||{}).n||module.slice(4):({team:'equipe',equip:'equipamentos',pdc:'pedido de compras',conf:'conferência',runs:'checklist',done:'cronograma',ev:'avaliação',evm:'modelo de avaliação',tasks:'cronograma',pt:'tarefas',sectors:'setores',roles:'funções'}[module]||module);
+ if(module==='pdc'&&data.confId)return;
  const action=rec.deleted_at?'excluiu':Number(rec.revision)>1?'alterou':'adicionou';
  const recipient=V.me&&V.me.id?V.me.id:(V.cloudIdentity&&V.cloudIdentity.role==='encarregado'?V.cloudIdentity.team_member_id:V.cloudIdentity.id);
  if(!recipient)return;
  S.log=S.log||{};S.log.nt=S.log.nt||[];
  const key='cloud|'+rec.id+'|'+rec.revision+'|'+recipient;
  if(S.log.nt.some(x=>x.key===key))return;
- let ref=null;if(module.indexOf('log:')===0)ref={k:module.slice(4),id:rec.record_id};else if(module==='pdc')ref={t:'pdc',id:rec.record_id};else if(module==='conf')ref={t:'conf',id:rec.record_id};else if(module==='team')ref={t:'eq',id:rec.record_id};else if(module==='runs')ref={t:'ck',id:String(rec.record_id).split('|')[0]};
- S.log.nt.push({id:uid(),to:[recipient],m:'☁️ '+actorName+' '+action+' '+name,ref,key,cat:rec.deleted_at?'env':'ocr',ts:Date.now(),u:Date.now(),by:actorName,rd:[],sent:false});
+ let ref=null,message='☁️ '+actorName+' '+action+' '+name;if(module.indexOf('log:')===0)ref={k:module.slice(4),id:rec.record_id};else if(module==='pdc')ref={t:'pdc',id:rec.record_id};else if(module==='conf'){ref={t:'conf',id:rec.record_id};if(data.t==='compra')message='🧾 Pedido #'+(data.pedN||'')+' '+(Number(rec.revision)>1?'atualizado':'criado')+' por '+actorName+' — abra em Conferências'}else if(module==='team')ref={t:'eq',id:rec.record_id};else if(module==='runs')ref={t:'ck',id:String(rec.record_id).split('|')[0]};S.log.nt.push({id:uid(),to:[recipient],m:message,ref,key,cat:rec.deleted_at?'env':'tar',ts:Date.now(),u:Date.now(),by:actorName,rd:[],sent:false});
 }
 async function syncFlush(){
  if(syncBusy||!syncReady||!V.cloudIdentity||typeof navigator!=='undefined'&&!navigator.onLine)return;
@@ -1637,9 +1638,7 @@ function pdcConfSave(cid,i){const dv=(($('cdv_'+cid+'_'+i)||{}).value)||'';if(!d
 const c=S.conf.find(x=>x.id===cid),it=c&&c.items[i];const o=c&&(S.pdc||[]).find(x=>x.id===c.pedId);
 if(o)notify([o.by,o.rp].filter(Boolean),'⚠️ Divergência no pedido #'+o.n+': '+(it?it.p:'')+' ('+dv+')',{t:'conf',id:cid},'cfd|'+cid+'|'+i+'|'+dv+'|'+qcf,'ocr');
 pdcConfSet(cid,i,{ok:false,dv,qcf,ob})}
-function rCompraConf(c){const pedido=(S.pdc||[]).find(x=>x.id===c.pedId);const dvOpts=[{v:'',l:'Tipo de divergência'},{v:'Quantidade',l:'Quantidade'},{v:'Produto',l:'Produto errado'},{v:'Qualidade',l:'Qualidade'},{v:'Outro',l:'Outro'}];
-return `<div class="row sp"><button class="ch" onclick="V.cfO=null;R()">‹ Conferências</button></div><div class="c"><h3>🧾 Conferência de pedido</h3><b>${esc(c.nome)}</b><div class="mu">${br(c.d)} · ${c.items.filter(x=>x.ok===true||x.ok===false).length}/${c.items.length} conferido(s)</div></div>`+
-c.items.map((it,i)=>`<div class="c"><b>${esc(it.p)}</b> <span class="mu">comprado: ${esc(it.qc||'—')} ${esc(it.u||'')}</span><div class="row u-mt6"><button class="bt ${it.ok===true?'':'g'}" onclick="pdcConfSet('${c.id}',${i},{ok:true,dv:'',qcf:'',ob:''})">✓ Conferido</button><button class="bt ${it.ok===false?'':'g'}" onclick="pdcConfSet('${c.id}',${i},{ok:false})">⚠️ Divergência</button></div>${it.ok===false?`${dsel('cdv_'+c.id+'_'+i,dvOpts,it.dv||'')}<div class="row u-mt6"><input id="cqc_${c.id}_${i}" placeholder="Quantidade conferida" value="${esc(it.qcf||'')}" class="u-fx1" inputmode="decimal"><input id="cob_${c.id}_${i}" placeholder="Observação" value="${esc(it.ob||'')}" class="u-fx1"></div><button class="bt g u-mt6" onclick="pdcConfSave('${c.id}',${i})">Salvar divergência</button><button class="bt g u-mt6" onclick="pdcConfSet('${c.id}',${i},{ok:null,dv:'',qcf:'',ob:''})">Cancelar</button>`:''}</div>`).join('')+(pedido?`<p class="mu">Pedido #${pedido.n} · ${esc(pedido.rpN||pedido.byN)}</p>`:'')}
+function rCompraConf(c){const pedido=(S.pdc||[]).find(x=>x.id===c.pedId),done=c.items.filter(x=>x.ps==='Comprado').length;return `<div class="row sp"><button class="ch" onclick="V.cfO=null;R()">‹ Conferências</button></div><div class="c"><h3>🧾 Pedido para Compras</h3><b>${esc(c.nome)}</b><div class="mu">${br(c.d)} · ${done}/${c.items.length} produto(s) comprado(s) · ${c.items.length-done} pendente(s)</div><div class="mu">Marque o que já foi comprado. O que não foi comprado continua pendente.</div></div>`+c.items.map((it,i)=>`<div class="c"><b>${esc(it.p)}</b><div class="mu">Solicitado: ${esc(it.q||'—')} ${esc(it.u||'')}${it.buyer?' · atualizado por '+esc(it.buyer):''}</div><label>Situação<select id="cps_${c.id}_${i}">${PDC_ST.map(x=>`<option value="${esc(x.v)}" ${x.v===(it.ps||'')?'selected':''}>${esc(x.l)}</option>`).join('')}</select></label><div class="row u-mt6"><input id="cpq_${c.id}_${i}" placeholder="Quantidade comprada" value="${esc(it.qc||'')}" class="u-fx1" inputmode="decimal"><input id="cpm_${c.id}_${i}" placeholder="Motivo / observação" value="${esc(it.mot||'')}" class="u-fx1"></div><div class="mu">${it.buyer?'Última atualização: '+esc(it.buyer):'Ainda não atualizado'}</div><button class="bt u-mt6" onclick="pdcPurchaseSave('${c.id}',${i})">Salvar este produto</button></div>`).join('')+(pedido?`<p class="mu">Pedido #${pedido.n} · ${esc(pedido.rpN||pedido.byN)}</p>`:'')}
 function pendHTML(T){if(T!=='todos'&&T!=='compra')return '';const P=(S.pdc||[]).filter(o=>(o.st==='Pendente'||o.st==='Em andamento')&&!(S.conf||[]).some(c=>c.pedId===o.id));return P.map(o=>`<div class="c tap" onclick="V.tab='reg';V.rs='pdc';V.pdcO='${o.id}';R()"><div class="row sp"><b>Pedido #${o.n} · ${esc(o.rpN||o.byN||'')}</b><span class="mu">${o.st}</span></div><div class="mu">Pendente de conferência. Toque para acompanhar o pedido.</div></div>`).join('')}
 function rConf(){if(V.cfO){const c=S.conf.find(x=>x.id===V.cfO);if(c)return rConfOpen(c);V.cfO=null}
 const T=V.cfT||'todos';const chips=`<div class="chs">${chip('Todos',T==='todos',"V.cfT='todos';R()")}${CFT.map(([k,l])=>chip(l,T===k,`V.cfT='${k}';R()`)).join('')}</div>`;
@@ -1665,8 +1664,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.17';
+const APP_VERSION='3.31.18';
 const APP_HIST=[
+{v:'3.31.18',d:'17/11/2026',t:'Pedido para Compras integrado à Conferência (MINOR)',n:['Pedido criado automaticamente em Conferências, com todos os produtos inicialmente pendentes.','Todos os logins de cargos de liderança podem criar, consultar e atualizar o andamento das compras.','Notificações de criação e atualização abrem diretamente a conferência do pedido.'],c:[]},
 {v:'3.31.17',d:'17/11/2026',t:'Conta, recebimento de frios e padronização dos lançamentos (MINOR)',n:['Identificação da conta conectada, com nome e usuário visíveis durante o uso.','Recebimento de frios com campo para empresa fornecedora e correção do fluxo de edição do checklist.','Lançamentos com cabeçalho e cartão de inclusão padronizados, seguindo o modelo de Temperaturas.'],c:[]},
 {v:'3.31.16',d:'17/11/2026',t:'Correção da sincronização na nuvem (PATCH)',n:['Removida uma declaração duplicada que impedia a rotina completa de sincronização de concluir a leitura e enviar lançamentos para a nuvem.'],c:[]},
 {v:'3.31.15',d:'17/11/2026',t:'Sincronização geral na nuvem (MINOR)',n:['Lançamentos, cadastros, checklists, avaliações, cronogramas e conferências passam a entrar na fila de sincronização após alterações.','Atualizações de outros aparelhos são baixadas automaticamente, com atualização ao reconectar e verificação periódica.','Alterações pendentes ficam preservadas no aparelho; conflitos não sobrescrevem dados silenciosamente.'],c:[]},
