@@ -588,7 +588,7 @@ function syncLocalNotice(message,key){
  if(!recipient)return;
  S.log=S.log||{};S.log.nt=S.log.nt||[];if(S.log.nt.some(x=>x.key===key))return;
  S.log.nt.push({id:uid(),to:[recipient],m:message,ref:null,key,cat:'avi',ts:Date.now(),u:Date.now(),by:'Super Tudo',rd:[],sent:false});
- syncApplying=true;save();syncApplying=false;syncBaseline=syncRows(S);
+ syncApplying=true;save();syncApplying=false;syncBaseline=syncRows(S);if(V.me)R();
 }
 async function pullCloudTeam(){
  if(syncBusy){syncPullAgain=true;return []}if(syncPullBusy){syncPullAgain=true;return []}syncPullBusy=true;
@@ -609,7 +609,7 @@ async function pullCloudTeam(){
   syncMeta.revisions[key]=incoming;changed=true;
  });
  syncMeta.lastSync=new Date().toISOString();
- if(changed){syncApplying=true;save();syncApplying=false}
+ if(changed){syncApplying=true;save();syncApplying=false;if(V.me)R()}
  syncBaseline=syncRows(S);syncReady=true;syncPersist();
  return records;
  }finally{syncPullBusy=false;if(syncPullAgain&&!syncBusy){syncPullAgain=false;pullCloudTeam().catch(e=>console.warn('Falha ao repetir atualização pendente:',e))}}
