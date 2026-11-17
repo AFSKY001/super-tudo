@@ -573,7 +573,7 @@ async function syncFlush(){
    const answer=Array.isArray(result.data)?result.data[0]:result.data;
    if(answer&&(answer.status==='applied'||answer.duplicate&&answer.status==='applied')){
     if(answer.revision!=null)syncMeta.revisions[q.key]=Number(answer.revision);
-    syncMeta.queue.splice(i,1);syncPersist();continue;
+    delete syncMeta.conflicts[q.key];syncMeta.queue.splice(i,1);syncPersist();continue;
    }
    q.status=answer&&answer.status||'error';syncMeta.conflicts[q.key]={status:q.status,reason:answer&&answer.reason||'',server_revision:answer&&answer.server_revision||null,at:new Date().toISOString()};
    syncPersist();
@@ -594,12 +594,13 @@ async function pullCloudTeam(){
  const {data,error}=await supa.rpc('sync_pull',{p_since:null});
  if(error)throw error;
  const records=Array.isArray(data&&data.records)?data.records:[];
- const hadSync=!!syncMeta.lastSync;let changed=false;
+ const hadSync=!!syncMeta.lastSync,localRows=syncRows(S);let changed=false;
  records.forEach(function(rec){
   if(!rec||!rec.module||!rec.record_id)return;
   const key=String(rec.module)+'|'+String(rec.record_id),incoming=Number(rec.revision)||0,known=Number(syncMeta.revisions[key])||0;
   if(incoming<=known)return;
   const pending=syncMeta.queue.find(q=>q.key===key);
+  if(pending&&String(rec.updated_by||'')===String(V.cloudIdentity&&V.cloudIdentity.id||'')&&((pending.deleted&&!!rec.deleted_at)||(!pending.deleted&&localRows.has(key)&&syncCanon(localRows.get(key).data)===syncCanon(rec.data||{})))){syncMeta.revisions[key]=incoming;syncMeta.queue=syncMeta.queue.filter(q=>q.client_id!==pending.client_id);delete syncMeta.conflicts[key];syncApplyRecord(rec);changed=true;return}
   if(pending){pending.status='conflict';syncMeta.conflicts[key]={status:'conflict',server_revision:incoming,at:new Date().toISOString()};syncPersist();syncLocalNotice('⚠️ Outro aparelho alterou '+rec.module+'. Sua alteração local foi preservada para revisão.','sync|'+key+'|conflict');return}
   syncApplyRecord(rec);
   if(hadSync)syncNotice(rec);
