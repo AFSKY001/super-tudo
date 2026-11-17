@@ -1244,26 +1244,6 @@ function migrateV5(){if(S.migrations.includes('v5-perfis'))return;if(!Array.isAr
 function migrateV4(){if(S.migrations.includes('v4-login'))return;const m={'Controle de qualidade':['Controle de Qualidade'],'Prevenção de perdas':['Prevenção'],'Encarregado':['Encarregado'],'Comprador':['Compras']};S.team.forEach(p=>{if(!p.g)p.g=m[p.f]?[...m[p.f]]:[];if(/^vin[ií]cius$/i.test(p.n))p.g=['Controle de Qualidade','Prevenção'];p.lead=p.lead||[];p.l=!!p.l||p.lead.length>0});S.migrations.push('v4-login');save()}
 function rLogin(){return `<div class="lgw"><div class="lgc"><div class="lgt">${IC('logo')}</div><h2 style="text-align:center;margin:4px 0 2px">Atacarejo Super Tudo</h2><p class="mu" style="text-align:center;margin:0 0 12px">Entre com o usuário e a senha do seu cadastro</p>${V.lgL?'<div class="lgs"><div class="spin"></div><p class="mu">Entrando…</p></div>':`<label>Usuário<input id="lg_u" autocomplete="username" autocapitalize="none" onkeydown="if(event.key==='Enter')$('lg_p').focus()"></label><label>Senha<input id="lg_p" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></label>${V.lgE?`<p style="color:var(--no);margin:8px 0 0">${V.lgE}</p>`:''}<button class="bt" style="width:100%;margin-top:14px" onclick="doLogin()">Entrar</button>`}</div></div>`}
 
-async function pullCloudTeam(){
-  const {data,error}=await supa.rpc('sync_pull',{p_since:null});
-  if(error)throw error;
-  const records=Array.isArray(data&&data.records)?data.records:[];
-  S.team=S.team||[];
-  let changed=false;
-  records.forEach(rec=>{
-    if(!rec||rec.kind!=='cfg:team'||!rec.data||typeof rec.data!=='object')return;
-    const id=String(rec.record_id||rec.data.id||'').trim();
-    if(!id)return;
-    const incoming={...rec.data,id};
-    const index=S.team.findIndex(p=>String(p.id)===id);
-    if(index>=0)S.team[index]={...S.team[index],...incoming};
-    else S.team.push(incoming);
-    changed=true;
-  });
-  if(changed)save();
-  return records;
-}
-
 async function doLogin(){
   const u=($('lg_u').value||'').trim().toLowerCase(),p=$('lg_p').value||'';
   if(!u||!p){V.lgE='Informe o usuário e a senha.';R();return;}
@@ -1680,7 +1660,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.15';
+const APP_VERSION='3.31.16';
 const APP_HIST=[
 {v:'3.31.15',d:'17/11/2026',t:'Sincronização geral na nuvem (MINOR)',n:['Lançamentos, cadastros, checklists, avaliações, cronogramas e conferências passam a entrar na fila de sincronização após alterações.','Atualizações de outros aparelhos são baixadas automaticamente, com atualização ao reconectar e verificação periódica.','Alterações pendentes ficam preservadas no aparelho; conflitos não sobrescrevem dados silenciosamente.'],c:[]},
 {v:'3.31.14',d:'16/11/2026',t:'Exibição do login administrador (PATCH)',n:['Administradores vinculados à equipe passam a aparecer em Acessos e logins, em seção somente leitura.']},
