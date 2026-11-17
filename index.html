@@ -509,8 +509,8 @@ function syncRows(state){
 }
 function syncCanWrite(kind){
  const x=V.cloudIdentity||{},p=Array.isArray(x.perm)?x.perm:[];
- if(x.role==='master'||x.role==='gerente'||p.includes('*'))return true;
- if(kind==='cfg:team'||kind.indexOf('cfg:')===0)return x.role==='master';
+ if(kind.indexOf('cfg:')===0)return x.role==='master';
+ if(x.role==='master')return true;
  if(kind==='r:eqp')return p.includes('r:eqp')||p.includes('l:temp');
  if(kind.indexOf('l:')===0)return p.includes(kind);
  return p.includes(kind);
@@ -592,15 +592,15 @@ async function pullCloudTeam(){
  const {data,error}=await supa.rpc('sync_pull',{p_since:null});
  if(error)throw error;
  const records=Array.isArray(data&&data.records)?data.records:[];
- let changed=false;
+ const hadSync=!!syncMeta.lastSync;let changed=false;
  records.forEach(function(rec){
   if(!rec||!rec.module||!rec.record_id)return;
   const key=String(rec.module)+'|'+String(rec.record_id),incoming=Number(rec.revision)||0,known=Number(syncMeta.revisions[key])||0;
   if(incoming<=known)return;
-  const pending=syncMeta.queue.find(q=>q.key===key&&!q.status);
+  const pending=syncMeta.queue.find(q=>q.key===key);
   if(pending){pending.status='conflict';syncMeta.conflicts[key]={status:'conflict',server_revision:incoming,at:new Date().toISOString()};syncPersist();syncLocalNotice('⚠️ Outro aparelho alterou '+rec.module+'. Sua alteração local foi preservada para revisão.','sync|'+key+'|conflict');return}
   syncApplyRecord(rec);
-  if(known>0)syncNotice(rec);
+  if(hadSync)syncNotice(rec);
   syncMeta.revisions[key]=incoming;changed=true;
  });
  syncMeta.lastSync=new Date().toISOString();
@@ -1285,7 +1285,7 @@ async function doLogin(){
       n:json.profile.display_name||json.profile.full_name||json.username||u,
       c:isAdmin?'Administração':isManager?'Gerência':'Encarregado',
       role:isAdmin?'master':isManager?'gerente':'encarregado',
-      perm:isAdmin||isManager?['*']:(Array.isArray(json.membership.permissions)?json.membership.permissions.filter(x=>typeof x==='string'):[]),
+      perm:Array.isArray(json.membership.permissions)?json.membership.permissions.filter(x=>typeof x==='string'):[],
       sb_uid:String(json.profile.id),
       org_id:json.membership.org_id,
       team_member_id:teamMemberId
