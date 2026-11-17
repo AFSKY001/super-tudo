@@ -30,6 +30,8 @@ AS $function$
       public.has_perm('r:cro')
     WHEN k = 'cfg:equipment' THEN
       public.has_perm('r:eqp') OR public.has_perm('l:temp')
+    WHEN k = 'r:eqp' THEN
+      public.has_perm('r:eqp') OR public.has_perm('l:temp')
     WHEN left(coalesce(k, ''), 2) = 'l:' THEN
       public.has_perm(k)
       OR public.has_perm('r:' || substring(k from 3))
@@ -41,6 +43,23 @@ $function$;
 REVOKE ALL ON FUNCTION public.can_read_kind(text, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.can_read_kind(text, text) FROM anon;
 GRANT EXECUTE ON FUNCTION public.can_read_kind(text, text) TO authenticated, service_role;
+
+
+-- Equipamentos podem ser mantidos por quem tem acesso ao módulo de equipamentos
+-- ou permissão para lançar temperaturas, conforme a regra já usada pela interface.
+CREATE OR REPLACE FUNCTION public.can_write_kind(k text)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+  SELECT CASE
+    WHEN left(coalesce(k, ''), 4) = 'cfg:' THEN public.is_admin()
+    WHEN k = 'r:eqp' THEN public.has_perm('r:eqp') OR public.has_perm('l:temp')
+    ELSE public.has_perm(k)
+  END;
+$function$;
 
 -- A leitura direta e os eventos Realtime precisam respeitar o módulo autorizado.
 DROP POLICY IF EXISTS app_records_select ON public.app_records;
