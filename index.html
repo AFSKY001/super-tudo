@@ -1,3 +1,10 @@
+<!--
+  SUPER TUDO — PROGRAMA DE GESTÃO
+  Desenvolvido por Alisson Aciole.
+  © 2026 Alisson Aciole. Todos os direitos reservados.
+  Reprodução, distribuição ou modificação não autorizadas são proibidas.
+  Consulte o arquivo LICENSE na raiz do repositório.
+-->
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -128,6 +135,7 @@ h2{font-size:16px;margin:14px 4px 6px}h3{font-size:14px;margin:0 0 6px}h4{font-s
 
 /* ---- versão do programa (rodapé do menu lateral) ---- */
 .u-ver{margin-top:auto;padding:8px 0 2px;font-size:10px;color:var(--mu);text-align:center;opacity:.8}
+.u-author{display:block;margin-top:3px;font-size:10px;font-weight:600;letter-spacing:.15px;color:var(--mu)}
 /* ---- seletor pequeno e caixas de seleção de indicadores ---- */
 .ind-ck{display:flex;align-items:center;gap:8px;text-align:left;margin:8px 0;font-size:14px;color:var(--tx);width:100%}
 .ind-ck input{width:auto;flex:0 0 auto;margin:0}
@@ -1065,7 +1073,7 @@ function rReg(){const LK=LANC_KEYS.filter(k=>k!=='w5'&&k!=='rup'&&k!=='etiq'&&k!
 const bal=V.bal==='lanc'&&sec==='lanc'&&LK.length?`<div class="balloon">${LKV.map(k=>`<button class="${V.reg===k?'on':''}" onclick="V.reg='${k}';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;R()">${FS[k].e} ${FS[k].n}</button>`).join('')}${['cro','ck','ava'].filter(k=>canTab(k)).concat(['pdc']).concat(V.me&&isFullAccess()?['semv']:[]).concat(movOK()?['mov']:[]).map(k=>{const t=TABS.find(x=>x[0]===k)||RSEC.find(x=>x[0]===k);return `<button onclick="V.tab='reg';V.rs='${k}';V.ck=null;V.bal=null;R()">${t[1]} ${t[2]}</button>`}).join('')}</div>`:'';
 const btn=([k,e,n])=>{const on=sec===k,oc=k==='lanc'?"V.rs='lanc';V.ck=null;V.dir=0;V.bal=V.bal==='lanc'?null:'lanc';V.add=0;scrollTo(0,0);R()":`V.rs='${k}';V.ck=null;V.eqm=0;V.cb=null;V.mdl=null;V.dir=0;V.bal=null;V.add=0;scrollTo(0,0);R()`;const b=`<button class="rb ${on?'on':''}" title="${n}" onclick="${oc}">${IC(k)||e}${on?`<small>${n}</small>`:''}</button>`;return k==='lanc'?`<div class="rwrap">${b}${bal}</div>`:b};
 const body={cro:rCroReg,ck:rCkReg,ava:rAvaReg,conf:rConf,eqp:rEqp,eq:rEq,set:rSet,pdc:rPdc,semv:rSemv,mov:rMov,w5:()=>{V.reg='w5';return rRegLanc()}}[sec]||rRegLanc;
-return `<div class="regwrap"><div class="rail">${RS.filter(x=>!REG_MOVED.includes(x[0])).map(btn).join('')}<div class="u-ver">Super Tudo · v${APP_VERSION}</div></div><div class="regbody">${body()}</div></div>`}
+return `<div class="regwrap"><div class="rail">${RS.filter(x=>!REG_MOVED.includes(x[0])).map(btn).join('')}<div class="u-ver">Super Tudo · v${APP_VERSION}<br><span class="u-author">Desenvolvido por Alisson Aciole</span></div></div><div class="regbody">${body()}</div></div>`}
 
 function pedForm(){const L=V.pedL||[];
 return `<div class="c"><h3>🛒 Pedido para prateleira</h3><label>Repositor<select onchange="V.pedR=this.value">${'<option value="">—</option>'+S.team.map(p=>`<option ${p.n===V.pedR?'selected':''}>${esc(p.n)}</option>`).join('')}</select></label><div class="row u-mt8"><input id="pedp" placeholder="Produto" class="u-fx1" onkeydown="if(event.key==='Enter')pedAdd()"><button class="bt g" onclick="pedAdd()">Adicionar produto</button></div>${L.map((p,i)=>`<div class="it"><div>${esc(p)}</div><button class="bt d" onclick="pedDel(${i})">✕</button></div>`).join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>'}<div class="row u-mt10"><button class="bt" onclick="pedSave()">Salvar pedido (${L.length})</button><button class="bt g" onclick="V.add=0;V.pedL=[];R()">Cancelar</button></div></div>`}
@@ -1666,8 +1674,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.21';
+const APP_VERSION='3.31.22';
 const APP_HIST=[
+{v:'3.31.22',d:'17/11/2026',t:'Identificação de autoria e proteção de direitos autorais (PATCH)',n:['Incluída a identificação de autoria no código-fonte e na interface do sistema.','Adicionado aviso de direitos autorais e licença proprietária no repositório.'],c:[]},
 {v:'3.31.21',d:'17/11/2026',t:'Correções no fluxo de Conferência de pedidos (PATCH)',n:['A lista de Conferências exibe somente nome, data e símbolos de status; os produtos aparecem apenas ao abrir a lista.','Pedido para Compras segue o padrão de conferência com status comprado, não comprado ou parcialmente comprado, sem campo de quantidade comprada.','Removida a exclusão da tela Conferência; a exclusão do pedido permanece somente em Lançamentos, na função Pedido para Compras.'],c:[]},
 {v:'3.31.20',d:'17/11/2026',t:'Padronização das conferências e bloqueio por atraso (PATCH)',n:['Todas as listas de Conferência mostram os produtos com símbolos padronizados: ✓ conferido/comprado, ✕ não conferido/não comprado e – pendente.','Somente Ruptura e Alteração de preço exibem o botão 🚫 após mais de dois dias; ele abre a seleção dos produtos elegíveis e do responsável.'],c:[]},
 {v:'3.31.19',d:'17/11/2026',t:'Exclusão de pedidos e conferência compacta (PATCH)',n:['Adicionada exclusão do pedido junto com sua conferência vinculada.','Lista de conferências de compras mostra somente o nome dos produtos e os símbolos de comprado, não comprado ou neutro/pendente.'],c:[]},
