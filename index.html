@@ -619,7 +619,7 @@ function syncBootstrapTeam(){
 }
 function startCloudSync(){
  if(!V.cloudIdentity)return;syncStatusUpdate();
- if(!syncListeners){window.addEventListener('online',function(){pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao retomar sincronização:',e))});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&V.cloudIdentity)pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao atualizar dados:',e))});syncListeners=true}
+ if(!syncListeners){window.addEventListener('online',function(){syncStatusUpdate();pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao retomar sincronização:',e))});window.addEventListener('offline',syncStatusUpdate);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&V.cloudIdentity)pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao atualizar dados:',e))});syncListeners=true}
  if(!syncReady)pullCloudTeam().then(function(){syncBootstrapTeam();syncFlush()}).catch(e=>console.warn('Sincronização inicial indisponível:',e));
  else{syncBootstrapTeam();syncFlush()}
  if(!syncChannel&&V.cloudIdentity.org_id){
