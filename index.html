@@ -485,7 +485,153 @@ function migrateV2(){
 }
 const snap=()=>JSON.parse(JSON.stringify(CK,(k,v)=>k==='l'?undefined:v));
 try{S=JSON.parse(localStorage.getItem(K))}catch(e){}S=S||seed();fix();applyCk();
-const save=()=>{S.ck=snap();try{localStorage.setItem(K,JSON.stringify(S));return true}catch(e){alert('Não foi possível salvar neste aparelho. Nada foi gravado.');return false}};migrateV2();migrateV3();migrateV4();migrateV5();
+
+/* ---- sincronização geral da nuvem ---- */
+let syncReady=false,syncApplying=false,syncBusy=false,syncSendingKey='',syncSendingId='',syncBaseline=null,syncChannel=null,syncTimer=null,syncListeners=false;
+let syncMeta={revisions:{},queue:[],conflicts:{}};
+try{const z=JSON.parse(localStorage.getItem('st_cloud_sync_v1')||'null');if(z&&typeof z==='object')syncMeta={...syncMeta,...z,revisions:z.revisions||{},queue:z.queue||[],conflicts:z.conflicts||{}}}catch(e){}
+function syncPersist(){try{localStorage.setItem('st_cloud_sync_v1',JSON.stringify(syncMeta))}catch(e){console.warn('Não foi possível salvar a fila de sincronização:',e)}}
+function syncUuid(){if(typeof crypto!=='undefined'&&crypto.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)})}
+function syncCanon(v){if(Array.isArray(v))return '['+v.map(syncCanon).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+syncCanon(v[k])).join(',')+'}';return JSON.stringify(v)}
+function syncAddArray(M,bucket,kind,arr){(Array.isArray(arr)?arr:[]).forEach(function(x){if(!x||x.id==null)return;const id=String(x.id),key=bucket+'|'+id;M.set(key,{key,module:bucket,record_id:id,kind,data:x})})}
+function syncAddObject(M,bucket,kind,obj){Object.entries(obj||{}).forEach(function(pair){const id=String(pair[0]),key=bucket+'|'+id;M.set(key,{key,module:bucket,record_id:id,kind,data:{value:pair[1]}})})}
+function syncRows(state){
+ const M=new Map(),a=state||S;
+ const arrays=[['team','cfg:team'],['equip','r:eqp'],['pdc','r:pdc'],['conf','r:conf'],['ev','r:ava'],['evm','r:ava'],['amod','r:ava'],['imod','r:ava'],['indc','r:ava'],['tasks','r:cro'],['tmod','r:cro'],['pt','r:cro'],['movB','r:conf'],['semvB','r:conf'],['semvH','r:conf'],['impVA','r:conf'],['impPerd','r:conf'],['presets','cfg:access_profiles']];
+ arrays.forEach(function(x){syncAddArray(M,x[0],x[1],a[x[0]])});
+ Object.entries(a.log||{}).forEach(function(pair){const k=pair[0];if(k==='nt'||k==='dl'||k==='pw')return;if(k==='fest'){syncAddArray(M,'log:fest','l:fita',pair[1]);return}if(FS[k])syncAddArray(M,'log:'+k,'l:'+k,pair[1])});
+ syncAddObject(M,'runs','r:ck',a.runs);
+ syncAddObject(M,'done','r:cro',a.done);
+ syncAddObject(M,'taskEdits','r:cro',a.taskEdits);
+ syncAddObject(M,'ck','r:ck',a.ck||snap());
+ [['sectors','r:set'],['roles','r:set'],['optd','r:conf'],['semvCod','r:conf']].forEach(function(x){if(a[x[0]]!==undefined)M.set(x[0]+'|all',{key:x[0]+'|all',module:x[0],record_id:'all',kind:x[1],data:{value:a[x[0]]}})});
+ return M;
+}
+function syncCanWrite(kind){
+ const x=V.cloudIdentity||{},p=Array.isArray(x.perm)?x.perm:[];
+ if(x.role==='master'||x.role==='gerente'||p.includes('*'))return true;
+ if(kind==='cfg:team'||kind.indexOf('cfg:')===0)return x.role==='master';
+ if(kind==='r:eqp')return p.includes('r:eqp')||p.includes('l:temp');
+ if(kind.indexOf('l:')===0)return p.includes(kind);
+ return p.includes(kind);
+}
+function syncQueueChanges(){
+ if(!syncReady||syncApplying||!V.cloudIdentity)return;
+ const cur=syncRows(S),old=syncBaseline||new Map(),keys=new Set([...old.keys(),...cur.keys()]);
+ keys.forEach(function(key){
+  const before=old.get(key),after=cur.get(key);
+  if(before&&after&&syncCanon(before.data)===syncCanon(after.data))return;
+  const ref=after||before;if(!ref||!syncCanWrite(ref.kind))return;
+  if(!after&&!syncMeta.revisions[key])return;
+  let item=null;
+  for(let i=syncMeta.queue.length-1;i>=0;i--){if(syncMeta.queue[i].key===key&&syncMeta.queue[i].client_id!==syncSendingId){item=syncMeta.queue[i];break}}
+  if(item){item.deleted=!after;item.status='';}
+  else syncMeta.queue.push({key,module:ref.module,record_id:ref.record_id,kind:ref.kind,deleted:!after,client_id:syncUuid(),status:''});
+ });
+ syncBaseline=cur;syncPersist();syncFlush();
+}
+function syncApplyRecord(rec){
+ const m=String(rec.module||''),id=String(rec.record_id||''),del=!!rec.deleted_at,d=rec.data||{};
+ function arr(bucket,merge){S[bucket]=Array.isArray(S[bucket])?S[bucket]:[];const i=S[bucket].findIndex(x=>String(x.id)===id);if(del){if(i>=0)S[bucket].splice(i,1);return}const x={...(d||{}),id};if(i>=0)S[bucket][i]=merge?{...S[bucket][i],...x}:x;else S[bucket].push(x)}
+ function obj(bucket){S[bucket]=S[bucket]||{};if(del)delete S[bucket][id];else S[bucket][id]=d.value}
+ if(m==='team'){arr('team',true);return}
+ if(m==='equip'){arr('equip',false);return}
+ if(m==='pdc'||m==='conf'||m==='ev'||m==='evm'||m==='amod'||m==='imod'||m==='indc'||m==='tasks'||m==='tmod'||m==='pt'||m==='movB'||m==='semvB'||m==='semvH'||m==='impVA'||m==='impPerd'||m==='presets'){arr(m,false);return}
+ if(m.indexOf('log:')===0){const k=m.slice(4);S.log=S.log||{};S.log[k]=Array.isArray(S.log[k])?S.log[k]:[];const i=S.log[k].findIndex(x=>String(x.id)===id);if(del){if(i>=0)S.log[k].splice(i,1)}else{const x={...(d||{}),id};if(i>=0)S.log[k][i]=x;else S.log[k].push(x)}return}
+ if(m==='runs'||m==='done'||m==='taskEdits'){obj(m);return}
+ if(m==='ck'){if(del)delete CK[id];else CK[id]=d.value;return}
+ if(m==='sectors'||m==='roles'||m==='optd'||m==='semvCod'){if(!del)S[m]=d.value;return}
+}
+function syncNotice(rec){
+ const who=String(rec.updated_by||rec.created_by||''),actor=(S.team||[]).find(p=>String(p.sb_uid||'')===who),actorName=actor?actor.n:(V.cloudIdentity&&String(V.cloudIdentity.id)===who?V.cloudIdentity.n:'Outro usuário');
+ const module=String(rec.module||''),name=module.indexOf('log:')===0?(FS[module.slice(4)]||{}).n||module.slice(4):({team:'equipe',equip:'equipamentos',pdc:'pedido de compras',conf:'conferência',runs:'checklist',done:'cronograma',ev:'avaliação',evm:'modelo de avaliação',tasks:'cronograma',pt:'tarefas',sectors:'setores',roles:'funções'}[module]||module);
+ const action=rec.deleted_at?'excluiu':Number(rec.revision)>1?'alterou':'adicionou';
+ const recipient=V.me&&V.me.id?V.me.id:(V.cloudIdentity&&V.cloudIdentity.role==='encarregado'?V.cloudIdentity.team_member_id:V.cloudIdentity.id);
+ if(!recipient)return;
+ S.log=S.log||{};S.log.nt=S.log.nt||[];
+ const key='cloud|'+rec.id+'|'+rec.revision+'|'+recipient;
+ if(S.log.nt.some(x=>x.key===key))return;
+ let ref=null;if(module.indexOf('log:')===0)ref={k:module.slice(4),id:rec.record_id};else if(module==='pdc')ref={t:'pdc',id:rec.record_id};else if(module==='conf')ref={t:'conf',id:rec.record_id};else if(module==='team')ref={t:'eq',id:rec.record_id};else if(module==='runs')ref={t:'ck',id:String(rec.record_id).split('|')[0]};
+ S.log.nt.push({id:uid(),to:[recipient],m:'☁️ '+actorName+' '+action+' '+name,ref,key,cat:rec.deleted_at?'env':'ocr',ts:Date.now(),u:Date.now(),by:actorName,rd:[],sent:false});
+}
+async function syncFlush(){
+ if(syncBusy||!syncReady||!V.cloudIdentity||typeof navigator!=='undefined'&&!navigator.onLine)return;
+ syncBusy=true;
+ try{
+  for(let i=0;i<syncMeta.queue.length;){
+   const q=syncMeta.queue[i];if(q.status){i++;continue}
+   const rows=syncRows(S),current=rows.get(q.key),revision=syncMeta.revisions[q.key]||null;
+   if(!q.deleted&&!current){syncMeta.queue.splice(i,1);syncPersist();continue}
+   if(q.deleted&&!revision){syncMeta.queue.splice(i,1);syncPersist();continue}
+   syncSendingKey=q.key;syncSendingId=q.client_id;
+   const op={client_id:q.client_id,module:q.module,record_id:q.record_id,kind:q.kind,base_revision:revision,data:q.deleted?null:current.data,deleted:!!q.deleted};
+   const result=await supa.rpc('sync_push',{p_ops:[op]});
+   syncSendingKey='';syncSendingId='';
+   if(result.error)throw result.error;
+   const answer=Array.isArray(result.data)?result.data[0]:result.data;
+   if(answer&&(answer.status==='applied'||answer.duplicate&&answer.status==='applied')){
+    if(answer.revision!=null)syncMeta.revisions[q.key]=Number(answer.revision);
+    syncMeta.queue.splice(i,1);syncPersist();continue;
+   }
+   q.status=answer&&answer.status||'error';syncMeta.conflicts[q.key]={status:q.status,reason:answer&&answer.reason||'',server_revision:answer&&answer.server_revision||null,at:new Date().toISOString()};
+   syncPersist();
+   syncLocalNotice('⚠️ Sincronização pendente em '+q.module+': '+(answer&&answer.reason||q.status)+'. Não sobrescrevi os dados da nuvem.','sync|'+q.key+'|'+q.status);
+   i++;
+  }
+ }catch(e){syncSendingKey='';syncSendingId='';console.warn('Sincronização aguardando conexão ou revisão:',e)}
+ finally{syncBusy=false;syncPersist()}
+}
+function syncLocalNotice(message,key){
+ const recipient=V.me&&V.me.id?V.me.id:(V.cloudIdentity&&V.cloudIdentity.role==='encarregado'?V.cloudIdentity.team_member_id:V.cloudIdentity&&V.cloudIdentity.id);
+ if(!recipient)return;
+ S.log=S.log||{};S.log.nt=S.log.nt||[];if(S.log.nt.some(x=>x.key===key))return;
+ S.log.nt.push({id:uid(),to:[recipient],m:message,ref:null,key,cat:'avi',ts:Date.now(),u:Date.now(),by:'Super Tudo',rd:[],sent:false});
+ syncApplying=true;save();syncApplying=false;syncBaseline=syncRows(S);
+}
+async function pullCloudTeam(){
+ const {data,error}=await supa.rpc('sync_pull',{p_since:null});
+ if(error)throw error;
+ const records=Array.isArray(data&&data.records)?data.records:[];
+ let changed=false;
+ records.forEach(function(rec){
+  if(!rec||!rec.module||!rec.record_id)return;
+  const key=String(rec.module)+'|'+String(rec.record_id),incoming=Number(rec.revision)||0,known=Number(syncMeta.revisions[key])||0;
+  if(incoming<=known)return;
+  const pending=syncMeta.queue.find(q=>q.key===key&&!q.status);
+  if(pending){pending.status='conflict';syncMeta.conflicts[key]={status:'conflict',server_revision:incoming,at:new Date().toISOString()};syncPersist();syncLocalNotice('⚠️ Outro aparelho alterou '+rec.module+'. Sua alteração local foi preservada para revisão.','sync|'+key+'|conflict');return}
+  syncApplyRecord(rec);
+  if(known>0)syncNotice(rec);
+  syncMeta.revisions[key]=incoming;changed=true;
+ });
+ syncMeta.lastSync=new Date().toISOString();
+ if(changed){syncApplying=true;save();syncApplying=false}
+ syncBaseline=syncRows(S);syncReady=true;syncPersist();
+ return records;
+}
+function syncBootstrapTeam(){
+ if(!V.cloudIdentity||V.cloudIdentity.role!=='master')return;
+ (S.team||[]).forEach(function(p){
+  const id=String(p.id||''),key='team|'+id;if(!id||syncMeta.revisions[key]||syncMeta.queue.some(q=>q.key===key))return;
+  syncMeta.queue.push({key,module:'team',record_id:id,kind:'cfg:team',deleted:false,client_id:syncUuid(),status:''});
+ });
+ syncPersist();
+}
+function startCloudSync(){
+ if(!V.cloudIdentity)return;
+ if(!syncListeners){window.addEventListener('online',function(){pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao retomar sincronização:',e))});document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&V.cloudIdentity)pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha ao atualizar dados:',e))});syncListeners=true}
+ if(!syncReady)pullCloudTeam().then(function(){syncBootstrapTeam();syncFlush()}).catch(e=>console.warn('Sincronização inicial indisponível:',e));
+ else{syncBootstrapTeam();syncFlush()}
+ if(!syncChannel&&V.cloudIdentity.org_id){
+  syncChannel=supa.channel('st-sync-'+V.cloudIdentity.org_id).on('postgres_changes',{event:'*',schema:'public',table:'app_records',filter:'org_id=eq.'+V.cloudIdentity.org_id},function(){pullCloudTeam().catch(e=>console.warn('Falha ao receber atualização:',e))}).subscribe();
+ }
+ if(!syncTimer)syncTimer=setInterval(function(){if(V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine)pullCloudTeam().then(syncFlush).catch(e=>console.warn('Falha na atualização automática:',e))},30000);
+}
+function stopCloudSync(){
+ if(syncChannel){supa.removeChannel(syncChannel);syncChannel=null}
+ if(syncTimer){clearInterval(syncTimer);syncTimer=null}
+}
+
+const save=()=>{S.ck=snap();try{localStorage.setItem(K,JSON.stringify(S));if(!syncApplying)syncQueueChanges();return true}catch(e){alert('Não foi possível salvar neste aparelho. Nada foi gravado.');return false}};migrateV2();migrateV3();migrateV4();migrateV5();
 const chip=(l,on,a)=>`<button class="ch ${on?'on':''}" onclick="${a}">${l}</button>`;
 const person=id=>S.team.find(p=>p.id===id);
 function dayTasks(dt){
@@ -1444,10 +1590,10 @@ const helpOff=()=>!!V.me&&localStorage.getItem('sthelp_'+V.me.id)==='1';
 function helpSteps(){const st=[['👋 Bem-vindo, '+V.me.n.split(' ')[0],'Este guia mostra o que você pode fazer. Toque em Próximo para avançar. Para rever depois: ⋮ › Ajuda.']];TABS.filter(t=>canTab(t[0])).forEach(t=>{if(t[0]==='reg'){const K=LANC_KEYS.filter(k=>can('l:'+k));st.push(['📝 Registros','Use o botão 📝 da lateral para escolher o que lançar. Liberado para você: '+RSEC.filter(x=>canR(x[0])).map(x=>x[1]+' '+x[2]).join(', ')+'.']);if(K.length)st.push(['📝 Seus lançamentos',K.map(k=>FS[k].e+' '+FS[k].n+' — '+(HL[k]||'')).join('\n')])}else st.push([t[1]+' '+t[2],HT[t[0]]||''])});if(isMaster())st.push(['👤 Acessos e logins','Em ⋮ › Acessos e logins aparecem somente gerentes, subgerentes, supervisores e encarregados. Você cria logins, troca senhas e escolhe as funções de cada pessoa. Lá também ficam os perfis prontos (Repositor, Encarregado, Master…).']);st.push(['🔔 Avisos e senha','O sino 🔔 mostra avisos, como pedidos de compra. Em ⋮ você troca a senha, abre esta ajuda e sai.']);return st}
 function helpHTML(){const L=helpSteps(),i=Math.min(V.hs||0,L.length-1),last=i===L.length-1;return `<div class="row sp"><b>${esc(L[i][0])}</b><span class="mu">${i+1}/${L.length}</span></div>${bar((i+1)/L.length*100)}<div style="white-space:pre-line;margin:10px 0">${esc(L[i][1])}</div><label class="u-row-c"><input type="checkbox" ${V.hoff?'checked':''} onchange="V.hoff=this.checked" class="u-wauto">Não mostrar mais ao entrar</label><div class="row u-mt10">${i?'<button class="bt g" onclick="V.hs--;rMenu()">Voltar</button>':''}<button class="bt" onclick="${last?'closeHelp()':'V.hs=(V.hs||0)+1;rMenu()'}">${last?'Concluir':'Próximo'}</button></div>`}
 function closeHelp(){if(V.me){V.hoff?localStorage.setItem('sthelp_'+V.me.id,'1'):localStorage.removeItem('sthelp_'+V.me.id)}V.sh=0;V.hs=0;rMenu()}
-async function logout(){localStorage.removeItem('st_auth_state');supa.auth.signOut().catch(()=>{});V.sbSession=null;V.me=null;V.wel=null;V.lgE='';V.lgL=0;V.sh=0;V.mn=0;rMenu();R()}
+async function logout(){stopCloudSync();localStorage.removeItem('st_auth_state');supa.auth.signOut().catch(()=>{});V.sbSession=null;V.me=null;V.cloudIdentity=null;V.wel=null;V.lgE='';V.lgL=0;V.sh=0;V.mn=0;rMenu();R()}
 function rWelcome(){const x=meOf(V.wel);if(!x)return rLogin();const L=!['master','gerente'].includes(x.role)?['📊 Painel da sua função','🗓️ Seu cronograma','✅ Seus checklists','📋 Suas atribuições'].concat((x.perm||[]).some(k=>/^[rl]:/.test(k))?['📝 Registros']:[]).concat((x.perm||[]).includes('ava')?['⭐ Avaliação']:[],(x.perm||[]).includes('pro')?['📈 Progresso']:[],(x.perm||[]).includes('adm')?['👤 Acessos e logins']:[]):['Acesso total (administrador)'];
 return `<div class="lgw"><div class="lgc u-tc"><div class="u-fs44">👋</div><h2 class="u-mv6">Bem-vindo, ${esc(x.n)}!</h2><p class="mu">${esc(x.c||'')}<br>Atacarejo Super Tudo</p><div class="c u-tl"><b>Você precisa alimentar:</b><ul style="margin:6px 0 0;padding-left:18px">${L.map(l=>`<li>${l}</li>`).join('')||'<li>Nada liberado ainda. Fale com o administrador.</li>'}</ul></div><button class="bt u-w100" onclick="enterApp()">Entrar no sistema</button></div></div>`}
-function enterApp(){const x=meOf(V.wel);V.me=x||null;V.wel=null;V.lgE='';V.dir=0;if(V.me){const L=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));V.tab=L.length?L[0][0]:'painel'}V.hs=0;V.hoff=helpOff();V.sh=V.me&&!['master','gerente'].includes(V.me.role)&&!V.hoff?'help':0;R();rMenu()}
+function enterApp(){const x=meOf(V.wel);V.me=x||null;V.wel=null;V.lgE='';V.dir=0;if(V.me){const L=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));V.tab=L.length?L[0][0]:'painel'}V.hs=0;V.hoff=helpOff();V.sh=V.me&&!['master','gerente'].includes(V.me.role)&&!V.hoff?'help':0;R();rMenu();startCloudSync()}
 const nrm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const nmv=x=>{if(typeof x==='number')return x;let s=String(x||'').replace(/[R$\s]/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s)||0};
 const dtI=v=>{if(v===''||v==null)return '';if(typeof v==='number'){const d=new Date(Math.round((v-25569)*864e5));return d.getUTCFullYear()+'-'+pd(d.getUTCMonth()+1)+'-'+pd(d.getUTCDate())}const m=String(v).match(/^(\d{2})\/(\d{2})\/(\d{4})/);return m?m[3]+'-'+m[2]+'-'+m[1]:String(v).slice(0,10)};
@@ -1527,8 +1673,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.14';
+const APP_VERSION='3.31.15';
 const APP_HIST=[
+{v:'3.31.15',d:'17/11/2026',t:'Sincronização geral na nuvem (MINOR)',n:['Lançamentos, cadastros, checklists, avaliações, cronogramas e conferências passam a entrar na fila de sincronização após alterações.','Atualizações de outros aparelhos são baixadas automaticamente, com atualização ao reconectar e verificação periódica.','Alterações pendentes ficam preservadas no aparelho; conflitos não sobrescrevem dados silenciosamente.'],c:[]},
 {v:'3.31.14',d:'16/11/2026',t:'Exibição do login administrador (PATCH)',n:['Administradores vinculados à equipe passam a aparecer em Acessos e logins, em seção somente leitura.']},
 {v:'3.31.13',d:'16/11/2026',t:'Padronização geral de layout (MINOR)',n:['Todas as áreas passam a usar a mesma estrutura externa de página, com título, descrição, largura, espaçamento e hierarquia visual consistentes.','A padronização é apenas visual: ações, permissões, dados e fluxos existentes foram preservados.'],c:[]},
 {v:'3.31.12',d:'16/11/2026',t:'Correção da ordem do cabeçalho de perdas (PATCH)',n:['Perdas de perecíveis: título e botão de importar aparecem no topo, antes dos indicadores, seguindo o padrão das demais telas.'],c:[]},
