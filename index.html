@@ -1450,7 +1450,7 @@ function cfPick(i){V.cfS=V.cfS||[];const j=V.cfS.indexOf(i);j<0?V.cfS.push(i):V.
 function cfAssign(){const c=S.conf.find(x=>x.id===V.cfO),n=($('cf_fu')||{}).value;if(!c||!n||!(V.cfS||[]).length)return alert('Marque os itens ✗ primeiro.');V.cfS.forEach(i=>{c.items[i].fu=n});V.cfS=[];c.u=Date.now();c.sent=false;save();R()}
 function cfSetDirect(i,v){const c=S.conf.find(x=>x.id===V.cfO);if(!c)return;const it=c.items[i];it.ok=v;if(c.t==='preco'){if(v===false)it.nd=it.nd||today();else{if(it.ea){const e=(S.log.etna||[]).find(x=>x.id===it.ea);if(e){e.st='Resolvida';e.rd=today();e.u=Date.now();e.sent=false}}delete it.nd}}if(c.t==='ruptura'){if(v===true){it.pd=today();const d=dd0(c.d,it.pd);if(d<=2&&!it.rp)mkRup(c,it,d)}else delete it.pd}c.u=Date.now();c.sent=false;save();const y=scrollY;R();scrollTo(0,y)}
 function etqCheck(c){if(!c||c.t!=='preco')return false;let ch=false;c.items.forEach(it=>{if(it.ok===false&&it.nd&&!it.ea&&it.fu&&dd0(it.nd)>2){const pe=S.team.find(p=>p.n===it.fu);if(!pe)return;const id=uid();(S.log.etna=S.log.etna||[]).push({id,d:today(),p:it.p,c:it.c||'',n:pe.n,pid:pe.id,r:c.r||'',st:'Pendente',o:`Não colocada desde ${br(it.nd)} (${dd0(it.nd)} dia(s))`,u:Date.now(),...ownBy(),sent:false});it.ea=id;ch=true;notify([pe.id],'⚠️ Etiqueta em atraso: '+it.p+' ('+dd0(it.nd)+' dia(s) sem colocar)',{k:'etna',id},'etna|'+id,'atr')}});return ch}
-function confListsHTML(k){const L=(S.conf||[]).filter(c=>c.src===k).slice().reverse();return L.length?`<div class="c"><b>Listas importadas</b>${L.map(c=>`<div class="it tap" onclick="V.clo='${c.id}';R()"><div><b>${esc(c.nome||'Lista')}</b><div class="mu">${br(c.d)} · ${c.items.length} produto(s)</div></div>${xbtn(`confListDel('${c.id}')`,'Excluir lista')}</div>`).join('')}</div>`:''}
+function confListsHTML(k){const L=(S.conf||[]).filter(c=>c.src===k).slice().reverse();return L.length?`<div class="c"><b>Listas importadas</b>${L.map(c=>`<div class="it tap" onclick="V.clo='${c.id}';R()"><div><b>${esc(confTitle(c))}</b><div class="mu" style="font-size:10px">${c.arqRem?'Importada em ':''}${br(c.d)} · ${c.items.length} produto(s)</div></div>${xbtn(`confListDel('${c.id}')`,'Excluir lista')}</div>`).join('')}</div>`:''}
 function confListDetail(k,cid){const c=(S.conf||[]).find(x=>x.id===cid);if(!c){V.clo=null;return ''}
  return `<div class="c"><div class="row sp"><button class="ch" onclick="V.clo=null;R()">‹ Listas</button><b>${esc(confTitle(c))}</b></div><p class="mu" style="font-size:10px">${c.arqRem?'Importada em ':''}${br(c.d)} · ${c.items.length} produto(s)</p><div class="row u-mt6"><button class="bt" onclick="V.cfO='${c.id}';V.rs='conf';V.clo=null;V.bal=null;R()">Abrir conferência</button></div></div>`+
  `<div class="c">${c.items.map(x=>`<div class="it"><div><b>${esc(x.c||'')} · ${esc(x.p||'')}</b></div>${xbtn(`confListDelItem('${c.id}','${x.id}')`,'Excluir produto')}</div>`).join('')}</div>`}
@@ -1631,11 +1631,11 @@ function impXL(k){const i=document.createElement('input');i.type='file';i.accept
 
 const CFT=[['preco','🏷️ Alteração de preço'],['ruptura','🚫 Ruptura'],['compra','🧾 Pedido de compra'],['semv','📦 Produtos sem venda']],CFN={semv:'📦 Produtos sem venda',compra:'🧾 Pedido de compra',preco:'🏷️ Alteração de preço',validade:'📅 Brigada de validade',reimp:'🖨️ Reimpressão',ruptura:'🚫 Ruptura'};
 function confMetaArquivo(file,t,lab){
- const base=String(file&&file.name||'').replace(/\\.[^.]+$/,'');
+ const base=String(file&&file.name||'').replace(/\.[^.]+$/,'');
  const rem=/remarca(?:ção|cao)/i.test(base);
- let m=base.match(/\\b(\\d{1,2})[._\\/-](\\d{1,2})[._\\/-](\\d{2,4})\\b/),data='';
+ let m=base.match(/\b(\d{1,2})[._\/-](\d{1,2})[._\/-](\d{2,4})\b/),data='';
  if(m){let y=m[3];if(y.length===2)y='20'+y;data=m[1].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+y}
- if(!data){m=base.match(/\\b(\\d{4})[._\\/-](\\d{1,2})[._\\/-](\\d{1,2})\\b/);if(m)data=m[3].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+m[1]}
+ if(!data){m=base.match(/\b(\d{4})[._\/-](\d{1,2})[._\/-](\d{1,2})\b/);if(m)data=m[3].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+m[1]}
  const motivo=String(lab||CFN[t]||t).replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
  return {rem,data,motivo};
 }
