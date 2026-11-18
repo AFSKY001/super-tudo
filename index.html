@@ -1192,7 +1192,14 @@ function regMenuBack(label,action){
  return '<div class="reg-back-row"><button type="button" class="reg-back-mini" onclick="'+action+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>'+esc(label)+'</span></button></div>';
 }
 function regContentHasBack(html){
- return /<button\b[^>]*>\s*(?:‹|←|Voltar)/i.test(String(html||''));
+ const buttons=String(html||'').matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/gi);
+ for(const match of buttons){
+  const label=match[1].replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();
+  if(!/^(?:‹|←|Voltar\b)/i.test(label))continue;
+  if(/^‹\s*(?:Dia|Mês|Semana)\b/i.test(label))continue;
+  return true;
+ }
+ return false;
 }
 function regMenuVersion(){
  return '<div class="u-ver reg-menu-version">Super Tudo · v'+APP_VERSION+'<br><span class="u-author">Desenvolvido por Alisson Aciole</span></div>';
