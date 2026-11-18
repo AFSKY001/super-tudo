@@ -36,7 +36,7 @@ self.addEventListener('fetch', event => {
     })());
     return;
   }
-  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg'].includes(url.pathname)) {
+  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg', '/logo.webp'].includes(url.pathname)) {
     event.respondWith((async () => {
       const cached = await caches.match(request);
       if (cached) return cached;
