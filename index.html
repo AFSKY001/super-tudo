@@ -376,6 +376,8 @@ button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);
 .launch-page-home-head{min-height:36px;margin-bottom:10px}
 .launch-page-actions{gap:7px;align-items:center}
 .launch-history{display:inline-flex;align-items:center;gap:6px}
+.reg-back-mini{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
+.reg-back-mini svg{width:18px;height:18px;flex:0 0 auto}
 .launch-history svg{flex:0 0 auto}
 @media(max-width:360px){.launch-primary{gap:10px;padding:14px}.launch-primary .launch-plus{flex-basis:56px;width:56px;height:56px;min-height:56px!important}.launch-primary-copy .launch-info{font-size:11.5px}}
 .launch-plus{width:64px;height:64px;min-height:64px!important;border:0;border-radius:19px;background:var(--pr);color:var(--on);font:400 32px/1 var(--fn);box-shadow:0 8px 20px rgba(70,100,255,.2)}
@@ -1002,7 +1004,7 @@ function ckSaveRun(){
  if(cc&&isRec(cc)){if(!String(r.who||'').trim())return alert('Escolha o responsável pelo recebimento.');if(!(r.temps||[]).some(v=>v!==''&&v!=null&&isFinite(+v)))return alert('Informe pelo menos uma temperatura.')}
  r.by=V.me?V.me.id:'';r.sent=false;S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();
  ckNote(r);if(cc)delete cc.nw;if(!save())return;
- if(V.tab==='reg'&&V.rs==='lanc'&&(V.reg==='ck'||V.reg==='chrec')){V.ck=null;V.ckdr=null;V.ce=null;if(V.reg==='ck'){V.ckTab='home';V.lw=''}else V.chrecTab='home'}
+ if(V.tab==='reg'&&(V.rs==='ck'||V.rs==='lanc'&&(V.reg==='ck'||V.reg==='chrec'))){V.ck=null;V.ckdr=null;V.ce=null;if(V.rs==='lanc'){if(V.reg==='ck'){V.ckTab='home';V.lw=''}else V.chrecTab='home'}}
  alert('Checklist salvo.');R();scrollTo(0,0);
 }
 function updTemp(i,v){const r=run();r.temps=r.temps||[];r.temps[i]=v;save()}
@@ -1132,7 +1134,7 @@ function rPdc(){
   return regPageBackHeader(title,'regCancelPdc()')+'<div class="c"><h3>Novo pedido para Compras</h3><label>Repositor que está fazendo o pedido</label>'+dsel('pdc_rp',S.team.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(p=>({v:p.id,l:p.n+(p.s?' · '+p.s:'')})),(V.me&&person(V.me.id))?V.me.id:'')+'<input id="pdc_p" placeholder="Produto" class="u-fx1"><div class="row u-mt6"><input id="pdc_q" placeholder="Quantidade" class="u-fx1" inputmode="decimal"><div class="u-w110">'+dsel('pdc_u',PDC_U.map(u=>({v:u,l:u})),'un')+'</div></div><input id="pdc_o" placeholder="Observação (opcional)" class="u-mt6"><div class="row u-mt8"><button class="bt g" onclick="pdcAddItem()">Adicionar produto</button></div>'+L.map((i,j)=>'<div class="it"><div>'+esc(i.p)+' · '+esc(i.q)+' '+esc(i.u)+(i.o?' <span class="mu">· '+esc(i.o)+'</span>':'')+'</div><button class="bt d" onclick="pdcDelItem('+j+')">✕</button></div>').join('')+'<div class="row u-mt8"><button class="bt" onclick="pdcSend()">Salvar pedido ('+L.length+')</button><button class="bt g" onclick="regCancelPdc()">Cancelar</button></div></div>';
  }
  if(mode==='hist')return regPageBackHeader(title,"V.pdcMode='home';R()")+rows;
- return regPageHomeHeader(title,"V.pdcMode='hist';R()",'Histórico')+(pdcCanCreate()?regPageCreateCard('Novo pedido','Adicione os produtos que precisam ser comprados e envie o pedido para Compras.',"regStartPdc()",'Novo pedido'):'<div class="c mu">Consulte abaixo os pedidos disponíveis para o seu perfil.</div>');
+ return regPageHomeHeader(title,"V.pdcMode='hist';R()",'Histórico')+(pdcCanCreate()?regPageCreateCard('Novo pedido','Adicione os produtos que precisam ser comprados e envie o pedido para Compras.',"regStartPdc()",'Novo pedido'):'<div class="c mu">Toque em Histórico para consultar os pedidos disponíveis para o seu perfil.</div>');
 }
 function semvImport(){const i=document.createElement('input');i.type='file';i.accept='.csv,.xlsx,.xls';i.onchange=()=>{const f=i.files[0];if(!f)return;readRows(f,rows=>{
  const pick=(r,...ks)=>{const key=Object.keys(r).find(x=>ks.includes(nrm(x)));return key!==undefined?r[key]:''};
@@ -1271,7 +1273,7 @@ function regMenuOpenSection(k){
 }
 function regMenuOpenLaunch(k){
  V.rs='lanc';V.reg=k;V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;
- if(k==='temp')V.tempTab='novo';if(k==='ck')V.ckTab='home';if(k==='chrec')V.chrecTab='home';if(k==='ava')V.ev='home';
+ if(k==='temp')V.tempTab='novo';if(k==='ck')V.ckTab='home';if(k==='chrec')V.chrecTab='home';if(k==='ava')V.ev='home';if(k==='pdc')V.pdcMode='home';
  R();scrollTo(0,0)
 }
 function regMenuIcon(k){
@@ -1427,7 +1429,7 @@ function lotSelAll(k,lid,on){const L=(S.log[k]||[]).filter(e=>lid==='legacy'?!e.
 function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert('Escolha o responsável.');const sel=V.lsel||[];if(!sel.length)return;const L=S.log[k]||[];let n=0;L.forEach(e=>{if(sel.includes(e.id)){e.rh=[...(e.rh||[]),{de:e.r||'',para:name,por:V.me?V.me.n:'',em:Date.now()}];e.r=name;n++}});V.lsel=[];if(!save())return;alert(n+' produto(s) atribuído(s) a '+name+'.');R()}
 function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'&&V.regTab!=='hist'&&!V.add?h+perdIndHTML():h}
 function regPageBackHeader(title,action){
- return '<div class="launch-page-head"><button type="button" class="reg-back-mini" onclick="'+action+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Voltar</span></button><div class="launch-title">'+title+'</div></div>';
+ return '<div class="launch-page-head"><button type="button" class="ch reg-back-mini" onclick="'+action+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>Voltar</span></button><div class="launch-title">'+title+'</div></div>';
 }
 function regPageHistoryButton(action,label){
  return '<button type="button" class="ch launch-history" onclick="'+action+'"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span>'+esc(label||'Histórico')+'</span></button>';
@@ -1454,7 +1456,7 @@ function rRegLancMain(){
  const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse(),title=F.e+' '+F.n;
  const isHistory=V.regTab==='hist',isForm=!!V.add||V.regTab==='form';
  if(isHistory){
-  let extra='';if(V.reg==='fita')extra+=fitaBox(L);if(V.reg==='etiq')extra+=etiqBox(L)+confListsHTML('etiq');if(V.reg==='rup')extra+=confListsHTML('rup');
+  let extra='';if(V.reg==='etiq')extra+=etiqBox(L)+confListsHTML('etiq');if(V.reg==='rup')extra+=confListsHTML('rup');
   return regPageBackHeader(title,'regPageGoHome()')+extra+regHistoryRows(F,L);
  }
  if(isForm){
