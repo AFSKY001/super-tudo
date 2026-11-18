@@ -1705,7 +1705,8 @@ function pushButton(){
  return '<button class="ch" onclick="pushEnable()">Ativar no celular</button>';
 }
 function pushNotifyCloud(e){
- if(!e||!V.sbSession||!V.cloudIdentity)return Promise.resolve(null);
+ if(!e)return Promise.resolve(null);
+ if(!V.sbSession||!V.cloudIdentity)return Promise.reject(new Error('Sem sessão na nuvem; notificação aguardando sincronização.'));
  return pushCall('notify',{to:e.to||[],message:e.m||'',ref:e.ref||null,key:e.key||null,cat:e.cat||'avi'});
 }
 function pushNotifySelf(message,key,ref,cat){
@@ -1713,8 +1714,11 @@ function pushNotifySelf(message,key,ref,cat){
 }
 function pushFlushLocalNotifications(){
  if(!V.sbSession||!V.cloudIdentity)return;
- (S.log.nt||[]).filter(e=>!e.sent&&!String(e.key||'').startsWith('cloud|')&&!String(e.key||'').startsWith('app-update|')).forEach(e=>{
-  pushNotifyCloud(e).then(()=>{e.sent=true;save()}).catch(err=>console.warn('Notificação será reenviada quando houver conexão:',err));
+ (S.log.nt||[]).filter(e=>!e.sent&&!String(e.key||'').startsWith('cloud|')).forEach(e=>{
+  const send=String(e.key||'').startsWith('app-update|')
+   ?pushNotifySelf(e.m,e.key,e.ref,e.cat)
+   :pushNotifyCloud(e);
+  send.then(()=>{e.sent=true;save()}).catch(err=>console.warn('Notificação será reenviada quando houver conexão:',err));
  });
 }
 async function pushStart(){
