@@ -804,10 +804,21 @@ function rMenuOld(){
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(V.mn||V.sh)){V.mn=0;V.sh=0;rMenu()}});
 const ask=id=>{if(V.cf===id){V.cf=null;return true}V.cf=id;R();return false};
 const opts=(L,v,b)=>(b?'<option value="">—</option>':'')+[...new Set([...L,...(v?[v]:[])])].map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('');
-function rEq(){V.eq=V.eq||'p';if(V.pe&&V.eq==='p')return rPes();let h=`<div class="chs">${[['p','Pessoas'],['f','Funções'],['s','Setores']].map(([k,l])=>chip(l,V.eq===k,`V.eq='${k}';V.te=null;V.cf=null;R()`)).join('')}</div>`;
-if(V.eq!=='p')return h+rMng(V.eq==='f'?'roles':'sectors');
-h+=`<div class="c"><button class="bt" onclick="V.pe='new';V.sv=0;R();scrollTo(0,0)">+ Cadastrar pessoa</button><p class="mu">Cada pessoa é cadastrada uma vez, com nome completo. Depois, escolha indicadores, checklists e cronograma na ficha.</p></div>`;
-return h+[...S.sectors,''].map(s=>[s,S.team.filter(x=>(S.sectors.includes(x.s)?x.s:'')===s)]).filter(g=>g[1].length).map(([s,L])=>`<h2>${esc(s||'Sem setor')} (${L.length})</h2>`+L.map(x=>`<div class="c" onclick="V.pe='${x.id}';V.sv=0;R();scrollTo(0,0)"><div class="row sp"><b>${esc(x.n)}</b><span class="row"><span class="mu">›</span><button class="bt d" title="Excluir funcionário" aria-label="Excluir funcionário" onclick="event.stopPropagation();delP('${x.id}')">${V.cf==='p'+x.id?'Confirmar?':'✕'}</button></span></div><div class="mu">${esc(x.f||'—')} · ${esc(x.t||'')}${x.l?' · 👑 líder':''}${x.u?' · 🔑 '+esc(x.u):''}</div></div>`).join('')).join('')}
+const teamLeaderMode=()=>!!V.me&&V.me.role==='encarregado';
+const teamCanEdit=p=>!!p&&(isFullAccess()||(teamLeaderMode()&&p.owner_team_member_id===V.me.id&&p.created_by===V.cloudIdentity?.id));
+const teamVisible=()=>isFullAccess()?(S.team||[]):teamLeaderMode()?(S.team||[]).filter(teamCanEdit):[];
+function rEq(){
+ if(teamLeaderMode())V.eq='p';
+ V.eq=V.eq||'p';
+ if(V.pe&&V.eq==='p')return rPes();
+ const tabs=teamLeaderMode()?[['p','Pessoas']]:[['p','Pessoas'],['f','Funções'],['s','Setores']];
+ let h='<div class="chs">'+tabs.map(([k,l])=>chip(l,V.eq===k,"V.eq='"+k+"';V.te=null;V.cf=null;R()")).join('')+'</div>';
+ if(V.eq!=='p')return h+rMng(V.eq==='f'?'roles':'sectors');
+ const team=teamVisible(),canCreate=isFullAccess()||teamLeaderMode();
+ if(canCreate)h+='<div class="c"><button class="bt" onclick="V.pe=\'new\';V.sv=0;R();scrollTo(0,0)">+ Cadastrar repositor</button><p class="mu">'+(teamLeaderMode()?'Cadastre somente repositores da sua equipe. Você poderá editar apenas os funcionários cadastrados por você.':'Cadastre e administre a equipe da loja.')+'</p></div>';
+ if(!team.length)return h+'<div class="c mu">'+(teamLeaderMode()?'Você ainda não cadastrou repositores.':'Nenhum funcionário disponível para este acesso.')+'</div>';
+ return h+[...S.sectors,''].map(s=>[s,team.filter(x=>(S.sectors.includes(x.s)?x.s:'')===s)]).filter(g=>g[1].length).map(([s,L])=>'<h2>'+esc(s||'Sem setor')+' ('+L.length+')</h2>'+L.map(x=>'<div class="c" onclick="V.pe=\''+x.id+'\';V.sv=0;R();scrollTo(0,0)"><div class="row sp"><b>'+esc(x.n)+'</b><span class="row"><span class="mu">›</span>'+(isFullAccess()?'<button class="bt d" title="Excluir funcionário" aria-label="Excluir funcionário" onclick="event.stopPropagation();delP(\''+x.id+'\')">'+(V.cf==='p'+x.id?'Confirmar?':'✕')+'</button>':'')+'</span></div><div class="mu">'+esc(x.f||'—')+' · '+esc(x.t||'')+(x.l?' · Líder':'')+(x.u?' · Login '+esc(x.u):'')+'</div></div>').join('')).join('');
+}
 const INDS={ava:{n:'Avaliações',e:'⭐',dir:'pos'},rcp:{n:'Recebimento de frios',e:'🚚',dir:'pos'},ckc:{n:'Checklists completos',e:'✅',dir:'pos'},cron:{n:'Cronogramas cumpridos',e:'🗓️',dir:'pos'},ent:{n:'Entregas concluídas',e:'🚚',dir:'pos'},cx:{n:'Vendas por caixa',e:'🧾',dir:'pos'},rup:{n:'Produtos em ruptura',e:'🚫',dir:'neg'},etq:{n:'Etiquetas não colocadas',e:'🏷️',dir:'neg'},desp:{n:'Desperdício da padaria',e:'🥖',dir:'neg'},perd:{n:'Perdas de perecíveis',e:'🥩',dir:'neg'},avar:{n:'Produtos avariados',e:'💥',dir:'neg'},venc:{n:'Produtos vencidos',e:'📉',dir:'neg'}};
 const INDK=Object.keys(INDS);
 const inM=(d,m)=>String(d||'').slice(0,7)===m;
