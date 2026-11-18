@@ -1723,9 +1723,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.36.0';
+const APP_VERSION='3.37.0';
 const APP_HIST=[
-{v:'3.36.0',d:'18/11/2026',t:'Padronização do Histórico e ajuste da Conferência (MINOR)',n:['Histórico reposicionado na linha superior das telas de lançamentos, com ícone padronizado.','Temperaturas: Histórico movido para a linha superior, ao lado do cadastro de equipamento; o botão + permanece abaixo.','Checklist, Cronograma e Avaliações: navegação de histórico ajustada sem remover suas ações específicas.','Conferência: datas da remarcação e da importação identificadas separadamente.'],c:[]},
+{v:'3.37.0',d:'18/11/2026',t:'Histórico padronizado e Conferência revisada (MINOR)',n:['Histórico reposicionado e padronizado nas telas de lançamentos, com Temperaturas como referência visual.','Conferência: Remarcação exibe motivo e data original em uma linha, com data de importação separada.','Ruptura e Etiqueta: botão Não colocado(a), seleção individual após dois dias e atribuição de responsável no início da lista.','Indicadores: contagem de produtos atribuídos e pendentes por responsável, separando Ruptura e Etiqueta.'],c:[]},
 {v:'3.35.0',d:'18/11/2026',t:'Histórico padronizado nos demais lançamentos (MINOR)',n:['Adicionado acesso ao Histórico no topo das telas de lançamentos gerais.','Separadas as telas de novo lançamento e consulta dos registros anteriores, mantendo edição e exclusão.'],c:[]},
 {v:'3.34.2',d:'18/11/2026',t:'Nova publicação para sincronização com a Cloudflare (PATCH)',n:['Atualizado o número da versão para solicitar uma nova publicação da branch principal.','Renovado o identificador do cache do aplicativo para substituir os arquivos anteriores.'],c:[]},
 {v:'3.34.1',d:'18/11/2026',t:'Força atualização do aplicativo e do cache (PATCH)',n:['Atualização do identificador do cache para solicitar a renovação dos arquivos instalados.'],c:[]},
