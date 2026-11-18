@@ -997,7 +997,7 @@ function rAvaReg(){
  if(V.evm)return rEvM();
  let t=V.evt||'ind';if(!evm(t))t=V.evt='ind';
  const top='<div class="chs">'+S.evm.map(m=>chip((m.arq?'🗄️ ':m.e+' ')+esc(m.n),t===m.id,"V.evt='"+m.id+"';V.ev='inicio';R()")).join('')+chip('⚙️ Tipos',0,"V.evm='list';R()")+'</div>';
- return top+(t==='clima'?rClima():t==='resp'?rResp():t==='ind'?rAvaInd():rAvaCus(evm(t)));
+ const body=t==='clima'?rClima():t==='resp'?rResp():t==='ind'?rAvaInd():rAvaCus(evm(t));const archive=t!=='ind'&&!!(evm(t)||{}).arq;return (V.ev==='hist'||V.ev==='nova'||V.ev==='rank'||archive?'':top)+body;
 }
 function rClima(){
  const C=V.cl||(V.cl={z:'',d:today(),qs:'',r:{},o:''});
@@ -1082,7 +1082,7 @@ function rAvaCus(m){
  const C=V.cu[m.id]||(V.cu[m.id]={p:'',z:'',n:'',d:today(),r:{},o:''}),ref="V.cu['"+m.id+"']";
  if(V.ev==='hist'||m.arq){
   const L=S.ev.filter(e=>e.t===m.id).reverse();
-  return regMenuBack('Voltar às Avaliações',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico · '+esc(m.n)+'</div>'+
+  return regMenuBack(m.arq?'Voltar às Avaliações':'Voltar a '+m.n,m.arq?"V.evt='ind';V.ev='inicio';R();scrollTo(0,0)":"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico · '+esc(m.n)+'</div>'+
    (m.arq?'<div class="c mu">Tipo arquivado: só o histórico está disponível. Para voltar a usar, restaure em ⚙️ Tipos.</div>':'')+
    (L.length?L.map(e=>{const p=e.p?person(e.p):null,a=avg(e.r||{});return '<div class="c"><div class="row sp"><b>'+esc(p?p.n:(e.z||e.n||'—'))+'</b><span class="b '+lvl(a*2.5)[1]+'">'+a.toFixed(1)+'/4</span></div><div class="mu">'+br(e.d)+(e.o?' · '+esc(e.o):'')+'</div>'+evDet(e)+'<button class="bt d" onclick="delE(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhuma avaliação salva.</div>');
  }
@@ -1459,7 +1459,7 @@ function lotHTML(k){
 function lotSel(id){const a=V.lsel||[];V.lsel=a.includes(id)?a.filter(x=>x!==id):[...a,id];R()}
 function lotSelAll(k,lid,on){const L=(S.log[k]||[]).filter(e=>lid==='legacy'?!e.lot:e.lot===lid);V.lsel=on?L.map(e=>e.id):[];R()}
 function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert('Escolha o responsável.');const sel=V.lsel||[];if(!sel.length)return;const L=S.log[k]||[];let n=0;L.forEach(e=>{if(sel.includes(e.id)){e.rh=[...(e.rh||[]),{de:e.r||'',para:name,por:V.me?V.me.n:'',em:Date.now()}];e.r=name;n++}});V.lsel=[];if(!save())return;alert(n+' produto(s) atribuído(s) a '+name+'.');R()}
-function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?h+perdIndHTML():h}
+function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'&&V.regTab!=='hist'?h+perdIndHTML():h}
 function historyIconButton(action,label='Histórico'){return `<button class="ibtn" type="button" title="${label}" aria-label="${label}" onclick="${action}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></button>`}
 function regHistoryRows(F,L){return L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return '<div class="c"><div class="row sp"><b>'+esc(F.ti(e))+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>'}).join(''):'<div class="c mu">Nenhum registro ainda.</div>'}
 
