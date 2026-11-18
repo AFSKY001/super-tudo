@@ -152,7 +152,7 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true });
     }
 
-    if (action === "notify" || action === "notify-self") {
+    if (action === "notify" || action === "notify-self" || action === "notify-broadcast") {
       const message = String(body.message || "").trim().slice(0, 1000);
       if (!message) return json({ error: "Mensagem vazia." }, 400);
       const key = String(body.key || "").trim().slice(0, 240) || null;
@@ -162,6 +162,21 @@ Deno.serve(async (req: Request) => {
 
       if (action === "notify-self") {
         recipients = [{ user_id: user.id, team_member_id: membership.team_member_id || null }];
+      } else if (action === "notify-broadcast") {
+        // Avisos gerais são um privilégio de gestão; nunca confiar nos destinatários do navegador.
+        if (!["admin", "gerente"].includes(membership.role)) {
+          return json({ error: "Somente administrador ou gerente pode enviar aviso para toda a organização." }, 403);
+        }
+        const { data: members, error } = await admin
+          .from("org_members")
+          .select("user_id, team_member_id")
+          .eq("org_id", orgId)
+          .eq("active", true);
+        if (error) throw error;
+        recipients = (members || []).map((m) => ({
+          user_id: m.user_id,
+          team_member_id: m.team_member_id || null,
+        }));
       } else {
         const targets = [...new Set((Array.isArray(body.to) ? body.to : [])
           .map((x: unknown) => String(x || "").trim()).filter(Boolean))].slice(0, 200);
