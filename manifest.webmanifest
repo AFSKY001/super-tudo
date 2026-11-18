@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "Super Tudo",
+  "short_name": "Super Tudo",
+  "description": "Sistema de gestão do Super Tudo",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef2f5",
+  "theme_color": "#0f4c5c",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -8,6 +8,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f4c5c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Super Tudo">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <title>Super Tudo – Gestão da Loja</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <style>
@@ -1683,8 +1689,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.31.23';
+const APP_VERSION='3.32.0';
 const APP_HIST=[
+{v:'3.32.0',d:'18/11/2026',t:'Aplicativo instalável Super Tudo (MINOR)',n:['Adicionado manifesto PWA para instalação pelo Chrome com nome Super Tudo.','Adicionado ícone vetorial neutro, sem fotografia, para a tela inicial do aparelho.','Adicionado service worker com cache do aplicativo e estratégia de rede para navegação; chamadas autenticadas e dados do Supabase não são armazenados pelo cache do service worker.'],c:[]},
 {v:'3.31.23',d:'17/11/2026',t:'Padroniza conferências e identificação de remarcações (PATCH)',n:['Ruptura e etiqueta usam os mesmos status: ✓ colocado, ✕ não colocado e – pendente.','Após mais de dois dias com ✕, cada produto pode ser selecionado e atribuído individualmente a um responsável.','Produtos atribuídos alimentam os indicadores individuais de ruptura ou etiquetas não colocadas.','Importações de arquivos de remarcação exibem somente o nome Remarcação, o motivo e a data identificada no nome do arquivo; a data de importação fica menor e separada.'],c:[]},
 {v:'3.31.22',d:'17/11/2026',t:'Identificação de autoria e proteção de direitos autorais (PATCH)',n:['Incluída a identificação de autoria no código-fonte e na interface do sistema.','Adicionado aviso de direitos autorais e licença proprietária no repositório.'],c:[]},
 {v:'3.31.21',d:'17/11/2026',t:'Correções no fluxo de Conferência de pedidos (PATCH)',n:['A lista de Conferências exibe somente nome, data e símbolos de status; os produtos aparecem apenas ao abrir a lista.','Pedido para Compras segue o padrão de conferência com status comprado, não comprado ou parcialmente comprado, sem campo de quantidade comprada.','Removida a exclusão da tela Conferência; a exclusão do pedido permanece somente em Lançamentos, na função Pedido para Compras.'],c:[]},
@@ -1834,5 +1841,7 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
  b.classList.add('ibtn','ibtn-'+k);b.dataset.ic=k;b.title=t;b.setAttribute('aria-label',t);
  b.innerHTML=`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICN[ic]}</svg><span class="sr-only">${esc(t)}</span>`})}
 (function(){let q=false;const run=()=>{q=false;enhBtns()};const mo=new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}});const go=()=>mo.observe(document.body,{childList:true,subtree:true});if(document.body)go();else document.addEventListener('DOMContentLoaded',go)})();
-</script></body></html>
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(e=>console.warn('Não foi possível registrar o aplicativo offline:',e)));}</script>
+</body></html>
 <!-- Teste de atualização automática -->
