@@ -1244,10 +1244,13 @@ function rMov(){
  if(V.clo){const c=(S.conf||[]).find(x=>x.id===V.clo);if(c&&(c.src==='mov_ent'||c.src==='mov_pre'))return confListDetail(c.src,c.id)}
  if(V.movEnt)return movEntForm();
  const pool=(S.movB||[]).flatMap(b=>b.items.filter(x=>x.fila==='MAN'));
- return `<div class="c"><button class="bt" onclick="movImport()">+ Importar lista</button><p class="mu">Colunas: Código, Descrição, Código de Barras, Embalagem, Preço Venda, Motivo e Loja. ENTRADA vai para Entrada de produto (ruptura). PRECO ALTERADO, INICIO OFERTA e TERMINO OFERTA vão para Alteração de preço. As listas seguem para Conferências.</p></div>`+
- `<div class="c"><b>Entrada de produto (ruptura)</b></div>`+confListsHTML('mov_ent')+
- `<div class="c"><b>Alteração de preço (etiquetas)</b><div class="row u-mt6"><button class="bt g" onclick="V.movEnt=1;R()">+ Entrega de etiqueta</button></div></div>`+etiqBox(S.log.etiq||[])+confListsHTML('mov_pre')+
- (pool.length?`<div class="c"><b>Classificar (motivo desconhecido)</b>${pool.map(x=>{const b=(S.movB||[]).find(z=>z.items.some(y=>y.id===x.id));return `<div class="it"><div><b>${b&&b.arqRem?['Remarcação',b.motivo,b.dataArquivo].filter(Boolean).map(esc).join(' · '):esc(x.c+' · '+x.p)}</b>${b&&b.arqRem?'<div class="mu" style="font-size:10px">Importada em '+br(b.data)+' · '+esc(x.c+' · '+x.p)+'</div>':'<div class="mu">'+esc(x.mot)+' · '+esc(x.loja)+'</div>'}</div><span class="row"><button class="bt" onclick="movClass('${x.id}','ENT')">Entrada</button><button class="bt g" onclick="movClass('${x.id}','PRE')">Alteração</button></span></div>`}).join('')}</div>`:'')}
+ return '<div class="launch-title">Movimentações</div>'+
+  '<div class="c launch-card"><button class="launch-plus" aria-label="Importar remarcação" onclick="movImport()">+</button><p class="launch-info">Importe uma lista de remarcação para separar entradas de produtos e alterações de preço. As listas são enviadas para Conferências.</p></div>'+
+  '<div class="c"><b>Entrada de produto (ruptura)</b></div>'+confListsHTML('mov_ent')+
+  '<div class="c"><b>Alteração de preço (etiquetas)</b><div class="row u-mt6"><button class="bt g" onclick="V.movEnt=1;R()">+ Entrega de etiqueta</button></div></div>'+etiqBox(S.log.etiq||[])+confListsHTML('mov_pre')+
+  (pool.length?'<div class="c"><b>Classificar (motivo desconhecido)</b>'+pool.map(x=>{const b=(S.movB||[]).find(z=>z.items.some(y=>y.id===x.id));return '<div class="it"><div><b>'+(b&&b.arqRem?['Remarcação',b.motivo,b.dataArquivo].filter(Boolean).map(esc).join(' · '):esc(x.c+' · '+x.p))+'</b>'+(b&&b.arqRem?'<div class="mu" style="font-size:10px">Importada em '+br(b.data)+' · '+esc(x.c+' · '+x.p)+'</div>':'<div class="mu">'+esc(x.mot)+' · '+esc(x.loja)+'</div>')+'</div><span class="row"><button class="bt" onclick="movClass(\''+x.id+'\',\'ENT\')">Entrada</button><button class="bt g" onclick="movClass(\''+x.id+'\',\'PRE\')">Alteração</button></span></div>'}).join('')+'</div>':'');
+}
+
 function migMovBack(){if(!S||!S.migrations)return;if(S.migrations.includes('mov-back-2026'))return;S.conf=S.conf||[];S.movB=S.movB||[];
  const okDe=st=>st==='Conferido'?true:st==='Conferido com divergência'?false:null;
  S.movB.forEach(b=>{const conv=x=>({...x,okv:okDe(x.st),resp:(x.conf&&x.conf.resp)||''});const ent=b.items.filter(x=>x.fila==='ENT').map(conv),pre=b.items.filter(x=>x.fila==='PRE').map(conv);
@@ -1443,10 +1446,16 @@ function phDetailHTML(code){const L=phAll().filter(e=>String(e.c)===String(code)
  `<div class="c"><b>Evolução por mês (quantidade)</b>${meses.map(([k,v])=>`<div class="it"><div>${k==='—'?'sem data':k.slice(5)+'/'+k.slice(0,4)}<div class="mu">${v} unid.</div>${bar2(v/max*100)}</div></div>`).join('')}</div>`+
  `<div class="c"><b>Ocorrências</b>${L.map(e=>`<div class="it"><div><b>${br(e.d)} · ${e._t}${e.tr?' · '+esc(e.tr):''}</b><div class="mu">qtd ${e.q} · unit. ${money(+e.vu||0)} · total ${money(+e.vt||0)} · ${esc(e.m||'')}</div><div class="mu">${esc(phListName(e))} · responsável: ${e.r?esc(e.r):'sem responsável'}${e.z?' · '+esc(e.z):''}</div></div></div>`).join('')}</div>`}
 function bar2(p){return `<div style="height:6px;border-radius:4px;background:var(--bd,#e5e7eb);margin-top:4px"><div style="height:6px;border-radius:4px;width:${Math.min(100,p).toFixed(0)}%;background:var(--pr,#4f46e5)"></div></div>`}
-function lotHTML(k){if(V.lot){const lid=V.lot;if(lid==='legacy'||lid==='manual'||(S.impVA||[]).some(x=>x.id===lid))return lotDetail(k,lid);V.lot=null}
+function lotHTML(k){
+ if(V.lot){const lid=V.lot;if(lid==='legacy'||lid==='manual'||(S.impVA||[]).some(x=>x.id===lid))return lotDetail(k,lid);V.lot=null}
  const lists=(S.impVA||[]).filter(x=>x.k===k).slice().reverse();
  const rows=lists.map(l=>lotCard(l,k)).join('')+lotGroupRow(k,'manual','Lançamentos manuais',e=>e.lot==='manual')+lotGroupRow(k,'legacy','Importações anteriores',e=>!e.lot);
- return `<div class="c"><div class="row"><button class="bt" onclick="impXL('${k}')">+ Importar planilha</button><button class="bt g" onclick="V.phMode=true;V.ph=null;V.phq='';R()">🔎 Histórico de produto</button></div><p class="mu">Colunas: produto (código), descrição, quantidade, custo c/ imposto, total c/ imposto e motivo. Cada importação vira uma lista separada.</p></div>`+(rows?`<div class="c">${rows}</div>`:'<div class="c mu">Nenhuma importação ainda.</div>')}
+ const title=k==='vtc'?'Vencidos':'Avariados';
+ return '<div class="row sp"><div class="launch-title">'+title+'</div>'+historyIconButton("V.phMode=true;V.ph=null;V.phq='';R()","Histórico de produto")+'</div>'+
+  '<div class="c launch-card"><button class="launch-plus" aria-label="Importar planilha" onclick="impXL(\''+k+'\')">+</button><p class="launch-info">Importe uma planilha de '+title.toLowerCase()+'. Cada importação vira uma lista separada, que pode ser aberta e conferida.</p></div>'+
+  (rows?'<h3 class="u-mt10">Listas e lançamentos</h3><div class="c">'+rows+'</div>':'<div class="c mu">Nenhuma importação ou lançamento ainda.</div>');
+}
+
 function lotSel(id){const a=V.lsel||[];V.lsel=a.includes(id)?a.filter(x=>x!==id):[...a,id];R()}
 function lotSelAll(k,lid,on){const L=(S.log[k]||[]).filter(e=>lid==='legacy'?!e.lot:e.lot===lid);V.lsel=on?L.map(e=>e.id):[];R()}
 function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert('Escolha o responsável.');const sel=V.lsel||[];if(!sel.length)return;const L=S.log[k]||[];let n=0;L.forEach(e=>{if(sel.includes(e.id)){e.rh=[...(e.rh||[]),{de:e.r||'',para:name,por:V.me?V.me.n:'',em:Date.now()}];e.r=name;n++}});V.lsel=[];if(!save())return;alert(n+' produto(s) atribuído(s) a '+name+'.');R()}
