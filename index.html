@@ -1289,7 +1289,7 @@ function pedForm(){const L=V.pedL||[];
 return `<div class="c"><h3>🛒 Pedido para prateleira</h3><label>Repositor<select onchange="V.pedR=this.value">${'<option value="">—</option>'+S.team.map(p=>`<option ${p.n===V.pedR?'selected':''}>${esc(p.n)}</option>`).join('')}</select></label><div class="row u-mt8"><input id="pedp" placeholder="Produto" class="u-fx1" onkeydown="if(event.key==='Enter')pedAdd()"><button class="bt g" onclick="pedAdd()">Adicionar produto</button></div>${L.map((p,i)=>`<div class="it"><div>${esc(p)}</div><button class="bt d" onclick="pedDel(${i})">✕</button></div>`).join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>'}<div class="row u-mt10"><button class="bt" onclick="pedSave()">Salvar pedido (${L.length})</button><button class="bt g" onclick="V.add=0;V.pedL=[];R()">Cancelar</button></div></div>`}
 function pedAdd(){const v=(($('pedp')||{}).value||'').trim();if(!v)return;V.pedL=[...(V.pedL||[]),v];R()}
 function pedDel(i){V.pedL=(V.pedL||[]).filter((_,j)=>j!==i);R()}
-function pedSave(){if(!V.pedR)return alert('Escolha o repositor.');const L=V.pedL||[];if(!L.length)return alert('Adicione ao menos um produto.');(S.log.ped=S.log.ped||[]).push(...L.map(p=>({id:uid(),d:today(),p,r:V.pedR,...ownBy()})));V.pedL=[];V.add=0;save();R()}
+function pedSave(){if(!V.pedR)return alert('Escolha o repositor.');const L=V.pedL||[];if(!L.length)return alert('Adicione ao menos um produto.');(S.log.ped=S.log.ped||[]).push(...L.map(p=>({id:uid(),d:today(),p,r:V.pedR,...ownBy()})));V.pedL=[];V.add=0;V.ed=null;V.regTab='novo';V.regReturnTab=null;save();R();scrollTo(0,0)}
 const PIM_SET=['Açougue','Padaria — Atendimento','Hortifruti'];
 const MOT_PERD=['Quebra líquida (resfriamento)','Quebra operacional','Quebra por degustação e violação','Quebra por equipamento','Quebra por fornecedor','Quebra por roubo','Quebra por vencimento'];
 const pimNorm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
@@ -1376,7 +1376,8 @@ function lotSelAll(k,lid,on){const L=(S.log[k]||[]).filter(e=>lid==='legacy'?!e.
 function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert('Escolha o responsável.');const sel=V.lsel||[];if(!sel.length)return;const L=S.log[k]||[];let n=0;L.forEach(e=>{if(sel.includes(e.id)){e.rh=[...(e.rh||[]),{de:e.r||'',para:name,por:V.me?V.me.n:'',em:Date.now()}];e.r=name;n++}});V.lsel=[];if(!save())return;alert(n+' produto(s) atribuído(s) a '+name+'.');R()}
 function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?h+perdIndHTML():h}
 function historyIconButton(action,label='Histórico'){return `<button class="ibtn" type="button" title="${label}" aria-label="${label}" onclick="${action}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></button>`}
-function regHistoryRows(F,L){return L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return '<div class="c"><div class="row sp"><b>'+esc(F.ti(e))+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhum registro ainda.</div>'}
+function regHistoryRows(F,L){return L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return '<div class="c"><div class="row sp"><b>'+esc(F.ti(e))+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>'}).join(''):'<div class="c mu">Nenhum registro ainda.</div>'}
+
 function launchFormBack(){
  const tab=V.regReturnTab||'novo';
  if(V.reg==='temp')V.tempTab=tab==='hist'?'historico':'novo';
@@ -1439,8 +1440,26 @@ function tempLancHTML(){
   '<p class="mu">Até 3 leituras por dia (manhã, tarde e noite), não obrigatórias. Os limites de ideal, tolerável e risco são definidos em cada equipamento.</p>';
 }
 
-function addL(){const k=V.reg,F=FS[k],L=S.log[k]=S.log[k]||[];let e=V.ed&&L.find(x=>x.id===V.ed);const nw=!e;if(nw)e={id:uid(),...((k==='vtc'||k==='atc')?{lot:'manual'}:{})};F.F.forEach(f=>{const el=$('f_'+f.k);if(el)e[f.k]=el.value});if(k==='fita'){const p=S.team.find(x=>x.n===e.r);e.z=p?p.s:(e.z||'')}if(k==='temp'){const q=(S.equip||[]).find(x=>x.id===e.eq);e.q=q?(q.num?q.num+' · ':'')+q.n:''}e.u=Date.now();if(k==='fita'||k==='etiq')e.ts=e.ts||Date.now();if(nw){Object.assign(e,ownBy());if(k==='req'||k==='ped'){e.st='p';e.rq=V.me?V.me.id:''}L.push(e);afterNew(k,e)}else e.sent=false;V.add=0;V.ed=null;save();R()}
-function editL(id){V.ed=id;V.add=1;if(V.reg==='temp')V.tempTab='novo';R()}
+function addL(){
+ const k=V.reg,F=FS[k],L=S.log[k]=S.log[k]||[],returnTab=V.regReturnTab||'novo';
+ let e=V.ed&&L.find(x=>x.id===V.ed);const nw=!e;
+ if(nw)e={id:uid(),...((k==='vtc'||k==='atc')?{lot:'manual'}:{})};
+ F.F.forEach(f=>{const el=$('f_'+f.k);if(el)e[f.k]=el.value});
+ if(k==='fita'){const p=S.team.find(x=>x.n===e.r);e.z=p?p.s:(e.z||'')}
+ if(k==='temp'){const q=(S.equip||[]).find(x=>x.id===e.eq);e.q=q?(q.num?q.num+' · ':'')+q.n:''}
+ e.u=Date.now();if(k==='fita'||k==='etiq')e.ts=e.ts||Date.now();
+ if(nw){Object.assign(e,ownBy());if(k==='req'||k==='ped'){e.st='p';e.rq=V.me?V.me.id:''}L.push(e);afterNew(k,e)}else e.sent=false;
+ V.add=0;V.ed=null;V.regReturnTab=null;
+ if(k==='temp')V.tempTab=returnTab==='hist'?'historico':'novo';
+ else V.regTab=returnTab==='hist'?'hist':'novo';
+ save();R();
+}
+function editL(id){
+ V.ed=id;V.add=1;
+ V.regReturnTab=V.reg==='temp'?(V.tempTab==='historico'?'hist':'novo'):(V.regTab==='hist'?'hist':'novo');
+ if(V.reg==='temp')V.tempTab='form';
+ R();scrollTo(0,0);
+}
 
 const tomb=(k,id)=>{const L=S.log.dl=S.log.dl||[];L.push({id:'d_'+id,k,i:id,u:Date.now(),sent:false})};
 function delL(id){if(confirm('Excluir registro?')){S.log[V.reg]=S.log[V.reg].filter(e=>e.id!==id);tomb(V.reg,id);save();R()}}
