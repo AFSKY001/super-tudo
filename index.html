@@ -1174,17 +1174,15 @@ function lotSelAll(k,lid,on){const L=(S.log[k]||[]).filter(e=>lid==='legacy'?!e.
 function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert('Escolha o responsável.');const sel=V.lsel||[];if(!sel.length)return;const L=S.log[k]||[];let n=0;L.forEach(e=>{if(sel.includes(e.id)){e.rh=[...(e.rh||[]),{de:e.r||'',para:name,por:V.me?V.me.n:'',em:Date.now()}];e.r=name;n++}});V.lsel=[];if(!save())return;alert(n+' produto(s) atribuído(s) a '+name+'.');R()}
 function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?h+perdIndHTML():h}
 function rRegLancMain(){if(V.reg==='ck'){V.ckOnly=null;return rCkLanc()}if(V.reg==='chrec')return rChRec();if(V.reg==='temp'&&V.eqm&&eqOK())return '<button class="ch" onclick="V.eqm=0;V.eqe=null;R();scrollTo(0,0)">‹ Temperaturas</button><h3 class="u-m10">🛠️ Equipamentos</h3>'+rEqp();const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse();
-let h=`<div class="launch-title">${F.e} ${F.n}</div>`;
+let h=`<div class="row sp"><button class="ch ${V.regTab==='hist'?'on':''}" onclick="V.regTab='hist';V.add=0;R()">◷ Histórico</button><div class="launch-title">${F.e} ${F.n}</div></div>`;
 if(V.reg==='temp')return tempLancHTML();
+if(V.regTab==='hist')return h+'<div class="row u-mt8"><button class="bt" onclick="V.regTab=\'novo\';V.add=0;R()">+ Novo lançamento</button></div>'+(h+(L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return `<div class="c"><div class="row sp"><b>${esc(F.ti(e))}</b>${b?`<span class="b ${b[1]}">${esc(b[0])}</span>`:''}</div><div class="mu">${F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>`${f.l}: ${fv(f,e)}`).join(' · ')}</div><button class="bt g" onclick="editL('${e.id}')">Editar</button><button class="bt d" onclick="delL('${e.id}')">Excluir</button></div>`}).join(''):'<div class="c mu">Nenhum registro ainda.</div>'));
 if(V.reg==='ped'&&V.add)return h+pedForm();
 if(V.reg==='perd')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:'',res:null};R()">+</button><p class="launch-info">Importe a planilha de perdas de perecíveis. Os indicadores e comparativos ficam logo abaixo.</p></div>`;
 else if(V.reg==='rup')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf('ruptura')">+</button><p class="launch-info">Colunas: código, descrição, código de barras e preço de venda. A lista vai para Conferências › Ruptura, onde você marca o que está na prateleira.</p></div>`;
 else if(V.add)h+=`<div class="c"><h3>${F.n}</h3>${F.F.map(f=>fld(f,recVal(f))).join('')}<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar</button><button class="bt g" onclick="V.add=0;R()">Cancelar</button></div></div>`;
 else h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Novo registro" onclick="V.add=1;R()">+</button><p class="launch-info">Campos: ${F.F.map(f=>f.l).join(' · ')}</p>${['vtc','vsc','atc','asc'].includes(V.reg)?'<div class="row u-mt10"><button class="bt g" onclick="impXL(V.reg)">📥 Importar planilha</button></div>':''}</div>`;
-if(V.reg==='fita')h+=fitaBox(L);if(V.reg==='etiq')h+=etqBtn()+etiqBox(L)+confListsHTML('etiq');if(V.reg==='rup')h+=confListsHTML('rup');if(V.reg==='temp')h+=`${!V.add&&eqOK()?'<button class="bt g u-ml6" onclick="V.eqm=1;V.eqe=null;V.add=0;R();scrollTo(0,0)">🛠️ Criar equipamento</button>':''}<p class="mu">Até 3 leituras por dia (manhã, tarde e noite), não obrigatórias. Os limites de ideal, tolerável e risco são definidos em cada equipamento.</p>`;
-
-if(V.reg==='desp'){const p=L.reduce((a,e)=>a+(+e.a||0),0),w=L.reduce((a,e)=>a+(+e.b||0),0);h+=`<div class="c"><b>Resumo:</b> produzido ${p.toFixed(1)} kg · desperdiçado ${w.toFixed(1)} kg (${p?(w/p*100).toFixed(1):0}%) · custo ${money(L.reduce((a,e)=>a+(+e.b||0)*(+e.c||0),0))}</div>`}
-return h+(L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return `<div class="c"><div class="row sp"><b>${esc(F.ti(e))}</b>${b?`<span class="b ${b[1]}">${esc(b[0])}</span>`:''}</div><div class="mu">${F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>`${f.l}: ${fv(f,e)}`).join(' · ')}</div><button class="bt g" onclick="editL('${e.id}')">Editar</button><button class="bt d" onclick="delL('${e.id}')">Excluir</button></div>`}).join(''):'<div class="c mu">Nenhum registro ainda.</div>')}
+if(V.reg==='fita')h+=fitaBox(L);if(V.reg==='etiq')h+=etqBtn()+etiqBox(L)+confListsHTML('etiq');if(V.reg=return h}
 
 function tempLancHTML(){
  const F=FS.temp,L=[...(S.log.temp||[])].reverse(),tab=V.tempTab||'novo';
@@ -1718,8 +1716,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.34.2';
+const APP_VERSION='3.35.0';
 const APP_HIST=[
+{v:'3.35.0',d:'18/11/2026',t:'Histórico padronizado nos demais lançamentos (MINOR)',n:['Adicionado acesso ao Histórico no topo das telas de lançamentos gerais.','Separadas as telas de novo lançamento e consulta dos registros anteriores, mantendo edição e exclusão.'],c:[]},
 {v:'3.34.2',d:'18/11/2026',t:'Nova publicação para sincronização com a Cloudflare (PATCH)',n:['Atualizado o número da versão para solicitar uma nova publicação da branch principal.','Renovado o identificador do cache do aplicativo para substituir os arquivos anteriores.'],c:[]},
 {v:'3.34.1',d:'18/11/2026',t:'Força atualização do aplicativo e do cache (PATCH)',n:['Atualização do identificador do cache para solicitar a renovação dos arquivos instalados.'],c:[]},
 {v:'3.34.0',d:'18/11/2026',t:'Histórico de lançamentos e ajuste das remarcações (MINOR)',n:['Checklist: adicionada consulta dos preenchimentos anteriores.','Cronograma: histórico de dias com atividades concluídas.','Avaliações: histórico priorizado na navegação.','Conferência: corrigida leitura de datas em nomes de arquivos de remarcação e simplificada a identificação visual.'],c:[]},
