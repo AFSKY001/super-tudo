@@ -1173,6 +1173,7 @@ function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert
 function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?h+perdIndHTML():h}
 function rRegLancMain(){if(V.reg==='ck'){V.ckOnly=null;return rCkLanc()}if(V.reg==='chrec')return rChRec();if(V.reg==='temp'&&V.eqm&&eqOK())return '<button class="ch" onclick="V.eqm=0;V.eqe=null;R();scrollTo(0,0)">‹ Temperaturas</button><h3 class="u-m10">🛠️ Equipamentos</h3>'+rEqp();const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse();
 let h=`<div class="launch-title">${F.e} ${F.n}</div>`;
+if(V.reg==='temp')return tempLancHTML();
 if(V.reg==='ped'&&V.add)return h+pedForm();
 if(V.reg==='perd')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:'',res:null};R()">+</button><p class="launch-info">Importe a planilha de perdas de perecíveis. Os indicadores e comparativos ficam logo abaixo.</p></div>`;
 else if(V.reg==='rup')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf('ruptura')">+</button><p class="launch-info">Colunas: código, descrição, código de barras e preço de venda. A lista vai para Conferências › Ruptura, onde você marca o que está na prateleira.</p></div>`;
@@ -1182,8 +1183,24 @@ if(V.reg==='fita')h+=fitaBox(L);if(V.reg==='etiq')h+=etqBtn()+etiqBox(L)+confLis
 
 if(V.reg==='desp'){const p=L.reduce((a,e)=>a+(+e.a||0),0),w=L.reduce((a,e)=>a+(+e.b||0),0);h+=`<div class="c"><b>Resumo:</b> produzido ${p.toFixed(1)} kg · desperdiçado ${w.toFixed(1)} kg (${p?(w/p*100).toFixed(1):0}%) · custo ${money(L.reduce((a,e)=>a+(+e.b||0)*(+e.c||0),0))}</div>`}
 return h+(L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return `<div class="c"><div class="row sp"><b>${esc(F.ti(e))}</b>${b?`<span class="b ${b[1]}">${esc(b[0])}</span>`:''}</div><div class="mu">${F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>`${f.l}: ${fv(f,e)}`).join(' · ')}</div><button class="bt g" onclick="editL('${e.id}')">Editar</button><button class="bt d" onclick="delL('${e.id}')">Excluir</button></div>`}).join(''):'<div class="c mu">Nenhum registro ainda.</div>')}
+
+function tempLancHTML(){
+ const F=FS.temp,L=[...(S.log.temp||[])].reverse(),tab=V.tempTab||'novo';
+ const equip=(S.equip||[]),todayN=today();
+ const dates=[...new Set(L.map(e=>e.d||'Sem data'))];
+ const q=String(V.tempQ||'').toLocaleLowerCase('pt-BR'),fd=V.tempDate||'',fe=V.tempEq||'';
+ const filtered=L.filter(e=>(!fd||e.d===fd)&&(!fe||e.eq===fe)&&(!q||[e.q,e.t,e.o,e.r,e.p,e.h].join(' ').toLocaleLowerCase('pt-BR').includes(q)));
+ const groups=[...new Set(filtered.map(e=>e.d||'Sem data'))];
+ const form=V.add?'<div class="c"><h3>'+(V.ed?'Editar temperatura':'Novo lançamento')+'</h3>'+F.F.map(f=>fld(f,recVal(f))).join('')+'<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar lançamento</button><button class="bt g" onclick="V.add=0;V.ed=null;R()">Cancelar</button></div></div>':'<div class="c launch-card"><button class="launch-plus" aria-label="Novo lançamento" onclick="V.ed=null;V.add=1;V.tempTab=\'novo\';R()">+</button><p class="launch-info">Registre a temperatura de um equipamento.</p></div>';
+ let out='<div class="row sp"><div class="launch-title">🌡️ Temperaturas</div><button class="bt g" onclick="V.eqm=1;V.eqe=null;V.add=0;R()">🛠️ Equipamentos</button></div>'+
+ '<div class="row u-mt10" style="gap:8px"><button class="bt '+(tab==='novo'?'':'g')+'" onclick="V.tempTab=\'novo\';V.add=0;V.ed=null;R()">＋ Novo lançamento</button><button class="bt '+(tab==='historico'?'':'g')+'" onclick="V.tempTab=\'historico\';V.add=0;V.ed=null;R()">☷ Histórico ('+L.length+')</button></div>'+
+ (tab==='novo'?form:'<div class="c"><h3>Histórico de temperaturas</h3><div class="g2"><label>Data<input type="date" value="'+esc(fd)+'" onchange="V.tempDate=this.value;R()"></label><label>Equipamento<select onchange="V.tempEq=this.value;R()"><option value="">Todos</option>'+equip.map(x=>'<option value="'+esc(x.id)+'" '+(fe===x.id?'selected':'')+'>'+esc((x.num?x.num+' · ':'')+x.n)+'</option>').join('')+'</select></label></div><label>Pesquisar<input type="search" placeholder="Equipamento, observação ou responsável" value="'+esc(V.tempQ||'')+'" oninput="V.tempQ=this.value;R()"></label><div class="row sp"><span class="mu">'+filtered.length+' registro(s) encontrado(s)</span><button class="ch" onclick="V.tempDate=\'\';V.tempEq=\'\';V.tempQ=\'\';R()">Limpar filtros</button></div></div>'+
+ (groups.length?groups.map(d=>'<h3 class="u-mt10">'+(d==='Sem data'?d:br(d))+' <span class="mu">· '+filtered.filter(e=>(e.d||'Sem data')===d).length+'</span></h3>'+filtered.filter(e=>(e.d||'Sem data')===d).map(e=>{const b=BADGE.temp&&BADGE.temp(e);return '<div class="c"><div class="row sp"><b>'+esc(e.q||'Equipamento não identificado')+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="row sp"><strong>'+esc(e.t)+' °C</strong><span class="mu">'+esc(e.h||'')+' · '+esc(e.p||'')+'</span></div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null&&f.k!=='eq'&&f.k!=='t').map(f=>esc(f.l)+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Abrir / editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>'}).join('')).join(''):'<div class="c mu">Nenhum registro encontrado. Ajuste os filtros ou faça um novo lançamento.</div>'));
+ return out;
+}
+
 function addL(){const k=V.reg,F=FS[k],L=S.log[k]=S.log[k]||[];let e=V.ed&&L.find(x=>x.id===V.ed);const nw=!e;if(nw)e={id:uid(),...((k==='vtc'||k==='atc')?{lot:'manual'}:{})};F.F.forEach(f=>{const el=$('f_'+f.k);if(el)e[f.k]=el.value});if(k==='fita'){const p=S.team.find(x=>x.n===e.r);e.z=p?p.s:(e.z||'')}if(k==='temp'){const q=(S.equip||[]).find(x=>x.id===e.eq);e.q=q?(q.num?q.num+' · ':'')+q.n:''}e.u=Date.now();if(k==='fita'||k==='etiq')e.ts=e.ts||Date.now();if(nw){Object.assign(e,ownBy());if(k==='req'||k==='ped'){e.st='p';e.rq=V.me?V.me.id:''}L.push(e);afterNew(k,e)}else e.sent=false;V.add=0;V.ed=null;save();R()}
-function editL(id){V.ed=id;V.add=1;R()}
+function editL(id){V.ed=id;V.add=1;if(V.reg==='temp')V.tempTab='novo';R()}
 
 const tomb=(k,id)=>{const L=S.log.dl=S.log.dl||[];L.push({id:'d_'+id,k,i:id,u:Date.now(),sent:false})};
 function delL(id){if(confirm('Excluir registro?')){S.log[V.reg]=S.log[V.reg].filter(e=>e.id!==id);tomb(V.reg,id);save();R()}}
@@ -1689,8 +1706,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.32.0';
+const APP_VERSION='3.33.0';
 const APP_HIST=[
+{v:'3.33.0',d:'18/11/2026',t:'Organização dos lançamentos de temperatura (MINOR)',n:['Separadas as telas de novo lançamento e histórico de temperaturas.','Histórico agrupado por data, com pesquisa e filtros por data e equipamento.','Registros existentes preservados; edição e exclusão continuam disponíveis.'],c:[]},
 {v:'3.32.0',d:'18/11/2026',t:'Aplicativo instalável Super Tudo (MINOR)',n:['Adicionado manifesto PWA para instalação pelo Chrome com nome Super Tudo.','Adicionado ícone vetorial neutro, sem fotografia, para a tela inicial do aparelho.','Adicionado service worker com cache do aplicativo e estratégia de rede para navegação; chamadas autenticadas e dados do Supabase não são armazenados pelo cache do service worker.'],c:[]},
 {v:'3.31.23',d:'17/11/2026',t:'Padroniza conferências e identificação de remarcações (PATCH)',n:['Ruptura e etiqueta usam os mesmos status: ✓ colocado, ✕ não colocado e – pendente.','Após mais de dois dias com ✕, cada produto pode ser selecionado e atribuído individualmente a um responsável.','Produtos atribuídos alimentam os indicadores individuais de ruptura ou etiquetas não colocadas.','Importações de arquivos de remarcação exibem somente o nome Remarcação, o motivo e a data identificada no nome do arquivo; a data de importação fica menor e separada.'],c:[]},
 {v:'3.31.22',d:'17/11/2026',t:'Identificação de autoria e proteção de direitos autorais (PATCH)',n:['Incluída a identificação de autoria no código-fonte e na interface do sistema.','Adicionado aviso de direitos autorais e licença proprietária no repositório.'],c:[]},
