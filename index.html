@@ -1644,11 +1644,124 @@ const isBuyer=p=>!!p&&(p.f==='Comprador'||p.s==='Compras'||(p.g||[]).includes('C
 const NT_CATS=[['all','Todas'],['env','Alterações'],['avi','Avisos'],['tar','Tarefas'],['atr','Atrasos'],['ocr','Ocorrências']];
 const catOf=m=>/atras|não colocad/i.test(m)?'atr':/enviou|envio|alteraç|importa/i.test(m)?'env':/requisi|pedido|checklist|atividade|cronograma|tarefa|comprado/i.test(m)?'tar':/lançou|ocorr|ruptura|avaria|vencid|perda|desperd|entrega|etiqueta/i.test(m)?'ocr':'avi';
 const catOf2=e=>e.cat||catOf(e.m);
-function notify(to,m,ref,key,cat){const L=S.log.nt=S.log.nt||[];to=[...new Set((to||[]).filter(Boolean))];if(!to.length)return;if(key&&L.some(e=>e.key===key))return;L.push({id:uid(),to,m,ref:ref||null,key:key||'',cat:cat||catOf(m),ts:Date.now(),u:Date.now(),by:V.me?V.me.n:'',rd:[],sent:false})}
+
+function pushCall(action,payload={}){
+ if(!V.sbSession||!V.cloudIdentity)return Promise.resolve(null);
+ return supa.functions.invoke('push-notifications',{body:{action,...payload}}).then(({data,error})=>{if(error)throw error;return data});
+}
+function pushAddRemote(row){
+ if(!V.me||!row)return;
+ S.log.nt=S.log.nt||[];
+ const key=row.dedupe_key||('cloud|'+row.id);
+ let e=S.log.nt.find(x=>x.key===key||x.cloud_id===row.id);
+ if(e){
+  e.cloud_id=row.id;e.sent=true;
+  if(row.read_at&&!e.rd.includes(V.me.id))e.rd.push(V.me.id);
+  return;
+ }
+ S.log.nt.push({id:'cloud-'+row.id,cloud_id:row.id,to:[V.me.id],m:row.body||'',ref:row.ref||null,key,cat:row.cat||'avi',ts:Date.parse(row.created_at)||Date.now(),u:Date.now(),by:row.created_by===V.cloudIdentity.id?V.me.n:'Equipe',rd:row.read_at?[V.me.id]:[],sent:true});
+}
+async function pushSyncNotifications(){
+ const data=await pushCall('list');
+ (data?.notifications||[]).forEach(pushAddRemote);
+ if(data?.notifications?.length){save();bell();if(V.nb)rNb()}
+}
+async function pushEnsureSubscription(){
+ if(!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window)||Notification.permission!=='granted')return false;
+ const pub=await pushCall('public-key');
+ if(!pub?.publicKey)throw new Error('Não foi possível obter a chave de notificação.');
+ const reg=await navigator.serviceWorker.ready;
+ let sub=await reg.pushManager.getSubscription();
+ if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushBase64Key(pub.publicKey)});
+ const result=await pushCall('subscribe',{subscription:sub.toJSON()});
+ if(!result?.ok)throw new Error('Não foi possível registrar este aparelho.');
+ V.pushEnabled=true;
+ return true;
+}
+function pushBase64Key(value){
+ const s=String(value||'').replace(/-/g,'+').replace(/_/g,'/');
+ const raw=atob(s+'='.repeat((4-s.length%4)%4));
+ return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+async function pushEnable(){
+ try{
+  if(!V.sbSession||!V.cloudIdentity)return alert('Entre no sistema com seu usuário para ativar as notificações.');
+  if(!('Notification' in window)||!('PushManager' in window))return alert('Este navegador não oferece notificações push. Atualize o Chrome e tente novamente.');
+  if(Notification.permission!=='granted'){
+   const permission=await Notification.requestPermission();
+   if(permission!=='granted')return alert('A permissão foi negada. Ative as notificações do Super Tudo nas configurações do navegador ou do aplicativo.');
+  }
+  await pushEnsureSubscription();
+  await pushCall('notify-self',{message:'As notificações do Super Tudo foram ativadas neste aparelho.',cat:'avi',key:'push-enabled|'+V.cloudIdentity.id+'|'+Date.now()});
+  await pushSyncNotifications();
+  if(V.nb)rNb();
+  alert('Notificações ativadas neste aparelho.');
+ }catch(e){console.error('Falha ao ativar notificações:',e);alert('Não foi possível ativar as notificações. '+(e.message||''))}
+}
+function pushButton(){
+ if(!('Notification' in window)||!('PushManager' in window))return '<span class="mu">Este navegador não oferece notificações push.</span>';
+ if(Notification.permission==='denied')return '<span class="mu">Permissão bloqueada. Ative nas configurações do navegador.</span>';
+ if(V.pushEnabled)return '<span class="b ok">Ativadas neste aparelho</span>';
+ return '<button class="ch" onclick="pushEnable()">Ativar no celular</button>';
+}
+function pushNotifyCloud(e){
+ if(!e||!V.sbSession||!V.cloudIdentity)return Promise.resolve(null);
+ return pushCall('notify',{to:e.to||[],message:e.m||'',ref:e.ref||null,key:e.key||null,cat:e.cat||'avi'});
+}
+function pushNotifySelf(message,key,ref,cat){
+ return pushCall('notify-self',{message, key, ref:ref||null, cat:cat||'env', title:'Super Tudo'});
+}
+function pushFlushLocalNotifications(){
+ if(!V.sbSession||!V.cloudIdentity)return;
+ (S.log.nt||[]).filter(e=>!e.sent&&!String(e.key||'').startsWith('cloud|')&&!String(e.key||'').startsWith('app-update|')).forEach(e=>{
+  pushNotifyCloud(e).then(()=>{e.sent=true;save()}).catch(err=>console.warn('Notificação será reenviada quando houver conexão:',err));
+ });
+}
+async function pushStart(){
+ if(!V.sbSession||!V.cloudIdentity||!V.me)return;
+ const userId=V.cloudIdentity.id;
+ if(V.pushStartedFor===userId)return;
+ V.pushStartedFor=userId;
+ try{
+  await pushSyncNotifications();
+  if(V.pushChannel)await supa.removeChannel(V.pushChannel);
+  V.pushChannel=supa.channel('st-notifications-'+userId)
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'app_notifications',filter:'recipient_user_id=eq.'+userId},payload=>{
+    pushAddRemote(payload.new);save();bell();if(V.nb)rNb();
+   }).subscribe();
+  if('Notification' in window&&Notification.permission==='granted')await pushEnsureSubscription();
+  pushFlushLocalNotifications();
+  pushVersionNotice();
+ }catch(e){console.warn('Não foi possível iniciar notificações sincronizadas:',e)}
+}
+function pushVersionNotice(){
+ if(!V.me||!V.cloudIdentity)return;
+ const storageKey='st_app_update_notice_'+V.cloudIdentity.id;
+ if(localStorage.getItem(storageKey)===APP_VERSION)return;
+ const hist=APP_HIST[0],message='Nova atualização do Super Tudo v'+APP_VERSION+': '+((hist&&hist.n)||['Melhorias e correções no aplicativo.']).slice(0,5).join(' ');
+ const key='app-update|'+APP_VERSION+'|'+V.cloudIdentity.id;
+ S.log.nt=S.log.nt||[];
+ if(!S.log.nt.some(e=>e.key===key))S.log.nt.push({id:uid(),to:[V.me.id],m:message,ref:{t:'version',v:APP_VERSION},key,cat:'env',ts:Date.now(),u:Date.now(),by:'Sistema',rd:[],sent:false});
+ localStorage.setItem(storageKey,APP_VERSION);
+ pushNotifySelf(message,key,{t:'version',v:APP_VERSION},'env').then(()=>{const e=S.log.nt.find(x=>x.key===key);if(e)e.sent=true;save();bell();if(V.nb)rNb()}).catch(e=>console.warn('Aviso de versão será sincronizado depois:',e));
+ save();bell();
+}
+function pushMarkRead(e){
+ if(!e||!V.sbSession)return;
+ pushCall('mark-read',{id:e.cloud_id||undefined,dedupe_key:e.cloud_id?undefined:e.key}).catch(err=>console.warn('Falha ao marcar notificação na nuvem:',err));
+}
+function pushMarkAllRead(){if(V.sbSession)pushCall('mark-all-read').catch(e=>console.warn(e))}
+function pushDeleteAll(){if(V.sbSession)pushCall('delete-all').catch(e=>console.warn('Falha ao excluir notificações da nuvem:',e))}
+function pushStop(){
+ if(V.pushChannel)supa.removeChannel(V.pushChannel);
+ V.pushChannel=null;V.pushStartedFor=null;V.pushEnabled=false;
+}
+
+function notify(to,m,ref,key,cat){const L=S.log.nt=S.log.nt||[];to=[...new Set((to||[]).filter(Boolean))];if(!to.length)return;const cloudKey=key||('auto|'+uid());if(key&&L.some(e=>e.key===cloudKey))return;const entry={id:uid(),to,m,ref:ref||null,key:cloudKey,cat:cat||catOf(m),ts:Date.now(),u:Date.now(),by:V.me?V.me.n:'',rd:[],sent:false};L.push(entry);pushNotifyCloud(entry).then(()=>{entry.sent=true;save()}).catch(err=>console.warn('Notificação aguardando conexão:',err))}
 function notifyGroups(groups,m){const ids=S.team.filter(p=>(p.g||[]).some(g=>(groups||[]).includes(g))).map(p=>p.id);notify(ids,m,{t:'cro'},'cr|'+uid()+'|'+Date.now(),'tar')}
 function ntCompose(){return V.ntnav?`<div class="c"><b>📢 Aviso para toda a equipe</b><textarea id="nv_txt" rows="3" placeholder="Escreva o aviso" class="u-mv6"></textarea><div class="row"><button class="bt" onclick="sendAviso()">Enviar</button><button class="ch" onclick="V.ntnav=0;rNb()">Cancelar</button></div></div>`:`<div class="u-mv6"><button class="bt g" onclick="V.ntnav=1;rNb()">📢 Novo aviso para a equipe</button></div>`}
 function sendAviso(){const t=(($('nv_txt')||{}).value||'').trim();if(!t)return alert('Escreva o aviso.');notify(S.team.map(p=>p.id),'📢 Aviso: '+t,null,'avi|'+uid()+'|'+Date.now(),'avi');V.ntnav=0;save();rNb()}
-function ntOne(id){const e=(S.log.nt||[]).find(x=>x.id===id);if(!e||!V.me)return;ntRead(e);save();rNb()}
+function ntOne(id){const e=(S.log.nt||[]).find(x=>x.id===id);if(!e||!V.me)return;ntRead(e);pushMarkRead(e);save();rNb()}
 function ntTabs(L){return `<div class="chs">${NT_CATS.map(([c,t])=>chip(t+' ('+(c==='all'?L.length:L.filter(e=>catOf2(e)===c).length)+')',(V.ntc||'all')===c,`V.ntc='${c}';rNb()`)).join('')}</div>`}
 const notifyAdm=(m,key)=>{if(V.me&&V.me.role==='emp'&&!(key&&(S.log.nt||[]).some(e=>e.key===key)))notify(['adm'],m,null,key)};
 const myNt=()=>V.me?(S.log.nt||[]).filter(e=>e.to.includes(V.me.id)||(V.me.role!=='emp'&&e.to.includes('adm'))):[];
@@ -1656,7 +1769,7 @@ function bell(){const b=$('bl');if(!b)return;b.style.display=V.me?'':'none';if(!
 const stBadge=e=>e.st==='c'?'<span class="b ok">Comprado'+(e.emp?' · '+esc(e.emp):'')+'</span>':e.st==='n'?'<span class="b no">Não comprado'+(e.emp?' · '+esc(e.emp):'')+'</span>':'<span class="b wa">Pendente</span>';
 function rNb(){const el=$('nbx');if(!V.nb||!V.me){el.innerHTML='';bell();return}const me=V.me.id,L=myNt().sort((a,b)=>b.ts-a.ts),filt=L.filter(e=>(V.ntc||'all')==='all'||catOf2(e)===V.ntc);let b;
 if(V.nd){const x=V.nd,e=(S.log[x.k]||[]).find(y=>y.id===x.id),F=FS[x.k];if(!e)b='<button class="ch" onclick="V.nd=null;rNb()">‹ Notificações</button><p class="mu">Registro não encontrado.</p>';else{const can=V.me.role!=='emp'||isBuyer(person(me));b=`<button class="ch" onclick="V.nd=null;rNb()">‹ Notificações</button><div class="c"><b>${F.e} ${esc(F.n)}</b>${F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>`<div>${f.l}: <b>${fv(f,e)}</b></div>`).join('')}<div class="mu">Pedido por ${esc(rqName(e))}</div><div class="u-mv6">${stBadge(e)}</div>${can?`<label>Empresa onde comprou<input id="nd_emp" value="${esc(e.emp||'')}" placeholder="Nome da empresa"></label><div class="row u-mt8"><button class="bt" onclick="buy('${x.k}','${e.id}','c')">✅ Comprado</button><button class="bt d" onclick="buy('${x.k}','${e.id}','n')">❌ Não comprado</button></div>`:''}</div>`}}
-else b=ntTabs(L)+(canImp()?ntCompose():'')+`<div class="row sp"><b>🔔 Notificações</b><span class="row">${L.some(e=>!e.rd.includes(me))?'<button class="ch" onclick="ntAll()">Marcar lidas</button>':''}${L.length?'<button class="ch" onclick="ntDeleteAll()">Excluir todas</button>':''}</span></div>`+(filt.length?filt.slice(0,60).map(e=>`<div class="c tap ${e.rd.includes(me)?'':'nw'}" onclick="ntOpen('${e.id}')"><div>${esc(e.m)}</div>${e.rd.includes(me)?'':`<button class="ch" onclick="event.stopPropagation();ntOne('${e.id}')">Marcar lida</button>`}<div class="mu">${NT_CATS.find(c=>c[0]===catOf2(e))[1]} · ${esc(e.by||'')} · ${new Date(e.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`).join(''):'<div class="c mu">Nenhuma notificação.</div>');
+else b=ntTabs(L)+(canImp()?ntCompose():'')+`<div class="c"><div class="row sp"><b>🔔 Notificações</b><span class="row">${L.some(e=>!e.rd.includes(me))?'<button class="ch" onclick="ntAll()">Marcar lidas</button>':''}${L.length?'<button class="ch" onclick="ntDeleteAll()">Excluir todas</button>':''}</span></div><div class="row sp"><span class="mu">Avisos também na tela do celular</span>${pushButton()}</div></div>`+(filt.length?filt.slice(0,60).map(e=>`<div class="c tap ${e.rd.includes(me)?'':'nw'}" onclick="ntOpen('${e.id}')"><div>${esc(e.m)}</div>${e.rd.includes(me)?'':`<button class="ch" onclick="event.stopPropagation();ntOne('${e.id}')">Marcar lida</button>`}<div class="mu">${NT_CATS.find(c=>c[0]===catOf2(e))[1]} · ${esc(e.by||'')} · ${new Date(e.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`).join(''):'<div class="c mu">Nenhuma notificação.</div>');
 el.innerHTML=`<div class="ov" onclick="V.nb=0;V.nd=null;rNb()"></div><div class="nbx">${b}</div>`;bell()}
 function ntRead(e){if(!e.rd.includes(V.me.id)){e.rd.push(V.me.id);e.u=Date.now();e.sent=false}}
 function ntGo(r){const can=k=>k==='pdc'||canR(k);
@@ -1666,16 +1779,16 @@ if(r.t==='ck'){if(!can('ck')||!CK[r.id])return false;V.tab='reg';V.rs='ck';V.ce=
 if(r.t==='eq'){if(!can('eq')||!S.team.some(p=>p.id===r.id))return false;V.tab='reg';V.rs='eq';V.eq='p';V.pe=r.id;V.sv=0;return true}
 if(r.t==='cro'){if(!can('cro'))return false;V.tab='reg';V.rs='cro';V.tme=null;return true}
 return false}
-function ntOpen(id){const e=(S.log.nt||[]).find(x=>x.id===id);if(!e)return;ntRead(e);save();const r=e.ref;
+function ntOpen(id){const e=(S.log.nt||[]).find(x=>x.id===id);if(!e)return;ntRead(e);pushMarkRead(e);save();const r=e.ref;
 if(r&&r.t){if(ntGo(r)){V.nb=0;V.nd=null;R()}else{alert('Este registro não existe mais ou você não tem acesso a ele.');rNb()}return}
 if(r&&(S.log[r.k]||[]).some(x=>x.id===r.id))V.nd=r;rNb()}
-function ntAll(){myNt().forEach(ntRead);save();rNb()}
+function ntAll(){myNt().forEach(ntRead);pushMarkAllRead();save();rNb()}
 function ntDeleteAll(){
  if(!V.me)return;
  if(!confirm('Excluir todas as suas notificações? Essa ação não pode ser desfeita.'))return;
  const ids=new Set([V.me.id,...(V.me.role!=='emp'?['adm']:[])]);
  S.log.nt=(S.log.nt||[]).map(e=>({...e,to:(e.to||[]).filter(id=>!ids.has(id)),rd:(e.rd||[]).filter(id=>!ids.has(id))})).filter(e=>e.to.length);
- V.nd=null;save();rNb();
+ V.nd=null;pushDeleteAll();save();rNb();
 }
 function buy(k,id,st){const e=(S.log[k]||[]).find(x=>x.id===id);if(!e)return;e.st=st;e.emp=(($('nd_emp')||{}).value||'').trim();e.bd=today();e.u=Date.now();e.sent=false;notify([e.rq],`🛒 ${e.p}: ${st==='c'?'comprado'+(e.emp?' em '+e.emp:''):'não comprado'}`,{k,id});notifyAdm(`${V.me.n} marcou "${e.p}" como ${st==='c'?'comprado':'não comprado'}`);save();rNb();R()}
 function afterNew(k,e){const F=FS[k],me=V.me?V.me.n:'',B=S.team.filter(isBuyer).map(p=>p.id);if(k==='req')notify(B,`📥 Requisição: ${e.p} × ${e.q||'?'} ${e.u||''} — ${me}`,{k,id:e.id});else if(k==='ped')notify(B,`🛒 Pedido p/ prateleira: ${e.p}${e.r?' — repositor '+e.r:''} (${me})`,{k,id:e.id});notifyAdm(`${me} lançou ${F.n}${e.p?': '+e.p:''}`)}
@@ -1836,10 +1949,10 @@ const helpOff=()=>!!V.me&&localStorage.getItem('sthelp_'+V.me.id)==='1';
 function helpSteps(){const st=[['👋 Bem-vindo, '+V.me.n.split(' ')[0],'Este guia mostra o que você pode fazer. Toque em Próximo para avançar. Para rever depois: ⋮ › Ajuda.']];TABS.filter(t=>canTab(t[0])).forEach(t=>{if(t[0]==='reg'){const K=LANC_KEYS.filter(k=>can('l:'+k));st.push(['📝 Registros','Use o botão 📝 da lateral para escolher o que lançar. Liberado para você: '+RSEC.filter(x=>canR(x[0])).map(x=>x[1]+' '+x[2]).join(', ')+'.']);if(K.length)st.push(['📝 Seus lançamentos',K.map(k=>FS[k].e+' '+FS[k].n+' — '+(HL[k]||'')).join('\n')])}else st.push([t[1]+' '+t[2],HT[t[0]]||''])});if(isMaster())st.push(['👤 Acessos e logins','Em ⋮ › Acessos e logins aparecem somente gerentes, subgerentes, supervisores e encarregados. Você cria logins, troca senhas e escolhe as funções de cada pessoa. Lá também ficam os perfis prontos (Repositor, Encarregado, Master…).']);st.push(['🔔 Avisos e senha','O sino 🔔 mostra avisos, como pedidos de compra. Em ⋮ você troca a senha, abre esta ajuda e sai.']);return st}
 function helpHTML(){const L=helpSteps(),i=Math.min(V.hs||0,L.length-1),last=i===L.length-1;return `<div class="row sp"><b>${esc(L[i][0])}</b><span class="mu">${i+1}/${L.length}</span></div>${bar((i+1)/L.length*100)}<div style="white-space:pre-line;margin:10px 0">${esc(L[i][1])}</div><label class="u-row-c"><input type="checkbox" ${V.hoff?'checked':''} onchange="V.hoff=this.checked" class="u-wauto">Não mostrar mais ao entrar</label><div class="row u-mt10">${i?'<button class="bt g" onclick="V.hs--;rMenu()">Voltar</button>':''}<button class="bt" onclick="${last?'closeHelp()':'V.hs=(V.hs||0)+1;rMenu()'}">${last?'Concluir':'Próximo'}</button></div>`}
 function closeHelp(){if(V.me){V.hoff?localStorage.setItem('sthelp_'+V.me.id,'1'):localStorage.removeItem('sthelp_'+V.me.id)}V.sh=0;V.hs=0;rMenu()}
-async function logout(){stopCloudSync();localStorage.removeItem('st_auth_state');supa.auth.signOut().catch(()=>{});V.sbSession=null;V.me=null;V.cloudIdentity=null;V.wel=null;V.lgE='';V.lgL=0;V.sh=0;V.mn=0;rMenu();R()}
+async function logout(){pushStop();stopCloudSync();localStorage.removeItem('st_auth_state');supa.auth.signOut().catch(()=>{});V.sbSession=null;V.me=null;V.cloudIdentity=null;V.wel=null;V.lgE='';V.lgL=0;V.sh=0;V.mn=0;rMenu();R()}
 function rWelcome(){const x=meOf(V.wel);if(!x)return rLogin();const L=!['master','gerente'].includes(x.role)?['📊 Painel da sua função','🗓️ Seu cronograma','✅ Seus checklists','📋 Suas atribuições'].concat((x.perm||[]).some(k=>/^[rl]:/.test(k))?['📝 Registros']:[]).concat((x.perm||[]).includes('ava')?['⭐ Avaliação']:[],(x.perm||[]).includes('pro')?['📈 Progresso']:[],(x.perm||[]).includes('adm')?['👤 Acessos e logins']:[]):['Acesso total (administrador)'];
 return `<div class="lgw"><div class="lgc u-tc"><div class="u-fs44">👋</div><h2 class="u-mv6">Bem-vindo, ${esc(x.n)}!</h2><p class="mu">${esc(x.c||'')}<br>Atacarejo Super Tudo</p><div class="c u-tl"><b>Você precisa alimentar:</b><ul style="margin:6px 0 0;padding-left:18px">${L.map(l=>`<li>${l}</li>`).join('')||'<li>Nada liberado ainda. Fale com o administrador.</li>'}</ul></div><button class="bt u-w100" onclick="enterApp()">Entrar no sistema</button></div></div>`}
-function enterApp(){const x=meOf(V.wel);V.me=x||null;V.wel=null;V.lgE='';V.dir=0;if(V.me){const L=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));V.tab=L.length?L[0][0]:'painel'}V.hs=0;V.hoff=helpOff();V.sh=V.me&&!['master','gerente'].includes(V.me.role)&&!V.hoff?'help':0;R();rMenu();startCloudSync()}
+function enterApp(){const x=meOf(V.wel);V.me=x||null;V.wel=null;V.lgE='';V.dir=0;if(V.me){const L=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));V.tab=L.length?L[0][0]:'painel'}V.hs=0;V.hoff=helpOff();V.sh=V.me&&!['master','gerente'].includes(V.me.role)&&!V.hoff?'help':0;R();rMenu();startCloudSync();pushStart()}
 const nrm=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const nmv=x=>{if(typeof x==='number')return x;let s=String(x||'').replace(/[R$\s]/g,'');if(s.includes(','))s=s.replace(/\./g,'').replace(',','.');return parseFloat(s)||0};
 const dtI=v=>{if(v===''||v==null)return '';if(typeof v==='number'){const d=new Date(Math.round((v-25569)*864e5));return d.getUTCFullYear()+'-'+pd(d.getUTCMonth()+1)+'-'+pd(d.getUTCDate())}const m=String(v).match(/^(\d{2})\/(\d{2})\/(\d{4})/);return m?m[3]+'-'+m[2]+'-'+m[1]:String(v).slice(0,10)};
