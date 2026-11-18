@@ -1655,10 +1655,11 @@ function impXL(k){const i=document.createElement('input');i.type='file';i.accept
 const CFT=[['preco','🏷️ Alteração de preço'],['ruptura','🚫 Ruptura'],['compra','🧾 Pedido de compra'],['semv','📦 Produtos sem venda']],CFN={semv:'📦 Produtos sem venda',compra:'🧾 Pedido de compra',preco:'🏷️ Alteração de preço',validade:'📅 Brigada de validade',reimp:'🖨️ Reimpressão',ruptura:'🚫 Ruptura'};
 function confMetaArquivo(file,t,lab){
  const base=String(file&&file.name||'').replace(/\.[^.]+$/,'');
- const rem=/remarca(?:ção|cao)/i.test(base);
- let m=base.match(/\b(\d{1,2})[._\/-](\d{1,2})[._\/-](\d{2,4})\b/),data='';
- if(m){let y=m[3];if(y.length===2)y='20'+y;data=m[1].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+y}
- if(!data){m=base.match(/\b(\d{4})[._\/-](\d{1,2})[._\/-](\d{1,2})\b/);if(m)data=m[3].padStart(2,'0')+'/'+m[2].padStart(2,'0')+'/'+m[1]}
+ const norm=base.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const rem=/remarcacao/.test(norm);
+ let m=base.match(/(?:^|[^0-9])(\d{1,2})[._\/-](\d{1,2})[._\/-](\d{2,4})(?=$|[^0-9])/),data='';
+ if(m){let y=m[3];if(y.length===2)y='20'+y;const d=+m[1],mo=+m[2];if(d>=1&&d<=31&&mo>=1&&mo<=12)data=String(d).padStart(2,'0')+'/'+String(mo).padStart(2,'0')+'/'+y}
+ if(!data){m=base.match(/(?:^|[^0-9])(\d{4})[._\/-](\d{1,2})[._\/-](\d{1,2})(?=$|[^0-9])/);if(m){const mo=+m[2],d=+m[3];if(d>=1&&d<=31&&mo>=1&&mo<=12)data=String(d).padStart(2,'0')+'/'+String(mo).padStart(2,'0')+'/'+m[1]}}
  const motivo=String(lab||CFN[t]||t).replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
  return {rem,data,motivo};
 }
