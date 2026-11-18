@@ -378,6 +378,7 @@ button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);
 .page-content input,.page-content select,.page-content textarea{max-width:100%}
 @media(min-width:720px){.page-shell{padding:8px 10px 36px}.page-heading{margin-bottom:20px;padding-bottom:15px}.page-content>.g2{gap:14px}}
 @media(max-width:520px){.page-shell{padding:2px 0 24px}.page-heading{margin-bottom:12px;padding-bottom:10px}.page-heading p{font-size:12px}.account-indicator{max-width:44%;padding:6px 8px;font-size:10px}.account-indicator b{font-size:11px}.page-content h2{margin-top:17px}}
+.emj-svg{display:inline-flex;vertical-align:-.16em;align-items:center;justify-content:center;width:1.15em;height:1.15em;line-height:1;flex:0 0 auto}.emj-svg .ic{width:100%;height:100%}
 </style></head><body>
 <header><div><h1><span class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.2l2 10h9.6l2-7.5H6.5"/><circle cx="9" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/></svg></span>Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
@@ -1748,8 +1749,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.38.0';
+const APP_VERSION='3.39.0';
 const APP_HIST=[
+{v:'3.39.0',d:'18/11/2026',t:'Ícones SVG em todo o sistema (MINOR)',n:['Substituídos os emojis usados como ícones em lançamentos, botões, cartões, listas, filtros, status e demais áreas visíveis por ícones vetoriais SVG.','Padronizada a apresentação com a biblioteca própria do Super Tudo, sem fontes de emoji ou dependências externas.','A conversão também alcança elementos criados dinamicamente durante a navegação.'],c:['Atualização visual, sem alteração dos registros, permissões, sincronização ou dados do Supabase.']},
 {v:'3.38.0',d:'18/11/2026',t:'Biblioteca própria de ícones (MINOR)',n:['Criada uma família de ícones vetoriais exclusivos do Super Tudo, com desenho geométrico consistente e traço uniforme.','Aplicada a nova identidade aos menus principais e à navegação de Lançamentos, mantendo leitura em temas claro e escuro.','Ícones incorporados ao próprio aplicativo para funcionar também sem conexão.'],c:['Atualização visual: nenhuma alteração nos registros, permissões, rotinas ou dados do Supabase.']},
 {v:'3.37.2',d:'18/11/2026',t:'Conferência mais compacta (PATCH)',n:['Filtros de Conferência mostram somente os símbolos; ao selecionar um filtro, o nome correspondente também aparece.','Botão de item não colocado mostra somente ✕, mantendo sua função e identificação acessível.','Traços repetidos removidos das descrições exibidas nas listas de Conferência.'],c:['Ajustes visuais sem alteração dos registros existentes ou dos dados do Supabase.']},
 {v:'3.37.1',d:'18/11/2026',t:'Descrição de Remarcação corrigida (PATCH)',n:['Movimentação e Conferência usam a mesma descrição: Remarcação · motivo · data original do arquivo. A data de importação aparece uma única vez, abaixo e em tamanho menor.'],c:['Ajuste apenas de apresentação e metadados de importação; registros existentes e dados do Supabase são preservados.']},
@@ -1904,12 +1906,35 @@ document.addEventListener('toggle',e=>{const d=e.target;if(!(d instanceof HTMLDe
 
 /* ---- padronização dos botões: adicionar (+), voltar (‹) e excluir (×) ---- */
 const ICN={plus:'<path d="M12 5v14M5 12h14"/>',back:'<path d="M15 18l-6-6 6-6"/>',x:'<path d="M18 6L6 18M6 6l12 12"/>'};
+function enhEmojiIcons(root=document.body){
+ const emojiKey={
+ '🧺':'reg','⭐':'ava','🔑':'reg','🛡️':'conf','🔍':'conf','🥖':'reg','🚚':'send','📦':'semv','✨':'ava','🌡️':'reg','🍞':'reg','🏷️':'pdc','🎞️':'reg','🧳':'reg','❄️':'reg','🎯':'w5','🚫':'conf','📉':'pro','💥':'conf','🌤️':'pro','📋':'atr','🧾':'pdc','🥩':'reg','🔀':'mov','📥':'imp','🔖':'reg','🧱':'set','👥':'eq','🔁':'mov','👤':'eq','☁️':'mov','⚠️':'conf','❌':'conf','✏️':'lanc','✅':'ck','📚':'reg','📷':'reg','📝':'lanc','📜':'reg','❓':'reg','🚪':'set','👑':'ava','🗓️':'cro','🧩':'set','⚙️':'set','📊':'painel','⬜':'ck','📅':'cro','🗄️':'reg','🏆':'ava','🔎':'conf','🏬':'set','🛒':'pdc','🧑‍💼':'eq','🧊':'reg','🆕':'lanc','🛠️':'set','📈':'pro','➕':'lanc','📢':'reg','🔔':'reg','👋':'eq','🖨️':'reg'
+ };
+ const norm=x=>x.replace(/\uFE0F/g,'');
+ const rx=/\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?)*/gu;
+ const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),nodes=[];
+ while(walker.nextNode())nodes.push(walker.currentNode);
+ nodes.forEach(node=>{
+  const parent=node.parentElement;
+  if(!parent||/^(SCRIPT|STYLE|TEXTAREA|INPUT|SELECT|OPTION|SVG)$/i.test(parent.tagName)||parent.closest('.emj-svg,[contenteditable="true"]'))return;
+  const value=node.nodeValue;rx.lastIndex=0;
+  if(!rx.test(value)){rx.lastIndex=0;return}rx.lastIndex=0;
+  const frag=document.createDocumentFragment();let last=0,m;
+  while((m=rx.exec(value))){
+   if(m[0]==='©')continue;
+   frag.appendChild(document.createTextNode(value.slice(last,m.index)));
+   const span=document.createElement('span');span.className='emj-svg';span.setAttribute('aria-hidden','true');
+   span.innerHTML=IC(emojiKey[m[0]]||emojiKey[norm(m[0])]||'reg');frag.appendChild(span);last=m.index+m[0].length;
+  }
+  if(last){frag.appendChild(document.createTextNode(value.slice(last)));node.parentNode.replaceChild(frag,node)}
+ });
+}
 function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if(b.closest('.dsel'))return;const t=b.textContent.replace(/\s+/g,' ').trim();if(!t)return;let k=null;
  if(/^\+ /.test(t)||/^(Adicionar|Criar)\b/.test(t))k='add';else if(t==='Voltar'||/^‹/.test(t))k='back';else if(/^Excluir\b/.test(t))k='del';if(!k)return;
  const ic=k==='add'?'plus':k==='back'?'back':'x',sz=k==='del'?16:18;
  b.classList.add('ibtn','ibtn-'+k);b.dataset.ic=k;b.title=t;b.setAttribute('aria-label',t);
  b.innerHTML=`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICN[ic]}</svg><span class="sr-only">${esc(t)}</span>`})}
-(function(){let q=false;const run=()=>{q=false;enhBtns()};const mo=new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}});const go=()=>mo.observe(document.body,{childList:true,subtree:true});if(document.body)go();else document.addEventListener('DOMContentLoaded',go)})();
+(function(){let q=false;const run=()=>{q=false;enhBtns();enhEmojiIcons()};const mo=new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}});const go=()=>mo.observe(document.body,{childList:true,subtree:true});if(document.body)go();else document.addEventListener('DOMContentLoaded',go);enhEmojiIcons()})();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(e=>console.warn('Não foi possível registrar o aplicativo offline:',e)));}</script>
 </body></html>
