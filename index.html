@@ -1732,7 +1732,7 @@ const addResp=(id,n)=>{const e=$(id),a=e.value.split(',').map(x=>x.trim()).filte
 function PF(f){return f.split('|').map(x=>{const a=x.split(':');return{k:a[0],l:a[1],t:a[2],o:a[3]?a[3].split(','):[]}})}
 const isBuyer=p=>!!p&&(p.f==='Comprador'||p.s==='Compras'||(p.g||[]).includes('Compras')),dd0=(a,b)=>Math.max(0,Math.round((new Date(b||today())-new Date(a))/864e5)),rqName=e=>{const n=person(e.rq)||S.users.find(u=>u.id===e.rq);return n?n.n:'—'};
 const NT_CATS=[['all','Todas'],['lancamentos','Lançamentos'],['tarefas','Tarefas feitas'],['sistema','Atualizações de sistema'],['compras','Pedidos de compras']];
-const catOf=m=>/requisi|pedido|comprad|compra|prateleira/i.test(m)?'compras':/checklist|atividade|cronograma|tarefa|conclu|feito/i.test(m)?'tarefas':/atualiza|versão|sistema/i.test(m)?'sistema':'lancamentos';
+const catOf=m=>/requisi|pedido|comprad|compra|prateleira/i.test(m)?'compras':/atualiza|versão|sistema|sincroniza/i.test(m)?'sistema':/fez (?:o )?checklist|conclu[ií]d|marcou.{0,40}(?:feito|conclu)|(?:tarefa|atividade|checklist).{0,40}(?:feita|feito|conclu)/i.test(m)?'tarefas':'lancamentos';
 const catOf2=e=>['lancamentos','tarefas','sistema','compras'].includes(e.cat)?e.cat:catOf(e.m);
 
 function pushCall(action,payload={}){
@@ -2139,7 +2139,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.3';
+const APP_VERSION='3.44.4';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2304,6 +2304,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.44.4',d:'18/11/2026',t:'Ajuste na classificação das notificações (PATCH)',n:['Pedidos de compras e atualizações do sistema continuam em suas categorias próprias.'],c:['A categoria Tarefas feitas passa a receber apenas mensagens que indicam conclusão; atribuições e alterações de cronograma ficam em Lançamentos.']},
 {v:'3.44.3',d:'18/11/2026',t:'Notificações organizadas em quatro categorias (PATCH)',n:['Notificações agrupadas em Lançamentos, Tarefas feitas, Atualizações de sistema e Pedidos de compras.'],c:['Categorias antigas passam a ser exibidas conforme o conteúdo da mensagem.']},
 {v:'3.44.0',d:'18/11/2026',t:'Desempenho integrado e relatórios mensais e anuais (MINOR)',n:['Novo painel por loja, setor, encarregado e funcionário, com comparação mensal e anual.','Produtos sem venda compara o valor em reais da última lista importada no período; redução é melhoria e aumento é piora, com histórico entre importações.','Vencidos, avariados, perdas de perecíveis e desperdício da padaria passam a ser analisados por valor financeiro, com quantidade ou kg como complemento.','Cronogramas, checklists e avaliações são acompanhados como execução e qualidade, sem indicadores duplicados.','Conferências de ruptura e etiquetas alimentam os respectivos resultados a partir das pendências atribuídas, sem pontuar a conferência novamente.','Indicadores personalizados permitem definir se quanto menor ou quanto maior é melhor.','Indicadores entram no desempenho individual somente quando atribuídos no cadastro.'],c:['Ausência de lançamentos aparece como falta de dados, não como resultado zero. Nenhum registro histórico foi apagado.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.43.5',d:'18/11/2026',t:'Navegação padronizada em Registro e Lançamentos (PATCH)',n:['Temperaturas, lançamentos comuns, checklists, recebimento de frios e avaliações passam a separar tela inicial, formulário e histórico.','O botão Histórico aparece somente na tela inicial; dentro do histórico há um único botão Voltar.','Após salvar, o aplicativo retorna à tela inicial do tipo de lançamento, pronta para um novo registro.','Formulários e históricos abrem em telas próprias, sem botões duplicados de adicionar.'],c:['Registros e dados existentes são preservados. Nenhuma tabela, função ou política do Supabase foi alterada.']},
