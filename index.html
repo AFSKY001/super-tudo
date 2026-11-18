@@ -1715,8 +1715,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.33.1';
+const APP_VERSION='3.34.0';
 const APP_HIST=[
+{v:'3.34.0',d:'18/11/2026',t:'Histórico de lançamentos e ajuste das remarcações (MINOR)',n:['Checklist: adicionada consulta dos preenchimentos anteriores.','Cronograma: histórico de dias com atividades concluídas.','Avaliações: histórico priorizado na navegação.','Conferência: corrigida leitura de datas em nomes de arquivos de remarcação e simplificada a identificação visual.'],c:[]},
 {v:'3.33.1',d:'18/11/2026',t:'Ajuste dos ícones de temperatura (PATCH)',n:[],c:['Tela de temperaturas: removidos botões duplicados e padronizados os ícones de novo lançamento, histórico e cadastro de equipamento.']},
 {v:'3.33.0',d:'18/11/2026',t:'Organização dos lançamentos de temperatura (MINOR)',n:['Separadas as telas de novo lançamento e histórico de temperaturas.','Histórico agrupado por data, com pesquisa e filtros por data e equipamento.','Registros existentes preservados; edição e exclusão continuam disponíveis.'],c:[]},
 {v:'3.32.0',d:'18/11/2026',t:'Aplicativo instalável Super Tudo (MINOR)',n:['Adicionado manifesto PWA para instalação pelo Chrome com nome Super Tudo.','Adicionado ícone vetorial neutro, sem fotografia, para a tela inicial do aparelho.','Adicionado service worker com cache do aplicativo e estratégia de rede para navegação; chamadas autenticadas e dados do Supabase não são armazenados pelo cache do service worker.'],c:[]},
