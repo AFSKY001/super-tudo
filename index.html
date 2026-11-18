@@ -384,7 +384,27 @@ button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);
 <main id="app"></main>
 <nav id="nav"></nav>
 <script>
-const ICP={"painel": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"9\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"5\" rx=\"1.5\"/><rect x=\"14\" y=\"12\" width=\"7\" height=\"9\" rx=\"1.5\"/><rect x=\"3\" y=\"16\" width=\"7\" height=\"5\" rx=\"1.5\"/>", "cro": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2.5\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/>", "ck": "<rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" rx=\"3\"/><path d=\"M8.5 12l2.5 2.5L15.5 9.5\"/>", "ava": "<path d=\"M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.9z\"/>", "pro": "<path d=\"M3 17l6-6 4 4 8-8\"/><path d=\"M15 7h6v6\"/>", "atr": "<rect x=\"5\" y=\"4\" width=\"14\" height=\"17\" rx=\"2.5\"/><path d=\"M9 4h6v3H9zM9 12h6M9 16h4\"/>", "reg": "<path d=\"M6 3h8l5 5v13H6z\"/><path d=\"M14 3v5h5M9 13h6M9 17h6\"/>", "lanc": "<path d=\"M4 20h4L19 9l-4-4L4 16z\"/><path d=\"M13.5 6.5l4 4\"/>", "conf": "<circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"M20 20l-4.2-4.2M8.5 11l1.8 1.8L14 9\"/>", "eq": "<circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M16 4.8a3.5 3.5 0 010 6.4M18 14.3c2 .7 3.5 2.4 3.5 5.7\"/>", "set": "<path d=\"M4 9l1.5-5h13L20 9\"/><path d=\"M4 9a2.67 2.67 0 005.33 0 2.67 2.67 0 005.34 0A2.67 2.67 0 0020 9\"/><path d=\"M5 12v8h14v-8M10 20v-4h4v4\"/>", "pdc": "<path d=\"M6 3h12v18l-3-2-3 2-3-2-3 2z\"/><path d=\"M9 8h6M9 12h6\"/>", "w5": "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><circle cx=\"12\" cy=\"12\" r=\"4.5\"/><circle cx=\"12\" cy=\"12\" r=\"1\" fill=\"currentColor\"/>", "send": "<path d=\"M12 16V4M7 9l5-5 5 5M5 20h14\"/>", "imp": "<path d=\"M12 4v12M7 11l5 5 5-5M5 20h14\"/>", "logo": "<path d=\"M3 4h2.2l2 10h9.6l2-7.5H6.5\"/><circle cx=\"9\" cy=\"19\" r=\"1.3\"/><circle cx=\"16.5\" cy=\"19\" r=\"1.3\"/>"};const IC=k=>ICP[k]?'<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+ICP[k]+'</svg>':'';
+const ICP={
+"painel":'<rect x="3" y="3" width="8" height="8" rx="1.4"/><rect x="13" y="3" width="8" height="5" rx="1.4"/><rect x="13" y="10" width="8" height="11" rx="1.4"/><rect x="3" y="13" width="8" height="8" rx="1.4"/>',
+"cro":'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h3M14 14h3M7 17h3"/>',
+"ck":'<rect x="4" y="3.5" width="16" height="17" rx="2.4"/><path d="M8 8h8M8 12l1.6 1.6L12.5 11M8 17h8"/>',
+"ava":'<path d="m12 3 2.5 5.2 5.7.8-4.1 4 .9 5.7-5-2.7-5 2.7.9-5.7-4.1-4 5.7-.8z"/>',
+"pro":'<path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 2 5-6M15 7h4v4"/>',
+"atr":'<path d="M8 4h8M9 3h6v3H9z"/><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M8.5 11h7M8.5 15h7M8.5 18h4"/>',
+"reg":'<path d="M6 3.5h8l4 4V20H6z"/><path d="M14 3.5V8h4M9 12h6M9 16h6"/>',
+"lanc":'<path d="M4 17.5V20h2.5L19 7.5 16.5 5z"/><path d="m14.8 6.7 2.5 2.5M4 13V4h9"/>',
+"conf":'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M7.5 10.5l2 2 4-4"/>',
+"eq":'<circle cx="9" cy="8" r="3.2"/><path d="M2.8 20c.3-3.7 2.5-5.7 6.2-5.7s5.9 2 6.2 5.7M16 5.2a3.2 3.2 0 010 5.8M17 14.7c2.5.6 3.8 2.3 4.2 5.3"/>',
+"set":'<path d="M3 9h18l-1.5-5h-15z"/><path d="M4.5 9v11h15V9M9 20v-6h6v6M3.5 9a2.5 2.5 0 005 0 2.5 2.5 0 005 0 2.5 2.5 0 005 0"/>',
+"pdc":'<path d="M6 3.5h12v17l-3-1.8-3 1.8-3-1.8-3 1.8z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
+"w5":'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.8"/><path d="M12 3.5v3M20.5 12h-3M12 20.5v-3M3.5 12h3"/>',
+"send":'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>',
+"imp":'<path d="M12 4v12M7 11l5 5 5-5M4 20h16"/>',
+"semv":'<path d="M4 7h16v13H4zM8 7V4h8v3M8 12h8M8 16h5"/><path d="m17 11 3 3-3 3"/>',
+"mov":'<path d="M19 8V4l-3 3M5 16v4l3-3"/><path d="M6.5 8A6.5 6.5 0 0118 7l1 1M17.5 16A6.5 6.5 0 016 17l-1-1"/>',
+"logo":'<path d="M3 4h2.2l2 10h9.6l2-7.5H6.5"/><circle cx="9" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/>'
+};
+const IC=k=>ICP[k]?'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICP[k]+'</svg>':'';
 const $=id=>document.getElementById(id),uid=()=>Math.random().toString(36).slice(2,9);
 const DN=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'],pd=n=>String(n).padStart(2,'0');
 const iso=d=>d.getFullYear()+'-'+pd(d.getMonth()+1)+'-'+pd(d.getDate()),today=()=>iso(new Date());
@@ -1728,8 +1748,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.37.2';
+const APP_VERSION='3.38.0';
 const APP_HIST=[
+{v:'3.38.0',d:'18/11/2026',t:'Biblioteca própria de ícones (MINOR)',n:['Criada uma família de ícones vetoriais exclusivos do Super Tudo, com desenho geométrico consistente e traço uniforme.','Aplicada a nova identidade aos menus principais e à navegação de Lançamentos, mantendo leitura em temas claro e escuro.','Ícones incorporados ao próprio aplicativo para funcionar também sem conexão.'],c:['Atualização visual: nenhuma alteração nos registros, permissões, rotinas ou dados do Supabase.']},
 {v:'3.37.2',d:'18/11/2026',t:'Conferência mais compacta (PATCH)',n:['Filtros de Conferência mostram somente os símbolos; ao selecionar um filtro, o nome correspondente também aparece.','Botão de item não colocado mostra somente ✕, mantendo sua função e identificação acessível.','Traços repetidos removidos das descrições exibidas nas listas de Conferência.'],c:['Ajustes visuais sem alteração dos registros existentes ou dos dados do Supabase.']},
 {v:'3.37.1',d:'18/11/2026',t:'Descrição de Remarcação corrigida (PATCH)',n:['Movimentação e Conferência usam a mesma descrição: Remarcação · motivo · data original do arquivo. A data de importação aparece uma única vez, abaixo e em tamanho menor.'],c:['Ajuste apenas de apresentação e metadados de importação; registros existentes e dados do Supabase são preservados.']},
 {v:'3.37.0',d:'18/11/2026',t:'Histórico padronizado e Conferência revisada (MINOR)',n:['Histórico reposicionado e padronizado nas telas de lançamentos, com Temperaturas como referência visual.','Conferência: Remarcação exibe motivo e data original em uma linha, com data de importação separada.','Ruptura e Etiqueta: botão Não colocado(a), seleção individual após dois dias e atribuição de responsável no início da lista.','Indicadores: contagem de produtos atribuídos e pendentes por responsável, separando Ruptura e Etiqueta.'],c:[]},
