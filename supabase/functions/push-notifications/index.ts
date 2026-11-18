@@ -119,6 +119,20 @@ Deno.serve(async (req: Request) => {
       return { sent, stale };
     }
 
+    if (action === "notification-settings-get") {
+      if (membership.role !== "admin") return json({ error: "Somente o administrador pode consultar as configurações." }, 403);
+      const { data, error } = await admin.from("app_notification_settings").select("distribution_mode, updated_at").eq("org_id", orgId).maybeSingle();
+      if (error) throw error;
+      const distributionMode = data?.distribution_mode || "all";
+      return json({ distributionMode, updatedAt: data?.updated_at || null, routingEnabled: distributionMode === "all" });
+    }
+    if (action === "notification-settings-set") {
+      if (membership.role !== "admin") return json({ error: "Somente o administrador pode alterar a distribuição." }, 403);
+      if (String(body.distributionMode || "") !== "all") return json({ error: "O modo por função ainda não está disponível." }, 409);
+      const { error } = await admin.from("app_notification_settings").upsert({ org_id: orgId, distribution_mode: "all", updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "org_id" });
+      if (error) throw error;
+      return json({ ok: true, distributionMode: "all", routingEnabled: true });
+    }
     if (action === "public-key") {
       const config = await getVapidConfig();
       return json({ publicKey: config.public_key });
@@ -152,7 +166,7 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true });
     }
 
-    if (action === "notify" || action === "notify-self") {
+    if (action === "notify" || action === "notify-self" || action === "notify-broadcast") {
       const message = String(body.message || "").trim().slice(0, 1000);
       if (!message) return json({ error: "Mensagem vazia." }, 400);
       const key = String(body.key || "").trim().slice(0, 240) || null;
@@ -162,20 +176,69 @@ Deno.serve(async (req: Request) => {
 
       if (action === "notify-self") {
         recipients = [{ user_id: user.id, team_member_id: membership.team_member_id || null }];
+      } else if (action === "notify-broadcast") {
+        // Avisos gerais são um privilégio de gestão; nunca confiar nos destinatários do navegador.
+        if (!["admin", "gerente"].includes(membership.role)) {
+          return json({ error: "Somente administrador ou gerente pode enviar aviso para toda a organização." }, 403);
+        }
+        const { data: members, error } = await admin
+          .from("org_members")
+          .select("user_id, team_member_id")
+          .eq("org_id", orgId)
+          .eq("active", true);
+        if (error) throw error;
+        recipients = (members || []).map((m) => ({
+          user_id: m.user_id,
+          team_member_id: m.team_member_id || null,
+        }));
       } else {
-        const targets = [...new Set((Array.isArray(body.to) ? body.to : [])
-          .map((x: unknown) => String(x || "").trim()).filter(Boolean))].slice(0, 200);
-        if (!targets.length) return json({ ok: true, inserted: 0, pushSent: 0 });
+        const { data: settings, error: settingsError } = await admin
+          .from("app_notification_settings")
+          .select("distribution_mode")
+          .eq("org_id", orgId)
+          .maybeSingle();
+        if (settingsError) throw settingsError;
+        const distributionMode = settings?.distribution_mode || "all";
+
+        // Limite simples por usuário para impedir abuso do envio global.
+        // Repetições com a mesma chave continuam idempotentes.
+        if (distributionMode === "all") {
+          const since = new Date(Date.now() - 60_000).toISOString();
+          const { data: recent, error: recentError } = await admin
+            .from("app_notifications")
+            .select("id, dedupe_key")
+            .eq("org_id", orgId)
+            .eq("created_by", user.id)
+            .gte("created_at", since)
+            .limit(250);
+          if (recentError) throw recentError;
+          const alreadySent = !!key && (recent || []).some((row) => row.dedupe_key === key);
+          if (!alreadySent && (recent || []).length >= 60) {
+            return json({ error: "Limite temporário de notificações atingido. Aguarde um minuto." }, 429);
+          }
+        }
+
         const { data: members, error } = await admin
           .from("org_members")
           .select("user_id, team_member_id, role")
           .eq("org_id", orgId)
           .eq("active", true);
         if (error) throw error;
-        recipients = (members || []).filter((m) =>
-          (m.team_member_id && targets.includes(m.team_member_id)) ||
-          (targets.includes("adm") && ["admin", "gerente"].includes(m.role))
-        ).map((m) => ({ user_id: m.user_id, team_member_id: m.team_member_id || null }));
+
+        if (distributionMode === "all") {
+          recipients = (members || []).map((m) => ({
+            user_id: m.user_id,
+            team_member_id: m.team_member_id || null,
+          }));
+        } else {
+          const targets = [...new Set((Array.isArray(body.to) ? body.to : [])
+            .map((x: unknown) => String(x || "").trim()).filter(Boolean))].slice(0, 200);
+          if (!targets.length) return json({ ok: true, inserted: 0, pushSent: 0 });
+          recipients = (members || []).filter((m) =>
+            (m.team_member_id && targets.includes(m.team_member_id)) ||
+            (targets.includes("adm") && ["admin", "gerente"].includes(m.role))
+          ).map((m) => ({ user_id: m.user_id, team_member_id: m.team_member_id || null }));
+        }
       }
 
       const unique = [...new Map(recipients.map((r) => [r.user_id, r])).values()];
