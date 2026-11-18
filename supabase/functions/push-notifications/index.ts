@@ -191,19 +191,53 @@ Deno.serve(async (req: Request) => {
           team_member_id: m.team_member_id || null,
         }));
       } else {
-        const targets = [...new Set((Array.isArray(body.to) ? body.to : [])
-          .map((x: unknown) => String(x || "").trim()).filter(Boolean))].slice(0, 200);
-        if (!targets.length) return json({ ok: true, inserted: 0, pushSent: 0 });
+        const { data: settings, error: settingsError } = await admin
+          .from("app_notification_settings")
+          .select("distribution_mode")
+          .eq("org_id", orgId)
+          .maybeSingle();
+        if (settingsError) throw settingsError;
+        const distributionMode = settings?.distribution_mode || "all";
+
+        // Limite simples por usuário para impedir abuso do envio global.
+        // Repetições com a mesma chave continuam idempotentes.
+        if (distributionMode === "all") {
+          const since = new Date(Date.now() - 60_000).toISOString();
+          const { data: recent, error: recentError } = await admin
+            .from("app_notifications")
+            .select("id, dedupe_key")
+            .eq("org_id", orgId)
+            .eq("created_by", user.id)
+            .gte("created_at", since)
+            .limit(250);
+          if (recentError) throw recentError;
+          const alreadySent = !!key && (recent || []).some((row) => row.dedupe_key === key);
+          if (!alreadySent && (recent || []).length >= 60) {
+            return json({ error: "Limite temporário de notificações atingido. Aguarde um minuto." }, 429);
+          }
+        }
+
         const { data: members, error } = await admin
           .from("org_members")
           .select("user_id, team_member_id, role")
           .eq("org_id", orgId)
           .eq("active", true);
         if (error) throw error;
-        recipients = (members || []).filter((m) =>
-          (m.team_member_id && targets.includes(m.team_member_id)) ||
-          (targets.includes("adm") && ["admin", "gerente"].includes(m.role))
-        ).map((m) => ({ user_id: m.user_id, team_member_id: m.team_member_id || null }));
+
+        if (distributionMode === "all") {
+          recipients = (members || []).map((m) => ({
+            user_id: m.user_id,
+            team_member_id: m.team_member_id || null,
+          }));
+        } else {
+          const targets = [...new Set((Array.isArray(body.to) ? body.to : [])
+            .map((x: unknown) => String(x || "").trim()).filter(Boolean))].slice(0, 200);
+          if (!targets.length) return json({ ok: true, inserted: 0, pushSent: 0 });
+          recipients = (members || []).filter((m) =>
+            (m.team_member_id && targets.includes(m.team_member_id)) ||
+            (targets.includes("adm") && ["admin", "gerente"].includes(m.role))
+          ).map((m) => ({ user_id: m.user_id, team_member_id: m.team_member_id || null }));
+        }
       }
 
       const unique = [...new Map(recipients.map((r) => [r.user_id, r])).values()];
