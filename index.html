@@ -667,7 +667,9 @@ function syncLocalNotice(message,key){
  const recipient=V.me&&V.me.id?V.me.id:(V.cloudIdentity&&V.cloudIdentity.role==='encarregado'?V.cloudIdentity.team_member_id:V.cloudIdentity&&V.cloudIdentity.id);
  if(!recipient)return;
  S.log=S.log||{};S.log.nt=S.log.nt||[];if(S.log.nt.some(x=>x.key===key))return;
- S.log.nt.push({id:uid(),to:[recipient],m:message,ref:null,key,cat:'avi',ts:Date.now(),u:Date.now(),by:'Super Tudo',rd:[],sent:false});
+ const notice={id:uid(),to:[recipient],m:message,ref:null,key,cat:'avi',ts:Date.now(),u:Date.now(),by:'Super Tudo',rd:[],sent:false};
+ S.log.nt.push(notice);
+ if(V.sbSession&&V.cloudIdentity)pushNotifySelf(message,key,null,'avi').then(()=>{notice.sent=true;save()}).catch(err=>console.warn('Aviso de sincronização aguardando conexão:',err));
  syncApplying=true;save();syncApplying=false;syncBaseline=syncRows(S);if(V.me)R();
 }
 async function pullCloudTeam(){
@@ -1715,7 +1717,7 @@ function pushNotifySelf(message,key,ref,cat){
 function pushFlushLocalNotifications(){
  if(!V.sbSession||!V.cloudIdentity)return;
  (S.log.nt||[]).filter(e=>!e.sent&&!String(e.key||'').startsWith('cloud|')).forEach(e=>{
-  const send=String(e.key||'').startsWith('app-update|')
+  const send=(String(e.key||'').startsWith('app-update|')||String(e.key||'').startsWith('sync|'))
    ?pushNotifySelf(e.m,e.key,e.ref,e.cat)
    :pushNotifyCloud(e);
   send.then(()=>{e.sent=true;save()}).catch(err=>console.warn('Notificação será reenviada quando houver conexão:',err));
