@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-tudo-v3.41.0';
+const CACHE_NAME = 'super-tudo-v3.42.0';
 const APP_CACHE_PREFIX = 'super-tudo-';
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -36,7 +36,7 @@ self.addEventListener('fetch', event => {
     })());
     return;
   }
-  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg'].includes(url.pathname)) {
+  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg', '/logo.webp'].includes(url.pathname)) {
     event.respondWith((async () => {
       const cached = await caches.match(request);
       if (cached) return cached;
