@@ -1054,7 +1054,7 @@ function rAvaInd(){
  }
  if(V.ev==='rank'){
   const rr=rankRows();
-  return regMenuBack('Voltar à Avaliação individual',"V.ev='inicio';R();scrollTo(0,0")+'<div class="launch-title u-mv10">Ranking de avaliações</div>'+
+  return regMenuBack('Voltar à Avaliação individual',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Ranking de avaliações</div>'+
    (rr.length?rr.map((r,i)=>{const l=lvl(r.g);return '<div class="c"><div class="row sp"><b>'+(i+1)+'. '+esc(r.p.n)+'</b><span class="b '+l[1]+'">'+r.g.toFixed(1)+' · '+l[0]+'</span></div>'+bar(r.g*10)+'<div class="mu">Competências: '+(r.c!=null?r.c.toFixed(1)+'/4 ('+r.ne+')':'—')+' · Qualidade (conferência): '+(r.q!=null?r.q.toFixed(1)+'/10 ('+r.nq+')':'—')+'</div></div>'}).join(''):'<div class="c mu">Ainda sem avaliações. Faça uma avaliação de competências ou uma conferência em Checklists › Controle de qualidade, escolhendo o funcionário avaliado.</div>')+
    '<button class="bt g" onclick="goR(\'ck\',\'\',\'cq\')">Fazer conferência de qualidade</button>';
  }
@@ -1082,7 +1082,7 @@ function rAvaCus(m){
  const C=V.cu[m.id]||(V.cu[m.id]={p:'',z:'',n:'',d:today(),r:{},o:''}),ref="V.cu['"+m.id+"']";
  if(V.ev==='hist'||m.arq){
   const L=S.ev.filter(e=>e.t===m.id).reverse();
-  return regMenuBack('Voltar às Avaliações',"V.ev='inicio';R();scrollTo(0,0")+'<div class="launch-title u-mv10">Histórico · '+esc(m.n)+'</div>'+
+  return regMenuBack('Voltar às Avaliações',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico · '+esc(m.n)+'</div>'+
    (m.arq?'<div class="c mu">Tipo arquivado: só o histórico está disponível. Para voltar a usar, restaure em ⚙️ Tipos.</div>':'')+
    (L.length?L.map(e=>{const p=e.p?person(e.p):null,a=avg(e.r||{});return '<div class="c"><div class="row sp"><b>'+esc(p?p.n:(e.z||e.n||'—'))+'</b><span class="b '+lvl(a*2.5)[1]+'">'+a.toFixed(1)+'/4</span></div><div class="mu">'+br(e.d)+(e.o?' · '+esc(e.o):'')+'</div>'+evDet(e)+'<button class="bt d" onclick="delE(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhuma avaliação salva.</div>');
  }
