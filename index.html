@@ -1117,12 +1117,23 @@ function pdcDetail(o){const buy=pdcIsBuyer(),owner=o.by===V.me.id||o.rp===V.me.i
 const rows=o.items.map(it=>{const base=`<b>${esc(it.p)}</b> <span class="mu">${esc(it.q)} ${esc(it.u)}${it.o?' · '+esc(it.o):''}</span>`;
 if(!buy)return `<div class="it"><div>${base}<div class="mu">${it.ps?'Situação: '+esc(it.ps):'Pendente'}${it.qc?' · comprado: '+esc(it.qc)+' '+esc(it.u):''}${it.mot?' · motivo: '+esc(it.mot):''}${it.buyer?' · atualizado por '+esc(it.buyer):''}</div></div></div>`;
 return `<div class="c">${base}${dsel('pst_'+it.id,PDC_ST,it.ps||'')}<div class="row u-mt6"><input id="pq_${it.id}" placeholder="Qtd. comprada" value="${esc(it.qc||'')}" class="u-fx1" inputmode="decimal"><input id="pm_${it.id}" placeholder="Motivo / observação" value="${esc(it.mot||'')}" class="u-fx1"></div></div>`}).join('');
-return `<button class="ch" onclick="V.pdcO=null;R()">‹ Pedidos</button><div class="c"><div class="row sp"><b>Pedido #${o.n}</b><span class="b">${o.st}</span></div><p class="mu">Repositor: ${esc(o.rpN||o.byN)}${o.sec?' · '+esc(o.sec):''} · ${o.d} ${o.h}${o.rp&&o.byN!==o.rpN?' · lançado por '+esc(o.byN):''}</p></div>${rows}<div class="row u-mt8">${buy&&o.st!=='Encerrado'?`<button class="bt" onclick="pdcSaveAt('${o.id}')">Salvar andamento</button>`:''}${buy&&o.st!=='Encerrado'?`<button class="bt g" onclick="pdcForward('${o.id}')">🔎 Abrir conferência</button>`:''}${owner&&o.st!=='Encerrado'?`<button class="bt g" onclick="pdcClose('${o.id}')">Encerrar pedido</button>`:''}</div>`}
-function rPdc(){let h='';
-if(pdcCanCreate()&&!V.pdcO){const L=V.pdcL||[];h+=`<div class="c"><h3>🧾 Novo pedido para Compras</h3><label>Repositor que está fazendo o pedido</label>${dsel('pdc_rp',S.team.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(p=>({v:p.id,l:p.n+(p.s?' · '+p.s:'')})),(V.me&&person(V.me.id))?V.me.id:'')}<input id="pdc_p" placeholder="Produto" class="u-fx1"><div class="row u-mt6"><input id="pdc_q" placeholder="Quantidade" class="u-fx1" inputmode="decimal"><div class="u-w110">${dsel('pdc_u',PDC_U.map(u=>({v:u,l:u})),'un')}</div></div><input id="pdc_o" placeholder="Observação (opcional)" class="u-mt6"><div class="row u-mt8"><button class="bt g" onclick="pdcAddItem()">Adicionar produto</button></div>${L.map((i,j)=>`<div class="it"><div>${esc(i.p)} · ${esc(i.q)} ${esc(i.u)}${i.o?' <span class="mu">· '+esc(i.o)+'</span>':''}</div><button class="bt d" onclick="pdcDelItem(${j})">✕</button></div>`).join('')}<div class="row u-mt8"><button class="bt" onclick="pdcSend()">Salvar pedido (${L.length})</button><button class="bt g" onclick="V.pdcL=[];R()">Cancelar</button></div></div>`}
-const buy=pdcIsBuyer(),mine=(S.pdc||[]).filter(o=>buy||o.by===V.me.id||o.rp===V.me.id),O=V.pdcO?mine.find(o=>o.id===V.pdcO):null;
-if(O)return h+pdcDetail(O);
-return h+`<h3>${buy?'Pedidos recebidos':'Meus pedidos'}</h3>`+(mine.slice().reverse().map(o=>`<div class="c tap" onclick="V.pdcO='${o.id}';R()"><div class="row sp"><b>#${o.n} · ${esc(o.rpN||o.byN)}</b><span class="mu">${o.st}</span></div><div class="mu">${o.d} ${o.h} · ${o.items.length} produto(s)${o.sec?' · '+esc(o.sec):''}</div>${xbtn(`pdcDelete('${o.id}')`,'Excluir pedido e conferência')}</div>`).join('')||'<div class="c mu">Nenhum pedido.</div>')}
+return `<button class="ch" onclick="regPdcBack()">‹ Pedidos</button><div class="c"><div class="row sp"><b>Pedido #${o.n}</b><span class="b">${o.st}</span></div><p class="mu">Repositor: ${esc(o.rpN||o.byN)}${o.sec?' · '+esc(o.sec):''} · ${o.d} ${o.h}${o.rp&&o.byN!==o.rpN?' · lançado por '+esc(o.byN):''}</p></div>${rows}<div class="row u-mt8">${buy&&o.st!=='Encerrado'?`<button class="bt" onclick="pdcSaveAt('${o.id}')">Salvar andamento</button>`:''}${buy&&o.st!=='Encerrado'?`<button class="bt g" onclick="pdcForward('${o.id}')">🔎 Abrir conferência</button>`:''}${owner&&o.st!=='Encerrado'?`<button class="bt g" onclick="pdcClose('${o.id}')">Encerrar pedido</button>`:''}</div>`}
+function regOpenPdcOrder(el){V.pdcO=el.dataset.id;R()}
+function regStartPdc(){V.pdcMode='novo';V.pdcL=[];V.pdcO=null;R()}
+function regCancelPdc(){V.pdcL=[];V.pdcMode='home';R()}
+function regPdcBack(){V.pdcO=null;V.pdcMode='hist';R()}
+function rPdc(){
+ const buy=pdcIsBuyer(),mine=(S.pdc||[]).filter(o=>buy||o.by===V.me.id||o.rp===V.me.id),O=V.pdcO?mine.find(o=>o.id===V.pdcO):null,title='🧾 Pedidos para Compras';
+ if(O)return pdcDetail(O);
+ const mode=V.pdcMode||'home';
+ const rows=mine.slice().reverse().map(o=>'<div class="c tap" onclick="regOpenPdcOrder(this)" data-id="'+esc(o.id)+'"><div class="row sp"><b>Pedido #'+o.n+' · '+esc(o.rpN||o.byN)+'</b><span class="mu">'+esc(o.st)+'</span></div><div class="mu">'+esc(o.d)+' '+esc(o.h)+' · '+o.items.length+' produto(s)'+(o.sec?' · '+esc(o.sec):'')+'</div>'+xbtn("pdcDelete('"+o.id+"')",'Excluir pedido e conferência')+'</div>').join('')||'<div class="c mu">Nenhum pedido encontrado.</div>';
+ if(mode==='novo'&&pdcCanCreate()){
+  const L=V.pdcL||[];
+  return regPageBackHeader(title,'regCancelPdc()')+'<div class="c"><h3>Novo pedido para Compras</h3><label>Repositor que está fazendo o pedido</label>'+dsel('pdc_rp',S.team.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(p=>({v:p.id,l:p.n+(p.s?' · '+p.s:'')})),(V.me&&person(V.me.id))?V.me.id:'')+'<input id="pdc_p" placeholder="Produto" class="u-fx1"><div class="row u-mt6"><input id="pdc_q" placeholder="Quantidade" class="u-fx1" inputmode="decimal"><div class="u-w110">'+dsel('pdc_u',PDC_U.map(u=>({v:u,l:u})),'un')+'</div></div><input id="pdc_o" placeholder="Observação (opcional)" class="u-mt6"><div class="row u-mt8"><button class="bt g" onclick="pdcAddItem()">Adicionar produto</button></div>'+L.map((i,j)=>'<div class="it"><div>'+esc(i.p)+' · '+esc(i.q)+' '+esc(i.u)+(i.o?' <span class="mu">· '+esc(i.o)+'</span>':'')+'</div><button class="bt d" onclick="pdcDelItem('+j+')">✕</button></div>').join('')+'<div class="row u-mt8"><button class="bt" onclick="pdcSend()">Salvar pedido ('+L.length+')</button><button class="bt g" onclick="regCancelPdc()">Cancelar</button></div></div>';
+ }
+ if(mode==='hist')return regPageBackHeader(title,"V.pdcMode='home';R()")+rows;
+ return regPageHomeHeader(title,"V.pdcMode='hist';R()",'Histórico')+(pdcCanCreate()?regPageCreateCard('Novo pedido','Adicione os produtos que precisam ser comprados e envie o pedido para Compras.',"regStartPdc()",'Novo pedido'):'<div class="c mu">Consulte abaixo os pedidos disponíveis para o seu perfil.</div>');
+}
 function semvImport(){const i=document.createElement('input');i.type='file';i.accept='.csv,.xlsx,.xls';i.onchange=()=>{const f=i.files[0];if(!f)return;readRows(f,rows=>{
  const pick=(r,...ks)=>{const key=Object.keys(r).find(x=>ks.includes(nrm(x)));return key!==undefined?r[key]:''};
  const ok=[],bad=[],codigosAntes=new Set(S.semvCod||[]);
@@ -1249,7 +1260,7 @@ function regMenuLaunch(){V.rs='lanc';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuOpenSection(k){
  if(k==='lanc'){regMenuLaunch();return}
  V.rs=k;V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;
- if(k==='ava')V.ev='home';if(k==='ck'){V.ck=null;V.ckTab='home';V.ce=null;}
+ if(k==='ava')V.ev='home';if(k==='ck'){V.ck=null;V.ckTab='home';V.ce=null;}if(k==='pdc')V.pdcMode='home';
  if(k==='conf'){V.cfO=null;V.cfS=[];V.clo=null}
  if(k==='eq'){V.pe=null;V.eq='p'}
  if(k==='set'){V.ss=null;V.sm=null}
