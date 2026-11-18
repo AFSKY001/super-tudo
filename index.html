@@ -2164,7 +2164,7 @@ function perfScopeMatch(e,scope,entity){
  if(isLead){const sectors=[...new Set(people.map(p=>perfNormSector(p.s)).filter(Boolean))],own=perfRecordSector(e);if(own&&sectors.length)return sectors.includes(own);if(!own&&entity.f==='Gerente de loja'&&!entity.s)return true;return people.some(p=>perfRecordPersonMatch(e,p))}
  return perfRecordPersonMatch(e,entity)
 }
-function perfMoney(e){if(e&&e.vt!==undefined&&e.vt!==null&&String(e.vt)!==''){const v=Number(e.vt);if(isFinite(v))return v}return (Number(e&&e.q)||0)*(Number(e&&e.vu)||0)}
+function perfMoney(e){const keys=['vt','total','total_custo','valor_total','vd','v','valor','custo','value'];for(const k of keys){if(e&&e[k]!==undefined&&e[k]!==null&&String(e[k])!==''){const v=Number(e[k]);if(isFinite(v))return v}}const q=Number(e&&e.q)||0,u=Number(e&&e.vu)||0;if(q&&u)return q*u;const b=Number(e&&e.b),c=Number(e&&e.c);return isFinite(b*c)?b*c:0}
 function perfMetricDef(k){if(INDS[k])return {key:k,n:INDS[k].n,e:INDS[k].e,dir:INDS[k].dir};const c=(S.indc||[]).find(x=>'c_'+x.id===k);return c?{key:k,n:c.n,e:'🧩',dir:c.dir||'neu',custom:c}:null}
 function perfMetricKeys(scope,entity){if(scope==='employee'||scope==='leader')return [...new Set((Array.isArray(entity&&entity.indk)?entity.indk:[]).filter(k=>perfMetricDef(k)))];return allK().filter(k=>perfMetricDef(k)&&!(scope==='sector'&&k==='semv'))}
 function perfConferenceRows(k,start,end,scope,entity){
@@ -2229,7 +2229,7 @@ function perfChecklistStats(p,start,end){
  Object.entries(S.runs||{}).forEach(([key,r])=>{if(!r)return;const a=key.split('|'),model=a[0],date=a[1],c=CK[model];if(!c||!perfInRange(date,start,end))return;const assigned=String(c.p||'')===String(p.id),evaluated=String(r.av||'')===String(p.id);if(!assigned&&!evaluated)return;total++;const items=(c.l||[]).filter(x=>x&&x[0]!=='#').length,n=Object.keys(r.a||{}).filter(k=>r.a[k]!==undefined&&r.a[k]!==null&&r.a[k]!=='').length;answered+=n;possible+=items;if(items&&n>=items&&(!c.ph||!!r.photo))complete++;if(evaluated&&typeof sc==='function'){const score=sc(c,r);if(score!==null&&score!==undefined){qualitySum+=score;qualityN++}}});
  return {total,complete,percent:total?complete/total*100:null,answered,possible,answerPercent:possible?answered/possible*100:null,quality:qualityN?qualitySum/qualityN:null,qualityN}
 }
-function perfEvaluationStats(p,start,end){const L=(S.ev||[]).filter(e=>(!e.t||e.t==='ind')&&String(e.p||'')===String(p.id)&&perfInRange(e.d,start,end)),avgVal=L.length?L.reduce((a,e)=>a+avg(e.r),0)/L.length*2.5:null;return {count:L.length,avg:avgVal}}
+function perfEvaluationStats(p,start,end){const L=(S.ev||[]).filter(e=>perfInRange(e.d,start,end)&&(((!e.t||e.t==='ind')&&String(e.p||'')===String(p.id))||(e.t==='resp'&&nomeChave(e.n||'')===nomeChave(p.n||'')))),avgVal=L.length?L.reduce((a,e)=>a+avg(e.r),0)/L.length*2.5:null;return {count:L.length,avg:avgVal}}
 function perfActivityForPerson(p,start,end){return {p,tasks:perfTaskStats(p,start,end),checks:perfChecklistStats(p,start,end),evals:perfEvaluationStats(p,start,end)}}
 function perfIndex(a){const vals=[];if(a.tasks.percent!==null)vals.push(a.tasks.percent);if(a.checks.percent!==null)vals.push(a.checks.percent);if(a.evals.avg!==null)vals.push(a.evals.avg*10);return vals.length?vals.reduce((x,y)=>x+y,0)/vals.length:null}
 function perfIndexLabel(v){if(v===null)return 'Sem dados suficientes';if(v>=85)return 'Muito bom';if(v>=70)return 'Bom';if(v>=50)return 'Atenção';return 'Crítico'}
@@ -2237,16 +2237,46 @@ function perfPersonIndicatorSummary(p,period){
  const keys=perfMetricKeys('employee',p);if(!keys.length)return '<div class="mu">Sem indicadores operacionais atribuídos.</div>';
  return keys.map(k=>{const d=perfMetricDef(k),cur=perfMetricValue(k,period.start,period.end,'employee',p),prev=perfMetricValue(k,period.prevStart,period.prevEnd,'employee',p),cmp=perfCompare(cur,prev,d.dir);return '<div class="it"><span>'+d.e+' '+esc(d.n)+'</span><span><b>'+(cur.hasData?perfFmt(cur.value,cur.unit):'—')+'</b> <span class="mu">· '+cmp.label+'</span></span></div>'}).join('')
 }
-function perfActivityHTML(people,period,showPersonKpis){
- const data=people.map(p=>perfActivityForPerson(p,period.start,period.end)),tasks=data.reduce((a,x)=>({planned:a.planned+x.tasks.planned,done:a.done+x.tasks.done}),{planned:0,done:0}),checks=data.reduce((a,x)=>({total:a.total+x.checks.total,complete:a.complete+x.checks.complete}),{total:0,complete:0}),evalN=data.reduce((a,x)=>a+x.evals.count,0),evalSum=data.reduce((a,x)=>a+(x.evals.avg===null?0:x.evals.avg*x.evals.count),0),evalAvg=evalN?evalSum/evalN:null,taskPct=tasks.planned?tasks.done/tasks.planned*100:null,checkPct=checks.total?checks.complete/checks.total*100:null;
- let html='<h3>Execução e qualidade</h3><div class="g2">';
- html+='<div class="c"><div class="mu">Cronogramas concluídos</div><div class="big">'+(taskPct===null?'—':taskPct.toFixed(1)+'%')+'</div><div class="mu">'+tasks.done+' de '+tasks.planned+' atividades</div></div>';
- html+='<div class="c"><div class="mu">Checklists completos</div><div class="big">'+(checkPct===null?'—':checkPct.toFixed(1)+'%')+'</div><div class="mu">'+checks.complete+' de '+checks.total+' aplicações registradas</div></div>';
- html+='<div class="c"><div class="mu">Média das avaliações individuais</div><div class="big">'+(evalAvg===null?'—':evalAvg.toFixed(1)+'/10')+'</div><div class="mu">'+evalN+' avaliação(ões)</div></div></div><p class="mu">Essas dimensões são mostradas separadamente. Ausência de tarefa, checklist ou avaliação não gera nota zero. Conferências não são pontuadas novamente: os registros de origem aparecem nos indicadores operacionais.</p>';
- const sorted=data.map(x=>({x,index:perfIndex(x)})).sort((a,b)=>(b.index===null?-1:b.index)-(a.index===null?-1:a.index));
- html+='<h3>Desempenho por pessoa</h3>'+sorted.map(({x,index})=>{const idx=index===null?'—':index.toFixed(1)+'% · '+perfIndexLabel(index);return '<div class="c"><div class="row sp"><b>'+esc(x.p.n)+'</b><span class="b">'+idx+'</span></div><div class="mu">'+esc(x.p.s||x.p.f||'Sem setor')+'</div><div class="it"><span>Cronogramas</span><b>'+(x.tasks.percent===null?'—':x.tasks.percent.toFixed(1)+'%')+' ('+x.tasks.done+'/'+x.tasks.planned+')</b></div><div class="it"><span>Checklists completos</span><b>'+(x.checks.percent===null?'—':x.checks.percent.toFixed(1)+'%')+' ('+x.checks.complete+'/'+x.checks.total+')</b></div><div class="it"><span>Avaliações</span><b>'+(x.evals.avg===null?'—':x.evals.avg.toFixed(1)+'/10')+'</b></div>'+(showPersonKpis?'<h4>Indicadores atribuídos</h4>'+perfPersonIndicatorSummary(x.p,period):'')+'</div>'}).join('');
- return html
+
+function perfActivityAggregate(people,start,end){
+ const data=people.map(p=>perfActivityForPerson(p,start,end));
+ const tasks=data.reduce((a,x)=>({planned:a.planned+x.tasks.planned,done:a.done+x.tasks.done}),{planned:0,done:0});
+ const checks=data.reduce((a,x)=>({total:a.total+x.checks.total,complete:a.complete+x.checks.complete}),{total:0,complete:0});
+ const evalN=data.reduce((a,x)=>a+x.evals.count,0),evalSum=data.reduce((a,x)=>a+(x.evals.avg===null?0:x.evals.avg*x.evals.count),0);
+ return {data,tasks,checks,evalN,evalAvg:evalN?evalSum/evalN:null,taskPct:tasks.planned?tasks.done/tasks.planned*100:null,checkPct:checks.total?checks.complete/checks.total*100:null};
 }
+function perfRateDelta(cur,prev,unit){
+ if(cur===null||prev===null)return '<span class="mu">Sem base anterior</span>';
+ const d=cur-prev;if(Math.abs(d)<0.000001)return '<span class="b wa">Sem alteração</span>';
+ const cls=d>0?'ok':'no',txt=(d>0?'+':'')+d.toLocaleString('pt-BR',{maximumFractionDigits:1})+(unit==='%'?' p.p.':' ponto(s)');
+ return '<span class="b '+cls+'">'+txt+'</span>';
+}
+function perfActivityHTML(people,period,showPersonKpis){
+ const now=perfActivityAggregate(people,period.start,period.end),prev=perfActivityAggregate(people,period.prevStart,period.prevEnd);
+ let html='<h3>Execução e qualidade</h3><div class="g2">';
+ html+='<div class="c"><div class="mu">Cronogramas concluídos</div><div class="big">'+(now.taskPct===null?'—':now.taskPct.toFixed(1)+'%')+'</div><div class="mu">'+now.tasks.done+' de '+now.tasks.planned+' atividades</div><div class="mu">Anterior: '+(prev.taskPct===null?'—':prev.taskPct.toFixed(1)+'%')+' · '+perfRateDelta(now.taskPct,prev.taskPct,'%')+'</div></div>';
+ html+='<div class="c"><div class="mu">Checklists completos</div><div class="big">'+(now.checkPct===null?'—':now.checkPct.toFixed(1)+'%')+'</div><div class="mu">'+now.checks.complete+' de '+now.checks.total+' aplicações registradas</div><div class="mu">Anterior: '+(prev.checkPct===null?'—':prev.checkPct.toFixed(1)+'%')+' · '+perfRateDelta(now.checkPct,prev.checkPct,'%')+'</div></div>';
+ html+='<div class="c"><div class="mu">Média das avaliações</div><div class="big">'+(now.evalAvg===null?'—':now.evalAvg.toFixed(1)+'/10')+'</div><div class="mu">'+now.evalN+' avaliação(ões)</div><div class="mu">Anterior: '+(prev.evalAvg===null?'—':prev.evalAvg.toFixed(1)+'/10')+' · '+perfRateDelta(now.evalAvg,prev.evalAvg,'pt')+'</div></div></div>';
+ html+='<p class="mu">O índice por pessoa abaixo é uma síntese simples das dimensões disponíveis de cronograma, checklist e avaliação; não inclui perdas nem indicadores operacionais, que aparecem separadamente. Sem atribuição ou sem registro, a dimensão fica sem nota. O histórico de cronogramas é reconstruído a partir dos modelos atuais.</p>';
+ const prevBy=new Map(prev.data.map(x=>[String(x.p.id),x]));
+ const sorted=now.data.map(x=>({x,index:perfIndex(x)})).sort((a,b)=>(b.index===null?-1:b.index)-(a.index===null?-1:a.index));
+ html+='<h3>Execução e avaliação por pessoa</h3>'+sorted.map(({x,index})=>{
+  const old=prevBy.get(String(x.p.id)),idx=index===null?'—':index.toFixed(1)+'% · '+perfIndexLabel(index);
+  return '<div class="c"><div class="row sp"><b>'+esc(x.p.n)+'</b><span class="b">'+idx+'</span></div><div class="mu">'+esc(x.p.s||x.p.f||'Sem setor')+'</div><div class="it"><span>Cronogramas</span><b>'+(x.tasks.percent===null?'—':x.tasks.percent.toFixed(1)+'%')+' ('+x.tasks.done+'/'+x.tasks.planned+')</b></div><div class="mu">Variação: '+perfRateDelta(x.tasks.percent,old?old.tasks.percent:null,'%')+'</div><div class="it"><span>Checklists completos</span><b>'+(x.checks.percent===null?'—':x.checks.percent.toFixed(1)+'%')+' ('+x.checks.complete+'/'+x.checks.total+')</b></div><div class="mu">Variação: '+perfRateDelta(x.checks.percent,old?old.checks.percent:null,'%')+'</div><div class="it"><span>Avaliações</span><b>'+(x.evals.avg===null?'—':x.evals.avg.toFixed(1)+'/10')+'</b></div><div class="mu">Variação: '+perfRateDelta(x.evals.avg,old?old.evals.avg:null,'pt')+'</div>'+(showPersonKpis?'<h4>Indicadores atribuídos</h4>'+perfPersonIndicatorSummary(x.p,period):'')+'</div>';
+ }).join('');
+ return html;
+}
+function perfActivityAnnualHTML(people,year){
+ const rows=[];
+ for(let m=1;m<=12;m++){
+  const key=String(year)+'-'+String(m).padStart(2,'0'),start=key+'-01',end=key+'-'+String(perfLastDay(+year,m)).padStart(2,'0');
+  if(start>today())continue;
+  const capped=end>today()?today():end,a=perfActivityAggregate(people,start,capped);
+  rows.push({key,a});
+ }
+ return '<h3>Execução e qualidade mês a mês · '+year+'</h3><div class="c">'+(rows.length?rows.map(x=>'<div class="it"><div style="flex:1"><b>'+x.key.slice(5)+'/'+x.key.slice(0,4)+'</b><div class="mu">Cronograma: '+(x.a.taskPct===null?'—':x.a.taskPct.toFixed(1)+'%')+' · Checklists: '+(x.a.checkPct===null?'—':x.a.checkPct.toFixed(1)+'%')+' · Avaliação: '+(x.a.evalAvg===null?'—':x.a.evalAvg.toFixed(1)+'/10')+'</div></div></div>').join(''):'<div class="mu">Sem dados no ano.</div>')+'</div>';
+}
+
 function perfGetPeople(scope,entity){if(scope==='employee')return entity?[entity]:[];if(scope==='leader')return perfLeaderPeople(entity);if(scope==='sector')return (S.team||[]).filter(p=>perfNormSector(p.s)===perfNormSector(entity));return (S.team||[]).filter(p=>!p.adm)}
 function perfDashboardHTML(){
  const full=typeof isFullAccess==='function'&&isFullAccess(),me=(S.team||[]).find(p=>V.me&&String(p.id)===String(V.me.id))||null;
@@ -2269,7 +2299,7 @@ function perfDashboardHTML(){
  html+='<h3>Indicadores operacionais</h3>'+ (keys.length?current.map(x=>perfMetricCard(x.k,period,scope,entity)).join(''):'<div class="c mu">Nenhum indicador operacional foi atribuído a esta pessoa. Você pode escolher os indicadores no cadastro da equipe. Cronogramas, checklists e avaliações continuam sendo acompanhados abaixo.</div>');
  if(keys.includes('semv')&&scope!=='sector')html+=perfSemvHistoryHTML(period);
  html+=perfActivityHTML(people,period,scope!=='employee');
- if(mode==='year')html+=perfAnnualSeriesHTML(keys,+period.key,scope,entity);
+ if(mode==='year'){html+=perfAnnualSeriesHTML(keys,+period.key,scope,entity);html+=perfActivityAnnualHTML(people,+period.key)}
  return html
 }
 
@@ -2380,7 +2410,7 @@ const APP_HIST=[
 {v:'3.0.1',d:'06/11/2026',t:'Correção (PATCH)',n:[],c:['Ao trocar de menu, a tela volta ao início da seção: detalhes abertos (conferência, pedido, checklist, ficha de pessoa, importação) não reabrem sozinhos.']},
 {v:'3.0.0',d:'06/11/2026',t:'Grande atualização (MAJOR)',n:['Pedidos para Compras: pedido com vários produtos e escolha do repositor, atendimento pelo comprador (comprado, parcial ou não comprado), acompanhamento pelo solicitante e encerramento.','Encaminhamento de produtos comprados para Conferência, com resultado (conferido ou divergência por quantidade, produto ou qualidade) visível no pedido.','Envio e importação de arquivos JSON com validação, prevenção de duplicidade, resumo e histórico. Pedidos e conferências entram no envio.','Indicadores automáticos de desempenho por funcionário, com pontuação geral, histórico e indicadores personalizados criados a partir de registros.','Modelos de indicadores e de cronograma editáveis, com aplicação à pessoa e atividades extras individuais.','Notificações por categoria (alterações, avisos, tarefas, atrasos e ocorrências), marcação individual, aviso geral do administrador e avisos automáticos.','Checklist de recebimento de perecíveis disponível em Lançamentos.','Perdas de perecíveis por importação de planilha CSV, com escolha obrigatória do setor, prévia e erros por linha.','Vencidos e Avariados unificados, com escolha de troca ou sem troca.','Administradores com acesso total ao sistema.','Padronização visual de animações, janelas, seções e topo dos lançamentos.','Funcionamento exclusivamente offline, sem rede local.'],c:['Atividades extras do checklist passaram a aparecer na ficha e podem ser removidas.','Compartilhamento do envio passou a ter confirmação explícita; baixar o arquivo não marca registros como enviados.','A tela mantém a posição de rolagem ao editar e abrir itens.','Filtros da Conferência passaram a filtrar de fato pelo tipo.','Botões duplicados de importação de perdas removidos.']}
 ];
-const NAV_MOVED=[],REG_MOVED=['cro','pdc','semv','mov'];
+const NAV_MOVED=[],REG_MOVED=['pdc','semv','mov'];
 const TABS=[['painel','📊','Painel',rPai],['cro','🗓️','Cronograma',rCro],['ck','✅','Checklists',rCk],['ava','⭐','Avaliação',rAva],['pro','📈','Progresso',rPro],['atr','📋','Atribuições',rAtr],['reg','📝','Registros',rReg]];
 const go=t=>{const A=TABS.map(x=>x[0]);V.ckdr=null;V.cb=null;V.eqm=0;V.mm=null;V.evm=null;V.dir=A.indexOf(t)-A.indexOf(V.tab);if(t!==V.tab){V.cfO=null;V.pdcO=null;V.pdcL=[];V.tme=null;V.pim=null;V.ck=null;V.ckOnly=null;V.mdl=null;V.eqe=null;V.ed=null;V.ntnav=0;V.pte=null;V.lw=null;V.eq=null;V.eqm=0;if(t==='reg'){V.rs='home';V.reg=null}}V.tab=t;V.pe=null;V.add=0;V.te=null;V.cf=null;V.mn=0;V.sh=0;V.ce=null;V.bal=null;rMenu();R();scrollTo(0,0)};
 const scrollables=()=>[...document.querySelectorAll('*')].filter(e=>e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1);
