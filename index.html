@@ -835,7 +835,7 @@ function rEq(){
  if(!team.length)return h+'<div class="c mu">'+(teamLeaderMode()?'Você ainda não cadastrou repositores.':'Nenhum funcionário disponível para este acesso.')+'</div>';
  return h+[...S.sectors,''].map(s=>[s,team.filter(x=>(S.sectors.includes(x.s)?x.s:'')===s)]).filter(g=>g[1].length).map(([s,L])=>'<h2>'+esc(s||'Sem setor')+' ('+L.length+')</h2>'+L.map(x=>'<div class="c" onclick="V.pe=\''+x.id+'\';V.sv=0;R();scrollTo(0,0)"><div class="row sp"><b>'+esc(x.n)+'</b><span class="row"><span class="mu">›</span>'+(isFullAccess()?'<button class="bt d" title="Excluir funcionário" aria-label="Excluir funcionário" onclick="event.stopPropagation();delP(\''+x.id+'\')">'+(V.cf==='p'+x.id?'Confirmar?':'✕')+'</button>':'')+'</span></div><div class="mu">'+esc(x.f||'—')+' · '+esc(x.t||'')+(x.l?' · Líder':'')+(x.u?' · Login '+esc(x.u):'')+'</div></div>').join('')).join('');
 }
-const INDS={ava:{n:'Avaliações',e:'⭐',dir:'pos'},rcp:{n:'Recebimento de frios',e:'🚚',dir:'pos'},ckc:{n:'Checklists completos',e:'✅',dir:'pos'},cron:{n:'Cronogramas cumpridos',e:'🗓️',dir:'pos'},ent:{n:'Entregas concluídas',e:'🚚',dir:'pos'},cx:{n:'Vendas por caixa',e:'🧾',dir:'pos'},rup:{n:'Produtos em ruptura',e:'🚫',dir:'neg'},etq:{n:'Etiquetas não colocadas',e:'🏷️',dir:'neg'},desp:{n:'Desperdício da padaria',e:'🥖',dir:'neg'},perd:{n:'Perdas de perecíveis',e:'🥩',dir:'neg'},avar:{n:'Produtos avariados',e:'💥',dir:'neg'},venc:{n:'Produtos vencidos',e:'📉',dir:'neg'}};
+const INDS={rcp:{n:'Recebimentos de frios',e:'🚚',dir:'neu'},ent:{n:'Entregas concluídas',e:'🚚',dir:'pos'},cx:{n:'Vendas por caixa',e:'🧾',dir:'neu'},semv:{n:'Produtos sem venda',e:'📦',dir:'neg'},rup:{n:'Produtos em ruptura',e:'🚫',dir:'neg'},etq:{n:'Etiquetas não colocadas',e:'🏷️',dir:'neg'},desp:{n:'Desperdício da padaria',e:'🥖',dir:'neg'},perd:{n:'Perdas de perecíveis',e:'🥩',dir:'neg'},avar:{n:'Produtos avariados',e:'💥',dir:'neg'},venc:{n:'Produtos vencidos',e:'📉',dir:'neg'}};
 const INDK=Object.keys(INDS);
 const inM=(d,m)=>String(d||'').slice(0,7)===m;
 const dIn=m=>m===today().slice(0,7)?+today().slice(8,10):new Date(+m.slice(0,4),+m.slice(5,7),0).getDate();
@@ -867,12 +867,12 @@ const indMeta=k=>{if(INDS[k])return INDS[k];const c=(S.indc||[]).find(x=>'c_'+x.
 const srcOpts=()=>Object.keys(FS).filter(k=>/(^|\|)r:/.test(FS[k].f||''));
 function indRow(k,p){const I=indMeta(k);return I?`<div class="it"><div>${I.e} ${esc(I.n)}</div><button class="bt d" onclick="rmInd('${p.id}','${k}')">✕</button></div>`:''}
 function rmInd(pid,k){softP();const p=person(pid);if(!p||!ask('ri'+pid+k))return;p.indk=(p.indk||allK()).filter(x=>x!==k);save();R()}
-function indSecHTML(p){const M=S.imod||[],as=p.indk||allK(),avail=allK().filter(k=>!as.includes(k));
+function indSecHTML(p){const M=S.imod||[],as=Array.isArray(p.indk)?p.indk:[],avail=allK().filter(k=>!as.includes(k));
 return (as.map(k=>indRow(k,p)).join('')||'<p class="mu">Nenhum indicador atribuído.</p>')+`<h4>Adicionar modelo</h4>`+(M.length?`<div class="row">${dsel(`pmm_i_${p.id}`,M.map(m=>({v:m.id,l:m.n+' ('+m.i.length+')'})),M[0]?M[0].id:'')}<button class="bt g" onclick="pmApplyI('${p.id}')">Adicionar modelo</button></div><p class="mu">Os modelos usam o nome dos indicadores. Nomes que não existem no programa são ignorados.</p>`:'<p class="mu">Nenhum modelo cadastrado ainda.</p>')
 +`<h4>Adicionar indicador</h4>`+(avail.length?`<div class="row">${dsel(`ixa_${p.id}`,avail.map(k=>({v:k,l:(indMeta(k)||{}).e+' '+(indMeta(k)||{}).n})),avail[0])}<button class="bt" onclick="pmAddExisting('${p.id}')">Adicionar</button></div><p class="mu">Escolha um indicador do catálogo. Para criar um novo, use Gerenciar modelos.</p>`:'<p class="mu">Todos os indicadores já estão atribuídos a esta pessoa.</p>')
 +`<div class="row u-mt8"><button class="bt g" onclick="mmOpen('i','${p.id}','list')">⚙️ Gerenciar modelos</button></div>`}
-function pmApplyI(pid){softP();const m=(S.imod||[]).find(x=>x.id===($('pmm_i_'+pid)||{}).value),p=person(pid);if(!m||!p)return;const cur=p.indk||allK();(m.k||matchNames(m.i).keys).forEach(k=>{if(!cur.includes(k))cur.push(k)});p.indk=cur;save();R()}
-function pmAddExisting(pid){softP();const k=($('ixa_'+pid)||{}).value,p=person(pid);if(!k||!p)return;const cur=p.indk||allK();if(!cur.includes(k))p.indk=[...cur,k];save();R()}
+function pmApplyI(pid){softP();const m=(S.imod||[]).find(x=>x.id===($('pmm_i_'+pid)||{}).value),p=person(pid);if(!m||!p)return;const cur=Array.isArray(p.indk)?p.indk:[];(m.k||matchNames(m.i).keys).filter(k=>indMeta(k)).forEach(k=>{if(!cur.includes(k))cur.push(k)});p.indk=cur;save();R()}
+function pmAddExisting(pid){softP();const k=($('ixa_'+pid)||{}).value,p=person(pid);if(!k||!p)return;const cur=Array.isArray(p.indk)?p.indk:[];if(indMeta(k)&&!cur.includes(k))p.indk=[...cur,k];save();R()}
 
 function rPes(){if(V.mm&&V.mm.pid===V.pe)return rMM();V.mm=null;const nw=V.pe==='new',p=nw?{}:person(V.pe);if(!nw&&!p){V.pe=null;return rEq()}if(!nw&&!teamCanEdit(p)){V.pe=null;return rEq()}if(nw&&!isFullAccess()&&!teamLeaderMode()){V.pe=null;return rEq()}const leader=teamLeaderMode();V.po=V.po||{};
 const sec=(k,t,b,o)=>`<details ${(k in V.po?V.po[k]:o)?'open':''} ontoggle="V.po.${k}=this.open"><summary>${t}</summary>${b}</details>`,
@@ -1313,7 +1313,6 @@ function rReg(){
  const RS=RSEC.filter(x=>x[0]==='pdc'||(x[0]==='eq'?(isFullAccess()||(teamLeaderMode()&&can('r:eqp'))):(x[0]==='mov'?movOK():(x[0]==='w5'||x[0]==='semv')?(V.me&&isFullAccess()):canR(x[0]))));
  const homeItems=RS.filter(x=>!REG_MOVED.includes(x[0]));
  const launchItems=LKV.map(k=>({k,n:FS[k].n,type:'launch'}));
- ['ck','ava'].filter(k=>canTab(k)).forEach(k=>{const x=RSEC.find(y=>y[0]===k);if(x)launchItems.push({k,n:x[2],type:'section'})});
  ['pdc'].forEach(k=>{const x=RSEC.find(y=>y[0]===k);if(x)launchItems.push({k,n:x[2],type:'section'})});
  if(V.me&&isFullAccess()){const x=RSEC.find(y=>y[0]==='semv');if(x)launchItems.push({k:'semv',n:x[2],type:'section'})}
  if(movOK()){const x=RSEC.find(y=>y[0]==='mov');if(x)launchItems.push({k:'mov',n:x[2],type:'section'})}
@@ -1517,10 +1516,8 @@ const ind=S.team.filter(p=>S.ev.some(e=>(!e.t||e.t==='ind')&&e.p===p.id&&inM(e))
 const row=(l,n,d,sub)=>`<div class="c"><div class="row sp"><b>${l}</b><span class="mu">${n}/${d}</span></div><div class="mu">${sub}</div>${bar(n/d*100)}</div>`;
 return '<h2>Progresso por tipo (mês)</h2>'+row('👤 Individual',ind,nt,'Pessoas avaliadas')+row('🌤️ Pesquisa de clima',cl,ns,'Setores com pesquisa')+row('🧑‍💼 Responsável do setor',rs,ns,'Setores com responsável avaliado')}
 const goR=(s,ev,ck)=>{V.dir=0;V.cb=null;V.eqm=0;V.tab='reg';V.rs=s;if(ev)V.ev=ev;V.ck=ck||null;V.ce=null;V.add=0;V.te=null;V.mn=0;V.sh=0;rMenu();R();scrollTo(0,0)};
-function rPro(){const rr=rankRows(),rows=S.team.map(p=>{const ks=Object.keys(CK).filter(k=>CK[k].p===p.id),c=ks.length?ks.reduce((a,k)=>a+ckProg(k),0)/ks.length:null,r=rr.find(x=>x.p.id===p.id);return {p,c,g:r?r.g:null}}),
-secs=S.sectors.map(s=>{const L=rows.filter(x=>x.p.s===s);if(!L.length)return null;const cs=L.filter(x=>x.c!=null),gs=L.filter(x=>x.g!=null);return {s,n:L.length,c:cs.length?cs.reduce((a,x)=>a+x.c,0)/cs.length:null,g:gs.length?gs.reduce((a,x)=>a+x.g,0)/gs.length:null}}).filter(Boolean);
-const info=(c,g)=>`Checklists hoje: ${c!=null?Math.round(c*100)+'%':'—'} · Nota: ${g!=null?g.toFixed(1)+'/10':'—'}`;
-return '<h2>Por setor</h2>'+(secs.length?secs.map(x=>`<div class="c"><div class="row sp"><b>${esc(x.s)}</b><span class="mu">${x.n} pessoa(s)</span></div><div class="mu">${info(x.c,x.g)}</div>${bar((x.c||0)*100)}</div>`).join(''):'<div class="c mu">Sem pessoas cadastradas.</div>')+'<h2>Por funcionário</h2>'+rows.map(x=>`<div class="c tap" onclick="V.proX=V.proX==='${x.p.id}'?null:'${x.p.id}';R()"><div class="row sp"><b>${esc(x.p.n)}</b><span class="mu">${esc(x.p.s||'Sem setor')}</span></div><div class="mu">${info(x.c,x.g)}</div>${bar((x.c||0)*100)}${ldrInfo(x.p)}${V.proX===x.p.id?`<div class="u-mt6" onclick="if(event.target.closest('button,select,input,textarea,label,a'))event.stopPropagation()">${perfHTML(x.p)}</div>`:''}</div>`).join('')}
+function rPro(){return perfDashboardHTML()}
+
 const isMaster=()=>!!V.me&&V.me.role==='master';
  const isFullAccess=()=>!!V.me&&(V.me.role==='master'||V.me.role==='gerente');
  const can=k=>!!V.me&&(isFullAccess()||V.me.perm.includes(k));
@@ -1681,7 +1678,7 @@ return (L.map((a,i)=>`<div class="it"><div>${esc(a)}</div><button class="bt d" o
 function pmAdd(k,pid){softP();const c=PMK[k],v=(($('pmn_'+k+'_'+pid)||{}).value||'').trim(),p=person(pid);if(!v||!p)return;p[c.f]=p[c.f]||[];if(!p[c.f].includes(v))p[c.f].push(v);V.op=pid;save();R()}
 function pmDel(k,pid,i){softP();if(!ask(k+pid+i))return;const p=person(pid);if(p&&p[PMK[k].f])p[PMK[k].f].splice(i,1);save();R()}
 function pmApply(k,pid){softP();const c=PMK[k],m=(S[c.m]||[]).find(x=>x.id===($('pmm_'+k+'_'+pid)||{}).value),p=person(pid);if(!m||!p)return;p[c.f]=p[c.f]||[];m.i.forEach(x=>{if(!p[c.f].includes(x))p[c.f].push(x)});save();R()}
-const IALIAS={'ruptura':'rup','vencidos com troca':'venc','vencidos sem troca (perda)':'venc','vencidos com e sem troca':'venc','avariados com troca':'avar','avariados sem troca':'avar','avariados com e sem troca':'avar','entregas':'ent','vendas por operador de caixa':'cx','vendas por caixa':'cx','perdas de perecíveis (r$)':'perd','perdas de perecíveis':'perd','desperdício de padaria':'desp','desperdício da padaria':'desp','avaliação dos funcionários':'ava','avaliação dos repositores':'ava','avaliação do setor':'ava','entrega de etiquetas':'etq'};
+const IALIAS={'produtos sem venda':'semv','ruptura':'rup','vencidos com troca':'venc','vencidos sem troca (perda)':'venc','vencidos com e sem troca':'venc','avariados com troca':'avar','avariados sem troca':'avar','avariados com e sem troca':'avar','entregas':'ent','vendas por operador de caixa':'cx','vendas por caixa':'cx','perdas de perecíveis (r$)':'perd','perdas de perecíveis':'perd','desperdício de padaria':'desp','desperdício da padaria':'desp','entrega de etiquetas':'etq'};
 function matchNames(names){const keys=[],lg=[],all=[...INDK,...(S.indc||[]).map(c=>'c_'+c.id)];(names||[]).forEach(t=>{const q=String(t).trim().toLowerCase();if(!q)return;const k=all.find(x=>indMeta(x).n.toLowerCase()===q)||(IALIAS[q]&&all.includes(IALIAS[q])?IALIAS[q]:null);if(k){if(!keys.includes(k))keys.push(k)}else lg.push(String(t).trim())});return{keys,lg}}
 function dsel(id,opts,cur){const o=opts.find(x=>x.v===cur)||opts[0]||{v:'',l:'—'};return `<div class="dsel" data-dsel="${id}"><input type="hidden" id="${id}" value="${esc(o.v)}"><button type="button" class="dsel-b" onclick="dselT('${id}')"><span>${esc(o.l)}</span><span class="mu">▾</span></button><div class="dsel-p">${opts.map(x=>`<button type="button" class="dsel-o${x.v===o.v?' on':''}" data-v="${esc(x.v)}" onclick="dselPick('${id}','${esc(x.v)}')">${esc(x.l)}</button>`).join('')}</div></div>`}
 function dselT(id){const w=document.querySelector(`[data-dsel="${id}"]`);if(!w)return;const was=w.classList.contains('open');document.querySelectorAll('.dsel.open').forEach(x=>x.classList.remove('open'));if(!was)w.classList.add('open')}
@@ -1692,17 +1689,17 @@ function mmCapture(){const x=V.mm;if(!x||!x.d)return;const n=$('mm_n');if(n)x.d.
 function mmRmInd(k){mmCapture();V.mm.d.sel=(V.mm.d.sel||[]).filter(x=>x!==k);R()}
 function mmAddInd(){mmCapture();const k=($('mm_add')||{}).value;if(!k)return;V.mm.d.sel=[...(V.mm.d.sel||[]),k];R()}
 function mmDelId(k,id){const x=V.mm;if(!ask('md'+id))return;const c=PMK[k];S[c.m]=(S[c.m]||[]).filter(y=>y.id!==id);save();V.mm={k,pid:x.pid,id:'list',d:null,fl:false};R()}
-function indEditor(d){const sel=d.sel||[],lg=d.lg||[],all=[...INDK,...(S.indc||[]).map(c=>'c_'+c.id)],avail=all.filter(k=>!sel.includes(k));
+function indEditor(d){const sel=(d.sel||[]).filter(k=>indMeta(k)),lg=d.lg||[],all=[...INDK,...(S.indc||[]).map(c=>'c_'+c.id)],avail=all.filter(k=>!sel.includes(k));
 return `<h4>Indicadores do modelo</h4>`+(sel.map(k=>{const I=indMeta(k)||{n:k,e:'•'};return `<div class="it"><div>${I.e} ${esc(I.n)}</div><button class="bt d" onclick="mmRmInd('${k}')">✕</button></div>`}).join('')||'<p class="mu">Nenhum indicador neste modelo. Adicione abaixo.</p>')+
 `<h4>Adicionar indicador</h4>`+(avail.length?`<div class="row">${dsel('mm_add',avail.map(k=>({v:k,l:(indMeta(k)||{}).e+' '+(indMeta(k)||{}).n})),avail[0])}<button class="bt g" onclick="mmAddInd()">Adicionar</button></div>`:'<p class="mu">Todos os indicadores já estão neste modelo.</p>')+
 (lg.length?`<p class="mu">Itens antigos sem indicador correspondente (mantidos, não aplicados): ${lg.map(x=>esc(x)).join(', ')}</p>`:'')+
-`<h4>Criar indicador personalizado</h4><input id="mm_cn" placeholder="Nome do indicador"><div class="u-mt6">${dsel('mm_cs',srcOpts().map(k=>({v:k,l:(FS[k].e||'')+' '+FS[k].n})),srcOpts()[0])}</div><div class="u-mt6">${dsel('mm_cd',TIPOS_IND,'occ')}</div><button class="bt g u-mt6" onclick="mmCustom()">Criar e incluir no modelo</button>`}
-function mmCustom(){const x=V.mm;if(!x)return;mmCapture();const sel=x.d.sel||[];const n=(($('mm_cn')||{}).value||'').trim(),src=($('mm_cs')||{}).value,tp=($('mm_cd')||{}).value||'occ';if(!n||!src)return alert('Informe o nome e o registro de origem.');const id=uid();S.indc=S.indc||[];S.indc.push({id,n,src,tp,dir:tp==='occ'?'neg':'pos'});x.d={...x.d,sel:[...sel,'c_'+id],lg:x.d.lg||[]};save();R()}
+`<h4>Criar indicador personalizado</h4><input id="mm_cn" placeholder="Nome do indicador"><div class="u-mt6">${dsel('mm_cs',srcOpts().map(k=>({v:k,l:(FS[k].e||'')+' '+FS[k].n})),srcOpts()[0])}</div><div class="u-mt6">${dsel('mm_cd',TIPOS_IND,'occ')}</div><div class="u-mt6">${dsel('mm_dir',[{v:'neg',l:'Quanto menor, melhor'},{v:'pos',l:'Quanto maior, melhor'}],'neg')}</div><button class="bt g u-mt6" onclick="mmCustom()">Criar e incluir no modelo</button>`}
+function mmCustom(){const x=V.mm;if(!x)return;mmCapture();const sel=x.d.sel||[];const n=(($('mm_cn')||{}).value||'').trim(),src=($('mm_cs')||{}).value,tp=($('mm_cd')||{}).value||'occ',dir=($('mm_dir')||{}).value||(tp==='occ'?'neg':'pos');if(!n||!src)return alert('Informe o nome e o registro de origem.');const id=uid();S.indc=S.indc||[];S.indc.push({id,n,src,tp,dir});x.d={...x.d,sel:[...sel,'c_'+id],lg:x.d.lg||[]};save();R()}
 function mmSaveI(add){const x=V.mm,n=(($('mm_n')||{}).value||'').trim(),keys=(x.d&&x.d.sel)||[],lg=(x.d&&x.d.lg)||[];
 if(!n)return alert('Informe o nome do modelo.');if(!keys.length&&!lg.length)return alert('Escolha ao menos um indicador.');
-S.imod=S.imod||[];let m=x.id!=='new'&&S.imod.find(y=>y.id===x.id);const names=keys.map(k=>indMeta(k).n).concat(lg);
-if(m){m.n=n;m.k=keys;m.i=names;m.lg=lg}else{m={id:'m'+uid(),n,k:keys,i:names,lg};S.imod.push(m)}
-if(add){const p=person(x.pid);if(p){const cur=p.indk||allK();keys.forEach(k=>{if(!cur.includes(k))cur.push(k)});p.indk=cur}}
+S.imod=S.imod||[];let m=x.id!=='new'&&S.imod.find(y=>y.id===x.id);const validKeys=keys.filter(k=>indMeta(k)),names=validKeys.map(k=>indMeta(k).n).concat(lg);
+if(m){m.n=n;m.k=validKeys;m.i=names;m.lg=lg}else{m={id:'m'+uid(),n,k:validKeys,i:names,lg};S.imod.push(m)}
+if(add){const p=person(x.pid);if(p){const cur=Array.isArray(p.indk)?p.indk:[];validKeys.forEach(k=>{if(!cur.includes(k))cur.push(k)});p.indk=cur}}
 save();V.mm=x.fl?{...x,id:'list',d:null}:null;R()}
 function mmOpen(k,pid,id){softP();const c=PMK[k],p=person(pid),fl=!!(V.mm&&V.mm.id==='list');let d=null;
 if(id==='new')d={n:'',t:'',sel:[],lg:[]};else if(id==='cur'){d={n:'',t:((p&&p[c.f])||[]).join('\n')};id='new'}else if(id!=='list'){const m=(S[c.m]||[]).find(x=>x.id===id);if(!m)return;if(k==='i'){const r=matchNames(m.i);d={n:m.n,t:'',sel:m.k||r.keys,lg:m.lg||r.lg}}else d={n:m.n,t:m.i.join('\n')}}
@@ -2142,8 +2139,172 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.43.5';
+const APP_VERSION='3.44.0';
+
+function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
+function perfLastDay(y,m){return new Date(y,m,0).getDate()}
+function perfPeriod(){
+ const mode=V.proMode||'month',now=today(),cy=+now.slice(0,4),cd=+now.slice(8,10);
+ if(mode==='year'){const y=+(V.proYear||cy),isCurrent=y===cy,py=y-1,end=isCurrent?now:(y+'-12-31'),prevEnd=isCurrent?(py+'-'+now.slice(5)):(py+'-12-31');return {mode:'year',key:String(y),start:y+'-01-01',end,prevStart:py+'-01-01',prevEnd,label:String(y),prevLabel:String(py)}}
+ const key=V.proMonth||now.slice(0,7),parts=key.split('-').map(Number),y=parts[0],m=parts[1];
+ if(!y||!m||m<1||m>12){V.proMonth=now.slice(0,7);return perfPeriod()}
+ const isCurrent=key===now.slice(0,7),last=perfLastDay(y,m),end=isCurrent?now:(key+'-'+String(last).padStart(2,'0')),pd=new Date(y,m-2,1),py=pd.getFullYear(),pm=pd.getMonth()+1,pkey=py+'-'+String(pm).padStart(2,'0'),pLast=perfLastDay(py,pm),pEnd=isCurrent?(pkey+'-'+String(Math.min(cd,pLast)).padStart(2,'0')):(pkey+'-'+String(pLast).padStart(2,'0'));
+ return {mode:'month',key,start:key+'-01',end,prevStart:pkey+'-01',prevEnd:pEnd,label:key.slice(5)+'/'+key.slice(0,4),prevLabel:pkey.slice(5)+'/'+pkey.slice(0,4)}
+}
+function perfInRange(d,start,end){const x=String(d||'');return /^\d{4}-\d\d-\d\d$/.test(x)&&x>=start&&x<=end}
+function perfLeader(p){return !!p&&(p.l===true||(p.lead||[]).length>0||/encarregado|gerente|supervisor|subgerente/i.test(p.f||''))}
+function perfLeaderPeople(p){if(!p)return [];const ids=new Set([p.id,...(p.lead||[])].map(String));let L=(S.team||[]).filter(x=>ids.has(String(x.id)));if(L.length<=1&&/gerente/i.test(p.f||'')&&!p.s)L=(S.team||[]).filter(x=>!x.adm);else if(L.length<=1&&p.s)L=(S.team||[]).filter(x=>perfNormSector(x.s)===perfNormSector(p.s));if(!L.some(x=>String(x.id)===String(p.id)))L.unshift(p);return [...new Map(L.map(x=>[String(x.id),x])).values()]}
+function perfRecordPersonMatch(e,p){if(!e||!p)return false;const vals=[e.pid,e.rid,e.r,e.responsavel,e.resp,e.n,e.funcionario,e.avaliado].filter(x=>x!==undefined&&x!==null&&String(x).trim()!=='').map(String);return vals.some(x=>x===String(p.id)||nomeChave(x)===nomeChave(p.n))}
+function perfRecordSector(e){return perfNormSector(e&&(e.z||e.setor||e.sector||''))}
+function perfScopeMatch(e,scope,entity){
+ if(scope==='store')return true;
+ if(scope==='sector'){const sec=perfNormSector(entity||'');if(!sec)return false;const own=perfRecordSector(e);if(own)return own===sec;const p=(S.team||[]).find(x=>perfRecordPersonMatch(e,x));return !!p&&perfNormSector(p.s)===sec}
+ if(!entity)return false;
+ const people=scope==='leader'?perfLeaderPeople(entity):[entity],isLead=scope==='leader'||(scope==='employee'&&perfLeader(entity));
+ if(isLead){const sectors=[...new Set(people.map(p=>perfNormSector(p.s)).filter(Boolean))],own=perfRecordSector(e);if(own&&sectors.length)return sectors.includes(own);if(!own&&/gerente/i.test(entity.f||'')&&!entity.s)return true;return people.some(p=>perfRecordPersonMatch(e,p))}
+ return perfRecordPersonMatch(e,entity)
+}
+function perfMoney(e){const keys=['vt','total','total_custo','valor_total','vd','v','valor','custo','value'];for(const k of keys){if(e&&e[k]!==undefined&&e[k]!==null&&String(e[k])!==''){const v=Number(e[k]);if(isFinite(v))return v}}const q=Number(e&&e.q)||0,u=Number(e&&e.vu)||0;if(q&&u)return q*u;const b=Number(e&&e.b),c=Number(e&&e.c);return isFinite(b*c)?b*c:0}
+function perfMetricDef(k){if(INDS[k])return {key:k,n:INDS[k].n,e:INDS[k].e,dir:INDS[k].dir};const c=(S.indc||[]).find(x=>'c_'+x.id===k);return c?{key:k,n:c.n,e:'🧩',dir:c.dir||'neu',custom:c}:null}
+function perfMetricKeys(scope,entity){if(scope==='employee'||scope==='leader')return [...new Set((Array.isArray(entity&&entity.indk)?entity.indk:[]).filter(k=>perfMetricDef(k)))];return allK().filter(k=>perfMetricDef(k)&&!(scope==='sector'&&k==='semv'))}
+function perfConferenceRows(k,start,end,scope,entity){
+ const type=k==='rup'?'ruptura':k==='etq'?'preco':'';
+ if(!type)return [];
+ return (S.conf||[]).filter(c=>c&&c.t===type&&perfInRange(c.d,start,end)).flatMap(c=>(c.items||[]).filter(i=>i.fu&&i.ok!==true&&!(k==='rup'&&i.rp)&&!(k==='etq'&&i.ea)&&perfScopeMatch({r:i.fu,z:c.z||c.setor||''},scope,entity)).map(i=>({...i,d:c.d,z:c.z||c.setor||'',r:i.fu,_conference:true})))
+}
+function perfRowsForMetric(k,start,end,scope,entity){
+ const map={venc:['vtc','vsc'],avar:['atc','asc'],perd:['perd'],desp:['desp'],rup:['rup'],etq:['etna'],ent:['ent'],cx:['cx']};
+ if(!INDS[k]&&k!=='semv'&&k!=='rcp'){const d=perfMetricDef(k),src=d&&d.custom&&d.custom.src;return src?(S.log[src]||[]).filter(e=>perfInRange(e.d,start,end)&&perfScopeMatch(e,scope,entity)):[]}
+ const L=(map[k]||[]).flatMap(src=>(S.log[src]||[]).filter(e=>perfInRange(e.d,start,end)&&(k!=='etq'||e.st!=='Resolvida')&&perfScopeMatch(e,scope,entity)));
+ if(k==='rup'||k==='etq')L.push(...perfConferenceRows(k,start,end,scope,entity));
+ return L
+}
+function perfSemvList(start,end){return (S.semvH||[]).filter(x=>perfInRange(x.data||x.d,start,end)).slice().sort((a,b)=>String(a.data||a.d).localeCompare(String(b.data||b.d))||(+a.h||0)-(+b.h||0))}
+function perfMetricValue(k,start,end,scope,entity){
+ const d=perfMetricDef(k);if(!d)return {hasData:false,value:null,unit:''};
+ if(k==='semv'){if(scope==='sector')return {hasData:false,value:null,unit:'R$',note:'A lista é consolidada da loja e não possui divisão por setor.'};const L=perfSemvList(start,end);if(!L.length)return {hasData:false,value:null,unit:'R$',note:'Nenhuma lista importada neste período.'};const x=L[L.length-1];return {hasData:true,value:Number(x.total)||0,unit:'R$',secondary:(+x.n||0)+' produtos',note:'Última lista do período · '+br(x.data||x.d),snapshot:true}}
+ if(k==='rcp'){const L=Object.entries(S.runs||{}).filter(([key,r])=>{const a=key.split('|'),c=CK[a[0]];return c&&c.rc&&perfInRange(a[1],start,end)&&perfScopeMatch({r:(r&&r.who)||'',pid:c.p||'',z:c.z||''},scope,entity)});return {hasData:!!L.length,value:L.length,unit:'recebimentos',note:L.length+' recebimento(s) registrado(s)',neutral:true}}
+ const L=perfRowsForMetric(k,start,end,scope,entity);
+ if(!L.length)return {hasData:false,value:null,unit:(k==='rup'||k==='etq')?'registros':'R$',note:'Sem lançamentos neste período.'};
+ if(k==='ent'){const done=L.filter(e=>e.st==='Entregue').length;return {hasData:true,value:done/L.length*100,unit:'%',secondary:done+' de '+L.length+' entregues',count:L.length,done}}
+ if(k==='cx'){const sales=L.reduce((a,e)=>a+(Number(e.vd)||0),0),coupons=L.reduce((a,e)=>a+(Number(e.cp)||0),0);return {hasData:true,value:sales,unit:'R$',secondary:coupons+' cupons · '+L.length+' lançamento(s)',neutral:true}}
+ if(k==='desp'){const kg=L.reduce((a,e)=>a+(Number(e.b)||0),0),cost=L.reduce((a,e)=>a+(Number(e.b)||0)*(Number(e.c)||0),0);return {hasData:true,value:cost,unit:'R$',secondary:kg.toLocaleString('pt-BR',{maximumFractionDigits:2})+' kg desperdiçados',count:L.length}}
+ if(k==='venc'||k==='avar'||k==='perd'){const qty=L.reduce((a,e)=>a+(Number(e.q)||0),0),cost=L.reduce((a,e)=>a+perfMoney(e),0);return {hasData:true,value:cost,unit:'R$',secondary:qty.toLocaleString('pt-BR',{maximumFractionDigits:2})+' unidade(s) · '+L.length+' lançamento(s)',count:L.length,quantity:qty}}
+ if(k==='rup'||k==='etq')return {hasData:true,value:L.length,unit:'registros',secondary:L.length+' item(ns) atribuídos/registrados',count:L.length};
+ const c=d.custom||{},tp=c.tp||'occ';
+ if(tp==='qtd')return {hasData:true,value:L.reduce((a,e)=>a+(Number(e.q)||0),0),unit:'unidades',secondary:L.length+' registro(s)',count:L.length};
+ if(tp==='val')return {hasData:true,value:L.reduce((a,e)=>a+perfMoney(e),0),unit:'R$',secondary:L.length+' registro(s)',count:L.length};
+ return {hasData:true,value:L.length,unit:tp==='occ'?'ocorrências':'registros',secondary:L.length+' registro(s)',count:L.length}
+}
+function perfFmt(v,unit){if(v===null||v===undefined||!isFinite(Number(v)))return '—';if(unit==='R$')return money(v);if(unit==='%')return Number(v).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';return Number(v).toLocaleString('pt-BR',{maximumFractionDigits:2})+' '+(unit||'')}
+function perfCompare(cur,prev,dir){if(!cur||!prev||!cur.hasData||!prev.hasData)return {status:'nodata',label:'Sem base de comparação',delta:null,pct:null};const delta=cur.value-prev.value;if(Math.abs(delta)<0.000001)return {status:'same',label:'Sem alteração',delta:0,pct:0};if(dir==='neu')return {status:'neutral',label:'Variação informativa',delta,pct:prev.value?delta/Math.abs(prev.value)*100:null};const good=dir==='neg'?delta<0:delta>0;return {status:good?'good':'bad',label:good?'Melhorou':'Piorou',delta,pct:prev.value?delta/Math.abs(prev.value)*100:null}}
+function perfMetricCard(k,period,scope,entity){
+ const d=perfMetricDef(k);if(!d||k==='semv'&&scope==='sector')return '';
+ const cur=perfMetricValue(k,period.start,period.end,scope,entity),prev=perfMetricValue(k,period.prevStart,period.prevEnd,scope,entity),cmp=perfCompare(cur,prev,d.dir),cls=cmp.status==='good'?'ok':cmp.status==='bad'?'no':cmp.status==='same'?'wa':'mu';
+ let deltaText='—';if(cmp.delta!==null){deltaText=(cmp.delta>0?'+':'')+perfFmt(cmp.delta,cur.unit);if(cmp.pct!==null)deltaText+=' ('+(cmp.pct>0?'+':'')+cmp.pct.toLocaleString('pt-BR',{maximumFractionDigits:1})+'%)'}
+ const note=cur.note?'<div class="mu">'+esc(cur.note)+'</div>':'',second=cur.secondary?'<div class="mu">'+esc(cur.secondary)+'</div>':'',prevTxt=prev.hasData?perfFmt(prev.value,prev.unit):'Sem dados',noData=cur.hasData?'':'<div class="mu">Sem lançamentos não significa necessariamente resultado zero.</div>';
+ return '<div class="c"><div class="row sp"><b>'+d.e+' '+esc(d.n)+'</b><span class="b '+cls+'">'+cmp.label+'</span></div><div class="big" style="font-size:20px">'+perfFmt(cur.value,cur.unit)+'</div>'+second+note+'<div class="mu">Período anterior: '+prevTxt+'</div><div class="mu">Variação: '+deltaText+'</div>'+noData+'</div>'
+}
+function perfSemvHistoryHTML(period){
+ const L=perfSemvList(period.start,period.end);if(!L.length)return '';
+ const all=perfSemvList('2000-01-01',today());
+ return '<h3>Evolução das importações · Produtos sem venda</h3><div class="c">'+L.map(x=>{
+  const ix=all.findIndex(y=>y.id===x.id),prev=ix>0?all[ix-1]:null,delta=prev?Number(prev.total||0)-Number(x.total||0):null,good=delta===null?null:delta>0,cls=good===null?'mu':good?'ok':delta<0?'no':'wa';
+  const label=delta===null?'Primeira lista do histórico':delta>0?'Redução de '+money(delta):delta<0?'Aumento de '+money(-delta):'Sem alteração';
+  return '<div class="it"><div><b>'+br(x.data||x.d)+'</b><div class="mu">'+(+x.n||0)+' produtos · '+esc(x.arq||'Importação')+'</div></div><div style="text-align:right"><b>'+money(x.total||0)+'</b><div class="b '+cls+'">'+label+'</div></div></div>';
+ }).join('')+'</div>'
+}
+function perfMetricMonthly(k,year,scope,entity){const rows=[];for(let m=1;m<=12;m++){const key=String(year)+'-'+String(m).padStart(2,'0'),start=key+'-01',end=key+'-'+String(perfLastDay(+year,m)).padStart(2,'0');if(start>today())continue;const capped=end>today()?today():end,v=perfMetricValue(k,start,capped,scope,entity);rows.push({m,key,v})}return rows}
+function perfAnnualSeriesHTML(keys,year,scope,entity){
+ if(!(keys||[]).length)return '';
+ return '<h3>Evolução mês a mês · '+year+'</h3>'+keys.map(k=>{
+  const d=perfMetricDef(k);if(!d||k==='semv'&&scope==='sector')return '';
+  const rows=perfMetricMonthly(k,year,scope,entity),values=rows.filter(x=>x.v.hasData).map(x=>x.v.value),mx=Math.max(1,...values);
+  return '<div class="c"><b>'+d.e+' '+esc(d.n)+'</b>'+(rows.length?rows.map(x=>{const val=x.v.hasData?perfFmt(x.v.value,x.v.unit):'—',pct=x.v.hasData?Math.max(0,Math.min(100,x.v.value/mx*100)):0;return '<div class="it"><div style="flex:1"><div class="row sp"><span>'+x.key.slice(5)+'/'+x.key.slice(0,4)+'</span><b>'+val+'</b></div>'+(x.v.hasData?bar(pct):'<div class="mu">Sem lançamentos</div>')+'</div></div>'}).join(''):'<div class="mu">Sem dados anuais.</div>')+'</div>';
+ }).join('')
+}
+function perfTaskStats(p,start,end){let planned=0,done=0,days=0,dt=start;while(dt<=end&&dt<=today()){const L=myT(p,dt);if(L.length)days++;L.forEach(x=>{planned++;if(pdn(dt,x,p))done++});dt=addD(dt,1)}return {planned,done,percent:planned?done/planned*100:null,days}}
+function perfChecklistStats(p,start,end){
+ let total=0,complete=0,answered=0,possible=0,qualitySum=0,qualityN=0;
+ Object.entries(S.runs||{}).forEach(([key,r])=>{if(!r)return;const a=key.split('|'),model=a[0],date=a[1],c=CK[model];if(!c||!perfInRange(date,start,end))return;const assigned=String(c.p||'')===String(p.id),evaluated=String(r.av||'')===String(p.id);if(!assigned&&!evaluated)return;total++;const items=(c.l||[]).filter(x=>x&&x[0]!=='#').length,n=Object.keys(r.a||{}).filter(k=>r.a[k]!==undefined&&r.a[k]!==null&&r.a[k]!=='').length;answered+=n;possible+=items;if(items&&n>=items&&(!c.ph||!!r.photo))complete++;if(evaluated&&typeof sc==='function'){const score=sc(c,r);if(score!==null&&score!==undefined){qualitySum+=score;qualityN++}}});
+ return {total,complete,percent:total?complete/total*100:null,answered,possible,answerPercent:possible?answered/possible*100:null,quality:qualityN?qualitySum/qualityN:null,qualityN}
+}
+function perfEvaluationStats(p,start,end){const L=(S.ev||[]).filter(e=>perfInRange(e.d,start,end)&&(((!e.t||e.t==='ind')&&String(e.p||'')===String(p.id))||(e.t==='resp'&&nomeChave(e.n||'')===nomeChave(p.n||'')))),avgVal=L.length?L.reduce((a,e)=>a+avg(e.r),0)/L.length*2.5:null;return {count:L.length,avg:avgVal}}
+function perfActivityForPerson(p,start,end){return {p,tasks:perfTaskStats(p,start,end),checks:perfChecklistStats(p,start,end),evals:perfEvaluationStats(p,start,end)}}
+function perfIndex(a){const vals=[];if(a.tasks.percent!==null)vals.push(a.tasks.percent);if(a.checks.percent!==null)vals.push(a.checks.percent);if(a.evals.avg!==null)vals.push(a.evals.avg*10);return vals.length?vals.reduce((x,y)=>x+y,0)/vals.length:null}
+function perfIndexLabel(v){if(v===null)return 'Sem dados suficientes';if(v>=85)return 'Muito bom';if(v>=70)return 'Bom';if(v>=50)return 'Atenção';return 'Crítico'}
+function perfPersonIndicatorSummary(p,period){
+ const keys=perfMetricKeys('employee',p);if(!keys.length)return '<div class="mu">Sem indicadores operacionais atribuídos.</div>';
+ return keys.map(k=>{const d=perfMetricDef(k),cur=perfMetricValue(k,period.start,period.end,'employee',p),prev=perfMetricValue(k,period.prevStart,period.prevEnd,'employee',p),cmp=perfCompare(cur,prev,d.dir);return '<div class="it"><span>'+d.e+' '+esc(d.n)+'</span><span><b>'+(cur.hasData?perfFmt(cur.value,cur.unit):'—')+'</b> <span class="mu">· '+cmp.label+'</span></span></div>'}).join('')
+}
+
+function perfActivityAggregate(people,start,end){
+ const data=people.map(p=>perfActivityForPerson(p,start,end));
+ const tasks=data.reduce((a,x)=>({planned:a.planned+x.tasks.planned,done:a.done+x.tasks.done}),{planned:0,done:0});
+ const checks=data.reduce((a,x)=>({total:a.total+x.checks.total,complete:a.complete+x.checks.complete}),{total:0,complete:0});
+ const evalN=data.reduce((a,x)=>a+x.evals.count,0),evalSum=data.reduce((a,x)=>a+(x.evals.avg===null?0:x.evals.avg*x.evals.count),0);
+ return {data,tasks,checks,evalN,evalAvg:evalN?evalSum/evalN:null,taskPct:tasks.planned?tasks.done/tasks.planned*100:null,checkPct:checks.total?checks.complete/checks.total*100:null};
+}
+function perfRateDelta(cur,prev,unit){
+ if(cur===null||prev===null)return '<span class="mu">Sem base anterior</span>';
+ const d=cur-prev;if(Math.abs(d)<0.000001)return '<span class="b wa">Sem alteração</span>';
+ const cls=d>0?'ok':'no',txt=(d>0?'+':'')+d.toLocaleString('pt-BR',{maximumFractionDigits:1})+(unit==='%'?' p.p.':' ponto(s)');
+ return '<span class="b '+cls+'">'+txt+'</span>';
+}
+function perfActivityHTML(people,period,showPersonKpis){
+ const now=perfActivityAggregate(people,period.start,period.end),prev=perfActivityAggregate(people,period.prevStart,period.prevEnd);
+ let html='<h3>Execução e qualidade</h3><div class="g2">';
+ html+='<div class="c"><div class="mu">Cronogramas concluídos</div><div class="big">'+(now.taskPct===null?'—':now.taskPct.toFixed(1)+'%')+'</div><div class="mu">'+now.tasks.done+' de '+now.tasks.planned+' atividades</div><div class="mu">Anterior: '+(prev.taskPct===null?'—':prev.taskPct.toFixed(1)+'%')+' · '+perfRateDelta(now.taskPct,prev.taskPct,'%')+'</div></div>';
+ html+='<div class="c"><div class="mu">Checklists completos</div><div class="big">'+(now.checkPct===null?'—':now.checkPct.toFixed(1)+'%')+'</div><div class="mu">'+now.checks.complete+' de '+now.checks.total+' aplicações registradas</div><div class="mu">Anterior: '+(prev.checkPct===null?'—':prev.checkPct.toFixed(1)+'%')+' · '+perfRateDelta(now.checkPct,prev.checkPct,'%')+'</div></div>';
+ html+='<div class="c"><div class="mu">Média das avaliações</div><div class="big">'+(now.evalAvg===null?'—':now.evalAvg.toFixed(1)+'/10')+'</div><div class="mu">'+now.evalN+' avaliação(ões)</div><div class="mu">Anterior: '+(prev.evalAvg===null?'—':prev.evalAvg.toFixed(1)+'/10')+' · '+perfRateDelta(now.evalAvg,prev.evalAvg,'pt')+'</div></div></div>';
+ html+='<p class="mu">O índice por pessoa abaixo é uma síntese simples das dimensões disponíveis de cronograma, checklist e avaliação; não inclui perdas nem indicadores operacionais, que aparecem separadamente. Sem atribuição ou sem registro, a dimensão fica sem nota. O histórico de cronogramas é reconstruído a partir dos modelos atuais.</p>';
+ const prevBy=new Map(prev.data.map(x=>[String(x.p.id),x]));
+ const sorted=now.data.map(x=>({x,index:perfIndex(x)})).sort((a,b)=>(b.index===null?-1:b.index)-(a.index===null?-1:a.index));
+ html+='<h3>Execução e avaliação por pessoa</h3>'+sorted.map(({x,index})=>{
+  const old=prevBy.get(String(x.p.id)),idx=index===null?'—':index.toFixed(1)+'% · '+perfIndexLabel(index);
+  return '<div class="c"><div class="row sp"><b>'+esc(x.p.n)+'</b><span class="b">'+idx+'</span></div><div class="mu">'+esc(x.p.s||x.p.f||'Sem setor')+'</div><div class="it"><span>Cronogramas</span><b>'+(x.tasks.percent===null?'—':x.tasks.percent.toFixed(1)+'%')+' ('+x.tasks.done+'/'+x.tasks.planned+')</b></div><div class="mu">Variação: '+perfRateDelta(x.tasks.percent,old?old.tasks.percent:null,'%')+'</div><div class="it"><span>Checklists completos</span><b>'+(x.checks.percent===null?'—':x.checks.percent.toFixed(1)+'%')+' ('+x.checks.complete+'/'+x.checks.total+')</b></div><div class="mu">Variação: '+perfRateDelta(x.checks.percent,old?old.checks.percent:null,'%')+'</div><div class="it"><span>Avaliações</span><b>'+(x.evals.avg===null?'—':x.evals.avg.toFixed(1)+'/10')+'</b></div><div class="mu">Variação: '+perfRateDelta(x.evals.avg,old?old.evals.avg:null,'pt')+'</div>'+(showPersonKpis?'<h4>Indicadores atribuídos</h4>'+perfPersonIndicatorSummary(x.p,period):'')+'</div>';
+ }).join('');
+ return html;
+}
+function perfActivityAnnualHTML(people,year){
+ const rows=[];
+ for(let m=1;m<=12;m++){
+  const key=String(year)+'-'+String(m).padStart(2,'0'),start=key+'-01',end=key+'-'+String(perfLastDay(+year,m)).padStart(2,'0');
+  if(start>today())continue;
+  const capped=end>today()?today():end,a=perfActivityAggregate(people,start,capped);
+  rows.push({key,a});
+ }
+ return '<h3>Execução e qualidade mês a mês · '+year+'</h3><div class="c">'+(rows.length?rows.map(x=>'<div class="it"><div style="flex:1"><b>'+x.key.slice(5)+'/'+x.key.slice(0,4)+'</b><div class="mu">Cronograma: '+(x.a.taskPct===null?'—':x.a.taskPct.toFixed(1)+'%')+' · Checklists: '+(x.a.checkPct===null?'—':x.a.checkPct.toFixed(1)+'%')+' · Avaliação: '+(x.a.evalAvg===null?'—':x.a.evalAvg.toFixed(1)+'/10')+'</div></div></div>').join(''):'<div class="mu">Sem dados no ano.</div>')+'</div>';
+}
+
+function perfGetPeople(scope,entity){if(scope==='employee')return entity?[entity]:[];if(scope==='leader')return perfLeaderPeople(entity);if(scope==='sector')return (S.team||[]).filter(p=>perfNormSector(p.s)===perfNormSector(entity));return (S.team||[]).filter(p=>!p.adm)}
+function perfDashboardHTML(){
+ const full=typeof isFullAccess==='function'&&isFullAccess(),me=(S.team||[]).find(p=>V.me&&String(p.id)===String(V.me.id))||null;
+ let scope=V.proScope||(full?'store':(V.me&&V.me.role==='encarregado'?'leader':'employee'));if(!full)scope=V.me&&V.me.role==='encarregado'?'leader':'employee';
+ const mode=V.proMode||'month';if(mode==='month'&&!V.proMonth)V.proMonth=today().slice(0,7);if(mode==='year'&&!V.proYear)V.proYear=today().slice(0,4);
+ let entity=null,scopeName='Loja inteira';
+ if(scope==='employee'){const id=full?(V.proEntity||((S.team[0]||{}).id||'')):(me&&me.id);entity=(S.team||[]).find(p=>String(p.id)===String(id))||me;if(!entity)scope='store';else scopeName=entity.n}
+ if(scope==='leader'){const leads=(S.team||[]).filter(perfLeader),id=full?(V.proLeader||(leads[0]||{}).id):(me&&me.id);entity=(S.team||[]).find(p=>String(p.id)===String(id))||me;if(!entity)scope='store';else scopeName='Equipe de '+entity.n}
+ if(scope==='sector'){entity=full?(V.proSector||S.sectors[0]||''):(me&&me.s||'');scopeName='Setor '+entity}
+ if(scope==='store')entity=null;
+ const period=perfPeriod(),people=perfGetPeople(scope,entity),keys=perfMetricKeys(scope,entity),current=keys.map(k=>({k,cur:perfMetricValue(k,period.start,period.end,scope,entity),prev:perfMetricValue(k,period.prevStart,period.prevEnd,scope,entity),dir:perfMetricDef(k).dir})),counts=current.reduce((a,x)=>{const c=perfCompare(x.cur,x.prev,x.dir);a[c.status]=(a[c.status]||0)+1;return a},{});
+ const chips='<div class="chs">'+[['store','Loja'],['sector','Setor'],['leader','Encarregado'],['employee','Funcionário']].filter(x=>full||x[0]==='employee'||(x[0]==='leader'&&V.me&&V.me.role==='encarregado')).map(([k,l])=>chip(l,scope===k,"V.proScope='"+k+"';R()")).join('')+'</div>';
+ let entityControl='';
+ if(full&&scope==='employee')entityControl='<label>Funcionário<select onchange="V.proEntity=this.value">'+(S.team||[]).filter(p=>!p.adm).map(p=>'<option value="'+esc(p.id)+'" '+(entity&&String(entity.id)===String(p.id)?'selected':'')+'>'+esc(p.n)+' · '+esc(p.s||'')+'</option>').join('')+'</select></label>';
+ if(full&&scope==='leader')entityControl='<label>Encarregado / liderança<select onchange="V.proLeader=this.value">'+(S.team||[]).filter(perfLeader).map(p=>'<option value="'+esc(p.id)+'" '+(entity&&String(entity.id)===String(p.id)?'selected':'')+'>'+esc(p.n)+' · '+esc(p.s||'Loja')+'</option>').join('')+'</select></label>';
+ if(scope==='sector')entityControl='<label>Setor<select onchange="V.proSector=this.value">'+(S.sectors||[]).map(s=>'<option '+(s===entity?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label>';
+ const periodControl='<div class="row"><label>Relatório<select onchange="V.proMode=this.value;R()"><option value="month" '+(mode==='month'?'selected':'')+'>Mensal</option><option value="year" '+(mode==='year'?'selected':'')+'>Anual</option></select></label><label>'+(mode==='month'?'Mês':'Ano')+(mode==='month'?'<input type="month" value="'+esc(V.proMonth)+'" onchange="V.proMonth=this.value;R()">':'<input type="number" min="2000" max="2100" value="'+esc(V.proYear)+'" onchange="V.proYear=this.value;R()">')+'</label></div>';
+ let html='<div class="c"><h2>📈 Desempenho e evolução</h2><p class="mu">Análise de '+esc(scopeName)+'.</p>'+periodControl+chips+entityControl+'</div>';
+ html+='<div class="c"><div class="row sp"><b>Comparação de períodos</b><span class="mu">'+period.label+' × '+period.prevLabel+'</span></div><div class="g2"><div><div class="mu">Melhoraram</div><div class="big">'+(counts.good||0)+'</div></div><div><div class="mu">Pioraram</div><div class="big">'+(counts.bad||0)+'</div></div><div><div class="mu">Estáveis</div><div class="big">'+(counts.same||0)+'</div></div><div><div class="mu">Contexto / informativo</div><div class="big">'+(counts.neutral||0)+'</div></div><div><div class="mu">Sem base</div><div class="big">'+(counts.nodata||0)+'</div></div></div><p class="mu">O resumo conta apenas indicadores com comparação possível. Vendas e recebimentos são dados de contexto, não melhoram ou pioram automaticamente.</p></div>';
+ html+='<h3>Indicadores operacionais</h3>'+ (keys.length?current.map(x=>perfMetricCard(x.k,period,scope,entity)).join(''):'<div class="c mu">Nenhum indicador operacional foi atribuído a esta pessoa. Você pode escolher os indicadores no cadastro da equipe. Cronogramas, checklists e avaliações continuam sendo acompanhados abaixo.</div>');
+ if(keys.includes('semv')&&scope!=='sector')html+=perfSemvHistoryHTML(period);
+ html+=perfActivityHTML(people,period,scope!=='employee');
+ if(mode==='year'){html+=perfAnnualSeriesHTML(keys,+period.key,scope,entity);html+=perfActivityAnnualHTML(people,+period.key)}
+ return html
+}
+
 const APP_HIST=[
+{v:'3.44.0',d:'18/11/2026',t:'Desempenho integrado e relatórios mensais e anuais (MINOR)',n:['Novo painel por loja, setor, encarregado e funcionário, com comparação mensal e anual.','Produtos sem venda compara o valor em reais da última lista importada no período; redução é melhoria e aumento é piora, com histórico entre importações.','Vencidos, avariados, perdas de perecíveis e desperdício da padaria passam a ser analisados por valor financeiro, com quantidade ou kg como complemento.','Cronogramas, checklists e avaliações são acompanhados como execução e qualidade, sem indicadores duplicados.','Conferências de ruptura e etiquetas alimentam os respectivos resultados a partir das pendências atribuídas, sem pontuar a conferência novamente.','Indicadores personalizados permitem definir se quanto menor ou quanto maior é melhor.','Indicadores entram no desempenho individual somente quando atribuídos no cadastro.'],c:['Ausência de lançamentos aparece como falta de dados, não como resultado zero. Nenhum registro histórico foi apagado.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.43.5',d:'18/11/2026',t:'Navegação padronizada em Registro e Lançamentos (PATCH)',n:['Temperaturas, lançamentos comuns, checklists, recebimento de frios e avaliações passam a separar tela inicial, formulário e histórico.','O botão Histórico aparece somente na tela inicial; dentro do histórico há um único botão Voltar.','Após salvar, o aplicativo retorna à tela inicial do tipo de lançamento, pronta para um novo registro.','Formulários e históricos abrem em telas próprias, sem botões duplicados de adicionar.'],c:['Registros e dados existentes são preservados. Nenhuma tabela, função ou política do Supabase foi alterada.']},
 {v:'3.43.1',d:'18/11/2026',t:'Acompanhamento de cronograma para toda a gestão (PATCH)',n:['A tela inferior Cronograma passa a exibir o painel de acompanhamento para os perfis de gestão com acesso completo, incluindo administrador e gerente.','Encarregados e demais funcionários continuam vendo apenas o próprio cronograma e marcando suas atividades.'],c:['Nenhuma alteração nos modelos, tarefas ou marcações existentes.']},
 {v:'3.43.0',d:'18/11/2026',t:'Notificações sincronizadas e alertas no celular (MINOR)',n:['As notificações passam a ser compartilhadas entre dispositivos da mesma conta e organização.','Adicionado botão para ativar notificações no celular, com autorização explícita do usuário.','O Super Tudo passa a enviar alertas do sistema e avisos de novas versões como notificações do aparelho, mesmo quando o aplicativo está em segundo plano, desde que o navegador permita Web Push.','O painel de notificações continua mostrando os mesmos avisos e permite marcar como lidas ou excluir todas.'],c:['A entrega no celular usa Web Push com chaves VAPID geradas e armazenadas por organização, protegidas por acesso exclusivo do service_role.','É necessário permitir notificações no navegador e manter o Super Tudo instalado/aberto em um navegador compatível.']},
@@ -2249,7 +2410,7 @@ const APP_HIST=[
 {v:'3.0.1',d:'06/11/2026',t:'Correção (PATCH)',n:[],c:['Ao trocar de menu, a tela volta ao início da seção: detalhes abertos (conferência, pedido, checklist, ficha de pessoa, importação) não reabrem sozinhos.']},
 {v:'3.0.0',d:'06/11/2026',t:'Grande atualização (MAJOR)',n:['Pedidos para Compras: pedido com vários produtos e escolha do repositor, atendimento pelo comprador (comprado, parcial ou não comprado), acompanhamento pelo solicitante e encerramento.','Encaminhamento de produtos comprados para Conferência, com resultado (conferido ou divergência por quantidade, produto ou qualidade) visível no pedido.','Envio e importação de arquivos JSON com validação, prevenção de duplicidade, resumo e histórico. Pedidos e conferências entram no envio.','Indicadores automáticos de desempenho por funcionário, com pontuação geral, histórico e indicadores personalizados criados a partir de registros.','Modelos de indicadores e de cronograma editáveis, com aplicação à pessoa e atividades extras individuais.','Notificações por categoria (alterações, avisos, tarefas, atrasos e ocorrências), marcação individual, aviso geral do administrador e avisos automáticos.','Checklist de recebimento de perecíveis disponível em Lançamentos.','Perdas de perecíveis por importação de planilha CSV, com escolha obrigatória do setor, prévia e erros por linha.','Vencidos e Avariados unificados, com escolha de troca ou sem troca.','Administradores com acesso total ao sistema.','Padronização visual de animações, janelas, seções e topo dos lançamentos.','Funcionamento exclusivamente offline, sem rede local.'],c:['Atividades extras do checklist passaram a aparecer na ficha e podem ser removidas.','Compartilhamento do envio passou a ter confirmação explícita; baixar o arquivo não marca registros como enviados.','A tela mantém a posição de rolagem ao editar e abrir itens.','Filtros da Conferência passaram a filtrar de fato pelo tipo.','Botões duplicados de importação de perdas removidos.']}
 ];
-const NAV_MOVED=[],REG_MOVED=['ck','ava','pdc','semv','mov'];
+const NAV_MOVED=[],REG_MOVED=['pdc','semv','mov'];
 const TABS=[['painel','📊','Painel',rPai],['cro','🗓️','Cronograma',rCro],['ck','✅','Checklists',rCk],['ava','⭐','Avaliação',rAva],['pro','📈','Progresso',rPro],['atr','📋','Atribuições',rAtr],['reg','📝','Registros',rReg]];
 const go=t=>{const A=TABS.map(x=>x[0]);V.ckdr=null;V.cb=null;V.eqm=0;V.mm=null;V.evm=null;V.dir=A.indexOf(t)-A.indexOf(V.tab);if(t!==V.tab){V.cfO=null;V.pdcO=null;V.pdcL=[];V.tme=null;V.pim=null;V.ck=null;V.ckOnly=null;V.mdl=null;V.eqe=null;V.ed=null;V.ntnav=0;V.pte=null;V.lw=null;V.eq=null;V.eqm=0;if(t==='reg'){V.rs='home';V.reg=null}}V.tab=t;V.pe=null;V.add=0;V.te=null;V.cf=null;V.mn=0;V.sh=0;V.ce=null;V.bal=null;rMenu();R();scrollTo(0,0)};
 const scrollables=()=>[...document.querySelectorAll('*')].filter(e=>e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1);
@@ -2287,7 +2448,7 @@ async function restoreLogin(){
   try{
     const {data:{session}}=await supa.auth.getSession();
     const saved=JSON.parse(localStorage.getItem('st_auth_state')||'null');
-    if(session&&saved&&[APP_VERSION,'3.43.4','3.43.3','3.43.2','3.43.1'].includes(saved.version)&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
+    if(session&&saved&&[APP_VERSION,'3.43.5','3.43.4','3.43.3','3.43.2','3.43.1'].includes(saved.version)&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
       V.sbSession=session;
       V.cloudIdentity=saved.identity;
       syncUseIdentity();
