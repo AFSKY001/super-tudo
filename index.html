@@ -408,6 +408,14 @@ button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);
 @media(max-width:360px){.reg-menu-grid{grid-template-columns:1fr}.reg-menu-tile{min-height:78px}}
 @media(hover:hover){.reg-menu-tile:hover{border-color:var(--bd);box-shadow:var(--sh2);transform:translateY(-1px)}}
 
+
+/* Navegação compacta: um único retorno por nível, sem alterar a identidade visual */
+.reg-back-row{display:flex;align-items:center;justify-content:flex-start;margin:0 0 10px;min-height:34px}
+.reg-back-mini{display:inline-flex!important;align-items:center;justify-content:center;gap:7px;width:auto!important;min-width:0!important;min-height:34px!important;padding:6px 10px!important;border:1px solid var(--bd)!important;border-radius:10px!important;background:var(--cd)!important;color:var(--tx)!important;box-shadow:var(--sh1)!important;font:600 12px/1.2 var(--fn)!important}
+.reg-back-mini svg{display:block;width:15px;height:15px;flex:0 0 auto}
+.reg-back-mini:active{transform:scale(.97)}
+.reg-menu-head>.reg-back-mini{align-self:flex-start}
+
 </style></head><body>
 <header><div><h1><span class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2.2l2 10h9.6l2-7.5H6.5"/><circle cx="9" cy="19" r="1.3"/><circle cx="16.5" cy="19" r="1.3"/></svg></span>Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
@@ -1134,48 +1142,95 @@ function movOK(){return !!(V.me&&(isFullAccess()||can('l:rup')||can('l:etiq')))}
 
 
 
+
+const REG_MENU_ICON_PATHS={
+ lanc:'<path d="M4 18.5V21h2.5L19.2 8.3l-3.5-3.5L4 16.5z"/><path d="m13.9 6.1 3.5 3.5M4 12V4h9"/>',
+ conf:'<circle cx="10" cy="10" r="6.5"/><path d="m15 15 5 5M7.2 10.2l2 2 3.8-4"/>',
+ eq:'<circle cx="8.5" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M2.5 20c.3-3.5 2.3-5.3 6-5.3s5.7 1.8 6 5.3M15 15c3.7-.8 6.1 1 6.5 4.5"/>',
+ set:'<path d="M3 9h18l-1.8-5H4.8z"/><path d="M4.5 9v11h15V9M9 20v-6h6v6"/><path d="M3.5 9a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0"/>',
+ w5:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.4"/><path d="M12 2v4M22 12h-4M12 22v-4M2 12h4"/>',
+ cro:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h3M14 14h3M7 17h3"/>',
+ ck:'<rect x="4" y="3" width="16" height="18" rx="2.3"/><path d="M8 8h8M8 12l1.7 1.7L12.8 11M8 17h8"/>',
+ ava:'<path d="m12 3 2.3 5 5.5.8-4 3.9.9 5.6-4.7-2.7-4.7 2.7.9-5.6-4-3.9 5.5-.8z"/><path d="M12 6v1"/>',
+ pdc:'<path d="M6 3.5h12v17l-3-1.8-3 1.8-3-1.8-3 1.8z"/><path d="M9 8h6M9 12h6M9 16h3"/><circle cx="17" cy="16" r="1"/>',
+ semv:'<path d="M4 7h16v13H4zM8 7V4h8v3"/><path d="M8 12h5M8 16h3M16 11l3 3-3 3"/>',
+ mov:'<path d="M19 8V4l-3 3M5 16v4l3-3"/><path d="M6.5 8A6.5 6.5 0 0 1 18 7l1 1M17.5 16A6.5 6.5 0 0 1 6 17l-1-1"/>',
+ temp:'<path d="M10 14.5V5a2 2 0 0 1 4 0v9.5a4.2 4.2 0 1 1-4 0z"/><path d="M12 9v8M15.5 6h2M15.5 9h2"/>',
+ perd:'<path d="M12 3C9 7.2 6 10.1 6 14a6 6 0 0 0 12 0c0-3.9-3-6.8-6-11z"/><path d="m9 16 2-2 1.5 1.5L15 13"/>',
+ fita:'<circle cx="10" cy="12" r="7"/><circle cx="10" cy="12" r="2.3"/><path d="M16 7h4v10h-4M10 5v2"/>',
+ vtc:'<path d="M7 3h10M7 21h10M8 4c0 4 4 4 4 8s-4 4-4 8M16 4c0 4-4 4-4 8s4 4 4 8"/><path d="m9 12 2 2 4-4"/>',
+ atc:'<path d="M4 8 12 4l8 4v9l-8 4-8-4z"/><path d="m4 8 8 4 8-4M12 12v9M12 4v4l-2 3 3 2-2 3"/>',
+ ach:'<path d="M4 8h16l-1 12H5zM8 8V6a4 4 0 0 1 8 0v2"/><circle cx="12" cy="14" r="2.2"/><path d="M12 16.5v1"/>',
+ os:'<path d="m14.5 6.5 3-3a5 5 0 0 1-6.3 6.3L5 16l3 3 6.2-6.2a5 5 0 0 1 6.3-6.3l-3 3z"/><circle cx="6.5" cy="17.5" r=".7"/>',
+ ent:'<path d="M2 7h12v10H2zM14 11h4l4 4v2h-8z"/><circle cx="6" cy="19" r="1.7"/><circle cx="18" cy="19" r="1.7"/><path d="M16 11v4h5"/>',
+ cx:'<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M7 5V3h10v2M7 9h10M7 13h2M12 13h2M17 13h.01M7 17h2M12 17h2"/>',
+ lote:'<path d="M4 4v16M7 4v16M10 4v16M14 4v16M16 4v16M20 4v16"/><path d="M2 8h20M2 16h20"/>',
+ chrec:'<path d="M2 9h11v8H2zM13 12h4l4 3v2h-8z"/><circle cx="6" cy="19" r="1.5"/><circle cx="18" cy="19" r="1.5"/><path d="M8 3v3M6 4.5h4M8 6v2"/>'
+};
 function regMenuHome(){V.rs='home';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuLaunch(){V.rs='lanc';V.reg=null;V.bal=null;R();scrollTo(0,0)}
-function regMenuVersion(){return '<div class="u-ver reg-menu-version">Super Tudo · v'+APP_VERSION+'<br><span class="u-author">Desenvolvido por Alisson Aciole</span></div>'}
-function rRegMenuCard(k,e,n,action){
- const icon=IC(k)||e;
- return '<button type="button" class="reg-menu-tile" onclick="'+action+'"><span class="reg-menu-icon">'+icon+'</span><span class="reg-menu-copy"><span class="reg-menu-label">'+esc(n)+'</span><span class="reg-menu-hint">Abrir</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
+function regMenuOpenSection(k){
+ if(k==='lanc'){regMenuLaunch();return}
+ V.rs=k;V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;
+ if(k==='conf'){V.cfO=null;V.cfS=[];V.clo=null}
+ if(k==='eq'){V.pe=null;V.eq='p'}
+ if(k==='set'){V.ss=null;V.sm=null}
+ if(k==='pdc'){V.pdcO=null;V.pdcL=[]}
+ if(k==='semv')V.semvO=null;
+ if(k==='mov'){V.clo=null;V.movEnt=0}
+ R();scrollTo(0,0)
+}
+function regMenuOpenLaunch(k){
+ V.rs='lanc';V.reg=k;V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;
+ R();scrollTo(0,0)
+}
+function regMenuIcon(k){
+ const p=REG_MENU_ICON_PATHS[k];
+ return p?'<svg class="ic reg-menu-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>':'';
+}
+function regMenuBack(label,action){
+ return '<div class="reg-back-row"><button type="button" class="reg-back-mini" onclick="'+action+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg><span>'+esc(label)+'</span></button></div>';
+}
+function regContentHasBack(html){
+ return /<button\b[^>]*>\s*(?:‹|←|Voltar)/i.test(String(html||''));
+}
+function regMenuVersion(){
+ return '<div class="u-ver reg-menu-version">Super Tudo · v'+APP_VERSION+'<br><span class="u-author">Desenvolvido por Alisson Aciole</span></div>';
+}
+function rRegMenuCard(k,n,action){
+ return '<button type="button" class="reg-menu-tile" onclick="'+action+'"><span class="reg-menu-icon">'+regMenuIcon(k)+'</span><span class="reg-menu-copy"><span class="reg-menu-label">'+esc(n)+'</span><span class="reg-menu-hint">Abrir</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
 }
 function rRegHome(items){
- const cards=items.map(function(x){
-  const action=x[0]==='lanc'?"V.rs='lanc';V.reg=null;V.bal=null;V.add=0;V.eqm=0;R();scrollTo(0,0)":"V.rs='"+x[0]+"';V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;R();scrollTo(0,0)";
-  return rRegMenuCard(x[0],x[1],x[2],action);
- }).join('');
+ const cards=items.map(x=>rRegMenuCard(x[0],x[2],"regMenuOpenSection('"+x[0]+"')")).join('');
  return '<section class="reg-menu-screen"><div class="reg-menu-head"><h2>Áreas de Registro</h2><p>Escolha uma área para continuar.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhuma área disponível para este acesso.</div>')+'</div>'+regMenuVersion()+'</section>';
 }
-function rRegLaunchMenu(keys){
- const cards=keys.map(function(k){
-  const f=FS[k];
-  const action="V.rs='lanc';V.reg='"+k+"';V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;R();scrollTo(0,0)";
-  return rRegMenuCard(k,f.e,f.n,action);
- }).join('');
- return '<section class="reg-menu-screen launch-menu"><div class="reg-menu-head"><button type="button" class="ch" onclick="regMenuHome()">‹ Registro</button><h2>Lançamentos</h2><p>Escolha o tipo de lançamento.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhum tipo de lançamento disponível para este acesso.</div>')+'</div>'+regMenuVersion()+'</section>';
+function rRegLaunchMenu(items){
+ const cards=items.map(x=>rRegMenuCard(x.k,x.n,x.type==='launch'?"regMenuOpenLaunch('"+x.k+"')":"regMenuOpenSection('"+x.k+"')")).join('');
+ return '<section class="reg-menu-screen launch-menu">'+regMenuBack('Registro','regMenuHome()')+'<div class="reg-menu-head"><h2>Lançamentos</h2><p>Escolha o tipo de lançamento.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhum tipo de lançamento disponível para este acesso.</div>')+'</div>'+regMenuVersion()+'</section>';
 }
 function rReg(){
- const LK=LANC_KEYS.filter(k=>k!=='w5'&&k!=='rup'&&k!=='etiq'&&k!=='trf'&&can('l:'+k)),RS=RSEC.filter(x=>x[0]==='pdc'||(x[0]==='mov'?movOK():(x[0]==='w5'||x[0]==='semv')?(V.me&&isFullAccess()):canR(x[0])));
+ const LK=LANC_KEYS.filter(k=>k!=='w5'&&k!=='rup'&&k!=='etiq'&&k!=='trf'&&can('l:'+k));
  const LKV=LK.filter(k=>k!=='ped'&&k!=='w5');
+ const RS=RSEC.filter(x=>x[0]==='pdc'||(x[0]==='mov'?movOK():(x[0]==='w5'||x[0]==='semv')?(V.me&&isFullAccess()):canR(x[0])));
+ const homeItems=RS.filter(x=>!REG_MOVED.includes(x[0]));
+ const launchItems=LKV.map(k=>({k,n:FS[k].n,type:'launch'}));
+ ['cro','ck','ava'].filter(k=>canTab(k)).forEach(k=>{const x=RSEC.find(y=>y[0]===k);if(x)launchItems.push({k,n:x[2],type:'section'})});
+ ['pdc'].forEach(k=>{const x=RSEC.find(y=>y[0]===k);if(x)launchItems.push({k,n:x[2],type:'section'})});
+ if(V.me&&isFullAccess()){const x=RSEC.find(y=>y[0]==='semv');if(x)launchItems.push({k:'semv',n:x[2],type:'section'})}
+ if(movOK()){const x=RSEC.find(y=>y[0]==='mov');if(x)launchItems.push({k:'mov',n:x[2],type:'section'})}
+ if(launchItems.length&&!homeItems.some(x=>x[0]==='lanc')){const x=RSEC.find(y=>y[0]==='lanc');if(x)homeItems.unshift(x)}
  let sec=V.rs||'home';
- if(sec!=='home'&&!(sec==='lanc'&&LKV.length)&&!RS.some(x=>x[0]===sec))sec=RS.length?RS[0][0]:(LK.length?'lanc':'home');
- if(sec==='home'){
-  const items=RS.slice();
-  if(LKV.length&&!items.some(x=>x[0]==='lanc')){const launch=RSEC.find(x=>x[0]==='lanc');if(launch)items.unshift(launch)}
-  return rRegHome(items);
- }
- if(sec==='lanc'){
-  if(V.reg&&!LK.includes(V.reg))V.reg=null;
-  if(V.reg==='ped'||V.reg==='w5')V.reg=null;
-  if(!V.reg)return rRegLaunchMenu(LKV);
- }
+ const allowed=RS.some(x=>x[0]===sec)||sec==='lanc'&&launchItems.length>0||launchItems.some(x=>x.k===sec);
+ if(sec!=='home'&&!allowed)sec='home';
+ if(sec==='home')return rRegHome(homeItems);
+ if(sec==='lanc'&&!V.reg)return rRegLaunchMenu(launchItems);
+ if(sec==='lanc'&&V.reg&&!LK.includes(V.reg)){V.reg=null;return rRegLaunchMenu(launchItems)}
  const body={cro:rCroReg,ck:rCkReg,ava:rAvaReg,conf:rConf,eqp:rEqp,eq:rEq,set:rSet,pdc:rPdc,semv:rSemv,mov:rMov,w5:()=>{V.reg='w5';return rRegLanc()}}[sec]||rRegLanc;
- const back=sec==='lanc'
-  ? '<div class="reg-detail-nav"><button class="ch" onclick="regMenuHome()">‹ Registro</button><button class="ch" onclick="regMenuLaunch()">‹ Lançamentos</button></div>'
-  : '<div class="reg-detail-nav"><button class="ch" onclick="regMenuHome()">‹ Registro</button></div>';
- return '<div class="reg-detail">'+back+'<div class="regbody">'+body()+'</div>'+regMenuVersion()+'</div>';
+ const content=body();
+ const ownBack=regContentHasBack(content);
+ const fromLaunch=sec==='lanc'||REG_MOVED.includes(sec);
+ const back=ownBack?'':regMenuBack(fromLaunch?'Lançamentos':'Registro',fromLaunch?'regMenuLaunch()':'regMenuHome()');
+ return '<div class="reg-detail">'+back+'<div class="regbody">'+content+'</div>'+regMenuVersion()+'</div>';
 }
 
 function pedForm(){const L=V.pedL||[];
@@ -1819,8 +1874,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.40.0';
+const APP_VERSION='3.40.1';
 const APP_HIST=[
+{v:'3.40.1',d:'18/11/2026',t:'Correção da navegação e ícones exclusivos dos menus (PATCH)',n:['Primeira tela de Registro volta a mostrar somente as cinco áreas originais: Lançamentos, Conferências, Equipe, Setores e Plano 5W2H, conforme as permissões de cada usuário.','Cronograma, Checklists, Avaliações, Pedidos para Compras, Produtos sem venda e Movimentações ficam dentro de Lançamentos, junto dos demais tipos de lançamento.','Cada opção da grade de Lançamentos passa a ter um desenho SVG próprio, com traço e cor herdados do tema atual.','Botões de retorno ficam compactos e aparecem somente quando a tela interna ainda não oferece uma navegação de volta.'],c:['Removido o retorno duplicado em telas que já possuem navegação própria e corrigido o botão de retorno que ocupava a largura inteira.','Nenhuma alteração em registros, permissões, sincronização ou dados do Supabase.']},
 {v:'3.40.0',d:'18/11/2026',t:'Menus de Registro e Lançamentos em cartões (MINOR)',n:['Registro passa a apresentar as áreas em botões maiores, organizados em grade.','Lançamentos abre uma segunda tela com botões próprios para cada tipo de lançamento, com ícone à esquerda e nome alinhado à esquerda.','A navegação dos menus foi simplificada com ações de voltar para Registro e Lançamentos.'],c:['Mantidos cores, ícones existentes, nomes, funções, permissões, registros e dados sincronizados. Nenhuma alteração no banco de dados ou no Supabase.']},
 {v:'3.39.0',d:'18/11/2026',t:'Ícones SVG em todo o sistema (MINOR)',n:['Substituídos os emojis usados como ícones em lançamentos, botões, cartões, listas, filtros, status e demais áreas visíveis por ícones vetoriais SVG.','Padronizada a apresentação com a biblioteca própria do Super Tudo, sem fontes de emoji ou dependências externas.','A conversão também alcança elementos criados dinamicamente durante a navegação.'],c:['Atualização visual, sem alteração dos registros, permissões, sincronização ou dados do Supabase.']},
 {v:'3.38.0',d:'18/11/2026',t:'Biblioteca própria de ícones (MINOR)',n:['Criada uma família de ícones vetoriais exclusivos do Super Tudo, com desenho geométrico consistente e traço uniforme.','Aplicada a nova identidade aos menus principais e à navegação de Lançamentos, mantendo leitura em temas claro e escuro.','Ícones incorporados ao próprio aplicativo para funcionar também sem conexão.'],c:['Atualização visual: nenhuma alteração nos registros, permissões, rotinas ou dados do Supabase.']},
