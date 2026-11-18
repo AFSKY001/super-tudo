@@ -2170,12 +2170,12 @@ function perfMetricKeys(scope,entity){if(scope==='employee'||scope==='leader')re
 function perfConferenceRows(k,start,end,scope,entity){
  const type=k==='rup'?'ruptura':k==='etq'?'preco':'';
  if(!type)return [];
- return (S.conf||[]).filter(c=>c&&c.t===type&&perfInRange(c.d,start,end)).flatMap(c=>(c.items||[]).filter(i=>i.fu&&i.ok!==true&&perfScopeMatch({r:i.fu,z:c.z||c.setor||''},scope,entity)).map(i=>({...i,d:c.d,z:c.z||c.setor||'',r:i.fu,_conference:true})))
+ return (S.conf||[]).filter(c=>c&&c.t===type&&perfInRange(c.d,start,end)).flatMap(c=>(c.items||[]).filter(i=>i.fu&&i.ok!==true&&!(k==='rup'&&i.rp)&&!(k==='etq'&&i.ea)&&perfScopeMatch({r:i.fu,z:c.z||c.setor||''},scope,entity)).map(i=>({...i,d:c.d,z:c.z||c.setor||'',r:i.fu,_conference:true})))
 }
 function perfRowsForMetric(k,start,end,scope,entity){
  const map={venc:['vtc','vsc'],avar:['atc','asc'],perd:['perd'],desp:['desp'],rup:['rup'],etq:['etna'],ent:['ent'],cx:['cx']};
  if(!INDS[k]&&k!=='semv'&&k!=='rcp'){const d=perfMetricDef(k),src=d&&d.custom&&d.custom.src;return src?(S.log[src]||[]).filter(e=>perfInRange(e.d,start,end)&&perfScopeMatch(e,scope,entity)):[]}
- const L=(map[k]||[]).flatMap(src=>(S.log[src]||[]).filter(e=>perfInRange(e.d,start,end)&&perfScopeMatch(e,scope,entity)));
+ const L=(map[k]||[]).flatMap(src=>(S.log[src]||[]).filter(e=>perfInRange(e.d,start,end)&&(k!=='etq'||e.st!=='Resolvida')&&perfScopeMatch(e,scope,entity)));
  if(k==='rup'||k==='etq')L.push(...perfConferenceRows(k,start,end,scope,entity));
  return L
 }
