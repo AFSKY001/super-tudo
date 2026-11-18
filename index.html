@@ -513,10 +513,26 @@ function mFunc(s){const fr=s==='Frente loja',RL=['Empacotador','Operador de caix
 return (fr?`<div class="chs">${['',...RL].map(r=>chip(r||'Todos',f===r,`V.fr='${r}';R()`)).join('')}</div>`:'')+(L.map(p=>{const rk=rankRows().find(r=>r.p.id===p.id),en=(S.log.ent||[]).filter(e=>e.r===p.n&&(e.d||'').slice(0,7)===mo).length,vd=(S.log.cx||[]).filter(e=>e.r===p.n&&(e.d||'').slice(0,7)===mo).reduce((a,e)=>a+(+e.vd||0),0);
 return `<details><summary>${esc(p.n)} <span class="mu">· ${esc(p.f||'—')}${rk?' · nota '+rk.g.toFixed(1):''}${fr&&en?' · '+en+' entregas':''}${fr&&vd?' · '+money(vd):''}</span></summary><div class="row u-mv8"><button class="bt" onclick="V.evt='ind';V.dr.p='${p.id}';goR('ava','nova')">Avaliar</button><button class="bt g" onclick="V.tab='reg';V.rs='eq';V.eq='p';V.op='${p.id}';R()">Atribuições</button></div><h4>Checklists</h4>${pcks(p.id)}</details>`}).join('')||'<div class="c mu">Nenhuma pessoa neste filtro. Cadastre em Registros › Equipe › Pessoas (setor e função).</div>')}
 function mAva(s){const rr=rankRows().filter(r=>r.p.s===s);return `<div class="chs">${S.team.filter(p=>p.s===s).map(p=>chip('Avaliar '+esc(p.n),0,`V.evt='ind';V.dr.p='${p.id}';goR('ava','nova')`)).join('')}</div>`+(rr.length?rr.map((r,i)=>{const l=lvl(r.g);return `<div class="c"><div class="row sp"><b>${i+1}. ${esc(r.p.n)}</b><span class="b ${l[1]}">${r.g.toFixed(1)} · ${l[0]}</span></div>${bar(r.g*10)}</div>`}).join(''):'<div class="c mu">Sem avaliações neste setor ainda.</div>')}
-function mLog(k,s){const F=FS[k],L=[...(S.log[k]||[])].reverse().filter(e=>e.z?e.z===s:(k==='desp'?s==='Produção padaria':s==='Mercearia'));V.reg=k;V.ss=s;
-let h=V.add?`<div class="c"><h3>${F.n}</h3>${F.F.map(f=>fld(f,recVal(f))).join('')}<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar</button><button class="bt g" onclick="V.add=0;R()">Cancelar</button></div></div>`:`<div class="row">${['perd','rup','vtc','atc'].includes(k)?'':'<button class="bt" onclick="V.add=1;R()">+ Novo registro</button>'}${k==='rup'?'<button class="bt" onclick="impConf(\'ruptura\')">📥 Importar lista de produtos</button>':''}</div>`;
-if(['perd','vsc','vtc','atc','asc'].includes(k)){h+=`<div class="c"><b>Total:</b> ${money(L.reduce((a,e)=>a+tv(e),0))} · ${L.length} registro(s)`+(k==='asc'?['Transferência para consumo da padaria','Degustação','Descarte (perda)'].map(g=>`<div class="mu">${g}: ${money(L.filter(e=>e.g===g).reduce((a,e)=>a+tv(e),0))}</div>`).join(''):'')+'</div>'}
-return h+(L.length?L.slice(0,60).map(e=>`<div class="c"><b>${esc(F.ti(e))}</b><div class="mu">${F.F.filter(f=>f.k!=='z'&&e[f.k]!==''&&e[f.k]!=null).map(f=>`${f.l}: ${fv(f,e)}`).join(' · ')}</div><button class="bt g" onclick="editL('${e.id}')">Editar</button><button class="bt d" onclick="delL('${e.id}')">Excluir</button></div>`).join(''):'<div class="c mu">Nenhum registro ainda.</div>')}
+function mLog(k,s){
+ const F=FS[k],L=[...(S.log[k]||[])].reverse().filter(e=>e.z?e.z===s:(k==='desp'?s==='Produção padaria':s==='Mercearia'));
+ V.reg=k;V.ss=s;V.regTab='novo';
+ if(V.add){
+  return regMenuBack('Voltar a '+F.n,"V.add=0;V.ed=null;V.regReturnTab=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Novo lançamento · '+F.n+'</div><div class="c">'+
+   F.F.map(f=>fld(f,recVal(f))).join('')+
+   '<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar</button><button class="bt g" onclick="V.add=0;V.ed=null;V.regReturnTab=null;R()">Cancelar</button></div></div>';
+ }
+ let h='<div class="row sp"><div class="launch-title">'+F.e+' '+F.n+'</div></div>';
+ if(!['perd','rup','vtc','atc'].includes(k)){
+  h+='<div class="c launch-card"><button class="launch-plus" aria-label="Novo lançamento" onclick="V.regReturnTab=\'novo\';V.add=1;V.ed=null;R();scrollTo(0,0)">+</button><p class="launch-info">Abra o formulário em uma tela própria para registrar um novo lançamento.</p></div>';
+ }else if(k==='rup'){
+  h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf(\'ruptura\')">+</button><p class="launch-info">Importe a lista de produtos e encaminhe para Conferências.</p></div>';
+ }
+ if(['perd','vsc','vtc','atc','asc'].includes(k)){
+  h+='<div class="c"><b>Total:</b> '+money(L.reduce((a,e)=>a+tv(e),0))+' · '+L.length+' registro(s)'+(k==='asc'?['Transferência para consumo da padaria','Degustação','Descarte (perda)'].map(g=>'<div class="mu">'+g+': '+money(L.filter(e=>e.g===g).reduce((a,e)=>a+tv(e),0))+'</div>').join(''):'')+'</div>';
+ }
+ return h+(L.length?L.slice(0,60).map(e=>'<div class="c"><b>'+esc(F.ti(e))+'</b><div class="mu">'+F.F.filter(f=>f.k!=='z'&&e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>').join(''):'<div class="c mu">Nenhum registro ainda.</div>');
+}
 
 function dashF(){const mo=today().slice(0,7),f=k=>(S.log[k]||[]).filter(e=>(e.d||'').slice(0,7)===mo),en=f('ent'),fe=en.filter(e=>e.k==='Feira'),cx=f('cx'),
 rk=(a,fm)=>a.length?a.map(([n,v],i)=>`<div class="it"><div>${i+1}. ${esc(n)}</div><b>${fm?fm(v):v}</b></div>`).join(''):'<span class="mu">Sem dados no mês.</span>',
