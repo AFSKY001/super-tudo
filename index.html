@@ -2153,7 +2153,7 @@ function perfPeriod(){
 }
 function perfInRange(d,start,end){const x=String(d||'');return /^\d{4}-\d\d-\d\d$/.test(x)&&x>=start&&x<=end}
 function perfLeader(p){return !!p&&(p.l===true||(p.lead||[]).length>0||/encarregado|gerente|supervisor|subgerente/i.test(p.f||''))}
-function perfLeaderPeople(p){if(!p)return [];const ids=new Set([p.id,...(p.lead||[])].map(String));let L=(S.team||[]).filter(x=>ids.has(String(x.id)));if(L.length<=1&&p.s)L=(S.team||[]).filter(x=>perfNormSector(x.s)===perfNormSector(p.s));if(!L.some(x=>String(x.id)===String(p.id)))L.unshift(p);return [...new Map(L.map(x=>[String(x.id),x])).values()]}
+function perfLeaderPeople(p){if(!p)return [];const ids=new Set([p.id,...(p.lead||[])].map(String));let L=(S.team||[]).filter(x=>ids.has(String(x.id)));if(L.length<=1&&/gerente/i.test(p.f||'')&&!p.s)L=(S.team||[]).filter(x=>!x.adm);else if(L.length<=1&&p.s)L=(S.team||[]).filter(x=>perfNormSector(x.s)===perfNormSector(p.s));if(!L.some(x=>String(x.id)===String(p.id)))L.unshift(p);return [...new Map(L.map(x=>[String(x.id),x])).values()]}
 function perfRecordPersonMatch(e,p){if(!e||!p)return false;const vals=[e.pid,e.rid,e.r,e.responsavel,e.resp,e.n,e.funcionario,e.avaliado].filter(x=>x!==undefined&&x!==null&&String(x).trim()!=='').map(String);return vals.some(x=>x===String(p.id)||nomeChave(x)===nomeChave(p.n))}
 function perfRecordSector(e){return perfNormSector(e&&(e.z||e.setor||e.sector||''))}
 function perfScopeMatch(e,scope,entity){
@@ -2161,7 +2161,7 @@ function perfScopeMatch(e,scope,entity){
  if(scope==='sector'){const sec=perfNormSector(entity||'');if(!sec)return false;const own=perfRecordSector(e);if(own)return own===sec;const p=(S.team||[]).find(x=>perfRecordPersonMatch(e,x));return !!p&&perfNormSector(p.s)===sec}
  if(!entity)return false;
  const people=scope==='leader'?perfLeaderPeople(entity):[entity],isLead=scope==='leader'||(scope==='employee'&&perfLeader(entity));
- if(isLead){const sectors=[...new Set(people.map(p=>perfNormSector(p.s)).filter(Boolean))],own=perfRecordSector(e);if(own&&sectors.length)return sectors.includes(own);if(!own&&entity.f==='Gerente de loja'&&!entity.s)return true;return people.some(p=>perfRecordPersonMatch(e,p))}
+ if(isLead){const sectors=[...new Set(people.map(p=>perfNormSector(p.s)).filter(Boolean))],own=perfRecordSector(e);if(own&&sectors.length)return sectors.includes(own);if(!own&&/gerente/i.test(entity.f||'')&&!entity.s)return true;return people.some(p=>perfRecordPersonMatch(e,p))}
  return perfRecordPersonMatch(e,entity)
 }
 function perfMoney(e){const keys=['vt','total','total_custo','valor_total','vd','v','valor','custo','value'];for(const k of keys){if(e&&e[k]!==undefined&&e[k]!==null&&String(e[k])!==''){const v=Number(e[k]);if(isFinite(v))return v}}const q=Number(e&&e.q)||0,u=Number(e&&e.vu)||0;if(q&&u)return q*u;const b=Number(e&&e.b),c=Number(e&&e.c);return isFinite(b*c)?b*c:0}
