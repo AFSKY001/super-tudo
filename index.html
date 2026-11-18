@@ -814,7 +814,7 @@ function dupCk(){const c=CK[V.ce],id='c'+uid();CK[id]={...c,n:c.n+' (cópia)',l:
 function ckDelModel(k){if(!ask('cm'+k))return;delete CK[k];if(V.mdl===k)V.mdl=null;save();R()}
 function delCk(){if(!confirm('Excluir este checklist?'))return;delete CK[V.ce];V.ce=null;ceRet();save();R()}
 function rMenuOld(){
- $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&V.me.role==='master'?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button>':''}<button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
+ $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&V.me.role==='master'?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button><button onclick="V.mn=0;V.sh=\'ntsettings\';rMenu()">🔔 Distribuição de notificações</button>':''}<button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
  $('sh').innerHTML='';
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(V.mn||V.sh)){V.mn=0;V.sh=0;rMenu()}});
@@ -1551,8 +1551,23 @@ async function refreshCloudAccessLinks(){
   });
   if(changed)save();
 }
+function ntSettingsHTML(){
+ const mode=V.ntSettings&&V.ntSettings.distributionMode||'all';
+ return '<div class="c"><b>Modo A — todos recebem</b><p class="mu">Configuração padrão selecionada. A ativação da distribuição automática para os quatro tipos ainda depende da conclusão e validação dos eventos no servidor.</p><div class="b '+(mode==='all'?'ok':'wa')+'">'+(mode==='all'?'Modo A selecionado':'Modo A não selecionado')+'</div><button class="bt u-mt8" onclick="saveNtModeA()">Confirmar modo A</button></div><div class="c"><b>Modo B — por função, setor e equipe</b><p class="mu">Fica bloqueado até os vínculos entre encarregados e funcionários serem validados.</p><span class="b wa">Em preparação</span></div>'+(V.ntSettings&&V.ntSettings.updatedAt?'<p class="mu">Última alteração: '+new Date(V.ntSettings.updatedAt).toLocaleString('pt-BR')+'</p>':'');
+}
+async function saveNtModeA(){
+ if(!isMaster())return alert('Somente o administrador pode alterar esta configuração.');
+ if(!confirm('Confirmar o Modo A? A distribuição automática global ainda não está ativada.'))return;
+ try{const result=await pushCall('notification-settings-set',{distributionMode:'all'});if(!result||!result.ok)throw new Error('Não foi possível salvar.');V.ntSettings={distributionMode:'all',updatedAt:new Date().toISOString(),routingEnabled:false};V.ntSettingsError=null;rMenu();alert('Modo A registrado. A distribuição global ainda está pendente.');}catch(e){alert(e.message||'Falha ao salvar.');}
+}
 function rMenu(){
  if(V.sh==='acc'&&V.me?.role==='master'&&!V.accLinksLoaded&&!V.accLinksLoading){V.accLinksLoading=true;refreshCloudAccessLinks().catch(e=>console.warn('Não foi possível atualizar os vínculos de login:',e)).finally(()=>{V.accLinksLoading=false;V.accLinksLoaded=true;R()})}
+ if(V.sh==='ntsettings'){
+  $('mn').innerHTML='';
+  if(!V.ntSettings&&!V.ntSettingsLoading){V.ntSettingsLoading=true;pushCall('notification-settings-get').then(x=>{V.ntSettings=x;}).catch(e=>{V.ntSettingsError=e.message||'Falha ao consultar.';}).finally(()=>{V.ntSettingsLoading=false;rMenu();});}
+  $('sh').innerHTML='<div class="ov dim" onclick="V.sh=0;rMenu()"></div><div class="sheet"><div class="c"><h3>🔔 Distribuição de notificações</h3>'+(V.ntSettingsLoading?'Carregando…':V.ntSettingsError?'<p class="mu">'+esc(V.ntSettingsError)+'</p>':ntSettingsHTML())+'<div class="row u-mt8"><button class="bt g" onclick="V.sh=0;rMenu()">Fechar</button></div></div></div>';
+  return;
+ }
  if(V.sh==='hist'){$('mn').innerHTML='';$('sh').innerHTML=`<div class="ov dim" onclick="V.sh=0;rMenu()"></div><div class="sheet"><div class="c">${histHTML()}<div class="row u-mt8"><button class="bt g" onclick="V.sh=0;rMenu()">Fechar</button></div></div></div>`;return}
  if(V.sh==='help'||V.sh==='pw'){$('mn').innerHTML='';$('sh').innerHTML=V.sh==='help'?`<div class="ov dim" onclick="closeHelp()"></div><div class="sheet"><div class="c">${helpHTML()}</div></div>`:`<div class="ov dim" onclick="V.sh=0;rMenu()"></div><div class="sheet"><div class="c">${pwHTML()}<button class="bt g u-mt8" onclick="V.sh=0;rMenu()">Fechar</button></div></div>`;return}
  if(V.sh==='acc'){$('mn').innerHTML='';$('sh').innerHTML=`<div class="ov dim" onclick="V.sh=0;rMenu()"></div><div class="sheet"><div class="c">${accHTML()}<div class="row u-mt10"><button class="bt g" onclick="V.sh=0;V.accE=null;V.accP=null;rMenu()">Fechar</button></div></div></div>`;return}
@@ -2141,7 +2156,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.5';
+const APP_VERSION='3.44.6';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2306,6 +2321,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.44.6',d:'18/11/2026',t:'Configuração de distribuição de notificações (PATCH)',n:['Área administrativa para consultar e registrar o Modo A.'],c:['Modo B bloqueado até validar vínculos de equipe; roteamento global ainda não ativado.']},
 {v:'3.44.5',d:'18/11/2026',t:'Avisos gerais protegidos no servidor (PATCH)',n:['Avisos para toda a organização passam a usar os destinatários ativos definidos pelo servidor.'],c:['Somente administrador e gerente podem disparar avisos gerais; o navegador não escolhe a lista final de destinatários.']},
 {v:'3.44.4',d:'18/11/2026',t:'Ajuste na classificação das notificações (PATCH)',n:['Pedidos de compras e atualizações do sistema continuam em suas categorias próprias.'],c:['A categoria Tarefas feitas passa a receber apenas mensagens que indicam conclusão; atribuições e alterações de cronograma ficam em Lançamentos.']},
 {v:'3.44.3',d:'18/11/2026',t:'Notificações organizadas em quatro categorias (PATCH)',n:['Notificações agrupadas em Lançamentos, Tarefas feitas, Atualizações de sistema e Pedidos de compras.'],c:['Categorias antigas passam a ser exibidas conforme o conteúdo da mensagem.']},
