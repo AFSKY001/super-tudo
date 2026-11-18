@@ -1291,9 +1291,10 @@ function regMenuHome(){V.rs='home';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuLaunch(){V.rs='lanc';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuOpenSection(k){
  if(k==='lanc'){regMenuLaunch();return}
- V.rs=k;V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;
+ V.rs=k;V.reg=null;V.bal=null;V.add=0;V.ed=null;V.regReturnTab=null;V.eqm=0;V.cb=null;V.mdl=null;
  if(k==='conf'){V.cfO=null;V.cfS=[];V.clo=null}
- if(k==='ck'){V.ckTab='inicio';V.ck=null;V.ckdr=null;V.lw=null}
+ if(k==='ck'){V.ckTab='inicio';V.ck=null;V.ckdr=null;V.ckReturnTab=null;V.lw=null}
+ if(k==='ava'){V.ev='inicio';V.evm=null}
  if(k==='eq'){V.pe=null;V.eq='p'}
  if(k==='set'){V.ss=null;V.sm=null}
  if(k==='pdc'){V.pdcO=null;V.pdcL=[];V.pdcNew=0}
@@ -1302,7 +1303,7 @@ function regMenuOpenSection(k){
  R();scrollTo(0,0)
 }
 function regMenuOpenLaunch(k){
- V.rs='lanc';V.reg=k;V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;if(k==='ck'){V.ckTab='inicio';V.lw=null;V.ckdr=null}
+ V.rs='lanc';V.reg=k;V.regTab='novo';V.regReturnTab=null;V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;if(k==='temp')V.tempTab='novo';if(k==='ck'){V.ckTab='inicio';V.ckReturnTab=null;V.lw=null;V.ckdr=null}
  R();scrollTo(0,0)
 }
 function regMenuIcon(k){
