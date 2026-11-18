@@ -554,8 +554,6 @@ const supa=supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:true,au
 const LOGIN_URL=SUPA_URL+'/functions/v1/login-usuario';
 const CREATE_USER_URL=SUPA_URL+'/functions/v1/criar-usuario';
 
-/* Restaura sessão Supabase salva (caso o usuário reabra o app) */
-(async()=>{const{data:{session}}=await supa.auth.getSession();if(session)V.sbSession=session;})();
 const DS=['Frente loja','Padaria','Mercearia','Açougue','Hortifruti','Estoque','Produção padaria','Compras','Prevenção'],DR=['Gerente de loja','Subgerente','Supervisor','Encarregado','Repositor','Prevenção de perdas','Controle de qualidade','Operador de caixa','Fiscal de caixa','Empacotador','Açougueiro','Auxiliar de açougue','Padeiro','Auxiliar de padaria','Confeiteiro','Auxiliar de hortifruti','Balconista de frios','Conferente','Auxiliar de estoque','Comprador','Auxiliar administrativo','Auxiliar de limpeza','Segurança'];
 function fix(){S.conf=S.conf||[];S.users=S.users||[];if(!S.users.length)S.users.push({id:'master',u:'Alisson',h:'f07xxrx24',n:'Alisson',c:'Administração',role:'master',perm:['*']});S.equip=S.equip||[];S.log=S.log||{};S.runs=S.runs||{};S.ev=S.ev||[];S.roles=S.roles||[...DR];S.sectors=S.sectors||[...DS];if(!S.sectors.includes('Compras'))S.sectors.push('Compras');if(!S.sectors.includes('Prevenção'))S.sectors.push('Prevenção');S.tasks=S.tasks||[];S.taskEdits=S.taskEdits||{};S.done=S.done||{};S.migrations=S.migrations||[];const m={Bebidas:'Mercearia',Bomboniere:'Mercearia',Perfumaria:'Mercearia',Recebimento:'Estoque','Prevenção':'',Qualidade:''};S.team.forEach(p=>{if(!p.mg){p.mg=1;if(p.s in m)p.s=m[p.s]}if(p.f&&!S.roles.includes(p.f))S.roles.push(p.f)});seedModels()}
 function applyCk(){if(S.ck&&typeof S.ck==='object'){Object.keys(CK).forEach(k=>delete CK[k]);Object.assign(CK,S.ck);lz()}[['yago','Yago'],['evy','Evilly']].forEach(([k,n])=>{const p=S.team.find(x=>x.n===n);if(CK[k]&&p&&CK[k].p===undefined)CK[k].p=p.id})}
@@ -2220,8 +2218,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.43.2';
+const APP_VERSION='3.43.3';
 const APP_HIST=[
+{v:'3.43.3',d:'18/11/2026',t:'Inicialização resiliente e recuperação de sessão (PATCH)',n:['Removida a chamada duplicada de recuperação da sessão Supabase durante a inicialização.','A recuperação da sessão agora tem tempo máximo de espera para não manter a tela de carregamento indefinidamente.','A sincronização inicial tem limite de espera; se a nuvem estiver temporariamente indisponível, o aplicativo pode abrir com os dados locais e retomar a sincronização depois.'],c:['Nenhum cadastro, lançamento, dado local ou registro do Supabase é apagado.','Nenhuma tabela, função ou política do banco de dados foi alterada.']},
 {v:'3.43.2',d:'18/11/2026',t:'Navegação padronizada nos lançamentos (PATCH)',n:['O botão + abre o formulário em uma tela própria, em vez de expandir campos na tela inicial.','Salvar um lançamento novo retorna à tela inicial daquele tipo, pronta para iniciar outro.','Editar pelo histórico abre o formulário em tela separada e, ao salvar ou cancelar, retorna ao histórico.','O histórico tem título próprio, botão de voltar para a tela inicial e não exibe botão + nem outro atalho de histórico.','Temperaturas, Checklists e Avaliações passam a seguir o mesmo padrão de início, formulário e histórico.','Vencidos, Avariados e Movimentações usam uma ação principal em destaque para importar, mantendo suas telas específicas de conferência.'],c:['Removidas ações duplicadas e títulos repetidos em telas de histórico.','Mantidos os fluxos específicos de importação, equipamentos e encaminhamento de pedidos para Conferência.','Nenhum cadastro, lançamento ou dado do Supabase foi apagado ou alterado.']},
 {v:'3.43.1',d:'18/11/2026',t:'Acompanhamento de cronograma para toda a gestão (PATCH)',n:['A tela inferior Cronograma passa a exibir o painel de acompanhamento para os perfis de gestão com acesso completo, incluindo administrador e gerente.','Encarregados e demais funcionários continuam vendo apenas o próprio cronograma e marcando suas atividades.'],c:['Nenhuma alteração nos modelos, tarefas ou marcações existentes.']},
 {v:'3.43.0',d:'18/11/2026',t:'Notificações sincronizadas e alertas no celular (MINOR)',n:['As notificações passam a ser compartilhadas entre dispositivos da mesma conta e organização.','Adicionado botão para ativar notificações no celular, com autorização explícita do usuário.','O Super Tudo passa a enviar alertas do sistema e avisos de novas versões como notificações do aparelho, mesmo quando o aplicativo está em segundo plano, desde que o navegador permita Web Push.','O painel de notificações continua mostrando os mesmos avisos e permite marcar como lidas ou excluir todas.'],c:['A entrega no celular usa Web Push com chaves VAPID geradas e armazenadas por organização, protegidas por acesso exclusivo do service_role.','É necessário permitir notificações no navegador e manter o Super Tudo instalado/aberto em um navegador compatível.']},
@@ -2363,7 +2362,11 @@ document.addEventListener('touchend',e=>{if(!V.me||V.mn||V.sh)return;const dx=e.
 R();
 async function restoreLogin(){
   try{
-    const {data:{session}}=await supa.auth.getSession();
+    const result=await Promise.race([
+      supa.auth.getSession(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tempo esgotado ao recuperar a sessão.')),12000))
+    ]);
+    const session=result&&result.data&&result.data.session||null;
     const saved=JSON.parse(localStorage.getItem('st_auth_state')||'null');
     if(session&&saved&&saved.version===APP_VERSION&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
       V.sbSession=session;
@@ -2371,13 +2374,19 @@ async function restoreLogin(){
       syncUseIdentity();
       V.wel=saved.wel;
       V.authChecking=false;
-      try{await pullCloudTeam()}catch(syncErr){console.warn('Falha ao atualizar equipe da nuvem; usando dados locais:',syncErr)}
+      try{
+        await Promise.race([
+          pullCloudTeam(),
+          new Promise((_,reject)=>setTimeout(()=>reject(new Error('Tempo esgotado na sincronização inicial.')),8000))
+        ]);
+      }catch(syncErr){console.warn('Sincronização inicial indisponível; abrindo com os dados locais:',syncErr)}
       if(meOf(V.wel)){enterApp();return;}
     }
     localStorage.removeItem('st_auth_state');
     if(session)await supa.auth.signOut();
-  }catch(err){console.warn('Não foi possível restaurar a sessão:',err);}
-  V.sbSession=null;V.cloudIdentity=null;V.wel=null;V.authChecking=false;R();
+  }catch(err){console.warn('Não foi possível restaurar a sessão automaticamente:',err);}
+  V.authChecking=false;
+  if(!V.me){V.sbSession=null;V.cloudIdentity=null;V.wel=null;R();}
 }
 restoreLogin();
 document.addEventListener('toggle',e=>{const d=e.target;if(!(d instanceof HTMLDetailsElement)||!d.open||!d.parentElement)return;d.parentElement.querySelectorAll(':scope > details[open]').forEach(x=>{if(x!==d)x.open=false})},true);
