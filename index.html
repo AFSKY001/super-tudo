@@ -1377,19 +1377,41 @@ function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert
 function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?h+perdIndHTML():h}
 function historyIconButton(action,label='Histórico'){return `<button class="ibtn" type="button" title="${label}" aria-label="${label}" onclick="${action}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></button>`}
 function regHistoryRows(F,L){return L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return '<div class="c"><div class="row sp"><b>'+esc(F.ti(e))+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhum registro ainda.</div>'}
-function rRegLancMain(){if(V.reg==='ck'){V.ckOnly=null;return rCkLanc()}if(V.reg==='chrec')return rChRec();if(V.reg==='temp'&&V.eqm&&eqOK())return '<button class="ch" onclick="V.eqm=0;V.eqe=null;R();scrollTo(0,0)">‹ Temperaturas</button><h3 class="u-m10">🛠️ Equipamentos</h3>'+rEqp();const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse();
-let h=`<div class="row sp"><div class="launch-title">${F.e} ${F.n}</div>${historyIconButton("V.regTab='hist';V.add=0;R()")}</div>`;
-if(V.reg==='temp')return tempLancHTML();
-if(V.regTab==='hist'){let extra='';if(V.reg==='fita')extra+=fitaBox(L);if(V.reg==='etiq')extra+=etqBtn()+etiqBox(L)+confListsHTML('etiq');if(V.reg==='rup')extra+=confListsHTML('rup');return h+'<div class="row u-mt8"><button class="ibtn ibtn-add" type="button" title="Novo lançamento" aria-label="Novo lançamento" onclick="V.regTab=\'novo\';V.add=0;R()"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>'+extra+regHistoryRows(F,L);}
-if(V.reg==='ped'&&V.add)return h+pedForm();
-if(V.reg==='perd')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:'',res:null};R()">+</button><p class="launch-info">Importe a planilha de perdas de perecíveis. Os indicadores e comparativos ficam logo abaixo.</p></div>`;
-else if(V.reg==='rup')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf('ruptura')">+</button><p class="launch-info">Colunas: código, descrição, código de barras e preço de venda. A lista vai para Conferências › Ruptura, onde você marca o que está na prateleira.</p></div>`;
-else if(V.add)h+=`<div class="c"><h3>${F.n}</h3>${F.F.map(f=>fld(f,recVal(f))).join('')}<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar</button><button class="bt g" onclick="V.add=0;R()">Cancelar</button></div></div>`;
-else h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Novo registro" onclick="V.add=1;R()">+</button><p class="launch-info">Campos: ${F.F.map(f=>f.l).join(' · ')}</p>${['vtc','vsc','atc','asc'].includes(V.reg)?'<div class="row u-mt10"><button class="bt g" onclick="impXL(V.reg)">📥 Importar planilha</button></div>':''}</div>`;
-if(V.reg==='fita')h+=fitaBox(L);if(V.reg==='etiq')h+=etqBtn()+etiqBox(L)+confListsHTML('etiq');if(V.reg==='rup')h+=confListsHTML('rup');if(V.reg==='temp')h+=`${!V.add&&eqOK()?'<button class="bt g u-ml6" onclick="V.eqm=1;V.eqe=null;V.add=0;R();scrollTo(0,0)">🛠️ Criar equipamento</button>':''}<p class="mu">Até 3 leituras por dia (manhã, tarde e noite), não obrigatórias. Os limites de ideal, tolerável e risco são definidos em cada equipamento.</p>`;
-
-if(V.reg==='desp'){const p=L.reduce((a,e)=>a+(+e.a||0),0),w=L.reduce((a,e)=>a+(+e.b||0),0);h+=`<div class="c"><b>Resumo:</b> produzido ${p.toFixed(1)} kg · desperdiçado ${w.toFixed(1)} kg (${p?(w/p*100).toFixed(1):0}%) · custo ${money(L.reduce((a,e)=>a+(+e.b||0)*(+e.c||0),0))}</div>`}
-return h}
+function launchFormBack(){
+ const tab=V.regReturnTab||'novo';
+ if(V.reg==='temp')V.tempTab=tab==='hist'?'historico':'novo';
+ else V.regTab=tab==='hist'?'hist':'novo';
+ V.add=0;V.ed=null;V.regReturnTab=null;R();scrollTo(0,0);
+}
+function rRegLancMain(){
+ if(V.reg==='ck'){V.ckOnly=null;return rCkLanc()}
+ if(V.reg==='chrec')return rChRec();
+ if(V.reg==='temp'&&V.eqm&&eqOK())return '<button class="ch" onclick="V.eqm=0;V.eqe=null;R();scrollTo(0,0)">‹ Temperaturas</button><h3 class="u-m10">🛠️ Equipamentos</h3>'+rEqp();
+ const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse();
+ if(V.reg==='temp')return tempLancHTML();
+ if(V.add){
+  const returnTab=V.regReturnTab||'novo';
+  const backLabel=returnTab==='hist'?'Voltar ao histórico':'Voltar a '+F.n;
+  const form=V.reg==='ped'?pedForm():'<div class="c"><h3>'+(V.ed?'Editar lançamento':'Novo lançamento')+'</h3>'+F.F.map(f=>fld(f,recVal(f))).join('')+'<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar lançamento</button><button class="bt g" onclick="launchFormBack()">Cancelar</button></div></div>';
+  return regMenuBack(backLabel,'launchFormBack()')+'<div class="launch-title u-mv10">'+(V.ed?'Editar ':'Novo ')+F.n+'</div>'+form;
+ }
+ if(V.regTab==='hist'){
+  let extra='';
+  if(V.reg==='fita')extra+=fitaBox(L);
+  if(V.reg==='etiq')extra+=etiqBox(L)+confListsHTML('etiq');
+  if(V.reg==='rup')extra+=confListsHTML('rup');
+  return regMenuBack('Voltar a '+F.n,"V.regTab='novo';V.regReturnTab=null;V.add=0;R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico de '+F.n+'</div>'+extra+regHistoryRows(F,L);
+ }
+ let h='<div class="row sp"><div class="launch-title">'+F.e+' '+F.n+'</div>'+historyIconButton("V.regTab='hist';V.add=0;V.ed=null;V.regReturnTab=null;R()")+'</div>';
+ if(V.reg==='perd')h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:\'\',res:null};R()">+</button><p class="launch-info">Importe a planilha de perdas de perecíveis. Os indicadores e comparativos ficam logo abaixo.</p></div>';
+ else if(V.reg==='rup')h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf(\'ruptura\')">+</button><p class="launch-info">Colunas: código, descrição, código de barras e preço de venda. A lista vai para Conferências › Ruptura, onde você marca o que está na prateleira.</p></div>';
+ else h+='<div class="c launch-card"><button class="launch-plus" aria-label="Novo lançamento" onclick="V.regReturnTab=\'novo\';V.add=1;V.ed=null;R();scrollTo(0,0)">+</button><p class="launch-info">Campos: '+F.F.map(f=>esc(f.l)).join(' · ')+'</p>'+(['vtc','vsc','atc','asc'].includes(V.reg)?'<div class="row u-mt10"><button class="bt g" onclick="impXL(V.reg)">📥 Importar planilha</button></div>':'')+'</div>';
+ if(V.reg==='fita')h+=fitaBox(L);
+ if(V.reg==='etiq')h+=etqBtn()+etiqBox(L)+confListsHTML('etiq');
+ if(V.reg==='rup')h+=confListsHTML('rup');
+ if(V.reg==='desp'){const p=L.reduce((a,e)=>a+(+e.a||0),0),w=L.reduce((a,e)=>a+(+e.b||0),0);h+='<div class="c"><b>Resumo:</b> produzido '+p.toFixed(1)+' kg · desperdiçado '+w.toFixed(1)+' kg ('+(p?(w/p*100).toFixed(1):0)+'%) · custo '+money(L.reduce((a,e)=>a+(+e.b||0)*(+e.c||0),0))+'</div>'}
+ return h;
+}
 
 function tempLancHTML(){
  const F=FS.temp,L=[...(S.log.temp||[])].reverse(),tab=V.tempTab||'novo';
