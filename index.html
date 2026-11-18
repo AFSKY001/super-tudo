@@ -525,6 +525,8 @@ function mLog(k,s){
  let h='<div class="row sp"><div class="launch-title">'+F.e+' '+F.n+'</div></div>';
  if(!['perd','rup','vtc','atc'].includes(k)){
   h+='<div class="c launch-card"><button class="launch-plus" aria-label="Novo lançamento" onclick="V.regReturnTab=\'novo\';V.add=1;V.ed=null;R();scrollTo(0,0)">+</button><p class="launch-info">Abra o formulário em uma tela própria para registrar um novo lançamento.</p></div>';
+ }else if(k==='perd'){
+  h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:\'\',res:null};regMenuOpenLaunch(\'perd\')">+</button><p class="launch-info">Importe a planilha de perdas e acompanhe os indicadores no Registro.</p></div>';
  }else if(k==='rup'){
   h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf(\'ruptura\')">+</button><p class="launch-info">Importe a lista de produtos e encaminhe para Conferências.</p></div>';
  }
