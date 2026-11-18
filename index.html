@@ -1716,8 +1716,8 @@ function pushNotifySelf(message,key,ref,cat){
 }
 function pushFlushLocalNotifications(){
  if(!V.sbSession||!V.cloudIdentity)return;
- (S.log.nt||[]).filter(e=>!e.sent&&!String(e.key||'').startsWith('cloud|')).forEach(e=>{
-  const send=(String(e.key||'').startsWith('app-update|')||String(e.key||'').startsWith('sync|'))
+ (S.log.nt||[]).filter(e=>!e.sent).forEach(e=>{
+  const send=(String(e.key||'').startsWith('app-update|')||String(e.key||'').startsWith('sync|')||String(e.key||'').startsWith('cloud|'))
    ?pushNotifySelf(e.m,e.key,e.ref,e.cat)
    :pushNotifyCloud(e);
   send.then(()=>{e.sent=true;save()}).catch(err=>console.warn('Notificação será reenviada quando houver conexão:',err));
