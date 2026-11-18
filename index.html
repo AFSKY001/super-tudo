@@ -1131,6 +1131,9 @@ function migMovBack(){if(!S||!S.migrations)return;if(S.migrations.includes('mov-
  S.migrations.push('mov-back-2026');save()}
 function movOK(){return !!(V.me&&(isFullAccess()||can('l:rup')||can('l:etiq')))}
 
+
+function regMenuHome(){V.rs='home';V.reg=null;V.bal=null;R();scrollTo(0,0)}
+function regMenuLaunch(){V.rs='lanc';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function rRegMenuCard(k,e,n,action){
  const icon=IC(k)||e;
  return '<button type="button" class="reg-menu-tile" onclick="'+action+'"><span class="reg-menu-icon">'+icon+'</span><span class="reg-menu-copy"><span class="reg-menu-label">'+esc(n)+'</span><span class="reg-menu-hint">Abrir</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
@@ -1148,7 +1151,7 @@ function rRegLaunchMenu(keys){
   const action="V.rs='lanc';V.reg='"+k+"';V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;R();scrollTo(0,0)";
   return rRegMenuCard(k,f.e,f.n,action);
  }).join('');
- return '<section class="reg-menu-screen launch-menu"><div class="reg-menu-head"><button type="button" class="ch" onclick="V.rs=\\'home\\';V.reg=null;V.bal=null;R();scrollTo(0,0)">‹ Registro</button><h2>Lançamentos</h2><p>Escolha o tipo de lançamento.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhum tipo de lançamento disponível para este acesso.</div>')+'</div></section>';
+ return '<section class="reg-menu-screen launch-menu"><div class="reg-menu-head"><button type="button" class="ch" onclick="regMenuHome()">‹ Registro</button><h2>Lançamentos</h2><p>Escolha o tipo de lançamento.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhum tipo de lançamento disponível para este acesso.</div>')+'</div></section>';
 }
 function rReg(){
  const LK=LANC_KEYS.filter(k=>k!=='w5'&&k!=='rup'&&k!=='etiq'&&k!=='trf'&&can('l:'+k)),RS=RSEC.filter(x=>x[0]==='pdc'||(x[0]==='mov'?movOK():(x[0]==='w5'||x[0]==='semv')?(V.me&&isFullAccess()):canR(x[0])));
@@ -1167,8 +1170,8 @@ function rReg(){
  }
  const body={cro:rCroReg,ck:rCkReg,ava:rAvaReg,conf:rConf,eqp:rEqp,eq:rEq,set:rSet,pdc:rPdc,semv:rSemv,mov:rMov,w5:()=>{V.reg='w5';return rRegLanc()}}[sec]||rRegLanc;
  const back=sec==='lanc'
-  ? '<div class="reg-detail-nav"><button class="ch" onclick="V.rs=\\'home\\';V.reg=null;V.bal=null;R();scrollTo(0,0)">‹ Registro</button><button class="ch" onclick="V.rs=\\'lanc\\';V.reg=null;V.bal=null;R();scrollTo(0,0)">‹ Lançamentos</button></div>'
-  : '<div class="reg-detail-nav"><button class="ch" onclick="V.rs=\\'home\\';V.reg=null;V.bal=null;R();scrollTo(0,0)">‹ Registro</button></div>';
+  ? '<div class="reg-detail-nav"><button class="ch" onclick="regMenuHome()">‹ Registro</button><button class="ch" onclick="regMenuLaunch()">‹ Lançamentos</button></div>'
+  : '<div class="reg-detail-nav"><button class="ch" onclick="regMenuHome()">‹ Registro</button></div>';
  return '<div class="reg-detail">'+back+'<div class="regbody">'+body()+'</div></div>';
 }
 
