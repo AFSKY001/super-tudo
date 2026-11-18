@@ -1151,7 +1151,7 @@ function rPdc(){
    '<div class="launch-title u-mv10">Novo pedido para Compras</div><div class="c">'+
    '<label>Repositor que está fazendo o pedido</label>'+dsel('pdc_rp',S.team.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(p=>({v:p.id,l:p.n+(p.s?' · '+p.s:'')})),(V.me&&person(V.me.id))?V.me.id:'')+
    '<label>Produto<input id="pdc_p" placeholder="Produto"></label>'+
-   '<div class="row u-mt6"><div class="u-fx1"><label>Quantidade<input id="pdc_q" placeholder="Quantidade" inputmode="decimal"></label></div><div class="u-w110"><label>Unidade'+dsel('pdc_u',PDC_U.map(u=>({v:u,l:u})),'un')+'</label></div></div>'+
+   '<div class="row u-mt6"><div class="u-fx1"><label>Quantidade<input id="pdc_q" placeholder="Quantidade" inputmode="decimal"></label></div><div class="u-w110"><div class="mu">Unidade</div>'+dsel('pdc_u',PDC_U.map(u=>({v:u,l:u})),'un')+'</div></div>'+
    '<label>Observação (opcional)<input id="pdc_o" placeholder="Observação"></label>'+
    '<button class="bt g u-mt8" onclick="pdcAddItem()">Adicionar produto</button>'+
    (L.map((i,j)=>'<div class="it"><div>'+esc(i.p)+' · '+esc(i.q)+' '+esc(i.u)+(i.o?' <span class="mu">· '+esc(i.o)+'</span>':'')+'</div><button class="bt d" onclick="pdcDelItem('+j+')">✕</button></div>').join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>')+
@@ -1358,8 +1358,11 @@ function rReg(){
  return '<div class="reg-detail">'+back+'<div class="regbody">'+content+'</div>'+regMenuVersion()+'</div>';
 }
 
-function pedForm(){const L=V.pedL||[];
-return '<div class="c"><label>Repositor<select onchange="V.pedR=this.value">'+ '<option value="">—</option>'+S.team.map(p=>'<option '+(p.n===V.pedR?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label><div class="row u-mt8"><input id="pedp" placeholder="Produto" class="u-fx1" onkeydown="if(event.key===\'Enter\')pedAdd()"><button class="bt g" onclick="pedAdd()">Adicionar produto</button></div>'+L.map((p,i)=>'<div class="it"><div>'+esc(p)+'</div><button class="bt d" onclick="pedDel('+i+')">✕</button></div>').join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>'+'<div class="row u-mt10"><button class="bt" onclick="pedSave()">Salvar pedido ('+L.length+')</button><button class="bt g" onclick="V.pedL=[];launchFormBack()">Cancelar</button></div></div>'}
+function pedForm(){
+ const L=V.pedL||[],rows=L.map((p,i)=>'<div class="it"><div>'+esc(p)+'</div><button class="bt d" onclick="pedDel('+i+')">✕</button></div>').join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>';
+ return '<div class="c"><label>Repositor<select onchange="V.pedR=this.value"><option value="">—</option>'+S.team.map(p=>'<option '+(p.n===V.pedR?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label><div class="row u-mt8"><input id="pedp" placeholder="Produto" class="u-fx1" onkeydown="if(event.key===\'Enter\')pedAdd()"><button class="bt g" onclick="pedAdd()">Adicionar produto</button></div>'+rows+'<div class="row u-mt10"><button class="bt" onclick="pedSave()">Salvar pedido ('+L.length+')</button><button class="bt g" onclick="V.pedL=[];launchFormBack()">Cancelar</button></div></div>';
+}
+
 function pedAdd(){const v=(($('pedp')||{}).value||'').trim();if(!v)return;V.pedL=[...(V.pedL||[]),v];R()}
 function pedDel(i){V.pedL=(V.pedL||[]).filter((_,j)=>j!==i);R()}
 function pedSave(){if(!V.pedR)return alert('Escolha o repositor.');const L=V.pedL||[];if(!L.length)return alert('Adicione ao menos um produto.');(S.log.ped=S.log.ped||[]).push(...L.map(p=>({id:uid(),d:today(),p,r:V.pedR,...ownBy()})));V.pedL=[];V.add=0;V.ed=null;V.regTab='novo';V.regReturnTab=null;save();R();scrollTo(0,0)}
