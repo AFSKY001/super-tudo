@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-tudo-v3.43.4';
+const CACHE_NAME = 'super-tudo-v3.33.1-rollback-20261118';
 const APP_CACHE_PREFIX = 'super-tudo-';
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -10,35 +10,6 @@ self.addEventListener('activate', event => {
     await self.clients.claim();
   })());
 });
-
-self.addEventListener('push', event => {
-  let payload = {};
-  try { payload = event.data ? event.data.json() : {}; } catch (_) {
-    payload = { body: event.data ? event.data.text() : '' };
-  }
-  event.waitUntil(self.registration.showNotification(payload.title || 'Super Tudo', {
-    body: payload.body || 'Você tem uma nova notificação.',
-    icon: '/logo.webp',
-    badge: '/logo.webp',
-    tag: payload.tag || 'super-tudo',
-    data: payload.data || { url: '/' },
-    renotify: false
-  }));
-});
-self.addEventListener('notificationclick', event => {
-  event.notification.close();
-  const target = new URL((event.notification.data && event.notification.data.url) || '/', self.location.origin).href;
-  event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async windows => {
-    for (const client of windows) {
-      if ('focus' in client) {
-        if ('navigate' in client) await client.navigate(target);
-        return client.focus();
-      }
-    }
-    return self.clients.openWindow(target);
-  }));
-});
-
 self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
@@ -65,7 +36,7 @@ self.addEventListener('fetch', event => {
     })());
     return;
   }
-  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg', '/logo.webp'].includes(url.pathname)) {
+  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg'].includes(url.pathname)) {
     event.respondWith((async () => {
       const cached = await caches.match(request);
       if (cached) return cached;
