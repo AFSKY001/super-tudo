@@ -1797,7 +1797,9 @@ function pushButton(){
 function pushNotifyCloud(e){
  if(!e)return Promise.resolve(null);
  if(!V.sbSession||!V.cloudIdentity)return Promise.reject(new Error('Sem sessão na nuvem; notificação aguardando sincronização.'));
- return pushCall('notify',{to:e.to||[],message:e.m||'',ref:e.ref||null,key:e.key||null,cat:e.cat||'avi'});
+ return e.broadcast
+  ?pushCall('notify-broadcast',{message:e.m||'',title:'Super Tudo',ref:e.ref||null,key:e.key||null,cat:e.cat||'lancamentos'})
+  :pushCall('notify',{to:e.to||[],message:e.m||'',ref:e.ref||null,key:e.key||null,cat:e.cat||'avi'});
 }
 function pushNotifySelf(message,key,ref,cat){
  return pushCall('notify-self',{message, key, ref:ref||null, cat:cat||'env', title:'Super Tudo'});
@@ -1852,10 +1854,10 @@ function pushStop(){
  V.pushChannel=null;V.pushStartedFor=null;V.pushEnabled=false;
 }
 
-function notify(to,m,ref,key,cat){const L=S.log.nt=S.log.nt||[];to=[...new Set((to||[]).filter(Boolean))];if(!to.length)return;const cloudKey=key||('auto|'+uid());if(key&&L.some(e=>e.key===cloudKey))return;const entry={id:uid(),to,m,ref:ref||null,key:cloudKey,cat:cat||catOf(m),ts:Date.now(),u:Date.now(),by:V.me?V.me.n:'',rd:[],sent:false};L.push(entry);pushNotifyCloud(entry).then(()=>{entry.sent=true;save()}).catch(err=>console.warn('Notificação aguardando conexão:',err))}
+function notify(to,m,ref,key,cat,broadcast=false){const L=S.log.nt=S.log.nt||[];to=[...new Set((to||[]).filter(Boolean))];if(!to.length)return;const cloudKey=key||('auto|'+uid());if(key&&L.some(e=>e.key===cloudKey))return;const entry={id:uid(),to,m,ref:ref||null,key:cloudKey,cat:cat||catOf(m),broadcast:!!broadcast,ts:Date.now(),u:Date.now(),by:V.me?V.me.n:'',rd:[],sent:false};L.push(entry);pushNotifyCloud(entry).then(()=>{entry.sent=true;save()}).catch(err=>console.warn('Notificação aguardando conexão:',err))}
 function notifyGroups(groups,m){const ids=S.team.filter(p=>(p.g||[]).some(g=>(groups||[]).includes(g))).map(p=>p.id);notify(ids,m,{t:'cro'},'cr|'+uid()+'|'+Date.now(),'tar')}
 function ntCompose(){return V.ntnav?`<div class="c"><b>📢 Aviso para toda a equipe</b><textarea id="nv_txt" rows="3" placeholder="Escreva o aviso" class="u-mv6"></textarea><div class="row"><button class="bt" onclick="sendAviso()">Enviar</button><button class="ch" onclick="V.ntnav=0;rNb()">Cancelar</button></div></div>`:`<div class="u-mv6"><button class="bt g" onclick="V.ntnav=1;rNb()">📢 Novo aviso para a equipe</button></div>`}
-function sendAviso(){const t=(($('nv_txt')||{}).value||'').trim();if(!t)return alert('Escreva o aviso.');notify(S.team.map(p=>p.id),'📢 Aviso: '+t,null,'avi|'+uid()+'|'+Date.now(),'avi');V.ntnav=0;save();rNb()}
+function sendAviso(){const t=(($('nv_txt')||{}).value||'').trim();if(!t)return alert('Escreva o aviso.');notify(['adm',...S.team.map(p=>p.id)],'📢 Aviso: '+t,null,'avi|'+uid()+'|'+Date.now(),'lancamentos',true);V.ntnav=0;save();rNb()}
 function ntOne(id){const e=(S.log.nt||[]).find(x=>x.id===id);if(!e||!V.me)return;ntRead(e);pushMarkRead(e);save();rNb()}
 function ntTabs(L){return `<div class="chs">${NT_CATS.map(([c,t])=>chip(t+' ('+(c==='all'?L.length:L.filter(e=>catOf2(e)===c).length)+')',(V.ntc||'all')===c,`V.ntc='${c}';rNb()`)).join('')}</div>`}
 const notifyAdm=(m,key)=>{if(V.me&&V.me.role==='emp'&&!(key&&(S.log.nt||[]).some(e=>e.key===key)))notify(['adm'],m,null,key)};
@@ -2139,7 +2141,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.4';
+const APP_VERSION='3.44.5';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2304,6 +2306,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.44.5',d:'18/11/2026',t:'Avisos gerais protegidos no servidor (PATCH)',n:['Avisos para toda a organização passam a usar os destinatários ativos definidos pelo servidor.'],c:['Somente administrador e gerente podem disparar avisos gerais; o navegador não escolhe a lista final de destinatários.']},
 {v:'3.44.4',d:'18/11/2026',t:'Ajuste na classificação das notificações (PATCH)',n:['Pedidos de compras e atualizações do sistema continuam em suas categorias próprias.'],c:['A categoria Tarefas feitas passa a receber apenas mensagens que indicam conclusão; atribuições e alterações de cronograma ficam em Lançamentos.']},
 {v:'3.44.3',d:'18/11/2026',t:'Notificações organizadas em quatro categorias (PATCH)',n:['Notificações agrupadas em Lançamentos, Tarefas feitas, Atualizações de sistema e Pedidos de compras.'],c:['Categorias antigas passam a ser exibidas conforme o conteúdo da mensagem.']},
 {v:'3.44.0',d:'18/11/2026',t:'Desempenho integrado e relatórios mensais e anuais (MINOR)',n:['Novo painel por loja, setor, encarregado e funcionário, com comparação mensal e anual.','Produtos sem venda compara o valor em reais da última lista importada no período; redução é melhoria e aumento é piora, com histórico entre importações.','Vencidos, avariados, perdas de perecíveis e desperdício da padaria passam a ser analisados por valor financeiro, com quantidade ou kg como complemento.','Cronogramas, checklists e avaliações são acompanhados como execução e qualidade, sem indicadores duplicados.','Conferências de ruptura e etiquetas alimentam os respectivos resultados a partir das pendências atribuídas, sem pontuar a conferência novamente.','Indicadores personalizados permitem definir se quanto menor ou quanto maior é melhor.','Indicadores entram no desempenho individual somente quando atribuídos no cadastro.'],c:['Ausência de lançamentos aparece como falta de dados, não como resultado zero. Nenhum registro histórico foi apagado.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
