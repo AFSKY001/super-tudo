@@ -1,8 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<rect width="512" height="512" rx="112" fill="#0f4c5c"/>
-<circle cx="256" cy="256" r="178" fill="#f2a900"/>
-<circle cx="256" cy="256" r="150" fill="#fff"/>
-<path d="M142 165h32l30 154h161l32-119H195" fill="none" stroke="#0f4c5c" stroke-width="25" stroke-linecap="round" stroke-linejoin="round"/>
-<circle cx="229" cy="365" r="18" fill="#0f4c5c"/><circle cx="348" cy="365" r="18" fill="#0f4c5c"/>
-<text x="256" y="265" text-anchor="middle" font-family="Arial,sans-serif" font-size="70" font-weight="800" fill="#0f4c5c">ST</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><image href="/logo.webp" width="512" height="512" preserveAspectRatio="xMidYMid slice"/></svg>
