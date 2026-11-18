@@ -2139,7 +2139,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.0';
+const APP_VERSION='3.44.1';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2448,7 +2448,7 @@ async function restoreLogin(){
   try{
     const {data:{session}}=await supa.auth.getSession();
     const saved=JSON.parse(localStorage.getItem('st_auth_state')||'null');
-    if(session&&saved&&[APP_VERSION,'3.43.5','3.43.4','3.43.3','3.43.2','3.43.1'].includes(saved.version)&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
+    if(session&&saved&&saved.version===APP_VERSION&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
       V.sbSession=session;
       V.cloudIdentity=saved.identity;
       syncUseIdentity();
