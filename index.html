@@ -1671,7 +1671,7 @@ function confMetaArquivo(file,t,lab){
  const motivo=String(lab||CFN[t]||t).replace(/^[^A-Za-zÀ-ÿ]+/,'').trim();
  return {rem,data,motivo};
 }
-function confTitle(c){return c&&c.arqRem?['Remarcação',c.motivo,c.dataArquivo].filter(Boolean).join(' · '):(c&&c.nome||'Lista')}
+function confTitle(c){if(c&&c.arqRem){const m=confMetaArquivo({name:c.arquivoOriginal||c.nome||''},c.t,c.motivo||CFN[c.t]);return ['Remarcação',c.motivo||m.motivo,c.dataArquivo||m.data].filter(Boolean).join(' · ')}return c&&c.nome||'Lista'}
 function impConf(t,lab){const i=document.createElement('input');i.type='file';i.accept='.xlsx,.xls,.csv';i.onchange=()=>{const f=i.files[0];if(!f)return;readRows(f,rows=>{const items=[];
 rows.forEach(r=>{const g=(...ks)=>{const key=Object.keys(r).find(x=>ks.includes(nrm(x)));return key!==undefined?r[key]:''};const p=String(g('descricao','produto','nome')||'').trim();if(!p)return;items.push({id:uid(),p,c:String(g('codigo','cod')||'').trim(),cb:String(g('codigo de barras','cod barras','ean')||'').trim(),pv:nmv(g('preco de venda','valor de venda','preco'))||0,q:nmv(g('quantidade','qtd'))||'',l:String(g('lote')||''),va:dtI(g('validade')),ok:null})});
 if(!items.length)return alert('Nenhum produto encontrado. A planilha precisa de uma coluna "Descrição" (ou "Produto").');
