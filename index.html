@@ -2368,7 +2368,7 @@ async function restoreLogin(){
     ]);
     const session=result&&result.data&&result.data.session||null;
     const saved=JSON.parse(localStorage.getItem('st_auth_state')||'null');
-    if(session&&saved&&saved.version===APP_VERSION&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
+    if(session&&saved&&(saved.version===APP_VERSION||saved.version==='3.43.2')&&saved.wel&&saved.identity&&['master','gerente','encarregado'].includes(saved.identity.role)&&Array.isArray(saved.identity.perm)){
       V.sbSession=session;
       V.cloudIdentity=saved.identity;
       syncUseIdentity();
