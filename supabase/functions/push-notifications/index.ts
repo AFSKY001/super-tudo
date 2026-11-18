@@ -225,14 +225,18 @@ Deno.serve(async (req: Request) => {
           .eq("active", true);
         if (error) throw error;
 
-        if (distributionMode === "all") {
+        const targets = [...new Set((Array.isArray(body.to) ? body.to : [])
+          .map((x: unknown) => String(x || "").trim()).filter(Boolean))].slice(0, 200);
+
+        // Modo A global: apenas gestão pode disparar para toda a organização.
+        // Contas operacionais continuam com o roteamento legado até os eventos
+        // serem validados no servidor, evitando broadcast arbitrário via API.
+        if (distributionMode === "all" && ["admin", "gerente"].includes(membership.role)) {
           recipients = (members || []).map((m) => ({
             user_id: m.user_id,
             team_member_id: m.team_member_id || null,
           }));
         } else {
-          const targets = [...new Set((Array.isArray(body.to) ? body.to : [])
-            .map((x: unknown) => String(x || "").trim()).filter(Boolean))].slice(0, 200);
           if (!targets.length) return json({ ok: true, inserted: 0, pushSent: 0 });
           recipients = (members || []).filter((m) =>
             (m.team_member_id && targets.includes(m.team_member_id)) ||
