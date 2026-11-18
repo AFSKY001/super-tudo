@@ -985,7 +985,7 @@ function run(){const k=[V.ck,V.ckd,V.ckt].join('|');if(!V.ckdr||V.ckdr.k!==k){co
 function ckNorm(r){return JSON.stringify([r.a||{},r.temps||[],r.obs||'',r.who||'',r.av||'',r.photo||'',r.company||''])}
 function ckDirty(){const d=V.ckdr;if(!d)return false;const b=S.runs[d.k];return ckNorm(d.r)!==ckNorm(b||ckDefault())}
 function ckBack(ed){if(ckDirty()&&!confirm('Há alterações não salvas neste checklist. Sair sem salvar?'))return;const k=V.ck;if(CK[k]&&CK[k].nw&&!ed)delete CK[k];V.ckdr=null;V.ce=ed?k:null;V.ck=null;R()}
-function ckSaveRun(){const d=V.ckdr;if(!d)return;const r=d.r,cc=CK[V.ck];if(cc&&isRec(cc)){if(!String(r.who||'').trim())return alert('Escolha o responsável pelo recebimento.');if(!(r.temps||[]).some(v=>v!==''&&v!=null&&isFinite(+v)))return alert('Informe pelo menos uma temperatura.');}r.by=V.me?V.me.id:'';r.sent=false;S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();ckNote(r);if(cc)delete cc.nw;if(!save())return;alert('Checklist salvo.');R()}
+function ckSaveRun(){const d=V.ckdr;if(!d)return;const r=d.r,cc=CK[V.ck];if(cc&&isRec(cc)){if(!String(r.who||'').trim())return alert('Escolha o responsável pelo recebimento.');if(!(r.temps||[]).some(v=>v!==''&&v!=null&&isFinite(+v)))return alert('Informe pelo menos uma temperatura.');}r.by=V.me?V.me.id:'';r.sent=false;S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();ckNote(r);if(cc)delete cc.nw;if(!save())return;if(V.reg==='ck'||V.reg==='chrec'){V.ck=null;V.ckdr=null;if(V.reg==='ck'){V.ckTab='inicio';V.lw=null}}alert('Checklist salvo.');R()}
 function updTemp(i,v){const r=run();r.temps=r.temps||[];r.temps[i]=v;save()}
 function setA(i,v){const r=run();if(r.a[i]===v)delete r.a[i];else r.a[i]=v;const y=scrollY;R();scrollTo(0,y)}
 function upd(f,v){run()[f]=v;save();if(f==='av')R()}
@@ -1218,6 +1218,7 @@ function regMenuOpenSection(k){
  if(k==='lanc'){regMenuLaunch();return}
  V.rs=k;V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;
  if(k==='conf'){V.cfO=null;V.cfS=[];V.clo=null}
+ if(k==='ck'){V.ckTab='inicio';V.ck=null;V.ckdr=null;V.lw=null}
  if(k==='eq'){V.pe=null;V.eq='p'}
  if(k==='set'){V.ss=null;V.sm=null}
  if(k==='pdc'){V.pdcO=null;V.pdcL=[]}
@@ -1226,7 +1227,7 @@ function regMenuOpenSection(k){
  R();scrollTo(0,0)
 }
 function regMenuOpenLaunch(k){
- V.rs='lanc';V.reg=k;V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;
+ V.rs='lanc';V.reg=k;V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;if(k==='ck'){V.ckTab='inicio';V.lw=null;V.ckdr=null}
  R();scrollTo(0,0)
 }
 function regMenuIcon(k){
@@ -1610,12 +1611,25 @@ function rCkLanc(){
  if(V.ck&&CK[V.ck])return rCkReg();
  const w=person(V.lw)?V.lw:'',ks=w?Object.keys(CK).filter(k=>CK[k].p===w&&!CK[k].rm&&(V.ckOnly?isRec(CK[k]):!isRec(CK[k]))):[];
  const runs=Object.entries(S.runs||{}).map(([key,r])=>{const a=key.split('|'),c=CK[a[0]];return c&&!c.rc?{key,k:a[0],d:a[1],turn:a[2]||'',c,r}:null}).filter(Boolean).sort((a,b)=>b.d.localeCompare(a.d));
- const top='<div class="row sp">'+historyIconButton("V.ckTab='hist';R()")+'<div class="launch-title">✅ Checklists</div><button class="ch '+(V.ckTab==='modelos'?'on':'')+'" onclick="V.ckTab=\'modelos\';V.ck=null;V.ce=null;V.cff=\'m\';V.mdl=null;R()">📚 Modelos</button></div>';
- if(V.ckTab==='modelos')return top+'<div class="row u-mt8"><button class="ch" onclick="V.ckTab=\'novo\';R()">‹ Voltar aos lançamentos</button></div>'+rCkList();
- const launch='<div class="row u-mt8"><button class="bt" onclick="V.ckTab=\'novo\';V.ck=null;V.ckdr=null;R()">+ Novo preenchimento</button></div>';
- if(V.ckTab==='hist')return top+launch+(runs.length?runs.map(x=>{const p=person(x.c.p),n=x.c.l.filter(z=>z[0]!=='#').length||1,done=Object.keys(x.r.a||{}).length;return '<div class="c tap" onclick="V.ck=\''+x.k+'\';V.ckd=\''+x.d+'\';V.ckt=\''+x.turn+'\';V.ckdr=null;R()"><div class="row sp"><b>'+x.c.e+' '+esc(x.c.n)+'</b><span class="mu">'+br(x.d)+'</span></div><div class="mu">'+esc(p?p.n:'—')+' · '+done+'/'+n+' itens respondidos</div></div>'}).join(''):'<div class="c mu">Nenhum checklist preenchido ainda.</div>');
- return top+launch+'<div class="row sp"><b>✅ Checklist</b><span class="mu">Quem vai preencher?</span></div><div class="chs">'+S.team.map(p=>chip(esc(p.n),w===p.id,"V.lw='"+p.id+"';R()")).join('')+'</div>'+(w?(ks.length?ks.map(ckCard).join(''):'<div class="c mu">Esta pessoa ainda não tem checklist. Adicione um modelo na aba Modelos.</div>'):'<div class="c mu">Escolha o funcionário acima.</div>');
+ if(V.ckTab==='hist'){
+  return regMenuBack('Voltar a Checklists',"V.ckTab='inicio';V.ck=null;V.ckdr=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Histórico de checklists</div>'+
+   (runs.length?runs.map(x=>{const p=person(x.c.p),n=x.c.l.filter(z=>z[0]!=='#').length||1,done=Object.keys(x.r.a||{}).length;return '<div class="c tap" onclick="V.ck=\''+x.k+'\';V.ckd=\''+x.d+'\';V.ckt=\''+x.turn+'\';V.ckdr=null;R()"><div class="row sp"><b>'+x.c.e+' '+esc(x.c.n)+'</b><span class="mu">'+br(x.d)+'</span></div><div class="mu">'+esc(p?p.n:'—')+' · '+done+'/'+n+' itens respondidos</div></div>'}).join(''):'<div class="c mu">Nenhum checklist preenchido ainda.</div>');
+ }
+ if(V.ckTab==='modelos'){
+  return regMenuBack('Voltar a Checklists',"V.ckTab='inicio';V.ck=null;V.ckdr=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Modelos de checklist</div>'+rCkList();
+ }
+ if(V.ckTab==='novo'){
+  return regMenuBack('Voltar a Checklists',"V.ckTab='inicio';V.ck=null;V.ckdr=null;V.lw=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Novo preenchimento</div>'+
+   '<div class="c"><b>Quem vai preencher?</b><div class="chs">'+S.team.map(p=>chip(esc(p.n),w===p.id,"V.lw='"+p.id+"';R()")).join('')+'</div></div>'+
+   (w?(ks.length?ks.map(ckCard).join(''):'<div class="c mu">Esta pessoa ainda não tem checklist. Adicione um modelo na aba Modelos.</div>'):'<div class="c mu">Escolha o funcionário para ver os checklists disponíveis.</div>');
+ }
+ return '<div class="row sp"><div class="launch-title">✅ Checklists</div><span class="row">'+historyIconButton("V.ckTab='hist';V.ck=null;R()")+'<button class="ch" onclick="V.ckTab=\'modelos\';V.ck=null;V.ce=null;V.cff=\'m\';V.mdl=null;R()">Modelos</button></span></div>'+
+  '<div class="c launch-card"><button class="launch-plus" aria-label="Novo preenchimento" onclick="V.ckTab=\'novo\';V.ck=null;V.ckdr=null;V.lw=null;R();scrollTo(0,0)">+</button><p class="launch-info">Escolha um funcionário e preencha os checklists atribuídos a ele. Os preenchimentos concluídos ficam no histórico.</p></div>';
 }
+
 function rCkEmp(){const p=person(V.me.id);if(!p)return'';const T=teamOf(p),ids=[p.id,...T.map(x=>x.id)];if(V.ck&&CK[V.ck]&&ids.includes(CK[V.ck].p))return rCkReg().replace(/<button class="ch" onclick="V\.ce=V\.ck;V\.ck=null;R\(\)">✏️ Editar checklist<\/button>/,'');V.ck=null;
 const w=ids.includes(V.cw)?V.cw:p.id,ks=Object.keys(CK).filter(k=>CK[k].p===w);
 return (T.length?`<div class="chs">${chip('👤 Meus',w===p.id,`V.cw='${p.id}';R()`)}${T.map(x=>chip(esc(x.n),w===x.id,`V.cw='${x.id}';R()`)).join('')}</div>${w!==p.id?`<div class="mu">Preenchendo pela equipe: <b>${esc(person(w).n)}</b></div>`:''}`:'')+(ks.map(ckCard).join('')||'<div class="c mu">Nenhum checklist atribuído.</div>')}
