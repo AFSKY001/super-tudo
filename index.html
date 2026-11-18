@@ -1553,12 +1553,12 @@ async function refreshCloudAccessLinks(){
 }
 function ntSettingsHTML(){
  const mode=V.ntSettings&&V.ntSettings.distributionMode||'all';
- return '<div class="c"><b>Modo A — todos recebem</b><p class="mu">Configuração padrão selecionada. A ativação da distribuição automática para os quatro tipos ainda depende da conclusão e validação dos eventos no servidor.</p><div class="b '+(mode==='all'?'ok':'wa')+'">'+(mode==='all'?'Modo A selecionado':'Modo A não selecionado')+'</div><button class="bt u-mt8" onclick="saveNtModeA()">Confirmar modo A</button></div><div class="c"><b>Modo B — por função, setor e equipe</b><p class="mu">Fica bloqueado até os vínculos entre encarregados e funcionários serem validados.</p><span class="b wa">Em preparação</span></div>'+(V.ntSettings&&V.ntSettings.updatedAt?'<p class="mu">Última alteração: '+new Date(V.ntSettings.updatedAt).toLocaleString('pt-BR')+'</p>':'');
+ return '<div class="c"><b>Modo A — todos recebem</b><p class="mu">Modo A ativo: as notificações automáticas registradas no servidor são entregues a todos os usuários ativos da organização, em todas as categorias. Avisos pessoais continuam restritos ao próprio usuário.</p><div class="b '+(mode==='all'?'ok':'wa')+'">'+(mode==='all'?'Modo A selecionado':'Modo A não selecionado')+'</div><button class="bt u-mt8" onclick="saveNtModeA()">Confirmar modo A</button></div><div class="c"><b>Modo B — por função, setor e equipe</b><p class="mu">Fica bloqueado até os vínculos entre encarregados e funcionários serem validados.</p><span class="b wa">Em preparação</span></div>'+(V.ntSettings&&V.ntSettings.updatedAt?'<p class="mu">Última alteração: '+new Date(V.ntSettings.updatedAt).toLocaleString('pt-BR')+'</p>':'');
 }
 async function saveNtModeA(){
  if(!isMaster())return alert('Somente o administrador pode alterar esta configuração.');
- if(!confirm('Confirmar o Modo A? A distribuição automática global ainda não está ativada.'))return;
- try{const result=await pushCall('notification-settings-set',{distributionMode:'all'});if(!result||!result.ok)throw new Error('Não foi possível salvar.');V.ntSettings={distributionMode:'all',updatedAt:new Date().toISOString(),routingEnabled:false};V.ntSettingsError=null;rMenu();alert('Modo A registrado. A distribuição global ainda está pendente.');}catch(e){alert(e.message||'Falha ao salvar.');}
+ if(!confirm('Confirmar o Modo A? As notificações automáticas passarão a ser entregues a todos os usuários ativos da organização.'))return;
+ try{const result=await pushCall('notification-settings-set',{distributionMode:'all'});if(!result||!result.ok)throw new Error('Não foi possível salvar.');V.ntSettings={distributionMode:'all',updatedAt:new Date().toISOString(),routingEnabled:true};V.ntSettingsError=null;rMenu();alert('Modo A salvo e ativo para as notificações automáticas.');}catch(e){alert(e.message||'Falha ao salvar.');}
 }
 function rMenu(){
  if(V.sh==='acc'&&V.me?.role==='master'&&!V.accLinksLoaded&&!V.accLinksLoading){V.accLinksLoading=true;refreshCloudAccessLinks().catch(e=>console.warn('Não foi possível atualizar os vínculos de login:',e)).finally(()=>{V.accLinksLoading=false;V.accLinksLoaded=true;R()})}
@@ -2156,7 +2156,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.6';
+const APP_VERSION='3.44.7';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2321,6 +2321,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.44.7',d:'18/11/2026',t:'Modo A de notificações ativado (MINOR)',n:['Notificações automáticas passam a ser distribuídas a todos os usuários ativos da organização.','Envios automáticos têm limite temporário no servidor para reduzir abuso.'],c:['Avisos pessoais continuam restritos ao usuário; avisos gerais seguem autorizados apenas para administrador e gerente.','Modo B permanece bloqueado até validar vínculos de equipe.']},
 {v:'3.44.6',d:'18/11/2026',t:'Configuração de distribuição de notificações (PATCH)',n:['Área administrativa para consultar e registrar o Modo A.'],c:['Modo B bloqueado até validar vínculos de equipe; roteamento global ainda não ativado.']},
 {v:'3.44.5',d:'18/11/2026',t:'Avisos gerais protegidos no servidor (PATCH)',n:['Avisos para toda a organização passam a usar os destinatários ativos definidos pelo servidor.'],c:['Somente administrador e gerente podem disparar avisos gerais; o navegador não escolhe a lista final de destinatários.']},
 {v:'3.44.4',d:'18/11/2026',t:'Ajuste na classificação das notificações (PATCH)',n:['Pedidos de compras e atualizações do sistema continuam em suas categorias próprias.'],c:['A categoria Tarefas feitas passa a receber apenas mensagens que indicam conclusão; atribuições e alterações de cronograma ficam em Lançamentos.']},
