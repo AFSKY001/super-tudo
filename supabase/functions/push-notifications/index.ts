@@ -119,6 +119,19 @@ Deno.serve(async (req: Request) => {
       return { sent, stale };
     }
 
+    if (action === "notification-settings-get") {
+      if (membership.role !== "admin") return json({ error: "Somente o administrador pode consultar as configurações." }, 403);
+      const { data, error } = await admin.from("app_notification_settings").select("distribution_mode, updated_at").eq("org_id", orgId).maybeSingle();
+      if (error) throw error;
+      return json({ distributionMode: data?.distribution_mode || "all", updatedAt: data?.updated_at || null, routingEnabled: false });
+    }
+    if (action === "notification-settings-set") {
+      if (membership.role !== "admin") return json({ error: "Somente o administrador pode alterar a distribuição." }, 403);
+      if (String(body.distributionMode || "") !== "all") return json({ error: "O modo por função ainda não está disponível." }, 409);
+      const { error } = await admin.from("app_notification_settings").upsert({ org_id: orgId, distribution_mode: "all", updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "org_id" });
+      if (error) throw error;
+      return json({ ok: true, distributionMode: "all", routingEnabled: false });
+    }
     if (action === "public-key") {
       const config = await getVapidConfig();
       return json({ publicKey: config.public_key });
