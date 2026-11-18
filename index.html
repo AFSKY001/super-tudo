@@ -513,10 +513,28 @@ function mFunc(s){const fr=s==='Frente loja',RL=['Empacotador','Operador de caix
 return (fr?`<div class="chs">${['',...RL].map(r=>chip(r||'Todos',f===r,`V.fr='${r}';R()`)).join('')}</div>`:'')+(L.map(p=>{const rk=rankRows().find(r=>r.p.id===p.id),en=(S.log.ent||[]).filter(e=>e.r===p.n&&(e.d||'').slice(0,7)===mo).length,vd=(S.log.cx||[]).filter(e=>e.r===p.n&&(e.d||'').slice(0,7)===mo).reduce((a,e)=>a+(+e.vd||0),0);
 return `<details><summary>${esc(p.n)} <span class="mu">· ${esc(p.f||'—')}${rk?' · nota '+rk.g.toFixed(1):''}${fr&&en?' · '+en+' entregas':''}${fr&&vd?' · '+money(vd):''}</span></summary><div class="row u-mv8"><button class="bt" onclick="V.evt='ind';V.dr.p='${p.id}';goR('ava','nova')">Avaliar</button><button class="bt g" onclick="V.tab='reg';V.rs='eq';V.eq='p';V.op='${p.id}';R()">Atribuições</button></div><h4>Checklists</h4>${pcks(p.id)}</details>`}).join('')||'<div class="c mu">Nenhuma pessoa neste filtro. Cadastre em Registros › Equipe › Pessoas (setor e função).</div>')}
 function mAva(s){const rr=rankRows().filter(r=>r.p.s===s);return `<div class="chs">${S.team.filter(p=>p.s===s).map(p=>chip('Avaliar '+esc(p.n),0,`V.evt='ind';V.dr.p='${p.id}';goR('ava','nova')`)).join('')}</div>`+(rr.length?rr.map((r,i)=>{const l=lvl(r.g);return `<div class="c"><div class="row sp"><b>${i+1}. ${esc(r.p.n)}</b><span class="b ${l[1]}">${r.g.toFixed(1)} · ${l[0]}</span></div>${bar(r.g*10)}</div>`}).join(''):'<div class="c mu">Sem avaliações neste setor ainda.</div>')}
-function mLog(k,s){const F=FS[k],L=[...(S.log[k]||[])].reverse().filter(e=>e.z?e.z===s:(k==='desp'?s==='Produção padaria':s==='Mercearia'));V.reg=k;V.ss=s;
-let h=V.add?`<div class="c"><h3>${F.n}</h3>${F.F.map(f=>fld(f,recVal(f))).join('')}<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar</button><button class="bt g" onclick="V.add=0;R()">Cancelar</button></div></div>`:`<div class="row">${['perd','rup','vtc','atc'].includes(k)?'':'<button class="bt" onclick="V.add=1;R()">+ Novo registro</button>'}${k==='rup'?'<button class="bt" onclick="impConf(\'ruptura\')">📥 Importar lista de produtos</button>':''}</div>`;
-if(['perd','vsc','vtc','atc','asc'].includes(k)){h+=`<div class="c"><b>Total:</b> ${money(L.reduce((a,e)=>a+tv(e),0))} · ${L.length} registro(s)`+(k==='asc'?['Transferência para consumo da padaria','Degustação','Descarte (perda)'].map(g=>`<div class="mu">${g}: ${money(L.filter(e=>e.g===g).reduce((a,e)=>a+tv(e),0))}</div>`).join(''):'')+'</div>'}
-return h+(L.length?L.slice(0,60).map(e=>`<div class="c"><b>${esc(F.ti(e))}</b><div class="mu">${F.F.filter(f=>f.k!=='z'&&e[f.k]!==''&&e[f.k]!=null).map(f=>`${f.l}: ${fv(f,e)}`).join(' · ')}</div><button class="bt g" onclick="editL('${e.id}')">Editar</button><button class="bt d" onclick="delL('${e.id}')">Excluir</button></div>`).join(''):'<div class="c mu">Nenhum registro ainda.</div>')}
+function mLog(k,s){
+ const F=FS[k],L=[...(S.log[k]||[])].reverse().filter(e=>e.z?e.z===s:(k==='desp'?s==='Produção padaria':s==='Mercearia'));
+ V.reg=k;V.ss=s;V.regTab='novo';
+ if(V.add){
+  return regMenuBack('Voltar a '+F.n,"V.add=0;V.ed=null;V.regReturnTab=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Novo lançamento · '+F.n+'</div><div class="c">'+
+   F.F.map(f=>fld(f,recVal(f))).join('')+
+   '<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar</button><button class="bt g" onclick="V.add=0;V.ed=null;V.regReturnTab=null;R()">Cancelar</button></div></div>';
+ }
+ let h='<div class="row sp"><div class="launch-title">'+F.e+' '+F.n+'</div></div>';
+ if(!['perd','rup','vtc','atc'].includes(k)){
+  h+='<div class="c launch-card"><button class="launch-plus" aria-label="Novo lançamento" onclick="V.regReturnTab=\'novo\';V.add=1;V.ed=null;R();scrollTo(0,0)">+</button><p class="launch-info">Abra o formulário em uma tela própria para registrar um novo lançamento.</p></div>';
+ }else if(k==='perd'){
+  h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:\'\',res:null};regMenuOpenLaunch(\'perd\')">+</button><p class="launch-info">Importe a planilha de perdas e acompanhe os indicadores no Registro.</p></div>';
+ }else if(k==='rup'){
+  h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf(\'ruptura\')">+</button><p class="launch-info">Importe a lista de produtos e encaminhe para Conferências.</p></div>';
+ }
+ if(['perd','vsc','vtc','atc','asc'].includes(k)){
+  h+='<div class="c"><b>Total:</b> '+money(L.reduce((a,e)=>a+tv(e),0))+' · '+L.length+' registro(s)'+(k==='asc'?['Transferência para consumo da padaria','Degustação','Descarte (perda)'].map(g=>'<div class="mu">'+g+': '+money(L.filter(e=>e.g===g).reduce((a,e)=>a+tv(e),0))+'</div>').join(''):'')+'</div>';
+ }
+ return h+(L.length?L.slice(0,60).map(e=>'<div class="c"><b>'+esc(F.ti(e))+'</b><div class="mu">'+F.F.filter(f=>f.k!=='z'&&e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>').join(''):'<div class="c mu">Nenhum registro ainda.</div>');
+}
 
 function dashF(){const mo=today().slice(0,7),f=k=>(S.log[k]||[]).filter(e=>(e.d||'').slice(0,7)===mo),en=f('ent'),fe=en.filter(e=>e.k==='Feira'),cx=f('cx'),
 rk=(a,fm)=>a.length?a.map(([n,v],i)=>`<div class="it"><div>${i+1}. ${esc(n)}</div><b>${fm?fm(v):v}</b></div>`).join(''):'<span class="mu">Sem dados no mês.</span>',
@@ -985,7 +1003,7 @@ function run(){const k=[V.ck,V.ckd,V.ckt].join('|');if(!V.ckdr||V.ckdr.k!==k){co
 function ckNorm(r){return JSON.stringify([r.a||{},r.temps||[],r.obs||'',r.who||'',r.av||'',r.photo||'',r.company||''])}
 function ckDirty(){const d=V.ckdr;if(!d)return false;const b=S.runs[d.k];return ckNorm(d.r)!==ckNorm(b||ckDefault())}
 function ckBack(ed){if(ckDirty()&&!confirm('Há alterações não salvas neste checklist. Sair sem salvar?'))return;const k=V.ck;if(CK[k]&&CK[k].nw&&!ed)delete CK[k];V.ckdr=null;V.ce=ed?k:null;V.ck=null;R()}
-function ckSaveRun(){const d=V.ckdr;if(!d)return;const r=d.r,cc=CK[V.ck];if(cc&&isRec(cc)){if(!String(r.who||'').trim())return alert('Escolha o responsável pelo recebimento.');if(!(r.temps||[]).some(v=>v!==''&&v!=null&&isFinite(+v)))return alert('Informe pelo menos uma temperatura.');}r.by=V.me?V.me.id:'';r.sent=false;S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();ckNote(r);if(cc)delete cc.nw;if(!save())return;alert('Checklist salvo.');R()}
+function ckSaveRun(){const d=V.ckdr;if(!d)return;const r=d.r,cc=CK[V.ck];if(cc&&isRec(cc)){if(!String(r.who||'').trim())return alert('Escolha o responsável pelo recebimento.');if(!(r.temps||[]).some(v=>v!==''&&v!=null&&isFinite(+v)))return alert('Informe pelo menos uma temperatura.');}r.by=V.me?V.me.id:'';r.sent=false;S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();ckNote(r);if(cc)delete cc.nw;if(!save())return;if(V.reg==='ck'||V.reg==='chrec'){V.ck=null;V.ckdr=null;if(V.reg==='ck'){V.ckTab=V.ckReturnTab==='hist'?'hist':'inicio';V.lw=null}V.ckReturnTab=null}alert('Checklist salvo.');R()}
 function updTemp(i,v){const r=run();r.temps=r.temps||[];r.temps[i]=v;save()}
 function setA(i,v){const r=run();if(r.a[i]===v)delete r.a[i];else r.a[i]=v;const y=scrollY;R();scrollTo(0,y)}
 function upd(f,v){run()[f]=v;save();if(f==='av')R()}
@@ -993,63 +1011,119 @@ function rankRows(){return S.team.map(p=>{const es=S.ev.filter(e=>e.p===p.id&&(!
 return{p,c,q,ne:es.length,nq:qs.length,g:pt.length?pt.reduce((a,b)=>a+b)/pt.length:null}}).filter(r=>r.g!=null).sort((a,b)=>b.g-a.g)}
 function rAva(){const rr=rankRows(),secs=S.sectors.map(s=>{const L=rr.filter(r=>r.p.s===s);return {s,L,avg:L.length?L.reduce((a,r)=>a+r.g,0)/L.length:null}}).filter(x=>x.L.length),avg=rr.length?rr.reduce((a,r)=>a+r.g,0)/rr.length:null;
 return `<div class="g2"><div class="c"><div class="mu">Nota média da equipe</div><div class="big">${avg!=null?avg.toFixed(1):'—'}</div><div class="mu">de 10</div></div><div class="c"><div class="mu">Avaliados</div><div class="big">${rr.length}</div><div class="mu">de ${S.team.length} pessoa(s)</div></div></div>`+(secs.length?'<h2>Por setor</h2>'+secs.map(x=>`<div class="c"><div class="row sp"><b>${esc(x.s)}</b><span class="mu">${x.avg.toFixed(1)}/10</span></div>${bar(x.avg*10)}</div>`).join(''):'')+'<h2>Ranking</h2>'+(rr.length?rr.map((r,i)=>{const l=lvl(r.g);return `<div class="c"><div class="row sp"><b>${i+1}. ${esc(r.p.n)}</b><span class="b ${l[1]}">${r.g.toFixed(1)} · ${l[0]}</span></div>${bar(r.g*10)}</div>`}).join(''):'<div class="c mu">Ainda sem avaliações.</div>')+`${progTipos()}${progConf()}<div class="c"><div class="row"><button class="bt" onclick="V.evt='ind';V.dr.p='';goR('ava','nova')">+ Nova avaliação ›</button><button class="bt g" onclick="goR('ava','rank')">Editar avaliações ›</button></div><p class="mu">Crie uma avaliação nova ou edite as já existentes.</p></div>`}
-function rAvaReg(){if(V.evm)return rEvM();let t=V.evt||'ind';if(!evm(t))t=V.evt='ind';const top=`<div class="chs">${S.evm.map(m=>chip((m.arq?'🗄️ ':m.e+' ')+esc(m.n),t===m.id,`V.evt='${m.id}';V.ev=${m.id==='ind'?'V.ev':"'nova'"};R()`)).join('')}${chip('⚙️ Tipos',0,"V.evm='list';R()")}</div>`;return top+(t==='clima'?rClima():t==='resp'?rResp():t==='ind'?rAvaInd():rAvaCus(evm(t)))}
-function rClima(){const C=V.cl||(V.cl={z:'',d:today(),qs:'',r:{},o:''}),hist=V.ev==='hist';
-const seg=`<div class="row sp">${historyIconButton("V.ev='hist';R()") }<div class="launch-title">Pesquisa de clima</div></div><div class="row u-mt8"><button class="bt" onclick="V.ev='nova';R()">+ Nova pesquisa</button></div>`;
-if(hist){const L=S.ev.filter(e=>e.t==='clima').reverse();return seg+(L.length?L.map(e=>{const a=avg(e.r);return `<div class="c"><div class="row sp"><b>${esc(e.z)}</b><span class="b ${lvl(a*2.5)[1]}">${a.toFixed(1)}/4</span></div><div class="mu">${br(e.d)} · ${e.qs.length} pergunta(s)</div>${evDet(e)}<button class="bt d" onclick="delE('${e.id}')">Excluir</button></div>`}).join(''):'<div class="c mu">Nenhuma pesquisa salva.</div>')}
-const mq=qsOf('clima'),lines=mq.length?mq.map(q=>q.t):C.qs.split('\n').map(x=>x.trim()).filter(Boolean);
-return seg+`<div class="c"><label>Setor<select onchange="V.cl.z=this.value">${'<option value="">Selecione…</option>'+S.sectors.map(s=>`<option ${s===C.z?'selected':''}>${esc(s)}</option>`).join('')}</select></label><label>Data<input type="date" value="${C.d}" onchange="V.cl.d=this.value"></label>${mq.length?'<p class="mu">Perguntas definidas em ⚙️ Tipos.</p>':`<label>Perguntas (uma por linha)<textarea rows="4" onchange="V.cl.qs=this.value;R()">${esc(C.qs)}</textarea></label>`}`+lines.map((q,i)=>`<h4>${esc(q)}</h4>${mq[i]&&mq[i].c?'<div class="mu">'+esc(mq[i].c)+'</div>':''}<div class="rt">${LV.map((l,j)=>`<button class="${C.r[i]===j+1?'on':''}" onclick="V.cl.r[${i}]=${j+1};keep()">${l}</button>`).join('')}</div>`).join('')+`<label>Observações<textarea rows="2" onchange="V.cl.o=this.value">${esc(C.o||'')}</textarea></label><button class="bt u-mt10" onclick="saveClima()">Salvar pesquisa</button></div>`}
-function saveClima(){const C=V.cl,mq=qsOf('clima'),lines=mq.length?mq.map(q=>q.t):C.qs.split('\n').map(x=>x.trim()).filter(Boolean);if(!C.z)return alert('Selecione o setor.');if(!lines.length)return alert('Escreva ao menos uma pergunta.');if(lines.some((_,i)=>!C.r[i])&&!confirm('Há perguntas sem resposta. Salvar mesmo assim?'))return;S.ev.push({id:uid(),t:'clima',z:C.z,d:C.d,qs:lines,r:{...C.r},o:C.o||'',...ownBy()});V.cl=null;V.ev='hist';save();R()}
-function rResp(){const C=V.rp||(V.rp={z:'',n:'',d:today(),r:{},o:''}),hist=V.ev==='hist';
-const seg=`<div class="row sp">${historyIconButton("V.ev='hist';R()") }<div class="launch-title">Avaliação do responsável</div></div><div class="row u-mt8"><button class="bt" onclick="V.ev='nova';R()">+ Nova avaliação</button></div>`;
-if(hist){const L=S.ev.filter(e=>e.t==='resp').reverse();return seg+(L.length?L.map(e=>{const a=avg(e.r);return `<div class="c"><div class="row sp"><b>${esc(e.n)}</b><span class="b ${lvl(a*2.5)[1]}">${a.toFixed(1)}/4</span></div><div class="mu">${esc(e.z)} · ${br(e.d)}${e.o?' · '+esc(e.o):''}</div>${evDet(e)}<button class="bt d" onclick="delE('${e.id}')">Excluir</button></div>`}).join(''):'<div class="c mu">Nenhuma avaliação de responsável salva.</div>')}
-return seg+`<div class="c"><label>Setor<select onchange="V.rp.z=this.value;R()">${'<option value="">Selecione…</option>'+S.sectors.map(s=>`<option ${s===C.z?'selected':''}>${esc(s)}</option>`).join('')}</select></label><label>Nome do responsável do setor<input value="${esc(C.n)}" onchange="V.rp.n=this.value;R()" placeholder="Nome do responsável"></label><label>Data<input type="date" value="${C.d}" onchange="V.rp.d=this.value"></label>${qsHTML(qsOf('resp'),C.r,'V.rp')}<label>Observações<textarea rows="2" onchange="V.rp.o=this.value">${esc(C.o)}</textarea></label><button class="bt u-mt10" onclick="saveResp()">Salvar avaliação</button></div>`}
-function saveResp(){const C=V.rp;if(!C||!C.z)return alert('Selecione o setor.');if(!C.n||!C.n.trim())return alert('Informe o nome do responsável.');if(!qsOf('resp').length)return alert('Este tipo não tem perguntas. Cadastre em ⚙️ Tipos.');if(Object.keys(C.r).length<qsOf('resp').length&&!confirm('Há perguntas sem nota. Salvar mesmo assim?'))return;S.ev.push({id:uid(),t:'resp',z:C.z,n:C.n.trim(),d:C.d,qs:qsSnap('resp'),r:{...C.r},o:C.o||'',...ownBy()});V.rp=null;V.ev='hist';save();R()}
-function rAvaInd(){const seg=`<div class="row sp">${historyIconButton("V.ev='hist';R()") }<button class="ch ${V.ev==='rank'?'on':''}" onclick="V.ev='rank';R()">🏆 Ranking</button></div><div class="row u-mt8"><button class="bt" onclick="V.ev='nova';R()">+ Nova avaliação</button></div>`;let h=seg;
-if(V.ev==='rank'){const rr=rankRows();h+=rr.length?rr.map((r,i)=>{const l=lvl(r.g);return `<div class="c"><div class="row sp"><b>${i+1}. ${esc(r.p.n)}</b><span class="b ${l[1]}">${r.g.toFixed(1)} · ${l[0]}</span></div>${bar(r.g*10)}<div class="mu">Competências: ${r.c!=null?r.c.toFixed(1)+'/4 ('+r.ne+')':'—'} · Qualidade (conferência): ${r.q!=null?r.q.toFixed(1)+'/10 ('+r.nq+')':'—'}</div></div>`}).join(''):'<div class="c mu">Ainda sem avaliações. Faça uma avaliação de competências ou uma conferência em Checklists › Controle de qualidade, escolhendo o funcionário avaliado.</div>';h+=`<button class="bt g" onclick="goR('ck','','cq')">Fazer conferência de qualidade</button>`}
-else if(V.ev==='nova'){const d=V.dr;h+=`<div class="c"><label>Funcionário<select onchange="V.dr.p=this.value">${'<option value="">Selecione…</option>'+S.team.map(p=>`<option value="${p.id}" ${p.id===d.p?'selected':''}>${esc(p.n)}</option>`).join('')}</select></label><label>Data<input type="date" value="${d.d}" onchange="V.dr.d=this.value"></label>${qsHTML(qsOf('ind'),d.r,'V.dr')}<label>Observações<textarea rows="2" onchange="V.dr.o=this.value">${esc(d.o)}</textarea></label><button class="bt u-mt10" onclick="saveE()">Salvar avaliação</button></div>`}
-else h+=S.ev.filter(e=>!e.t||e.t==='ind').length?[...S.ev].filter(e=>!e.t||e.t==='ind').reverse().map(e=>{const p=person(e.p),a=avg(e.r);return `<div class="c"><div class="row sp"><b>${esc(p?p.n:'—')}</b><span class="b ${lvl(a*2.5)[1]}">${a.toFixed(1)}/4</span></div><div class="mu">${br(e.d)}${e.o?' · '+esc(e.o):''}</div>${evDet(e)}<button class="bt d" onclick="delE('${e.id}')">Excluir</button></div>`}).join(''):'<div class="c mu">Nenhuma avaliação salva.</div>';return h}
+function rAvaReg(){
+ if(V.evm)return rEvM();
+ let t=V.evt||'ind';if(!evm(t))t=V.evt='ind';
+ const top='<div class="chs">'+S.evm.map(m=>chip((m.arq?'🗄️ ':m.e+' ')+esc(m.n),t===m.id,"V.evt='"+m.id+"';V.ev='inicio';R()")).join('')+chip('⚙️ Tipos',0,"V.evm='list';R()")+'</div>';
+ const body=t==='clima'?rClima():t==='resp'?rResp():t==='ind'?rAvaInd():rAvaCus(evm(t));const archive=t!=='ind'&&!!(evm(t)||{}).arq;return (V.ev==='hist'||V.ev==='nova'||V.ev==='rank'||archive?'':top)+body;
+}
+function rClima(){
+ const C=V.cl||(V.cl={z:'',d:today(),qs:'',r:{},o:''});
+ if(V.ev==='hist'){
+  const L=S.ev.filter(e=>e.t==='clima').reverse();
+  return regMenuBack('Voltar à Pesquisa de clima',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico · Pesquisa de clima</div>'+
+   (L.length?L.map(e=>{const a=avg(e.r);return '<div class="c"><div class="row sp"><b>'+esc(e.z)+'</b><span class="b '+lvl(a*2.5)[1]+'">'+a.toFixed(1)+'/4</span></div><div class="mu">'+br(e.d)+' · '+e.qs.length+' pergunta(s)</div>'+evDet(e)+'<button class="bt d" onclick="delE(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhuma pesquisa salva.</div>');
+ }
+ if(V.ev!=='nova')return '<div class="row sp"><div class="launch-title">Pesquisa de clima</div>'+historyIconButton("V.ev='hist';R()")+'</div><div class="c launch-card"><button class="launch-plus" aria-label="Nova pesquisa" onclick="V.ev=\'nova\';R();scrollTo(0,0)">+</button><p class="launch-info">Registre a percepção da equipe por setor. As pesquisas realizadas ficam no histórico.</p></div>';
+ const mq=qsOf('clima'),lines=mq.length?mq.map(q=>q.t):C.qs.split('\n').map(x=>x.trim()).filter(Boolean);
+ return regMenuBack('Voltar à Pesquisa de clima',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Nova pesquisa de clima</div><div class="c">'+
+  '<label>Setor<select onchange="V.cl.z=this.value">'+ '<option value="">Selecione…</option>'+S.sectors.map(s=>'<option '+(s===C.z?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label>'+
+  '<label>Data<input type="date" value="'+C.d+'" onchange="V.cl.d=this.value"></label>'+
+  (mq.length?'<p class="mu">Perguntas definidas em ⚙️ Tipos.</p>':'<label>Perguntas (uma por linha)<textarea rows="4" onchange="V.cl.qs=this.value;R()">'+esc(C.qs)+'</textarea></label>')+
+  lines.map((q,i)=>'<h4>'+esc(q)+'</h4>'+(mq[i]&&mq[i].c?'<div class="mu">'+esc(mq[i].c)+'</div>':'')+'<div class="rt">'+LV.map((l,j)=>'<button class="'+(C.r[i]===j+1?'on':'')+'" onclick="V.cl.r['+i+']='+ (j+1)+';keep()">'+l+'</button>').join('')+'</div>').join('')+
+  '<label>Observações<textarea rows="2" onchange="V.cl.o=this.value">'+esc(C.o||'')+'</textarea></label><div class="row u-mt10"><button class="bt" onclick="saveClima()">Salvar pesquisa</button><button class="bt g" onclick="V.ev=\'inicio\';R()">Cancelar</button></div></div>';
+}
+function saveClima(){
+ const C=V.cl,mq=qsOf('clima'),lines=mq.length?mq.map(q=>q.t):C.qs.split('\n').map(x=>x.trim()).filter(Boolean);
+ if(!C.z)return alert('Selecione o setor.');
+ if(!lines.length)return alert('Escreva ao menos uma pergunta.');
+ if(lines.some((_,i)=>!C.r[i])&&!confirm('Há perguntas sem resposta. Salvar mesmo assim?'))return;
+ S.ev.push({id:uid(),t:'clima',z:C.z,d:C.d,qs:lines,r:{...C.r},o:C.o||'',...ownBy()});
+ V.cl=null;V.ev='inicio';save();R();scrollTo(0,0);
+}
+function rResp(){
+ const C=V.rp||(V.rp={z:'',n:'',d:today(),r:{},o:''});
+ if(V.ev==='hist'){
+  const L=S.ev.filter(e=>e.t==='resp').reverse();
+  return regMenuBack('Voltar à Avaliação do responsável',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico · Avaliação do responsável</div>'+
+   (L.length?L.map(e=>{const a=avg(e.r);return '<div class="c"><div class="row sp"><b>'+esc(e.n)+'</b><span class="b '+lvl(a*2.5)[1]+'">'+a.toFixed(1)+'/4</span></div><div class="mu">'+esc(e.z)+' · '+br(e.d)+(e.o?' · '+esc(e.o):'')+'</div>'+evDet(e)+'<button class="bt d" onclick="delE(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhuma avaliação de responsável salva.</div>');
+ }
+ if(V.ev!=='nova')return '<div class="row sp"><div class="launch-title">Avaliação do responsável</div>'+historyIconButton("V.ev='hist';R()")+'</div><div class="c launch-card"><button class="launch-plus" aria-label="Nova avaliação" onclick="V.ev=\'nova\';R();scrollTo(0,0)">+</button><p class="launch-info">Avalie o responsável de cada setor. Os registros realizados ficam no histórico.</p></div>';
+ return regMenuBack('Voltar à Avaliação do responsável',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Nova avaliação do responsável</div><div class="c">'+
+  '<label>Setor<select onchange="V.rp.z=this.value;R()"><option value="">Selecione…</option>'+S.sectors.map(s=>'<option '+(s===C.z?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label>'+
+  '<label>Nome do responsável do setor<input value="'+esc(C.n)+'" onchange="V.rp.n=this.value" placeholder="Nome do responsável"></label>'+
+  '<label>Data<input type="date" value="'+C.d+'" onchange="V.rp.d=this.value"></label>'+
+  qsHTML(qsOf('resp'),C.r,'V.rp')+
+  '<label>Observações<textarea rows="2" onchange="V.rp.o=this.value">'+esc(C.o)+'</textarea></label><div class="row u-mt10"><button class="bt" onclick="saveResp()">Salvar avaliação</button><button class="bt g" onclick="V.ev=\'inicio\';R()">Cancelar</button></div></div>';
+}
+function saveResp(){
+ const C=V.rp;if(!C||!C.z)return alert('Selecione o setor.');
+ if(!C.n||!C.n.trim())return alert('Informe o nome do responsável.');
+ if(!qsOf('resp').length)return alert('Este tipo não tem perguntas. Cadastre em ⚙️ Tipos.');
+ if(Object.keys(C.r).length<qsOf('resp').length&&!confirm('Há perguntas sem nota. Salvar mesmo assim?'))return;
+ S.ev.push({id:uid(),t:'resp',z:C.z,n:C.n.trim(),d:C.d,qs:qsSnap('resp'),r:{...C.r},o:C.o||'',...ownBy()});
+ V.rp=null;V.ev='inicio';save();R();scrollTo(0,0);
+}
+function rAvaInd(){
+ if(V.ev==='hist'){
+  const L=[...S.ev].filter(e=>!e.t||e.t==='ind').reverse();
+  return regMenuBack('Voltar à Avaliação individual',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico · Avaliações individuais</div>'+
+   (L.length?L.map(e=>{const p=person(e.p),a=avg(e.r);return '<div class="c"><div class="row sp"><b>'+esc(p?p.n:'—')+'</b><span class="b '+lvl(a*2.5)[1]+'">'+a.toFixed(1)+'/4</span></div><div class="mu">'+br(e.d)+(e.o?' · '+esc(e.o):'')+'</div>'+evDet(e)+'<button class="bt d" onclick="delE(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhuma avaliação salva.</div>');
+ }
+ if(V.ev==='rank'){
+  const rr=rankRows();
+  return regMenuBack('Voltar à Avaliação individual',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Ranking de avaliações</div>'+
+   (rr.length?rr.map((r,i)=>{const l=lvl(r.g);return '<div class="c"><div class="row sp"><b>'+(i+1)+'. '+esc(r.p.n)+'</b><span class="b '+l[1]+'">'+r.g.toFixed(1)+' · '+l[0]+'</span></div>'+bar(r.g*10)+'<div class="mu">Competências: '+(r.c!=null?r.c.toFixed(1)+'/4 ('+r.ne+')':'—')+' · Qualidade (conferência): '+(r.q!=null?r.q.toFixed(1)+'/10 ('+r.nq+')':'—')+'</div></div>'}).join(''):'<div class="c mu">Ainda sem avaliações. Faça uma avaliação de competências ou uma conferência em Checklists › Controle de qualidade, escolhendo o funcionário avaliado.</div>')+
+   '<button class="bt g" onclick="goR(\'ck\',\'\',\'cq\')">Fazer conferência de qualidade</button>';
+ }
+ if(V.ev==='nova'){
+  const d=V.dr;
+  return regMenuBack('Voltar à Avaliação individual',"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Nova avaliação individual</div><div class="c">'+
+   '<label>Funcionário<select onchange="V.dr.p=this.value"><option value="">Selecione…</option>'+S.team.map(p=>'<option value="'+p.id+'" '+(p.id===d.p?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label>'+
+   '<label>Data<input type="date" value="'+d.d+'" onchange="V.dr.d=this.value"></label>'+
+   qsHTML(qsOf('ind'),d.r,'V.dr')+
+   '<label>Observações<textarea rows="2" onchange="V.dr.o=this.value">'+esc(d.o)+'</textarea></label><div class="row u-mt10"><button class="bt" onclick="saveE()">Salvar avaliação</button><button class="bt g" onclick="V.ev=\'inicio\';R()">Cancelar</button></div></div>';
+ }
+ return '<div class="row sp"><div class="launch-title">Avaliação individual</div><span class="row">'+historyIconButton("V.ev='hist';R()")+'<button class="ch" onclick="V.ev=\'rank\';R()">Ranking</button></span></div><div class="c launch-card"><button class="launch-plus" aria-label="Nova avaliação individual" onclick="V.ev=\'nova\';R();scrollTo(0,0)">+</button><p class="launch-info">Avalie as competências dos funcionários. As avaliações anteriores ficam no histórico.</p></div>';
+}
 const keep=()=>{const y=scrollY;R();scrollTo(0,y)};
-function saveE(){const d=V.dr;if(!d.p)return alert('Selecione o repositor.');if(!qsOf('ind').length)return alert('Este tipo não tem perguntas. Cadastre em ⚙️ Tipos.');if(Object.keys(d.r).length<qsOf('ind').length&&!confirm('Há perguntas sem nota. Salvar mesmo assim?'))return;S.ev.push({id:uid(),p:d.p,d:d.d,qs:qsSnap('ind'),r:d.r,o:d.o,...ownBy()});V.dr={p:'',d:today(),r:{},o:''};V.ev='rank';save();R()}
+function saveE(){
+ const d=V.dr;if(!d.p)return alert('Selecione o repositor.');
+ if(!qsOf('ind').length)return alert('Este tipo não tem perguntas. Cadastre em ⚙️ Tipos.');
+ if(Object.keys(d.r).length<qsOf('ind').length&&!confirm('Há perguntas sem nota. Salvar mesmo assim?'))return;
+ S.ev.push({id:uid(),p:d.p,d:d.d,qs:qsSnap('ind'),r:d.r,o:d.o,...ownBy()});
+ V.dr={p:'',d:today(),r:{},o:''};V.ev='inicio';save();R();scrollTo(0,0);
+}
 function delE(id){if(confirm('Excluir avaliação?')){S.ev=S.ev.filter(e=>e.id!==id);tomb('@ev',id);save();R()}}
-function fld(f,val){const id='f_'+f.k,has=val!==undefined&&val!==null&&val!=='',sel=has?val:V.ss,isMot=f.k==='m'&&/motivo/i.test(f.l||'');let c;
-if(f.t==='s')c=`<select id="${id}">${f.o.map(o=>`<option ${has&&o===val?'selected':''}>${o}</option>`).join('')}</select>`;
-else if(f.t==='p')c=`<select id="${id}"><option value="">—</option>${S.team.map(p=>`<option ${p.n===val?'selected':''}>${esc(p.n)}</option>`).join('')}</select>`;
-else if(f.t==='E'){const E=S.team.filter(p=>p.ent),A=E.length?E:S.team;c=`<select id="${id}"><option value="">—</option>${A.map(p=>`<option ${p.n===val?'selected':''}>${esc(p.n)}</option>`).join('')}</select>`}
-else if(f.t==='q')c=`<select id="${id}">${[...S.team.map(p=>p.n),...S.sectors].map(o=>`<option ${o===val?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
-else if(f.t==='z')c=`<select id="${id}">${S.sectors.map(o=>`<option ${o===sel?'selected':''}>${esc(o)}</option>`).join('')}</select>`;
-else if(f.t==='e')c=`<select id="${id}"><option value="">—</option>${(S.equip||[]).map(x=>`<option value="${x.id}" ${x.id===val?'selected':''}>${esc((x.num?x.num+' · ':'')+x.n)}</option>`).join('')}</select>`;
-else if(f.t==='a')c=`<div class="sig"><canvas data-sig="${id}" width="300" height="120"></canvas><input type="hidden" id="${id}" value="${esc(has?val:'')}"><button type="button" class="ch" onclick="sigClr('${id}')">Limpar assinatura</button></div>`;
-else if(f.t==='x')c=`<textarea id="${id}" rows="2">${esc(has?val:'')}</textarea>`;
-else c=`<input id="${id}" type="${{d:'date',h:'time',n:'number',t:'text'}[f.t]}" ${f.t==='n'?'step="any" inputmode="decimal"':''} ${isMot?'list="dl_motivos"':''} value="${esc(has?val:(f.t==='d'?today():f.t==='h'?new Date().toTimeString().slice(0,5):''))}">${isMot?`<datalist id="dl_motivos">${motivosTodos().map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist>`:''}`;
-return `<label>${f.l}${c}</label>`}
-const fv=(f,e)=>{if(f.t==='a')return String(e[f.k]||'').startsWith('data:')?`<img src="${e[f.k]}" alt="Assinatura" style="height:44px;background:#fff;border-radius:6px;vertical-align:middle">`:esc(e[f.k]);if(f.t==='e'){const x=(S.equip||[]).find(y=>y.id===e[f.k]);return esc(x?(x.num?x.num+' · ':'')+x.n:(e.q||''))}return esc(br(e[f.k]))};
-const recVal=f=>{const e=V.ed&&(S.log[V.reg]||[]).find(x=>x.id===V.ed);return e?e[f.k]:undefined};
-const tc=(e,n,on,a)=>`<button class="ch ${on?'on':''}" title="${n}" onclick="${a}">${on?e+' '+n:e}</button>`;
-const RSEC=[['lanc','📝','Lançamentos'],['cro','🗓️','Cronograma'],['ck','✅','Checklists'],['ava','⭐','Avaliações'],['conf','🔎','Conferências'],['eq','👥','Equipe'],['set','🏬','Setores'],['pdc','🧾','Pedidos p/ Compras'],['semv','📦','Produtos sem venda'],['mov','🔁','Movimentações'],['w5','🎯','Plano 5W2H']];
-const LANC_KEYS=(FS.ck={n:'Checklist',e:'✅',f:'',F:[],ti:()=>''},FS.ped={n:'Pedido p/ prateleira',e:'🛒',f:'d:Data:d|p:Produto:t|r:Repositor:p',ti:e=>`${e.p} · ${e.r||'—'}`},FS.ent.f='d:Data:d|h:Hora:h|b:Bairro:t|r:Entregador:E',FS.ent.ti=e=>`${br(e.d)} · ${e.b||'—'} · ${e.r||'—'}`,FS.req.f='d:Data:d|z:Setor:z|p:Produto:t|q:Quantidade:n|u:Unidade:s:kg,un,L,g,cx',FS.etiq.f='d:Data:d|n:Repositor:p|r:Assinatura:a|m:Motivo:s:Alteração de preço,Brigada de preço,Etiqueta danificada,Outro|q:Quantidade:n',FS.etiq.ti=e=>`${e.n||(String(e.r||'').startsWith('data:')?'—':e.r)||'—'} · ${e.m||''} × ${e.q||0}`,FS.fita.f='d:Data:d|r:Funcionário:p|q:Quantidade:n',FS.fita.ti=e=>`${e.r||'—'} · ${e.q||1} fita(s) · ${br(e.d)}`,[FS.ped,FS.ent,FS.req,FS.etiq,FS.fita].forEach(x=>x.F=PF(x.f)),BADGE.req=BADGE.ped=e=>e.st==='c'?['Comprado'+(e.emp?' · '+e.emp:''),'ok']:e.st==='n'?['Não comprado','no']:['Pendente','wa'],['temp','trf','ped','perd','etiq','fita','rup','vtc','atc','ach','os','w5','ent','cx','lote','chrec']);
+function rAvaCus(m){
+ V.cu=V.cu||{};
+ const C=V.cu[m.id]||(V.cu[m.id]={p:'',z:'',n:'',d:today(),r:{},o:''}),ref="V.cu['"+m.id+"']";
+ if(V.ev==='hist'||m.arq){
+  const L=S.ev.filter(e=>e.t===m.id).reverse();
+  return regMenuBack(m.arq?'Voltar às Avaliações':'Voltar a '+m.n,m.arq?"V.evt='ind';V.ev='inicio';R();scrollTo(0,0)":"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico · '+esc(m.n)+'</div>'+
+   (m.arq?'<div class="c mu">Tipo arquivado: só o histórico está disponível. Para voltar a usar, restaure em ⚙️ Tipos.</div>':'')+
+   (L.length?L.map(e=>{const p=e.p?person(e.p):null,a=avg(e.r||{});return '<div class="c"><div class="row sp"><b>'+esc(p?p.n:(e.z||e.n||'—'))+'</b><span class="b '+lvl(a*2.5)[1]+'">'+a.toFixed(1)+'/4</span></div><div class="mu">'+br(e.d)+(e.o?' · '+esc(e.o):'')+'</div>'+evDet(e)+'<button class="bt d" onclick="delE(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhuma avaliação salva.</div>');
+ }
+ if(V.ev!=='nova')return '<div class="row sp"><div class="launch-title">'+m.e+' '+esc(m.n)+'</div>'+historyIconButton("V.ev='hist';R()")+'</div><div class="c launch-card"><button class="launch-plus" aria-label="Nova avaliação" onclick="V.ev=\'nova\';R();scrollTo(0,0)">+</button><p class="launch-info">Faça uma nova avaliação neste modelo. As avaliações anteriores ficam no histórico.</p></div>';
+ const fa=m.a==='p'?'<label>Funcionário<select onchange="'+ref+'.p=this.value"><option value="">Selecione…</option>'+S.team.map(p=>'<option value="'+p.id+'" '+(p.id===C.p?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label>':m.a==='s'?'<label>Setor<select onchange="'+ref+'.z=this.value"><option value="">Selecione…</option>'+S.sectors.map(s=>'<option '+(s===C.z?'selected':'')+'>'+esc(s)+'</option>').join('')+'</select></label>':'<label>Identificação (quem ou o que é avaliado)<input value="'+esc(C.n)+'" onchange="'+ref+'.n=this.value"></label>';
+ return regMenuBack('Voltar a '+m.n,"V.ev='inicio';R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Nova avaliação · '+esc(m.n)+'</div><div class="c">'+fa+
+  '<label>Data<input type="date" value="'+C.d+'" onchange="'+ref+'.d=this.value"></label>'+
+  qsHTML(m.qs,C.r,ref)+
+  '<label>Observações<textarea rows="2" onchange="'+ref+'.o=this.value">'+esc(C.o)+'</textarea></label>'+
+  '<div class="row u-mt10"><button class="bt" onclick="saveCus(\''+m.id+'\')">Salvar avaliação</button><button class="bt g" onclick="V.ev=\'inicio\';R()">Cancelar</button></div></div>';
+}
+function saveCus(id){
+ const m=evm(id),C=(V.cu||{})[id];if(!m||!C)return;
+ if(!m.qs.length)return alert('Este tipo ainda não tem perguntas. Cadastre em ⚙️ Tipos.');
+ if(m.a==='p'&&!C.p)return alert('Selecione o funcionário.');
+ if(m.a==='s'&&!C.z)return alert('Selecione o setor.');
+ if(m.a==='x'&&!(C.n||'').trim())return alert('Informe a identificação.');
+ if(Object.keys(C.r).length<m.qs.length&&!confirm('Há perguntas sem nota. Salvar mesmo assim?'))return;
+ const e={id:uid(),t:id,mn:m.n,d:C.d,qs:qsSnap(id),r:{...C.r},o:C.o||'',...ownBy()};
+ if(m.a==='p')e.p=C.p;if(m.a==='s')e.z=C.z;if(m.a==='x')e.n=C.n.trim();
+ S.ev.push(e);V.cu[id]=null;V.ev='inicio';save();R();scrollTo(0,0);
+}
 
-/* ---- tipos de avaliação (modelos) ---- */
-const EVA={p:'Funcionário',s:'Setor',x:'Outro (texto livre)',r:'Setor + responsável'};
-const evm=id=>(S.evm||[]).find(m=>m.id===id),qsOf=id=>{const m=evm(id);return m?m.qs:[]},qsSnap=id=>qsOf(id).map(q=>({t:q.t,c:q.c||''}));
-function seedModels(){const cq=()=>COMP.map((c,i)=>({id:'q'+i,t:c[0],c:c[1]}));
-if(!Array.isArray(S.evm))S.evm=[];
-[{id:'ind',n:'Individual',e:'👤',a:'p',b:1,qs:cq()},{id:'clima',n:'Pesquisa de clima',e:'🌤️',a:'s',b:1,qs:[]},{id:'resp',n:'Responsável do setor',e:'🧑‍💼',a:'r',b:1,qs:cq()}].forEach((m,i)=>{if(!S.evm.some(x=>x.id===m.id))S.evm.splice(i,0,m)});
-S.evm.forEach(m=>{if(!Array.isArray(m.qs))m.qs=[]});
-if(!Array.isArray(S.amod))S.amod=[{id:'am_cq',n:'Controle de qualidade',i:[...(ATR.Evilly||[])]},{id:'am_pp',n:'Prevenção de perdas',i:[...(ATR.Yago||[])]},{id:'am_rp',n:'Prevenção de perdas – recebimento',i:[...(ATR.Junior||[])]}].filter(m=>m.i.length);
-if(!Array.isArray(S.imod))S.imod=[
-{id:'im_frente',n:'Frente de Loja',i:['Entregas realizadas','Entregas e feiras por bairro','Entregadores que fizeram as feiras','Vendas por operador de caixa','Avaliação dos funcionários','Clima do setor']},
-{id:'im_merc',n:'Mercearia',i:['Avaliação dos repositores','Clima do setor','Entrega de fitas','Ruptura','Entrega de etiquetas','Vencidos com troca','Vencidos sem troca (perda)','Avariados com troca','Avariados sem troca']},
-{id:'im_per',n:'Perecíveis',i:['Avaliação do setor','Avaliação dos funcionários','Clima do setor','Perdas de perecíveis (R$)','Vencidos com e sem troca','Avariados com e sem troca']},
-{id:'im_prod',n:'Produção',i:['Desperdício de padaria','Requisição de produtos para produção','Avaliação do setor','Avaliação dos funcionários','Clima do setor']},
-{id:'im_est',n:'Estoque',i:['Identificação de lotes','Empilhamento correto (prevenção de queda)','Organização geral do estoque','Avaliação dos funcionários','Vencidos com e sem troca','Avariados com e sem troca']}]}
-const qsHTML=(qs,r,ref)=>qs.length?qs.map((q,i)=>`<h4>${esc(q.t)}</h4>${q.c?'<div class="mu">'+esc(q.c)+'</div>':''}<div class="rt">${LV.map((l,j)=>`<button class="${r[i]===j+1?'on':''}" onclick="${ref}.r[${i}]=${j+1};keep()">${l}</button>`).join('')}</div>`).join(''):'<div class="c mu">Este tipo ainda não tem perguntas. Use ⚙️ Tipos para adicionar.</div>';
-function evDet(e){const q=Array.isArray(e.qs)&&e.qs.length?e.qs.map(x=>typeof x==='string'?{t:x}:x):((!e.t||e.t==='ind'||e.t==='resp')?COMP.map(c=>({t:c[0]})):[]);if(!q.length||!e.r)return'';return `<details style="margin:6px 0;padding:6px 10px"><summary class="mu">Ver respostas</summary>${q.map((x,i)=>`<div class="it"><div>${esc(x.t)}</div><b>${e.r[i]?LV[e.r[i]-1]:'—'}</b></div>`).join('')}</details>`}
-function rAvaCus(m){V.cu=V.cu||{};const hist=V.ev==='hist'||!!m.arq,C=V.cu[m.id]||(V.cu[m.id]={p:'',z:'',n:'',d:today(),r:{},o:''}),seg=m.arq?'<div class="row sp">'+historyIconButton("V.ev='hist';R()")+'<div class="launch-title">'+m.e+' '+esc(m.n)+'</div></div>':`<div class="row sp">${historyIconButton("V.ev='hist';R()") }<div class="launch-title">${m.e} ${esc(m.n)}</div></div><div class="row u-mt8"><button class="bt" onclick="V.ev='nova';R()">+ Nova avaliação</button></div>`,ref="V.cu['"+m.id+"']";
-if(hist){const L=S.ev.filter(e=>e.t===m.id).reverse();return seg+(m.arq?'<div class="c mu">Tipo arquivado: só o histórico está disponível. Para voltar a usar, restaure em ⚙️ Tipos.</div>':'')+(L.length?L.map(e=>{const p=e.p?person(e.p):null,a=avg(e.r||{});return `<div class="c"><div class="row sp"><b>${esc(p?p.n:(e.z||e.n||'—'))}</b><span class="b ${lvl(a*2.5)[1]}">${a.toFixed(1)}/4</span></div><div class="mu">${br(e.d)}${e.o?' · '+esc(e.o):''}</div>${evDet(e)}<button class="bt d" onclick="delE('${e.id}')">Excluir</button></div>`}).join(''):'<div class="c mu">Nenhuma avaliação salva.</div>')}
-const fa=m.a==='p'?`<label>Funcionário<select onchange="${ref}.p=this.value">${'<option value="">Selecione…</option>'+S.team.map(p=>`<option value="${p.id}" ${p.id===C.p?'selected':''}>${esc(p.n)}</option>`).join('')}</select></label>`:m.a==='s'?`<label>Setor<select onchange="${ref}.z=this.value">${'<option value="">Selecione…</option>'+S.sectors.map(s=>`<option ${s===C.z?'selected':''}>${esc(s)}</option>`).join('')}</select></label>`:`<label>Identificação (quem ou o que é avaliado)<input value="${esc(C.n)}" onchange="${ref}.n=this.value"></label>`;
-return seg+`<div class="c"><h3>${m.e} ${esc(m.n)}</h3>${fa}<label>Data<input type="date" value="${C.d}" onchange="${ref}.d=this.value"></label>${qsHTML(m.qs,C.r,ref)}<label>Observações<textarea rows="2" onchange="${ref}.o=this.value">${esc(C.o)}</textarea></label><button class="bt u-mt10" onclick="saveCus('${m.id}')">Salvar avaliação</button></div>`}
-function saveCus(id){const m=evm(id),C=(V.cu||{})[id];if(!m||!C)return;if(!m.qs.length)return alert('Este tipo ainda não tem perguntas. Cadastre em ⚙️ Tipos.');if(m.a==='p'&&!C.p)return alert('Selecione o funcionário.');if(m.a==='s'&&!C.z)return alert('Selecione o setor.');if(m.a==='x'&&!(C.n||'').trim())return alert('Informe a identificação.');if(Object.keys(C.r).length<m.qs.length&&!confirm('Há perguntas sem nota. Salvar mesmo assim?'))return;const e={id:uid(),t:id,mn:m.n,d:C.d,qs:qsSnap(id),r:{...C.r},o:C.o||'',...ownBy()};if(m.a==='p')e.p=C.p;if(m.a==='s')e.z=C.z;if(m.a==='x')e.n=C.n.trim();S.ev.push(e);V.cu[id]=null;V.ev='hist';save();R()}
 function rEvM(){const id=V.evm;
 if(id==='list')return `<button class="ch" onclick="V.evm=null;V.evd=null;R()">‹ Avaliações</button><h3 class="u-m10">⚙️ Tipos de avaliação</h3><button class="bt" onclick="evmOpen('new')">+ Novo tipo de avaliação</button><p class="mu">Cada tipo tem suas próprias perguntas e critérios. As avaliações já feitas guardam as perguntas da época e não mudam quando o tipo é editado.</p>`+S.evm.map(m=>`<div class="c tap" onclick="evmOpen('${m.id}')"><div class="row sp"><b>${m.e} ${esc(m.n)}</b><span class="row"><span class="mu">${m.arq?'🗄️ arquivado':m.b?'padrão':''}</span>${!m.b&&!m.arq?`<button class="bt d" title="Excluir tipo" aria-label="Excluir tipo" onclick="event.stopPropagation();evmDelId('${m.id}')">${V.cf==='ev'+m.id?'Confirmar?':'✕'}</button>`:''}</span></div><div class="mu">Avalia: ${EVA[m.a]||'—'} · ${m.qs.length} pergunta(s) · ${S.ev.filter(e=>(e.t||'ind')===m.id).length} realizada(s) ›</div></div>`).join('');
 const d=V.evd;if(!d){V.evm='list';return rEvM()}
@@ -1077,7 +1151,7 @@ const pdcCanCreate=()=>!!V.me&&(isFullAccess()||loginRoleOK(person(V.me.id))||V.
 const pdcIsBuyer=()=>pdcCanCreate();
 function pdcAddItem(){const p=(($('pdc_p')||{}).value||'').trim(),q=(($('pdc_q')||{}).value||'').trim(),u=($('pdc_u')||{}).value||'un',o=(($('pdc_o')||{}).value||'').trim();if(!p||!q)return alert('Informe o produto e a quantidade.');V.pdcL=[...(V.pdcL||[]),{p,q,u,o}];R()}
 function pdcDelItem(j){V.pdcL=(V.pdcL||[]).filter((_,x)=>x!==j);R()}
-function pdcSend(){const L=V.pdcL||[];if(!L.length)return alert('Adicione ao menos um produto.');const rp=person((($('pdc_rp')||{}).value)||'');if(!rp)return alert('Escolha o repositor que está fazendo o pedido.');S.pdc=S.pdc||[];S.conf=S.conf||[];const now=new Date(),id=uid(),num=S.pdc.length+1,items=L.map(i=>({id:uid(),...i,ps:'',qc:'',mot:'',buyer:''})),cfid=uid();const o={id,n:num,by:V.me.id,byN:V.me.n,rp:rp.id,rpN:rp.n,sec:rp.s||'',d:today(),h:now.toTimeString().slice(0,5),st:'Pendente',items,confId:cfid,upd:Date.now(),dirty:true};S.pdc.push(o);S.conf.push({id:cfid,t:'compra',nome:'Pedido #'+num+' · '+rp.n,d:today(),r:rp.n,pedId:id,pedN:num,by:V.me.id,byN:V.me.n,rpN:rp.n,u:Date.now(),sent:false,items:items.map(it=>({id:uid(),iid:it.id,p:it.p,c:it.q+' '+it.u,q:it.q,qc:'',u:it.u,ps:'',mot:'',buyer:'',ok:null,dv:'',qcf:'',ob:''}))});V.pdcL=[];save();V.tab='reg';V.rs='conf';V.cfO=cfid;V.pdcO=null;R()}
+function pdcSend(){const L=V.pdcL||[];if(!L.length)return alert('Adicione ao menos um produto.');const rp=person((($('pdc_rp')||{}).value)||'');if(!rp)return alert('Escolha o repositor que está fazendo o pedido.');S.pdc=S.pdc||[];S.conf=S.conf||[];const now=new Date(),id=uid(),num=S.pdc.length+1,items=L.map(i=>({id:uid(),...i,ps:'',qc:'',mot:'',buyer:''})),cfid=uid();const o={id,n:num,by:V.me.id,byN:V.me.n,rp:rp.id,rpN:rp.n,sec:rp.s||'',d:today(),h:now.toTimeString().slice(0,5),st:'Pendente',items,confId:cfid,upd:Date.now(),dirty:true};S.pdc.push(o);S.conf.push({id:cfid,t:'compra',nome:'Pedido #'+num+' · '+rp.n,d:today(),r:rp.n,pedId:id,pedN:num,by:V.me.id,byN:V.me.n,rpN:rp.n,u:Date.now(),sent:false,items:items.map(it=>({id:uid(),iid:it.id,p:it.p,c:it.q+' '+it.u,q:it.q,qc:'',u:it.u,ps:'',mot:'',buyer:'',ok:null,dv:'',qcf:'',ob:''}))});V.pdcL=[];V.pdcNew=0;save();V.tab='reg';V.rs='conf';V.cfO=cfid;V.pdcO=null;R()}
 function pdcRecalc(o){if(o.st==='Encerrado')return;const st=o.items.map(i=>i.ps);if(st.every(x=>!x)){o.st='Pendente';return}if(!st.every(x=>x)){o.st='Em andamento';return}const c=st.filter(x=>x==='Comprado').length;o.st=c===st.length?'Atendido':c>0||st.some(x=>x==='Parcial')?'Parcialmente atendido':'Em andamento'}
 function pdcSaveAt(oid){const o=(S.pdc||[]).find(x=>x.id===oid);if(!o)return;o.items.forEach(it=>{const sv=($('pst_'+it.id)||{}).value;if(sv===undefined)return;it.ps=sv;it.buyer=V.me.n;it.qc=(($('pq_'+it.id)||{}).value||'').trim();it.mot=(($('pm_'+it.id)||{}).value||'').trim();const cf=(S.conf||[]).find(x=>x.id===o.confId),ci=cf&&(cf.items||[]).find(x=>x.iid===it.id);if(ci){Object.assign(ci,{ps:it.ps,qc:it.qc,mot:it.mot,buyer:it.buyer,ok:it.ps==='Comprado'?true:null});cf.u=Date.now();cf.sent=false}});pdcRecalc(o);o.upd=Date.now();o.dirty=true;save();R()}
 function pdcClose(oid){const o=(S.pdc||[]).find(x=>x.id===oid);if(!o||!(o.by===V.me.id||o.rp===V.me.id||isFullAccess()))return;o.st='Encerrado';o.upd=Date.now();o.dirty=true;notify([o.by,o.rp].filter(Boolean),'🧾 Pedido #'+o.n+' encerrado',{t:'pdc',id:o.id},'pdcx|'+o.id,'tar');save();R()}
@@ -1086,11 +1160,27 @@ const rows=o.items.map(it=>{const base=`<b>${esc(it.p)}</b> <span class="mu">${e
 if(!buy)return `<div class="it"><div>${base}<div class="mu">${it.ps?'Situação: '+esc(it.ps):'Pendente'}${it.qc?' · comprado: '+esc(it.qc)+' '+esc(it.u):''}${it.mot?' · motivo: '+esc(it.mot):''}${it.buyer?' · atualizado por '+esc(it.buyer):''}</div></div></div>`;
 return `<div class="c">${base}${dsel('pst_'+it.id,PDC_ST,it.ps||'')}<div class="row u-mt6"><input id="pq_${it.id}" placeholder="Qtd. comprada" value="${esc(it.qc||'')}" class="u-fx1" inputmode="decimal"><input id="pm_${it.id}" placeholder="Motivo / observação" value="${esc(it.mot||'')}" class="u-fx1"></div></div>`}).join('');
 return `<button class="ch" onclick="V.pdcO=null;R()">‹ Pedidos</button><div class="c"><div class="row sp"><b>Pedido #${o.n}</b><span class="b">${o.st}</span></div><p class="mu">Repositor: ${esc(o.rpN||o.byN)}${o.sec?' · '+esc(o.sec):''} · ${o.d} ${o.h}${o.rp&&o.byN!==o.rpN?' · lançado por '+esc(o.byN):''}</p></div>${rows}<div class="row u-mt8">${buy&&o.st!=='Encerrado'?`<button class="bt" onclick="pdcSaveAt('${o.id}')">Salvar andamento</button>`:''}${buy&&o.st!=='Encerrado'?`<button class="bt g" onclick="pdcForward('${o.id}')">🔎 Abrir conferência</button>`:''}${owner&&o.st!=='Encerrado'?`<button class="bt g" onclick="pdcClose('${o.id}')">Encerrar pedido</button>`:''}</div>`}
-function rPdc(){let h='';
-if(pdcCanCreate()&&!V.pdcO){const L=V.pdcL||[];h+=`<div class="c"><h3>🧾 Novo pedido para Compras</h3><label>Repositor que está fazendo o pedido</label>${dsel('pdc_rp',S.team.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(p=>({v:p.id,l:p.n+(p.s?' · '+p.s:'')})),(V.me&&person(V.me.id))?V.me.id:'')}<input id="pdc_p" placeholder="Produto" class="u-fx1"><div class="row u-mt6"><input id="pdc_q" placeholder="Quantidade" class="u-fx1" inputmode="decimal"><div class="u-w110">${dsel('pdc_u',PDC_U.map(u=>({v:u,l:u})),'un')}</div></div><input id="pdc_o" placeholder="Observação (opcional)" class="u-mt6"><div class="row u-mt8"><button class="bt g" onclick="pdcAddItem()">Adicionar produto</button></div>${L.map((i,j)=>`<div class="it"><div>${esc(i.p)} · ${esc(i.q)} ${esc(i.u)}${i.o?' <span class="mu">· '+esc(i.o)+'</span>':''}</div><button class="bt d" onclick="pdcDelItem(${j})">✕</button></div>`).join('')}<div class="row u-mt8"><button class="bt" onclick="pdcSend()">Salvar pedido (${L.length})</button><button class="bt g" onclick="V.pdcL=[];R()">Cancelar</button></div></div>`}
-const buy=pdcIsBuyer(),mine=(S.pdc||[]).filter(o=>buy||o.by===V.me.id||o.rp===V.me.id),O=V.pdcO?mine.find(o=>o.id===V.pdcO):null;
-if(O)return h+pdcDetail(O);
-return h+`<h3>${buy?'Pedidos recebidos':'Meus pedidos'}</h3>`+(mine.slice().reverse().map(o=>`<div class="c tap" onclick="V.pdcO='${o.id}';R()"><div class="row sp"><b>#${o.n} · ${esc(o.rpN||o.byN)}</b><span class="mu">${o.st}</span></div><div class="mu">${o.d} ${o.h} · ${o.items.length} produto(s)${o.sec?' · '+esc(o.sec):''}</div>${xbtn(`pdcDelete('${o.id}')`,'Excluir pedido e conferência')}</div>`).join('')||'<div class="c mu">Nenhum pedido.</div>')}
+function rPdc(){
+ const buy=pdcIsBuyer(),mine=(S.pdc||[]).filter(o=>buy||o.by===V.me.id||o.rp===V.me.id),O=V.pdcO?mine.find(o=>o.id===V.pdcO):null;
+ if(O)return pdcDetail(O);
+ if(V.pdcNew&&pdcCanCreate()){
+  const L=V.pdcL||[];
+  return regMenuBack('Voltar aos pedidos',"V.pdcNew=0;V.pdcL=[];R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Novo pedido para Compras</div><div class="c">'+
+   '<label>Repositor que está fazendo o pedido</label>'+dsel('pdc_rp',S.team.slice().sort((a,b)=>a.n.localeCompare(b.n)).map(p=>({v:p.id,l:p.n+(p.s?' · '+p.s:'')})),(V.me&&person(V.me.id))?V.me.id:'')+
+   '<label>Produto<input id="pdc_p" placeholder="Produto"></label>'+
+   '<div class="row u-mt6"><div class="u-fx1"><label>Quantidade<input id="pdc_q" placeholder="Quantidade" inputmode="decimal"></label></div><div class="u-w110"><div class="mu">Unidade</div>'+dsel('pdc_u',PDC_U.map(u=>({v:u,l:u})),'un')+'</div></div>'+
+   '<label>Observação (opcional)<input id="pdc_o" placeholder="Observação"></label>'+
+   '<button class="bt g u-mt8" onclick="pdcAddItem()">Adicionar produto</button>'+
+   (L.map((i,j)=>'<div class="it"><div>'+esc(i.p)+' · '+esc(i.q)+' '+esc(i.u)+(i.o?' <span class="mu">· '+esc(i.o)+'</span>':'')+'</div><button class="bt d" onclick="pdcDelItem('+j+')">✕</button></div>').join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>')+
+   '<div class="row u-mt10"><button class="bt" onclick="pdcSend()">Salvar pedido ('+L.length+')</button><button class="bt g" onclick="V.pdcNew=0;V.pdcL=[];R()">Cancelar</button></div></div>';
+ }
+ return '<div class="launch-title">Pedidos para Compras</div>'+
+  (pdcCanCreate()?'<div class="c launch-card"><button class="launch-plus" aria-label="Novo pedido" onclick="V.pdcNew=1;V.pdcL=[];R();scrollTo(0,0)">+</button><p class="launch-info">Monte uma lista de produtos e envie o pedido para Compras. Depois de salvar, o sistema encaminha para a conferência.</p></div>':'')+
+  '<h3>'+(buy?'Pedidos recebidos':'Meus pedidos')+'</h3>'+
+  (mine.slice().reverse().map(o=>'<div class="c tap" onclick="V.pdcO=\''+o.id+'\';R()"><div class="row sp"><b>#'+o.n+' · '+esc(o.rpN||o.byN)+'</b><span class="mu">'+esc(o.st)+'</span></div><div class="mu">'+o.d+' '+o.h+' · '+o.items.length+' produto(s)'+(o.sec?' · '+esc(o.sec):'')+'</div>'+xbtn('pdcDelete(\''+o.id+'\')','Excluir pedido e conferência')+'</div>').join('')||'<div class="c mu">Nenhum pedido.</div>');
+}
+
 function semvImport(){const i=document.createElement('input');i.type='file';i.accept='.csv,.xlsx,.xls';i.onchange=()=>{const f=i.files[0];if(!f)return;readRows(f,rows=>{
  const pick=(r,...ks)=>{const key=Object.keys(r).find(x=>ks.includes(nrm(x)));return key!==undefined?r[key]:''};
  const ok=[],bad=[],codigosAntes=new Set(S.semvCod||[]);
@@ -1172,10 +1262,13 @@ function rMov(){
  if(V.clo){const c=(S.conf||[]).find(x=>x.id===V.clo);if(c&&(c.src==='mov_ent'||c.src==='mov_pre'))return confListDetail(c.src,c.id)}
  if(V.movEnt)return movEntForm();
  const pool=(S.movB||[]).flatMap(b=>b.items.filter(x=>x.fila==='MAN'));
- return `<div class="c"><button class="bt" onclick="movImport()">+ Importar lista</button><p class="mu">Colunas: Código, Descrição, Código de Barras, Embalagem, Preço Venda, Motivo e Loja. ENTRADA vai para Entrada de produto (ruptura). PRECO ALTERADO, INICIO OFERTA e TERMINO OFERTA vão para Alteração de preço. As listas seguem para Conferências.</p></div>`+
- `<div class="c"><b>Entrada de produto (ruptura)</b></div>`+confListsHTML('mov_ent')+
- `<div class="c"><b>Alteração de preço (etiquetas)</b><div class="row u-mt6"><button class="bt g" onclick="V.movEnt=1;R()">+ Entrega de etiqueta</button></div></div>`+etiqBox(S.log.etiq||[])+confListsHTML('mov_pre')+
- (pool.length?`<div class="c"><b>Classificar (motivo desconhecido)</b>${pool.map(x=>{const b=(S.movB||[]).find(z=>z.items.some(y=>y.id===x.id));return `<div class="it"><div><b>${b&&b.arqRem?['Remarcação',b.motivo,b.dataArquivo].filter(Boolean).map(esc).join(' · '):esc(x.c+' · '+x.p)}</b>${b&&b.arqRem?'<div class="mu" style="font-size:10px">Importada em '+br(b.data)+' · '+esc(x.c+' · '+x.p)+'</div>':'<div class="mu">'+esc(x.mot)+' · '+esc(x.loja)+'</div>'}</div><span class="row"><button class="bt" onclick="movClass('${x.id}','ENT')">Entrada</button><button class="bt g" onclick="movClass('${x.id}','PRE')">Alteração</button></span></div>`}).join('')}</div>`:'')}
+ return '<div class="launch-title">Movimentações</div>'+
+  '<div class="c launch-card"><button class="launch-plus" aria-label="Importar remarcação" onclick="movImport()">+</button><p class="launch-info">Importe uma lista de remarcação para separar entradas de produtos e alterações de preço. As listas são enviadas para Conferências.</p></div>'+
+  '<div class="c"><b>Entrada de produto (ruptura)</b></div>'+confListsHTML('mov_ent')+
+  '<div class="c"><b>Alteração de preço (etiquetas)</b><div class="row u-mt6"><button class="bt g" onclick="V.movEnt=1;R()">+ Entrega de etiqueta</button></div></div>'+etiqBox(S.log.etiq||[])+confListsHTML('mov_pre')+
+  (pool.length?'<div class="c"><b>Classificar (motivo desconhecido)</b>'+pool.map(x=>{const b=(S.movB||[]).find(z=>z.items.some(y=>y.id===x.id));return '<div class="it"><div><b>'+(b&&b.arqRem?['Remarcação',b.motivo,b.dataArquivo].filter(Boolean).map(esc).join(' · '):esc(x.c+' · '+x.p))+'</b>'+(b&&b.arqRem?'<div class="mu" style="font-size:10px">Importada em '+br(b.data)+' · '+esc(x.c+' · '+x.p)+'</div>':'<div class="mu">'+esc(x.mot)+' · '+esc(x.loja)+'</div>')+'</div><span class="row"><button class="bt" onclick="movClass(\''+x.id+'\',\'ENT\')">Entrada</button><button class="bt g" onclick="movClass(\''+x.id+'\',\'PRE\')">Alteração</button></span></div>'}).join('')+'</div>':'');
+}
+
 function migMovBack(){if(!S||!S.migrations)return;if(S.migrations.includes('mov-back-2026'))return;S.conf=S.conf||[];S.movB=S.movB||[];
  const okDe=st=>st==='Conferido'?true:st==='Conferido com divergência'?false:null;
  S.movB.forEach(b=>{const conv=x=>({...x,okv:okDe(x.st),resp:(x.conf&&x.conf.resp)||''});const ent=b.items.filter(x=>x.fila==='ENT').map(conv),pre=b.items.filter(x=>x.fila==='PRE').map(conv);
@@ -1216,17 +1309,19 @@ function regMenuHome(){V.rs='home';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuLaunch(){V.rs='lanc';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuOpenSection(k){
  if(k==='lanc'){regMenuLaunch();return}
- V.rs=k;V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;
+ V.rs=k;V.reg=null;V.bal=null;V.add=0;V.ed=null;V.regReturnTab=null;V.eqm=0;V.cb=null;V.mdl=null;
  if(k==='conf'){V.cfO=null;V.cfS=[];V.clo=null}
+ if(k==='ck'){V.ckTab='inicio';V.ck=null;V.ckdr=null;V.ckReturnTab=null;V.lw=null}
+ if(k==='ava'){V.ev='inicio';V.evm=null}
  if(k==='eq'){V.pe=null;V.eq='p'}
  if(k==='set'){V.ss=null;V.sm=null}
- if(k==='pdc'){V.pdcO=null;V.pdcL=[]}
+ if(k==='pdc'){V.pdcO=null;V.pdcL=[];V.pdcNew=0}
  if(k==='semv')V.semvO=null;
  if(k==='mov'){V.clo=null;V.movEnt=0}
  R();scrollTo(0,0)
 }
 function regMenuOpenLaunch(k){
- V.rs='lanc';V.reg=k;V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;
+ V.rs='lanc';V.reg=k;V.regTab='novo';V.regReturnTab=null;V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;V.ed=null;if(k==='temp')V.tempTab='novo';if(k==='ck'){V.ckTab='inicio';V.ckReturnTab=null;V.lw=null;V.ckdr=null}
  R();scrollTo(0,0)
 }
 function regMenuIcon(k){
@@ -1285,11 +1380,14 @@ function rReg(){
  return '<div class="reg-detail">'+back+'<div class="regbody">'+content+'</div>'+regMenuVersion()+'</div>';
 }
 
-function pedForm(){const L=V.pedL||[];
-return `<div class="c"><h3>🛒 Pedido para prateleira</h3><label>Repositor<select onchange="V.pedR=this.value">${'<option value="">—</option>'+S.team.map(p=>`<option ${p.n===V.pedR?'selected':''}>${esc(p.n)}</option>`).join('')}</select></label><div class="row u-mt8"><input id="pedp" placeholder="Produto" class="u-fx1" onkeydown="if(event.key==='Enter')pedAdd()"><button class="bt g" onclick="pedAdd()">Adicionar produto</button></div>${L.map((p,i)=>`<div class="it"><div>${esc(p)}</div><button class="bt d" onclick="pedDel(${i})">✕</button></div>`).join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>'}<div class="row u-mt10"><button class="bt" onclick="pedSave()">Salvar pedido (${L.length})</button><button class="bt g" onclick="V.add=0;V.pedL=[];R()">Cancelar</button></div></div>`}
+function pedForm(){
+ const L=V.pedL||[],rows=L.map((p,i)=>'<div class="it"><div>'+esc(p)+'</div><button class="bt d" onclick="pedDel('+i+')">✕</button></div>').join('')||'<p class="mu">Nenhum produto adicionado ainda.</p>';
+ return '<div class="c"><label>Repositor<select onchange="V.pedR=this.value"><option value="">—</option>'+S.team.map(p=>'<option '+(p.n===V.pedR?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label><div class="row u-mt8"><input id="pedp" placeholder="Produto" class="u-fx1" onkeydown="if(event.key===\'Enter\')pedAdd()"><button class="bt g" onclick="pedAdd()">Adicionar produto</button></div>'+rows+'<div class="row u-mt10"><button class="bt" onclick="pedSave()">Salvar pedido ('+L.length+')</button><button class="bt g" onclick="V.pedL=[];launchFormBack()">Cancelar</button></div></div>';
+}
+
 function pedAdd(){const v=(($('pedp')||{}).value||'').trim();if(!v)return;V.pedL=[...(V.pedL||[]),v];R()}
 function pedDel(i){V.pedL=(V.pedL||[]).filter((_,j)=>j!==i);R()}
-function pedSave(){if(!V.pedR)return alert('Escolha o repositor.');const L=V.pedL||[];if(!L.length)return alert('Adicione ao menos um produto.');(S.log.ped=S.log.ped||[]).push(...L.map(p=>({id:uid(),d:today(),p,r:V.pedR,...ownBy()})));V.pedL=[];V.add=0;save();R()}
+function pedSave(){if(!V.pedR)return alert('Escolha o repositor.');const L=V.pedL||[];if(!L.length)return alert('Adicione ao menos um produto.');(S.log.ped=S.log.ped||[]).push(...L.map(p=>({id:uid(),d:today(),p,r:V.pedR,...ownBy()})));V.pedL=[];V.add=0;V.ed=null;V.regTab='novo';V.regReturnTab=null;save();R();scrollTo(0,0)}
 const PIM_SET=['Açougue','Padaria — Atendimento','Hortifruti'];
 const MOT_PERD=['Quebra líquida (resfriamento)','Quebra operacional','Quebra por degustação e violação','Quebra por equipamento','Quebra por fornecedor','Quebra por roubo','Quebra por vencimento'];
 const pimNorm=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
@@ -1367,47 +1465,105 @@ function phDetailHTML(code){const L=phAll().filter(e=>String(e.c)===String(code)
  `<div class="c"><b>Evolução por mês (quantidade)</b>${meses.map(([k,v])=>`<div class="it"><div>${k==='—'?'sem data':k.slice(5)+'/'+k.slice(0,4)}<div class="mu">${v} unid.</div>${bar2(v/max*100)}</div></div>`).join('')}</div>`+
  `<div class="c"><b>Ocorrências</b>${L.map(e=>`<div class="it"><div><b>${br(e.d)} · ${e._t}${e.tr?' · '+esc(e.tr):''}</b><div class="mu">qtd ${e.q} · unit. ${money(+e.vu||0)} · total ${money(+e.vt||0)} · ${esc(e.m||'')}</div><div class="mu">${esc(phListName(e))} · responsável: ${e.r?esc(e.r):'sem responsável'}${e.z?' · '+esc(e.z):''}</div></div></div>`).join('')}</div>`}
 function bar2(p){return `<div style="height:6px;border-radius:4px;background:var(--bd,#e5e7eb);margin-top:4px"><div style="height:6px;border-radius:4px;width:${Math.min(100,p).toFixed(0)}%;background:var(--pr,#4f46e5)"></div></div>`}
-function lotHTML(k){if(V.lot){const lid=V.lot;if(lid==='legacy'||lid==='manual'||(S.impVA||[]).some(x=>x.id===lid))return lotDetail(k,lid);V.lot=null}
+function lotHTML(k){
+ if(V.lot){const lid=V.lot;if(lid==='legacy'||lid==='manual'||(S.impVA||[]).some(x=>x.id===lid))return lotDetail(k,lid);V.lot=null}
  const lists=(S.impVA||[]).filter(x=>x.k===k).slice().reverse();
  const rows=lists.map(l=>lotCard(l,k)).join('')+lotGroupRow(k,'manual','Lançamentos manuais',e=>e.lot==='manual')+lotGroupRow(k,'legacy','Importações anteriores',e=>!e.lot);
- return `<div class="c"><div class="row"><button class="bt" onclick="impXL('${k}')">+ Importar planilha</button><button class="bt g" onclick="V.phMode=true;V.ph=null;V.phq='';R()">🔎 Histórico de produto</button></div><p class="mu">Colunas: produto (código), descrição, quantidade, custo c/ imposto, total c/ imposto e motivo. Cada importação vira uma lista separada.</p></div>`+(rows?`<div class="c">${rows}</div>`:'<div class="c mu">Nenhuma importação ainda.</div>')}
+ const title=k==='vtc'?'Vencidos':'Avariados';
+ return '<div class="row sp"><div class="launch-title">'+title+'</div>'+historyIconButton("V.phMode=true;V.ph=null;V.phq='';R()","Histórico de produto")+'</div>'+
+  '<div class="c launch-card"><button class="launch-plus" aria-label="Importar planilha" onclick="impXL(\''+k+'\')">+</button><p class="launch-info">Importe uma planilha de '+title.toLowerCase()+'. Cada importação vira uma lista separada, que pode ser aberta e conferida.</p></div>'+
+  (rows?'<h3 class="u-mt10">Listas e lançamentos</h3><div class="c">'+rows+'</div>':'<div class="c mu">Nenhuma importação ou lançamento ainda.</div>');
+}
+
 function lotSel(id){const a=V.lsel||[];V.lsel=a.includes(id)?a.filter(x=>x!==id):[...a,id];R()}
 function lotSelAll(k,lid,on){const L=(S.log[k]||[]).filter(e=>lid==='legacy'?!e.lot:e.lot===lid);V.lsel=on?L.map(e=>e.id):[];R()}
 function lotAssign(k){const name=($('lot_resp')||{}).value;if(!name)return alert('Escolha o responsável.');const sel=V.lsel||[];if(!sel.length)return;const L=S.log[k]||[];let n=0;L.forEach(e=>{if(sel.includes(e.id)){e.rh=[...(e.rh||[]),{de:e.r||'',para:name,por:V.me?V.me.n:'',em:Date.now()}];e.r=name;n++}});V.lsel=[];if(!save())return;alert(n+' produto(s) atribuído(s) a '+name+'.');R()}
-function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'?h+perdIndHTML():h}
+function rRegLanc(){if(V.reg==='perd'&&V.pim)return pimHTML();if((V.reg==='rup'||V.reg==='etiq')&&V.clo)return confListDetail(V.reg,V.clo);if((V.reg==='vtc'||V.reg==='atc')&&V.phMode)return V.ph?phDetailHTML(V.ph):phSearchHTML();if(V.reg==='vtc'||V.reg==='atc')return lotHTML(V.reg);const h=rRegLancMain();return V.reg==='perd'&&V.regTab!=='hist'?h+perdIndHTML():h}
 function historyIconButton(action,label='Histórico'){return `<button class="ibtn" type="button" title="${label}" aria-label="${label}" onclick="${action}"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg></button>`}
-function regHistoryRows(F,L){return L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return '<div class="c"><div class="row sp"><b>'+esc(F.ti(e))+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div>'}).join(''):'<div class="c mu">Nenhum registro ainda.</div>'}
-function rRegLancMain(){if(V.reg==='ck'){V.ckOnly=null;return rCkLanc()}if(V.reg==='chrec')return rChRec();if(V.reg==='temp'&&V.eqm&&eqOK())return '<button class="ch" onclick="V.eqm=0;V.eqe=null;R();scrollTo(0,0)">‹ Temperaturas</button><h3 class="u-m10">🛠️ Equipamentos</h3>'+rEqp();const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse();
-let h=`<div class="row sp"><div class="launch-title">${F.e} ${F.n}</div>${historyIconButton("V.regTab='hist';V.add=0;R()")}</div>`;
-if(V.reg==='temp')return tempLancHTML();
-if(V.regTab==='hist'){let extra='';if(V.reg==='fita')extra+=fitaBox(L);if(V.reg==='etiq')extra+=etqBtn()+etiqBox(L)+confListsHTML('etiq');if(V.reg==='rup')extra+=confListsHTML('rup');return h+'<div class="row u-mt8"><button class="ibtn ibtn-add" type="button" title="Novo lançamento" aria-label="Novo lançamento" onclick="V.regTab=\'novo\';V.add=0;R()"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>'+extra+regHistoryRows(F,L);}
-if(V.reg==='ped'&&V.add)return h+pedForm();
-if(V.reg==='perd')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:'',res:null};R()">+</button><p class="launch-info">Importe a planilha de perdas de perecíveis. Os indicadores e comparativos ficam logo abaixo.</p></div>`;
-else if(V.reg==='rup')h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf('ruptura')">+</button><p class="launch-info">Colunas: código, descrição, código de barras e preço de venda. A lista vai para Conferências › Ruptura, onde você marca o que está na prateleira.</p></div>`;
-else if(V.add)h+=`<div class="c"><h3>${F.n}</h3>${F.F.map(f=>fld(f,recVal(f))).join('')}<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar</button><button class="bt g" onclick="V.add=0;R()">Cancelar</button></div></div>`;
-else h+=`<div class="c launch-card"><button class="launch-plus" aria-label="Novo registro" onclick="V.add=1;R()">+</button><p class="launch-info">Campos: ${F.F.map(f=>f.l).join(' · ')}</p>${['vtc','vsc','atc','asc'].includes(V.reg)?'<div class="row u-mt10"><button class="bt g" onclick="impXL(V.reg)">📥 Importar planilha</button></div>':''}</div>`;
-if(V.reg==='fita')h+=fitaBox(L);if(V.reg==='etiq')h+=etqBtn()+etiqBox(L)+confListsHTML('etiq');if(V.reg==='rup')h+=confListsHTML('rup');if(V.reg==='temp')h+=`${!V.add&&eqOK()?'<button class="bt g u-ml6" onclick="V.eqm=1;V.eqe=null;V.add=0;R();scrollTo(0,0)">🛠️ Criar equipamento</button>':''}<p class="mu">Até 3 leituras por dia (manhã, tarde e noite), não obrigatórias. Os limites de ideal, tolerável e risco são definidos em cada equipamento.</p>`;
+function regHistoryRows(F,L){return L.length?L.map(e=>{const b=BADGE[V.reg]&&BADGE[V.reg](e);return '<div class="c"><div class="row sp"><b>'+esc(F.ti(e))+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>f.l+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>'}).join(''):'<div class="c mu">Nenhum registro ainda.</div>'}
 
-if(V.reg==='desp'){const p=L.reduce((a,e)=>a+(+e.a||0),0),w=L.reduce((a,e)=>a+(+e.b||0),0);h+=`<div class="c"><b>Resumo:</b> produzido ${p.toFixed(1)} kg · desperdiçado ${w.toFixed(1)} kg (${p?(w/p*100).toFixed(1):0}%) · custo ${money(L.reduce((a,e)=>a+(+e.b||0)*(+e.c||0),0))}</div>`}
-return h}
+function launchFormBack(){
+ const tab=V.regReturnTab||'novo';
+ if(V.reg==='temp')V.tempTab=tab==='hist'?'historico':'novo';
+ else V.regTab=tab==='hist'?'hist':'novo';
+ V.add=0;V.ed=null;V.regReturnTab=null;R();scrollTo(0,0);
+}
+function rRegLancMain(){
+ if(V.reg==='ck'){V.ckOnly=null;return rCkLanc()}
+ if(V.reg==='chrec')return rChRec();
+ if(V.reg==='temp'&&V.eqm&&eqOK())return '<button class="ch" onclick="V.eqm=0;V.eqe=null;R();scrollTo(0,0)">‹ Temperaturas</button><h3 class="u-m10">🛠️ Equipamentos</h3>'+rEqp();
+ const F=FS[V.reg],L=[...(S.log[V.reg]||[])].reverse();
+ if(V.reg==='temp')return tempLancHTML();
+ if(V.add){
+  const returnTab=V.regReturnTab||'novo';
+  const backLabel=returnTab==='hist'?'Voltar ao histórico':'Voltar a '+F.n;
+  const form=V.reg==='ped'?pedForm():'<div class="c">'+F.F.map(f=>fld(f,recVal(f))).join('')+'<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar lançamento</button><button class="bt g" onclick="launchFormBack()">Cancelar</button></div></div>';
+  return regMenuBack(backLabel,'launchFormBack()')+'<div class="launch-title u-mv10">'+(V.ed?'Editar ':'Novo ')+F.n+'</div>'+form;
+ }
+ if(V.regTab==='hist'){
+  let extra='';
+  
+  if(V.reg==='etiq')extra+=etiqBox(L)+confListsHTML('etiq');
+  if(V.reg==='rup')extra+=confListsHTML('rup');
+  return regMenuBack('Voltar a '+F.n,"V.regTab='novo';V.regReturnTab=null;V.add=0;R();scrollTo(0,0)")+'<div class="launch-title u-mv10">Histórico de '+F.n+'</div>'+extra+regHistoryRows(F,L);
+ }
+ let h='<div class="row sp"><div class="launch-title">'+F.e+' '+F.n+'</div>'+historyIconButton("V.regTab='hist';V.add=0;V.ed=null;V.regReturnTab=null;R()")+'</div>';
+ if(V.reg==='perd')h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar perdas" onclick="V.pim={setor:\'\',res:null};R()">+</button><p class="launch-info">Importe a planilha de perdas de perecíveis. Os indicadores e comparativos ficam logo abaixo.</p></div>';
+ else if(V.reg==='rup')h+='<div class="c launch-card"><button class="launch-plus" aria-label="Importar lista de ruptura" onclick="impConf(\'ruptura\')">+</button><p class="launch-info">Colunas: código, descrição, código de barras e preço de venda. A lista vai para Conferências › Ruptura, onde você marca o que está na prateleira.</p></div>';
+ else h+='<div class="c launch-card"><button class="launch-plus" aria-label="Novo lançamento" onclick="V.regReturnTab=\'novo\';V.add=1;V.ed=null;R();scrollTo(0,0)">+</button><p class="launch-info">Campos: '+F.F.map(f=>esc(f.l)).join(' · ')+'</p>'+(['vtc','vsc','atc','asc'].includes(V.reg)?'<div class="row u-mt10"><button class="bt g" onclick="impXL(V.reg)">📥 Importar planilha</button></div>':'')+'</div>';
+ if(V.reg==='fita')h+=fitaBox(L);
+ if(V.reg==='etiq')h+=etqBtn()+etiqBox(L)+confListsHTML('etiq');
+ if(V.reg==='rup')h+=confListsHTML('rup');
+ if(V.reg==='desp'){const p=L.reduce((a,e)=>a+(+e.a||0),0),w=L.reduce((a,e)=>a+(+e.b||0),0);h+='<div class="c"><b>Resumo:</b> produzido '+p.toFixed(1)+' kg · desperdiçado '+w.toFixed(1)+' kg ('+(p?(w/p*100).toFixed(1):0)+'%) · custo '+money(L.reduce((a,e)=>a+(+e.b||0)*(+e.c||0),0))+'</div>'}
+ return h;
+}
 
 function tempLancHTML(){
  const F=FS.temp,L=[...(S.log.temp||[])].reverse(),tab=V.tempTab||'novo';
- const equip=(S.equip||[]),todayN=today();
- const dates=[...new Set(L.map(e=>e.d||'Sem data'))];
+ const equip=S.equip||[];
  const q=String(V.tempQ||'').toLocaleLowerCase('pt-BR'),fd=V.tempDate||'',fe=V.tempEq||'';
  const filtered=L.filter(e=>(!fd||e.d===fd)&&(!fe||e.eq===fe)&&(!q||[e.q,e.t,e.o,e.r,e.p,e.h].join(' ').toLocaleLowerCase('pt-BR').includes(q)));
  const groups=[...new Set(filtered.map(e=>e.d||'Sem data'))];
- const form=V.add?'<div class="c"><h3>'+(V.ed?'Editar temperatura':'Novo lançamento')+'</h3>'+F.F.map(f=>fld(f,recVal(f))).join('')+'<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar lançamento</button><button class="bt g" onclick="V.add=0;V.ed=null;R()">Cancelar</button></div></div>':'<div class="c launch-card"><p class="launch-info">Toque em + para registrar a temperatura de um equipamento.</p></div>';
- let out='<div class="row sp"><div class="launch-title">🌡️ Temperaturas</div><div class="row" style="gap:8px">'+historyIconButton("V.tempTab='historico';V.add=0;V.ed=null;R()",'Histórico de temperaturas')+'<button class="ibtn" type="button" title="Cadastrar equipamento" aria-label="Cadastrar equipamento" onclick="V.eqm=1;V.eqe=null;V.add=0;R()"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14M9 7h.01M9 15h.01"/></svg></button></div></div>'+
- '<div class="row u-mt10" style="gap:8px"><button class="ibtn ibtn-add" type="button" title="Novo lançamento" aria-label="Novo lançamento" onclick="V.tempTab=\'novo\';V.ed=null;V.add=1;R()"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>'+
- (tab==='novo'?form:'<div class="c"><h3>Histórico de temperaturas</h3><div class="g2"><label>Data<input type="date" value="'+esc(fd)+'" onchange="V.tempDate=this.value;R()"></label><label>Equipamento<select onchange="V.tempEq=this.value;R()"><option value="">Todos</option>'+equip.map(x=>'<option value="'+esc(x.id)+'" '+(fe===x.id?'selected':'')+'>'+esc((x.num?x.num+' · ':'')+x.n)+'</option>').join('')+'</select></label></div><label>Pesquisar<input type="search" placeholder="Equipamento, observação ou responsável" value="'+esc(V.tempQ||'')+'" oninput="V.tempQ=this.value;R()"></label><div class="row sp"><span class="mu">'+filtered.length+' registro(s) encontrado(s)</span><button class="ch" onclick="V.tempDate=\'\';V.tempEq=\'\';V.tempQ=\'\';R()">Limpar filtros</button></div></div>'+
- (groups.length?groups.map(d=>'<h3 class="u-mt10">'+(d==='Sem data'?d:br(d))+' <span class="mu">· '+filtered.filter(e=>(e.d||'Sem data')===d).length+'</span></h3>'+filtered.filter(e=>(e.d||'Sem data')===d).map(e=>{const b=BADGE.temp&&BADGE.temp(e);return '<div class="c"><div class="row sp"><b>'+esc(e.q||'Equipamento não identificado')+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="row sp"><strong>'+esc(e.t)+' °C</strong><span class="mu">'+esc(e.h||'')+' · '+esc(e.p||'')+'</span></div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null&&f.k!=='eq'&&f.k!=='t').map(f=>esc(f.l)+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Abrir / editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>'}).join('')).join(''):'<div class="c mu">Nenhum registro encontrado. Ajuste os filtros ou faça um novo lançamento.</div>'));
- return out;
+ if(V.add||tab==='form'){
+  const backLabel=(V.regReturnTab||'novo')==='hist'?'Histórico de temperaturas':'Temperaturas';
+  return regMenuBack(backLabel,'launchFormBack()')+
+   '<div class="launch-title u-mv10">'+(V.ed?'Editar temperatura':'Nova temperatura')+'</div>'+
+   '<div class="c">'+F.F.map(f=>fld(f,recVal(f))).join('')+
+   '<div class="row u-mt10"><button class="bt" onclick="addL()">Salvar lançamento</button><button class="bt g" onclick="launchFormBack()">Cancelar</button></div></div>';
+ }
+ if(tab==='historico'){
+  return regMenuBack('Voltar a Temperaturas',"V.tempTab='novo';V.add=0;V.ed=null;V.regReturnTab=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Histórico de temperaturas</div>'+
+   '<div class="c"><div class="g2"><label>Data<input type="date" value="'+esc(fd)+'" onchange="V.tempDate=this.value;R()"></label><label>Equipamento<select onchange="V.tempEq=this.value;R()"><option value="">Todos</option>'+equip.map(x=>'<option value="'+esc(x.id)+'" '+(fe===x.id?'selected':'')+'>'+esc((x.num?x.num+' · ':'')+x.n)+'</option>').join('')+'</select></label></div><label>Pesquisar<input type="search" placeholder="Equipamento, observação ou responsável" value="'+esc(V.tempQ||'')+'" oninput="V.tempQ=this.value;R()"></label><div class="row sp"><span class="mu">'+filtered.length+' registro(s) encontrado(s)</span><button class="ch" onclick="V.tempDate=\'\';V.tempEq=\'\';V.tempQ=\'\';R()">Limpar filtros</button></div></div>'+
+   (groups.length?groups.map(d=>'<h3 class="u-mt10">'+(d==='Sem data'?d:br(d))+' <span class="mu">· '+filtered.filter(e=>(e.d||'Sem data')===d).length+'</span></h3>'+filtered.filter(e=>(e.d||'Sem data')===d).map(e=>{const b=BADGE.temp&&BADGE.temp(e);return '<div class="c"><div class="row sp"><b>'+esc(e.q||'Equipamento não identificado')+'</b>'+(b?'<span class="b '+b[1]+'">'+esc(b[0])+'</span>':'')+'</div><div class="row sp"><strong>'+esc(e.t)+' °C</strong><span class="mu">'+esc(e.h||'')+' · '+esc(e.p||'')+'</span></div><div class="mu">'+F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null&&f.k!=='eq'&&f.k!=='t').map(f=>esc(f.l)+': '+fv(f,e)).join(' · ')+'</div><div class="row u-mt8"><button class="bt g" onclick="editL(\''+e.id+'\')">Editar</button><button class="bt d" onclick="delL(\''+e.id+'\')">Excluir</button></div></div>'}).join('')).join(''):'<div class="c mu">Nenhum registro encontrado. Ajuste os filtros.</div>');
+ }
+ return '<div class="row sp"><div class="launch-title">🌡️ Temperaturas</div><div class="row" style="gap:8px">'+
+  historyIconButton("V.tempTab='historico';V.add=0;V.ed=null;V.regReturnTab=null;R()","Histórico de temperaturas")+
+  '<button class="ibtn" type="button" title="Cadastrar equipamento" aria-label="Cadastrar equipamento" onclick="V.eqm=1;V.eqe=null;V.add=0;R()"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 11h14M9 7h.01M9 15h.01"/></svg></button></div></div>'+
+  '<div class="c launch-card"><button class="launch-plus" aria-label="Nova temperatura" onclick="V.tempTab=\'form\';V.regReturnTab=\'novo\';V.add=1;V.ed=null;R();scrollTo(0,0)">+</button><p class="launch-info">Registre a temperatura de um equipamento. O formulário será aberto em uma tela própria.</p></div>'+
+  '<p class="mu">Até 3 leituras por dia (manhã, tarde e noite), não obrigatórias. Os limites de ideal, tolerável e risco são definidos em cada equipamento.</p>';
 }
 
-function addL(){const k=V.reg,F=FS[k],L=S.log[k]=S.log[k]||[];let e=V.ed&&L.find(x=>x.id===V.ed);const nw=!e;if(nw)e={id:uid(),...((k==='vtc'||k==='atc')?{lot:'manual'}:{})};F.F.forEach(f=>{const el=$('f_'+f.k);if(el)e[f.k]=el.value});if(k==='fita'){const p=S.team.find(x=>x.n===e.r);e.z=p?p.s:(e.z||'')}if(k==='temp'){const q=(S.equip||[]).find(x=>x.id===e.eq);e.q=q?(q.num?q.num+' · ':'')+q.n:''}e.u=Date.now();if(k==='fita'||k==='etiq')e.ts=e.ts||Date.now();if(nw){Object.assign(e,ownBy());if(k==='req'||k==='ped'){e.st='p';e.rq=V.me?V.me.id:''}L.push(e);afterNew(k,e)}else e.sent=false;V.add=0;V.ed=null;save();R()}
-function editL(id){V.ed=id;V.add=1;if(V.reg==='temp')V.tempTab='novo';R()}
+function addL(){
+ const k=V.reg,F=FS[k],L=S.log[k]=S.log[k]||[],returnTab=V.regReturnTab||'novo';
+ let e=V.ed&&L.find(x=>x.id===V.ed);const nw=!e;
+ if(nw)e={id:uid(),...((k==='vtc'||k==='atc')?{lot:'manual'}:{})};
+ F.F.forEach(f=>{const el=$('f_'+f.k);if(el)e[f.k]=el.value});
+ if(k==='fita'){const p=S.team.find(x=>x.n===e.r);e.z=p?p.s:(e.z||'')}
+ if(k==='temp'){const q=(S.equip||[]).find(x=>x.id===e.eq);e.q=q?(q.num?q.num+' · ':'')+q.n:''}
+ e.u=Date.now();if(k==='fita'||k==='etiq')e.ts=e.ts||Date.now();
+ if(nw){Object.assign(e,ownBy());if(k==='req'||k==='ped'){e.st='p';e.rq=V.me?V.me.id:''}L.push(e);afterNew(k,e)}else e.sent=false;
+ V.add=0;V.ed=null;V.regReturnTab=null;
+ if(k==='temp')V.tempTab=returnTab==='hist'?'historico':'novo';
+ else V.regTab=returnTab==='hist'?'hist':'novo';
+ save();R();
+}
+function editL(id){
+ V.ed=id;V.add=1;
+ V.regReturnTab=V.reg==='temp'?(V.tempTab==='historico'?'hist':'novo'):(V.regTab==='hist'?'hist':'novo');
+ if(V.reg==='temp')V.tempTab='form';
+ R();scrollTo(0,0);
+}
 
 const tomb=(k,id)=>{const L=S.log.dl=S.log.dl||[];L.push({id:'d_'+id,k,i:id,u:Date.now(),sent:false})};
 function delL(id){if(confirm('Excluir registro?')){S.log[V.reg]=S.log[V.reg].filter(e=>e.id!==id);tomb(V.reg,id);save();R()}}
@@ -1558,12 +1714,25 @@ function rCkLanc(){
  if(V.ck&&CK[V.ck])return rCkReg();
  const w=person(V.lw)?V.lw:'',ks=w?Object.keys(CK).filter(k=>CK[k].p===w&&!CK[k].rm&&(V.ckOnly?isRec(CK[k]):!isRec(CK[k]))):[];
  const runs=Object.entries(S.runs||{}).map(([key,r])=>{const a=key.split('|'),c=CK[a[0]];return c&&!c.rc?{key,k:a[0],d:a[1],turn:a[2]||'',c,r}:null}).filter(Boolean).sort((a,b)=>b.d.localeCompare(a.d));
- const top='<div class="row sp">'+historyIconButton("V.ckTab='hist';R()")+'<div class="launch-title">✅ Checklists</div><button class="ch '+(V.ckTab==='modelos'?'on':'')+'" onclick="V.ckTab=\'modelos\';V.ck=null;V.ce=null;V.cff=\'m\';V.mdl=null;R()">📚 Modelos</button></div>';
- if(V.ckTab==='modelos')return top+'<div class="row u-mt8"><button class="ch" onclick="V.ckTab=\'novo\';R()">‹ Voltar aos lançamentos</button></div>'+rCkList();
- const launch='<div class="row u-mt8"><button class="bt" onclick="V.ckTab=\'novo\';V.ck=null;V.ckdr=null;R()">+ Novo preenchimento</button></div>';
- if(V.ckTab==='hist')return top+launch+(runs.length?runs.map(x=>{const p=person(x.c.p),n=x.c.l.filter(z=>z[0]!=='#').length||1,done=Object.keys(x.r.a||{}).length;return '<div class="c tap" onclick="V.ck=\''+x.k+'\';V.ckd=\''+x.d+'\';V.ckt=\''+x.turn+'\';V.ckdr=null;R()"><div class="row sp"><b>'+x.c.e+' '+esc(x.c.n)+'</b><span class="mu">'+br(x.d)+'</span></div><div class="mu">'+esc(p?p.n:'—')+' · '+done+'/'+n+' itens respondidos</div></div>'}).join(''):'<div class="c mu">Nenhum checklist preenchido ainda.</div>');
- return top+launch+'<div class="row sp"><b>✅ Checklist</b><span class="mu">Quem vai preencher?</span></div><div class="chs">'+S.team.map(p=>chip(esc(p.n),w===p.id,"V.lw='"+p.id+"';R()")).join('')+'</div>'+(w?(ks.length?ks.map(ckCard).join(''):'<div class="c mu">Esta pessoa ainda não tem checklist. Adicione um modelo na aba Modelos.</div>'):'<div class="c mu">Escolha o funcionário acima.</div>');
+ if(V.ckTab==='hist'){
+  return regMenuBack('Voltar a Checklists',"V.ckTab='inicio';V.ck=null;V.ckdr=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Histórico de checklists</div>'+
+   (runs.length?runs.map(x=>{const p=person(x.c.p),n=x.c.l.filter(z=>z[0]!=='#').length||1,done=Object.keys(x.r.a||{}).length;return '<div class="c tap" onclick="V.ckReturnTab=\'hist\';V.ck=\''+x.k+'\';V.ckd=\''+x.d+'\';V.ckt=\''+x.turn+'\';V.ckdr=null;R()"><div class="row sp"><b>'+x.c.e+' '+esc(x.c.n)+'</b><span class="mu">'+br(x.d)+'</span></div><div class="mu">'+esc(p?p.n:'—')+' · '+done+'/'+n+' itens respondidos</div></div>'}).join(''):'<div class="c mu">Nenhum checklist preenchido ainda.</div>');
+ }
+ if(V.ckTab==='modelos'){
+  return regMenuBack('Voltar a Checklists',"V.ckTab='inicio';V.ck=null;V.ckdr=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Modelos de checklist</div>'+rCkList();
+ }
+ if(V.ckTab==='novo'){
+  return regMenuBack('Voltar a Checklists',"V.ckTab='inicio';V.ck=null;V.ckdr=null;V.lw=null;R();scrollTo(0,0)")+
+   '<div class="launch-title u-mv10">Novo preenchimento</div>'+
+   '<div class="c"><b>Quem vai preencher?</b><div class="chs">'+S.team.map(p=>chip(esc(p.n),w===p.id,"V.lw='"+p.id+"';R()")).join('')+'</div></div>'+
+   (w?(ks.length?ks.map(ckCard).join(''):'<div class="c mu">Esta pessoa ainda não tem checklist. Adicione um modelo na aba Modelos.</div>'):'<div class="c mu">Escolha o funcionário para ver os checklists disponíveis.</div>');
+ }
+ return '<div class="row sp"><div class="launch-title">✅ Checklists</div><span class="row">'+historyIconButton("V.ckTab='hist';V.ck=null;R()")+'<button class="ch" onclick="V.ckTab=\'modelos\';V.ck=null;V.ce=null;V.cff=\'m\';V.mdl=null;R()">Modelos</button></span></div>'+
+  '<div class="c launch-card"><button class="launch-plus" aria-label="Novo preenchimento" onclick="V.ckTab=\'novo\';V.ck=null;V.ckdr=null;V.lw=null;R();scrollTo(0,0)">+</button><p class="launch-info">Escolha um funcionário e preencha os checklists atribuídos a ele. Os preenchimentos concluídos ficam no histórico.</p></div>';
 }
+
 function rCkEmp(){const p=person(V.me.id);if(!p)return'';const T=teamOf(p),ids=[p.id,...T.map(x=>x.id)];if(V.ck&&CK[V.ck]&&ids.includes(CK[V.ck].p))return rCkReg().replace(/<button class="ch" onclick="V\.ce=V\.ck;V\.ck=null;R\(\)">✏️ Editar checklist<\/button>/,'');V.ck=null;
 const w=ids.includes(V.cw)?V.cw:p.id,ks=Object.keys(CK).filter(k=>CK[k].p===w);
 return (T.length?`<div class="chs">${chip('👤 Meus',w===p.id,`V.cw='${p.id}';R()`)}${T.map(x=>chip(esc(x.n),w===x.id,`V.cw='${x.id}';R()`)).join('')}</div>${w!==p.id?`<div class="mu">Preenchendo pela equipe: <b>${esc(person(w).n)}</b></div>`:''}`:'')+(ks.map(ckCard).join('')||'<div class="c mu">Nenhum checklist atribuído.</div>')}
@@ -2051,8 +2220,9 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.43.1';
+const APP_VERSION='3.43.2';
 const APP_HIST=[
+{v:'3.43.2',d:'18/11/2026',t:'Navegação padronizada nos lançamentos (PATCH)',n:['O botão + abre o formulário em uma tela própria, em vez de expandir campos na tela inicial.','Salvar um lançamento novo retorna à tela inicial daquele tipo, pronta para iniciar outro.','Editar pelo histórico abre o formulário em tela separada e, ao salvar ou cancelar, retorna ao histórico.','O histórico tem título próprio, botão de voltar para a tela inicial e não exibe botão + nem outro atalho de histórico.','Temperaturas, Checklists e Avaliações passam a seguir o mesmo padrão de início, formulário e histórico.','Vencidos, Avariados e Movimentações usam uma ação principal em destaque para importar, mantendo suas telas específicas de conferência.'],c:['Removidas ações duplicadas e títulos repetidos em telas de histórico.','Mantidos os fluxos específicos de importação, equipamentos e encaminhamento de pedidos para Conferência.','Nenhum cadastro, lançamento ou dado do Supabase foi apagado ou alterado.']},
 {v:'3.43.1',d:'18/11/2026',t:'Acompanhamento de cronograma para toda a gestão (PATCH)',n:['A tela inferior Cronograma passa a exibir o painel de acompanhamento para os perfis de gestão com acesso completo, incluindo administrador e gerente.','Encarregados e demais funcionários continuam vendo apenas o próprio cronograma e marcando suas atividades.'],c:['Nenhuma alteração nos modelos, tarefas ou marcações existentes.']},
 {v:'3.43.0',d:'18/11/2026',t:'Notificações sincronizadas e alertas no celular (MINOR)',n:['As notificações passam a ser compartilhadas entre dispositivos da mesma conta e organização.','Adicionado botão para ativar notificações no celular, com autorização explícita do usuário.','O Super Tudo passa a enviar alertas do sistema e avisos de novas versões como notificações do aparelho, mesmo quando o aplicativo está em segundo plano, desde que o navegador permita Web Push.','O painel de notificações continua mostrando os mesmos avisos e permite marcar como lidas ou excluir todas.'],c:['A entrega no celular usa Web Push com chaves VAPID geradas e armazenadas por organização, protegidas por acesso exclusivo do service_role.','É necessário permitir notificações no navegador e manter o Super Tudo instalado/aberto em um navegador compatível.']},
 {v:'3.42.0',d:'18/11/2026',t:'Logo oficial e permissões de equipe por encarregado (MINOR)',n:['A imagem enviada do Super Tudo passa a ser usada no cabeçalho do aplicativo, na tela de login e como ícone do aplicativo instalável.','Encarregados com permissão de Equipe podem cadastrar somente repositores.','Cada encarregado visualiza e edita somente os repositores cadastrados por ele; a exclusão continua reservada à gestão.','Campos de administrador, liderança e permissões ficam restritos à gestão.','Administradores e gerentes mantêm o acesso amplo de equipe previsto no perfil de gestão.'],c:['A sincronização do servidor passa a validar o vínculo do encarregado com o funcionário, impedindo alterações de registros de outras equipes.','Os vínculos de equipe são mantidos no servidor para aplicar as mesmas regras entre aparelhos.','Nenhum funcionário ou cadastro existente foi apagado.']},
