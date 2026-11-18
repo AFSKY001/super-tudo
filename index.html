@@ -381,6 +381,7 @@ button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);
 .emj-svg{display:inline-flex;vertical-align:-.16em;align-items:center;justify-content:center;width:1.15em;height:1.15em;line-height:1;flex:0 0 auto}.emj-svg .ic{width:100%;height:100%}
 
 /* Menu em cartões: apenas reorganização das opções, usando os tokens e ícones atuais */
+.reg-menu-version{margin-top:16px}
 .reg-menu-screen{width:100%;min-width:0}
 .reg-menu-head{display:flex;flex-direction:column;gap:4px;margin:2px 2px 12px}
 .reg-menu-head h2{margin:0;font-size:16px;font-weight:700;letter-spacing:-.015em}
@@ -1132,8 +1133,10 @@ function migMovBack(){if(!S||!S.migrations)return;if(S.migrations.includes('mov-
 function movOK(){return !!(V.me&&(isFullAccess()||can('l:rup')||can('l:etiq')))}
 
 
+
 function regMenuHome(){V.rs='home';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuLaunch(){V.rs='lanc';V.reg=null;V.bal=null;R();scrollTo(0,0)}
+function regMenuVersion(){return '<div class="u-ver reg-menu-version">Super Tudo · v'+APP_VERSION+'<br><span class="u-author">Desenvolvido por Alisson Aciole</span></div>'}
 function rRegMenuCard(k,e,n,action){
  const icon=IC(k)||e;
  return '<button type="button" class="reg-menu-tile" onclick="'+action+'"><span class="reg-menu-icon">'+icon+'</span><span class="reg-menu-copy"><span class="reg-menu-label">'+esc(n)+'</span><span class="reg-menu-hint">Abrir</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
@@ -1143,7 +1146,7 @@ function rRegHome(items){
   const action=x[0]==='lanc'?"V.rs='lanc';V.reg=null;V.bal=null;V.add=0;V.eqm=0;R();scrollTo(0,0)":"V.rs='"+x[0]+"';V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;R();scrollTo(0,0)";
   return rRegMenuCard(x[0],x[1],x[2],action);
  }).join('');
- return '<section class="reg-menu-screen"><div class="reg-menu-head"><h2>Áreas de Registro</h2><p>Escolha uma área para continuar.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhuma área disponível para este acesso.</div>')+'</div></section>';
+ return '<section class="reg-menu-screen"><div class="reg-menu-head"><h2>Áreas de Registro</h2><p>Escolha uma área para continuar.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhuma área disponível para este acesso.</div>')+'</div>'+regMenuVersion()+'</section>';
 }
 function rRegLaunchMenu(keys){
  const cards=keys.map(function(k){
@@ -1151,13 +1154,13 @@ function rRegLaunchMenu(keys){
   const action="V.rs='lanc';V.reg='"+k+"';V.regTab='novo';V.ck=null;V.eqm=0;V.cb=null;V.bal=null;V.add=0;R();scrollTo(0,0)";
   return rRegMenuCard(k,f.e,f.n,action);
  }).join('');
- return '<section class="reg-menu-screen launch-menu"><div class="reg-menu-head"><button type="button" class="ch" onclick="regMenuHome()">‹ Registro</button><h2>Lançamentos</h2><p>Escolha o tipo de lançamento.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhum tipo de lançamento disponível para este acesso.</div>')+'</div></section>';
+ return '<section class="reg-menu-screen launch-menu"><div class="reg-menu-head"><button type="button" class="ch" onclick="regMenuHome()">‹ Registro</button><h2>Lançamentos</h2><p>Escolha o tipo de lançamento.</p></div><div class="reg-menu-grid">'+(cards||'<div class="c mu">Nenhum tipo de lançamento disponível para este acesso.</div>')+'</div>'+regMenuVersion()+'</section>';
 }
 function rReg(){
  const LK=LANC_KEYS.filter(k=>k!=='w5'&&k!=='rup'&&k!=='etiq'&&k!=='trf'&&can('l:'+k)),RS=RSEC.filter(x=>x[0]==='pdc'||(x[0]==='mov'?movOK():(x[0]==='w5'||x[0]==='semv')?(V.me&&isFullAccess()):canR(x[0])));
  const LKV=LK.filter(k=>k!=='ped'&&k!=='w5');
  let sec=V.rs||'home';
- if(sec!=='home'&&!RS.some(x=>x[0]===sec))sec=RS.length?RS[0][0]:(LK.length?'lanc':'home');
+ if(sec!=='home'&&!(sec==='lanc'&&LKV.length)&&!RS.some(x=>x[0]===sec))sec=RS.length?RS[0][0]:(LK.length?'lanc':'home');
  if(sec==='home'){
   const items=RS.slice();
   if(LKV.length&&!items.some(x=>x[0]==='lanc')){const launch=RSEC.find(x=>x[0]==='lanc');if(launch)items.unshift(launch)}
@@ -1172,7 +1175,7 @@ function rReg(){
  const back=sec==='lanc'
   ? '<div class="reg-detail-nav"><button class="ch" onclick="regMenuHome()">‹ Registro</button><button class="ch" onclick="regMenuLaunch()">‹ Lançamentos</button></div>'
   : '<div class="reg-detail-nav"><button class="ch" onclick="regMenuHome()">‹ Registro</button></div>';
- return '<div class="reg-detail">'+back+'<div class="regbody">'+body()+'</div></div>';
+ return '<div class="reg-detail">'+back+'<div class="regbody">'+body()+'</div>'+regMenuVersion()+'</div>';
 }
 
 function pedForm(){const L=V.pedL||[];
