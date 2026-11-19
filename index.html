@@ -2929,7 +2929,7 @@ async function doLogin(){
       V.lgE=pullOk?'Cadastro do funcionário não encontrado na nuvem. Peça ao administrador para conferir o cadastro.':'Não foi possível carregar seu cadastro da nuvem. Verifique a conexão e tente novamente.';
       R();return;
     }
-    V.lgL=0;R();
+    V.lgL=0;enterApp();
   }catch(err){
     V.lgL=0;V.lgE='Falha na conexão. Verifique a internet.';R();
   }
@@ -3484,7 +3484,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.69.1';
+const APP_VERSION='3.69.2';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
