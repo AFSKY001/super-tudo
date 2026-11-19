@@ -1980,7 +1980,7 @@ async function pushStart(){
    .on('postgres_changes',{event:'INSERT',schema:'public',table:'app_notifications',filter:'recipient_user_id=eq.'+userId},payload=>{
     pushAddRemote(payload.new);save();bell();if(V.nb)rNb();
    }).subscribe();
-  if(!V.pushOnlineHook){window.addEventListener('online',()=>{pushFlushLocalNotifications();pushSyncNotifications().catch(err=>console.warn(err))});V.pushOnlineHook=true}
+  if(!V.pushOnlineHook){window.addEventListener('online',()=>{pushFlushLocalNotifications();pushSyncNotifications().catch(err=>console.warn(err));configHistoryCall('apply-due').catch(err=>console.warn('Agendamentos aguardam sincronização:',err))});V.pushOnlineHook=true}
   await pushSyncNotifications();
   // Aplica alterações de configuração já vencidas; o servidor valida revisão e organização.
   try{await configHistoryCall('apply-due')}catch(err){console.warn('Agendamentos de configuração aguardam sincronização:',err)}
@@ -2464,6 +2464,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.47.0',d:'18/11/2026',t:'Animações suaves e mudanças programadas (MINOR)',n:['Recupera transições discretas e acessíveis em menus, painéis e conteúdos.','Administração e gerência podem programar alterações de configuração para uma data futura e cancelar agendamentos pendentes.','Ao recuperar a conexão, o sistema volta a verificar mudanças programadas vencidas.'],c:['Mudanças programadas continuam protegidas por validação de revisão no servidor.']},
 {v:'3.45.0',d:'19/11/2026',t:'Consulta ao histórico de configurações (MINOR)',n:['Administração e gerência podem consultar versões anteriores das configurações da organização.','Cada versão mostra data efetiva, revisão, origem e conteúdo registrado.'],c:['O histórico é consultado por endpoint autenticado e não libera leitura direta da tabela.']},
 {v:'3.44.9',d:'19/11/2026',t:'Base para alterações programadas de configuração (MINOR)',n:['O sistema verifica alterações de configuração com data efetiva vencida ao iniciar a sincronização.','Mudanças programadas só são aplicadas se a revisão original continuar igual.'],c:['A configuração vigente permanece intacta antes da data escolhida.']},
 {v:'3.44.8',d:'18/11/2026',t:'Ajuste de segurança e transparência do Modo A (PATCH)',n:['O painel explica que avisos globais são restritos à gestão enquanto eventos operacionais são validados no servidor.'],c:['Notificações originadas por contas operacionais continuam direcionadas aos responsáveis; não há broadcast indiscriminado.']},
