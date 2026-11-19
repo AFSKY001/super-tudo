@@ -2000,7 +2000,7 @@ function completeRotTask(){
  const mode=x.photoMode==='required'||ck&&ck.ph?'required':(x.photoMode||'none');
  if(mode==='required'&&!r.photo&&!(legacy&&legacy.photo))return alert('Esta atividade exige uma foto para ser concluída.');
  const key=c.d+'|'+c.i+'|'+c.pid;S.done[key]=true;S.done[c.d+'|'+c.i]=true;r.status='done';r.completedAt=new Date().toISOString();r.completedBy=V.me?V.me.id:'';if(!save())return;V.rotTask=null;R()
-} function rRot(){ensureAssignedChecklistsInRotinas();if(V.rotTaskContext&&V.ck&&CK[V.ck])return rCkReg();if(V.rotTask)return rTaskDetail();return rCroMain()} function rRotEmp(){ensureAssignedChecklistsInRotinas();if(V.rotTaskContext&&V.ck&&CK[V.ck])return rCkReg();if(V.rotTask)return rTaskDetail();const p=person(V.me&&V.me.id);if(!p)return '<div class="c mu">Seu cadastro de funcionário não foi encontrado. Peça ao administrador para revisar seu acesso.</div>';return rCroEmp()} function rCro(){return rCroMain()}
+} function rRot(){ensureAssignedChecklistsInRotinas();if(V.rotTaskContext&&V.ck&&CK[V.ck])return rCkReg();if(V.rotTask)return rTaskDetail();return rCroMain()} function rRotEmp(){ensureAssignedChecklistsInRotinas();if(V.rotTaskContext&&V.ck&&CK[V.ck])return rCkReg();if(V.rotTask)return rTaskDetail();return rCroMain()} function rCro(){return rCroMain()}
 function rCroMain(){
  const dt=V.date||today(),admin=isFullAccess(),self=person(V.me&&V.me.id),view=V.croView||'semana';
  if(!admin&&!self)return '<div class="c mu">Seu cadastro de funcionário não foi encontrado. Peça ao administrador para revisar seu acesso.</div>';
