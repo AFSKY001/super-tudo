@@ -1990,7 +1990,7 @@ async function loadConfigHistory(){
 let originTrigger=null,originRect=null,pendingOriginTrigger=null,pendingOriginRect=null,pendingOriginAt=0;
 const originStack=[];
 function rememberOrigin(el){
- const target=el?.closest?.('button,[role="button"],.reg-menu-tile,[data-window-trigger]')||el;
+ const target=el?.closest?.('button,[role="button"],[onclick],.tap,.reg-menu-tile,[data-window-trigger]')||el;
  if(!target?.getBoundingClientRect)return;
  const r=target.getBoundingClientRect();
  if(!r.width||!r.height)return;
@@ -2031,7 +2031,7 @@ function clearOriginAnimations(el){
 }
 function openFromOrigin(el,contentEl,overlayEl,triggerEl){
  if(!el)return false;
- const fresh=pendingOriginRect&&Date.now()-pendingOriginAt<3000;
+ const fresh=pendingOriginRect&&Date.now()-pendingOriginAt<5000;
  const r=fresh?pendingOriginRect:null;
  if(!r)return false;
  const trigger=triggerEl||pendingOriginTrigger||originTrigger;
@@ -2114,7 +2114,7 @@ const originObserver=new MutationObserver(records=>{
    const idx=originStack.indexOf(old.__originStackEntry);if(idx>=0)originStack.splice(idx,1);
    old.__originStacked=false;old.__originCloseHandled=true;old.__originStackEntry=null;
   });
-  if(panel.classList.contains('origin-animated')||!pendingOriginRect||Date.now()-pendingOriginAt>=3000)return;
+  if(panel.classList.contains('origin-animated')||!pendingOriginRect||Date.now()-pendingOriginAt>=5000)return;
   const overlay=originOverlay(panel);
   openFromOrigin(panel,originContent(panel),overlay,pendingOriginTrigger);
  });
