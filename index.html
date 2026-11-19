@@ -1819,8 +1819,9 @@ function ensureAssignedChecklistsInRotinas(){
   if(x.ckid&&CK[x.ckid]&&(!CK[x.ckid].p||CK[x.ckid].p!==x.pid)){
    const n=cloneChecklistModel(x.ckid,x.pid);if(n){x.ckid=n;x.legacyCkId=n;x.mid=x.mid||'checklist-'+n;changed=true}
   }
-  if(!x.ckid&&Array.isArray(x.steps)&&x.steps.some(z=>z&&z[0]!=='#')){
-   const id=createChecklistFromSteps(x.t,x.pid,x.steps,x.photoMode,x.routineKind,x.turns,x.evaluate);
+  if(!x.ckid){
+   const steps=Array.isArray(x.steps)&&x.steps.some(z=>z&&z[0]!=='#')?x.steps:[x.t||'Concluir atividade'];
+   const id=createChecklistFromSteps(x.t,x.pid,steps,x.photoMode,x.routineKind,x.turns,x.evaluate);
    if(id){x.ckid=id;x.legacyCkId=id;x.steps=[];changed=true}
   }
  });
@@ -1833,7 +1834,7 @@ function ensureAssignedChecklistsInRotinas(){
    let id='';
    if(current&&CK[current])id=cloneChecklistModel(current,p.id);
    else if(t.ckid&&CK[t.ckid])id=cloneChecklistModel(t.ckid,p.id);
-   else if(Array.isArray(t.steps)&&t.steps.some(z=>z&&z[0]!=='#'))id=createChecklistFromSteps(t.t,p.id,t.steps,t.photoMode,t.routineKind,t.turns,t.evaluate);
+   else {const steps=Array.isArray(t.steps)&&t.steps.some(z=>z&&z[0]!=='#')?t.steps:[t.t||'Concluir atividade'];id=createChecklistFromSteps(t.t,p.id,steps,t.photoMode,t.routineKind,t.turns,t.evaluate)}
    if(id){t.ckByPerson[p.id]=id;changed=true}
   });
  });
@@ -1939,13 +1940,36 @@ function delM(k,i){if(!ask('m'+k+i))return;const o=S[k][i],u=k==='roles'?'f':'s'
 async function delP(id){if(teamLeaderMode())return alert('O encarregado pode editar os repositores que cadastrou, mas a exclusão fica reservada à gestão.');if(!ask('p'+id))return;const p=person(id);if(p?.sb_uid){try{await acessoServidor({action:'revoke',target_user_id:p.sb_uid,permissions:[]})}catch(e){alert('Não foi possível bloquear o login no servidor. Funcionário não excluído. '+(e.message||''));return}}S.team=S.team.filter(p=>p.id!==id);S.team.forEach(p=>{p.lead=(p.lead||[]).filter(z=>z!==id)});V.pe=null;save();R()}
 
 
-function rRotTabs(view,allowed){const items=[['agenda','Cronograma'],['checklists','Checklists']].filter(x=>!allowed||allowed.includes(x[0]));return '<div class="chs">'+items.map(([k,l])=>chip(l,view===k,"V.rotView='"+k+"';R()")).join('')+'</div>'} const rotChecklistOptions=selected=>'<option value="">Sem procedimento vinculado</option>'+Object.entries(CK).filter(([k,c])=>!c.p&&!c.rc&&!c.rm).map(([k,c])=>'<option value="'+esc(k)+'" '+(k===selected?'selected':'')+'>'+esc(c.e+' '+c.n)+'</option>').join(''); function rotTaskKey(d,i,pid){return [d,i,pid].join('|')} function routineSteps(x){if(Array.isArray(x&&x.steps)&&x.steps.length)return x.steps.map(v=>String(v||'').trim()).filter(Boolean);const c=x&&x.ckid&&CK[x.ckid];return c&&Array.isArray(c.l)?c.l.map(v=>String(v||'').trim()).filter(Boolean):[]} function routineStepsText(x){return routineSteps(x).join('\n')} function parseRoutineSteps(v){return String(v||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,100)} function openRotTask(d,i,pid){const p=person(pid),x=(p?myT(p,d):dayTasks(d)).find(z=>String(z.i)===String(i));if(!x)return;const readonly=!!(isFullAccess()&&String(pid)!==String(V.me&&V.me.id));V.rotTask={d,i:String(i),pid,readonly};if(x.ckid&&CK[x.ckid]&&!readonly){V.rotTaskContext={d,i:String(i),pid,photoMode:x.photoMode||'none'};V.ck=x.ckid;V.ckd=d;V.ckt='rot-'+String(i)+'-'+String(pid);V.ckdr=null;V.ce=null}else V.rotTaskContext=null;R()} function rotTaskRecord(){if(!V.rotTask)return null;S.taskRuns=S.taskRuns||{};const k=rotTaskKey(V.rotTask.d,V.rotTask.i,V.rotTask.pid);return S.taskRuns[k]||(S.taskRuns[k]={photo:'',obs:''})} function rotStepAnswer(r,legacy,i){const v=r&&r.stepAnswers&&r.stepAnswers[i];return v||legacy&&legacy.a&&legacy.a[i]||''}
+function rRotTabs(view,allowed){const items=[['agenda','Cronograma'],['checklists','Checklists']].filter(x=>!allowed||allowed.includes(x[0]));return '<div class="chs">'+items.map(([k,l])=>chip(l,view===k,"V.rotView='"+k+"';R()")).join('')+'</div>'} const rotChecklistOptions=selected=>'<option value="">Sem procedimento vinculado</option>'+Object.entries(CK).filter(([k,c])=>!c.p&&!c.rc&&!c.rm).map(([k,c])=>'<option value="'+esc(k)+'" '+(k===selected?'selected':'')+'>'+esc(c.e+' '+c.n)+'</option>').join(''); function rotTaskKey(d,i,pid){return [d,i,pid].join('|')} function routineSteps(x){if(Array.isArray(x&&x.steps)&&x.steps.length)return x.steps.map(v=>String(v||'').trim()).filter(Boolean);const c=x&&x.ckid&&CK[x.ckid];return c&&Array.isArray(c.l)?c.l.map(v=>String(v||'').trim()).filter(Boolean):[]} function routineStepsText(x){return routineSteps(x).join('\n')} function parseRoutineSteps(v){return String(v||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean).slice(0,100)} function ensureRoutineChecklistForTask(x,pid){
+ if(!x||!pid)return '';
+ let id=x.ckid||(x.ckByPerson&&x.ckByPerson[pid])||'';
+ if(id&&CK[id]){
+  if(CK[id].p===pid)return id;
+  const copy=cloneChecklistModel(id,pid);
+  if(copy){id=copy;if(x.ckByPerson)x.ckByPerson[pid]=id;else if(x.ptid){const q=(S.pt||[]).find(v=>v.id===x.ptid);if(q){q.ckid=id;q.legacyCkId=id;q.steps=[]}}save();return id}
+ }
+ S.rotCkByTask=S.rotCkByTask||{};
+ const key=String(pid)+'|'+String(x.i||x.id||x.t);
+ id=S.rotCkByTask[key];
+ if(!id||!CK[id]){
+  const steps=Array.isArray(x.steps)&&x.steps.some(v=>v&&v[0]!=='#')?x.steps:[x.t||'Concluir atividade'];
+  id=createChecklistFromSteps(x.t,pid,steps,x.photoMode||'none',x.routineKind||'Rotina diária',x.turns||[],!!x.evaluate);
+  if(!id)return '';
+  S.rotCkByTask[key]=id;
+  if(x.ckByPerson)x.ckByPerson[pid]=id;
+  if(x.ptid){const q=(S.pt||[]).find(v=>v.id===x.ptid);if(q){q.ckid=id;q.legacyCkId=id;q.steps=[]}}
+  if(x.id){const q=(S.tasks||[]).find(v=>String(v.id)===String(x.id));if(q){q.ckByPerson=q.ckByPerson||{};q.ckByPerson[pid]=id}}
+  save();
+ }
+ return id;
+}
+function openRotTask(d,i,pid){const p=person(pid),x=(p?myT(p,d):dayTasks(d)).find(z=>String(z.i)===String(i));if(!x)return;const readonly=!!(isFullAccess()&&String(pid)!==String(V.me&&V.me.id)),ckid=ensureRoutineChecklistForTask(x,pid);V.rotTask={d,i:String(i),pid,readonly};if(ckid&&CK[ckid]&&!readonly){V.rotTaskContext={d,i:String(i),pid,photoMode:x.photoMode||'none'};V.ck=ckid;V.ckd=d;V.ckt=x.ckt||(CK[ckid].t&&CK[ckid].t[0])||'';V.ckdr=null;V.ce=null}else V.rotTaskContext=null;R()} function rotTaskRecord(){if(!V.rotTask)return null;S.taskRuns=S.taskRuns||{};const k=rotTaskKey(V.rotTask.d,V.rotTask.i,V.rotTask.pid);return S.taskRuns[k]||(S.taskRuns[k]={photo:'',obs:''})} function rotStepAnswer(r,legacy,i){const v=r&&r.stepAnswers&&r.stepAnswers[i];return v||legacy&&legacy.a&&legacy.a[i]||''}
 function setRotStep(i,v){const r=rotTaskRecord();r.stepAnswers=r.stepAnswers||{};if(r.stepAnswers[i]===v)delete r.stepAnswers[i];else r.stepAnswers[i]=v;const y=scrollY;save();R();scrollTo(0,y)}
 function rTaskDetail(){
  const c=V.rotTask;if(!c)return rCroEmp();
  const p=person(c.pid),x=(p?myT(p,c.d):dayTasks(c.d)).find(z=>String(z.i)===String(c.i));
  if(!x){V.rotTask=null;return rCroEmp()}
- const k=rotTaskKey(c.d,c.i,c.pid),r=(S.taskRuns||{})[k]||{},ck=x.ckid&&CK[x.ckid],legacyKey=r.checklistKey||(x.ckid?[x.ckid,c.d,'rot-'+String(x.i)+'-'+String(c.pid)].join('|'):''),legacy=legacyKey&&S.runs&&S.runs[legacyKey],steps=routineSteps(x),photo=r.photo||(legacy&&legacy.photo)||'',obs=r.obs||(legacy&&legacy.obs)||'',mode=x.photoMode==='required'||ck&&ck.ph?'required':(x.photoMode||'none');
+ const k=rotTaskKey(c.d,c.i,c.pid),r=(S.taskRuns||{})[k]||{},ckid=x.ckid||(x.ckByPerson&&x.ckByPerson[c.pid])||(S.rotCkByTask||{})[String(c.pid)+'|'+String(x.i)],ck=ckid&&CK[ckid],legacyKey=r.checklistKey||(ckid?[ckid,c.d,(ck&&ck.t&&ck.t[0])||''].join('|'):''),legacy=legacyKey&&S.runs&&S.runs[legacyKey],steps=routineSteps(x),photo=r.photo||(legacy&&legacy.photo)||'',obs=r.obs||(legacy&&legacy.obs)||'',mode=x.photoMode==='required'||ck&&ck.ph?'required':(x.photoMode||'none');
  const answerCount=steps.reduce((n,v,i)=>n+(v[0]!=='#'&&!!rotStepAnswer(r,legacy,i)?1:0),0),total=steps.filter(v=>v[0]!=='#').length,done=!!S.done[c.d+'|'+c.i+'|'+c.pid],ans={s:'Sim',n:'Não',a:'Não se aplica'};
  const stepHtml=steps.map((label,i)=>label[0]==='#'?'<h4>'+esc(label.slice(1))+'</h4>':'<div class="it"><div style="flex:1">'+esc(label)+'</div>'+(c.readonly?'<span class="b '+(rotStepAnswer(r,legacy,i)==='n'?'wa':rotStepAnswer(r,legacy,i)?'ok':'wa')+'">'+esc(ans[rotStepAnswer(r,legacy,i)]||'Sem resposta')+'</span>':'<div class="sn">'+[['s','✓'],['n','✗'],['a','–']].map(([v,l])=>'<button class="'+v+' '+(rotStepAnswer(r,legacy,i)===v?'on':'')+'" onclick="setRotStep('+i+',\''+v+'\')">'+l+'</button>').join('')+'</div>')+'</div>').join('');
  const header='<div class="row sp"><button class="ch" onclick="V.rotTask=null;R()">‹ Voltar às Rotinas</button><span class="b '+(done?'ok':'wa')+'">'+(done?'Concluída':'Pendente')+'</span></div>';
@@ -2615,7 +2639,7 @@ function rPro(){return perfDashboardHTML()}
 const isMaster=()=>!!V.me&&V.me.role==='master';
  const isFullAccess=()=>!!V.me&&(V.me.role==='master'||V.me.role==='gerente');
  const can=k=>!!V.me&&(isFullAccess()||V.me.perm.includes(k));
-const canR=k=>k==='rot'?(can('r:cro')||can('r:ck')):can('r:'+k)||((k==='conf'||k==='pdc')&&pdcCanCreate());
+const canR=k=>k==='rot'?(can('r:rot')||can('r:cro')||can('r:ck')):can('r:'+k)||((k==='conf'||k==='pdc')&&pdcCanCreate());
 const canTab=k=>!V.me?false:!isFullAccess()?(EMPT.includes(k)||(k==='reg'&&(V.me.perm.some(p=>/^[rl]:/.test(p))||(S.pdc||[]).some(o=>o.rp===V.me.id||o.by===V.me.id)))||((k==='ava'||k==='pro')&&V.me.perm.includes(k))):k==='atr'?false:k==='reg'?true:can(k);
 const PG=[['Menus',[['painel','📊 Painel'],['rot','🗓️ Rotinas'],['ava','⭐ Avaliação'],['pro','📈 Progresso']]],['Registros – seções',[['r:lanc','📝 Lançamentos'],['r:rot','🗓️ Rotinas'],['r:ava','⭐ Avaliações'],['r:conf','🔎 Conferências'],['r:eqp','👥 Equipe'],['r:set','🏬 Setores']]],['Registros – lançamentos',LANC_KEYS.map(k=>['l:'+k,FS[k].e+' '+FS[k].n])]];
 const PGFLAT=PG.flatMap(g=>g[1]);
