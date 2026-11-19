@@ -1889,7 +1889,7 @@ function delM(k,i){if(!ask('m'+k+i))return;const o=S[k][i],u=k==='roles'?'f':'s'
 async function delP(id){if(teamLeaderMode())return alert('O encarregado pode editar os repositores que cadastrou, mas a exclusão fica reservada à gestão.');if(!ask('p'+id))return;const p=person(id);if(p?.sb_uid){try{await acessoServidor({action:'revoke',target_user_id:p.sb_uid,permissions:[]})}catch(e){alert('Não foi possível bloquear o login no servidor. Funcionário não excluído. '+(e.message||''));return}}S.team=S.team.filter(p=>p.id!==id);S.team.forEach(p=>{p.lead=(p.lead||[]).filter(z=>z!==id)});V.pe=null;save();R()}
 
 
-function rCro(){return rCroMain()}
+function rRotTabs(view,allowed){const items=[['agenda','Atividades'],['checklists','Checklists']].filter(x=>!allowed||allowed.includes(x[0]));return '<div class="chs">'+items.map(([k,l])=>chip(l,view===k,"V.rotView='"+k+"';R()")).join('')+'</div>'} function rRot(){const view=V.rotView||'agenda';return rRotTabs(view)+(view==='checklists'?rCk():rCroMain())} function rRotEmp(){const p=person(V.me&&V.me.id);if(!p)return '<div class="c mu">Seu cadastro de funcionário não foi encontrado. Peça ao administrador para revisar seu acesso.</div>';const view=V.rotView||'agenda';return rRotTabs(view)+(view==='checklists'?rCkEmp():rCroEmp())} function rCro(){return rCroMain()}
 function rCroMain(){
  const dt=V.date||today(),admin=isFullAccess(),self=person(V.me&&V.me.id),view=V.croView||'semana';
  if(!admin&&!self)return '<div class="c mu">Seu cadastro de funcionário não foi encontrado. Peça ao administrador para revisar seu acesso.</div>';
@@ -1937,7 +1937,7 @@ function tmSave(){tmRead();const e=V.tme;if(!e.n)return alert('Informe o nome do
 S.tmod=S.tmod||[];const rec={id:e.id==='new'?'tm'+uid():e.id,n:e.n,items:it.map(x=>({id:x.id||uid(),t:x.t,days:x.days,time:x.time||''}))};const k=S.tmod.findIndex(x=>x.id===rec.id);if(k>=0)S.tmod[k]=rec;else S.tmod.push(rec);V.tme=null;save();R()}
 function tmDel(id){if(!ask('tm'+id))return;S.tmod=(S.tmod||[]).filter(x=>x.id!==id);V.tme=null;save();R()}
 function tmEditor(){const e=V.tme;return `<button class="ch" onclick="V.tme=null;R()">‹ Modelos</button><div class="c"><label>Nome do modelo<input id="tm_n" value="${esc(e.n)}"></label></div>`+e.items.map((it,j)=>`<div class="c"><input id="tmi_t_${j}" value="${esc(it.t)}" placeholder="Atividade"><div class="week-picks u-g2 u-mt6">${tmDaysHTML('tmi_d_'+j,it.days||[])}</div><div class="row u-mt6"><input id="tmi_h_${j}" type="time" value="${esc(it.time||'')}" class="u-fx1"><button class="bt d" onclick="tmItemDel(${j})">✕</button></div></div>`).join('')+`<div class="row u-mt8"><button class="bt g" onclick="tmItemAdd()">+ Adicionar atividade</button></div><div class="row u-mt8"><button class="bt" onclick="tmSave()">Salvar modelo</button><button class="bt g" onclick="V.tme=null;R()">Cancelar</button></div>`}
-function rCroReg(){if(!isFullAccess())return '<div class="c mu">Os modelos de cronograma são administrados pela gestão. A execução das suas atividades fica no menu inferior Cronograma.</div>';if(V.tme)return tmEditor();return tmList()}
+function rRotReg(){const allowed=[];if(canR('cro'))allowed.push('agenda');if(canR('ck'))allowed.push('checklists');if(!allowed.length)return '<div class="c mu">Você não tem acesso a esta área.</div>';let view=V.rotRegView||allowed[0];if(!allowed.includes(view))view=allowed[0];V.rotRegView=view;return rRotTabs(view,allowed)+(view==='checklists'?rCkReg():rCroReg())} function rCroReg(){if(!isFullAccess())return '<div class="c mu">Os modelos de atividades são administrados pela gestão. A execução da sua rotina fica no menu inferior Rotinas.</div>';if(V.tme)return tmEditor();return tmList()}
 function ptAdd(pid){softP();const t=(($('ptn_'+pid)||{}).value||'').trim(),days=tmDaysRead('ptnd_'+pid),time=(($('pth_'+pid)||{}).value||'');if(!t)return alert('Informe a atividade.');if(!days.length)return alert('Escolha ao menos um dia.');S.pt=S.pt||[];S.pt.push({id:'pt'+uid(),pid,t,days,time,mid:null});save();R()}
 function ptSave(id){const x=(S.pt||[]).find(y=>y.id===id);if(!x)return;const t=(($('pt_t_'+id)||{}).value||'').trim();if(!t)return alert('Informe a atividade.');const days=tmDaysRead('pt_d_'+id);if(!days.length)return alert('Escolha ao menos um dia.');x.t=t;x.days=days;x.time=(($('pt_h_'+id)||{}).value||'');V.pte=null;save();R()}
 function ptDel(id){if(!ask('pd'+id))return;S.pt=(S.pt||[]).filter(x=>x.id!==id);save();R()}
@@ -2069,7 +2069,7 @@ return `<label>${f.l}${c}</label>`}
 const fv=(f,e)=>{if(f.t==='a')return String(e[f.k]||'').startsWith('data:')?`<img src="${e[f.k]}" alt="Assinatura" style="height:44px;background:#fff;border-radius:6px;vertical-align:middle">`:esc(e[f.k]);if(f.t==='e'){const x=(S.equip||[]).find(y=>y.id===e[f.k]);return esc(x?(x.num?x.num+' · ':'')+x.n:(e.q||''))}return esc(br(e[f.k]))};
 const recVal=f=>{const e=V.ed&&(S.log[V.reg]||[]).find(x=>x.id===V.ed);return e?e[f.k]:undefined};
 const tc=(e,n,on,a)=>`<button class="ch ${on?'on':''}" title="${n}" onclick="${a}">${on?e+' '+n:e}</button>`;
-const RSEC=[['lanc','📝','Lançamentos'],['cro','🗓️','Cronograma'],['ck','✅','Checklists'],['ava','⭐','Avaliações'],['conf','🔎','Conferências'],['eq','👥','Equipe'],['set','🏬','Setores'],['pdc','🧾','Pedidos p/ Compras'],['semv','📦','Produtos sem venda'],['mov','🔁','Movimentações'],['w5','🎯','Plano 5W2H']];
+const RSEC=[['lanc','📝','Lançamentos'],['rot','🗓️','Rotinas'],['ava','⭐','Avaliações'],['conf','🔎','Conferências'],['eq','👥','Equipe'],['set','🏬','Setores'],['pdc','🧾','Pedidos p/ Compras'],['semv','📦','Produtos sem venda'],['mov','🔁','Movimentações'],['w5','🎯','Plano 5W2H']];
 const LANC_KEYS=(FS.ck={n:'Checklist',e:'✅',f:'',F:[],ti:()=>''},FS.ped={n:'Pedido p/ prateleira',e:'🛒',f:'d:Data:d|p:Produto:t|r:Repositor:p',ti:e=>`${e.p} · ${e.r||'—'}`},FS.ent.f='d:Data:d|h:Hora:h|b:Bairro:t|r:Entregador:E',FS.ent.ti=e=>`${br(e.d)} · ${e.b||'—'} · ${e.r||'—'}`,FS.req.f='d:Data:d|z:Setor:z|p:Produto:t|q:Quantidade:n|u:Unidade:s:kg,un,L,g,cx',FS.etiq.f='d:Data:d|n:Repositor:p|r:Assinatura:a|m:Motivo:s:Alteração de preço,Brigada de preço,Etiqueta danificada,Outro|q:Quantidade:n',FS.etiq.ti=e=>`${e.n||(String(e.r||'').startsWith('data:')?'—':e.r)||'—'} · ${e.m||''} × ${e.q||0}`,FS.fita.f='d:Data:d|r:Funcionário:p|q:Quantidade:n',FS.fita.ti=e=>`${e.r||'—'} · ${e.q||1} fita(s) · ${br(e.d)}`,[FS.ped,FS.ent,FS.req,FS.etiq,FS.fita].forEach(x=>x.F=PF(x.f)),BADGE.req=BADGE.ped=e=>e.st==='c'?['Comprado'+(e.emp?' · '+e.emp:''),'ok']:e.st==='n'?['Não comprado','no']:['Pendente','wa'],['temp','trf','ped','perd','etiq','fita','rup','vtc','atc','ach','os','w5','ent','cx','lote','chrec']);
 
 /* ---- tipos de avaliação (modelos) ---- */
@@ -2273,6 +2273,7 @@ function regMenuHome(){V.rs='home';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuLaunch(){V.rs='lanc';V.reg=null;V.bal=null;R();scrollTo(0,0)}
 function regMenuOpenSection(k){
  if(k==='lanc'){regMenuLaunch();return}
+ if(k==='rot')V.rotRegView=canR('cro')?'agenda':'checklists';
  V.rs=k;V.reg=null;V.bal=null;V.add=0;V.eqm=0;V.cb=null;V.mdl=null;
  if(k==='ava')V.ev='home';if(k==='ck'){V.ck=null;V.ckTab='home';V.ce=null;}if(k==='pdc')V.pdcMode='home';
  if(k==='conf'){V.cfO=null;V.cfS=[];V.clo=null}
@@ -2335,7 +2336,7 @@ function rReg(){
  if(sec==='home')return rRegHome(homeItems);
  if(sec==='lanc'&&!V.reg)return rRegLaunchMenu(launchItems);
  if(sec==='lanc'&&V.reg&&!LK.includes(V.reg)){V.reg=null;return rRegLaunchMenu(launchItems)}
- const body={cro:rCroReg,ck:rCkReg,ava:rAvaReg,conf:rConf,eqp:rEqp,eq:rEq,set:rSet,pdc:rPdc,semv:rSemv,mov:rMov,w5:()=>{V.reg='w5';return rRegLanc()}}[sec]||rRegLanc;
+ const body={rot:rRotReg,ava:rAvaReg,conf:rConf,eqp:rEqp,eq:rEq,set:rSet,pdc:rPdc,semv:rSemv,mov:rMov,w5:()=>{V.reg='w5';return rRegLanc()}}[sec]||rRegLanc;
  const content=body();
  const ownBack=regContentHasBack(content);
  const fromLaunch=sec==='lanc'||REG_MOVED.includes(sec);
@@ -2527,15 +2528,15 @@ function progTipos(){const mo=today().slice(0,7),ns=S.sectors.length||1,nt=S.tea
 const ind=S.team.filter(p=>S.ev.some(e=>(!e.t||e.t==='ind')&&e.p===p.id&&inM(e))).length,cl=new Set(S.ev.filter(e=>e.t==='clima'&&inM(e)).map(e=>e.z)).size,rs=new Set(S.ev.filter(e=>e.t==='resp'&&inM(e)).map(e=>e.z)).size;
 const row=(l,n,d,sub)=>`<div class="c"><div class="row sp"><b>${l}</b><span class="mu">${n}/${d}</span></div><div class="mu">${sub}</div>${bar(n/d*100)}</div>`;
 return '<h2>Progresso por tipo (mês)</h2>'+row('👤 Individual',ind,nt,'Pessoas avaliadas')+row('🌤️ Pesquisa de clima',cl,ns,'Setores com pesquisa')+row('🧑‍💼 Responsável do setor',rs,ns,'Setores com responsável avaliado')}
-const goR=(s,ev,ck)=>{V.dir=0;V.cb=null;V.eqm=0;V.tab='reg';V.rs=s;if(ev)V.ev=ev;V.ck=ck||null;V.ce=null;V.add=0;V.te=null;V.mn=0;V.sh=0;rMenu();R();scrollTo(0,0)};
+const goR=(s,ev,ck)=>{if(s==='cro'||s==='ck'){V.rotRegView=s==='ck'?'checklists':'agenda';s='rot'}V.dir=0;V.cb=null;V.eqm=0;V.tab='reg';V.rs=s;if(ev)V.ev=ev;V.ck=ck||null;V.ce=null;V.add=0;V.te=null;V.mn=0;V.sh=0;rMenu();R();scrollTo(0,0)};
 function rPro(){return perfDashboardHTML()}
 
 const isMaster=()=>!!V.me&&V.me.role==='master';
  const isFullAccess=()=>!!V.me&&(V.me.role==='master'||V.me.role==='gerente');
  const can=k=>!!V.me&&(isFullAccess()||V.me.perm.includes(k));
-const canR=k=>can('r:'+k)||((k==='conf'||k==='pdc')&&pdcCanCreate());
+const canR=k=>k==='rot'?(can('r:cro')||can('r:ck')):can('r:'+k)||((k==='conf'||k==='pdc')&&pdcCanCreate());
 const canTab=k=>!V.me?false:!isFullAccess()?(EMPT.includes(k)||(k==='reg'&&(V.me.perm.some(p=>/^[rl]:/.test(p))||(S.pdc||[]).some(o=>o.rp===V.me.id||o.by===V.me.id)))||((k==='ava'||k==='pro')&&V.me.perm.includes(k))):k==='atr'?false:k==='reg'?true:can(k);
-const PG=[['Menus',[['painel','📊 Painel'],['cro','🗓️ Cronograma'],['ck','✅ Checklists'],['ava','⭐ Avaliação'],['pro','📈 Progresso']]],['Registros – seções',[['r:lanc','📝 Lançamentos'],['r:cro','🗓️ Cronograma'],['r:ck','✅ Checklists'],['r:ava','⭐ Avaliações'],['r:conf','🔎 Conferências'],['r:eqp','👥 Equipe'],['r:set','🏬 Setores']]],['Registros – lançamentos',LANC_KEYS.map(k=>['l:'+k,FS[k].e+' '+FS[k].n])]];
+const PG=[['Menus',[['painel','📊 Painel'],['rot','🗓️ Rotinas'],['ava','⭐ Avaliação'],['pro','📈 Progresso']]],['Registros – seções',[['r:lanc','📝 Lançamentos'],['r:cro','🗓️ Rotinas — atividades'],['r:ck','☑️ Rotinas — checklists'],['r:ava','⭐ Avaliações'],['r:conf','🔎 Conferências'],['r:eqp','👥 Equipe'],['r:set','🏬 Setores']]],['Registros – lançamentos',LANC_KEYS.map(k=>['l:'+k,FS[k].e+' '+FS[k].n])]];
 const PGFLAT=PG.flatMap(g=>g[1]);
 const ownBy=()=>V.me&&!isFullAccess()?{by:V.me.id,sent:false}:{};
 const canImp=()=>!!V.me&&(isFullAccess()||(typeof can==='function'&&can('adm')));
@@ -2838,7 +2839,7 @@ function rMenu(){
  else if(before&&!after){closeToOrigin(before,beforeOverlay);originHistoryOpen=false;if(history.state?.stOriginPanel)history.back();}
 }
 window.addEventListener('popstate',()=>{if(V.mn||V.sh){V.mn=0;V.sh=0;rMenu();originHistoryOpen=false;}});
-const GRP=['Controle de Qualidade','Prevenção','Encarregado','Compras'],EMPT=['painel','cro','ck','atr'];
+const GRP=['Controle de Qualidade','Prevenção','Encarregado','Compras'],EMPT=['painel','rot','atr'];
 const meOf=id=>{
   if(String(id).startsWith('cloud:')){
     const x=V.cloudIdentity;
@@ -2964,7 +2965,7 @@ function addCr(id){softP();const p=person(id),t=$('cn_'+id).value.trim(),d=[...d
 function delCr(id){softP();S.tasks=S.tasks.filter(t=>t.id!==id);save();R()}
 const cardP=q=>{const s=pStat(q);return `<div class="c"><div class="row sp"><b>${esc(q.n)}</b><span class="mu">${esc(q.f||'')}</span></div>${bar((s.pct||0)*100)}<div class="mu">Tarefas ${s.dn}/${s.tk.length} · Checklists ${s.ck!=null?Math.round(s.ck*100)+'%':'—'}${s.g!=null?' · Nota '+s.g.toFixed(1):''}</div></div>`};
 const sectorBlk=p=>{if(!p.s)return'';const M=S.team.filter(x=>x.s===p.s),St=M.map(pStat),a=mn(St.map(s=>s.pct)),g=mn(St.map(s=>s.g));return `<h2>Painel do setor · ${esc(p.s)}</h2><div class="c row u-gap14">${ring((a||0)*100)}<div><div class="mu">Progresso do setor hoje</div><div class="big">${a!=null?Math.round(a*100)+'%':'—'}</div><div class="mu">${M.length} pessoa(s)${g!=null?' · nota média '+g.toFixed(1):''}</div></div></div>`+M.filter(x=>x.id!==p.id).map(cardP).join('')};
-const EMPR={painel:rPaiEmp,cro:rCroEmp,ck:rCkEmp,atr:rAtr};
+const EMPR={painel:rPaiEmp,rot:rRotEmp,atr:rAtr};
 /* ---- cadastro: acesso, cronograma e liderança ---- */
 /* ---- cadastro de pessoa: indicadores, atribuições, cronograma e checklist (modelos reutilizáveis) ---- */
 const PMK={a:{f:'a',m:'amod',pl:'atribuições',ph:'Nova atribuição',sec:'atr'},i:{f:'ind',m:'imod',pl:'indicadores',ph:'Novo indicador',sec:'ind'}};
@@ -3457,7 +3458,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.65.2';
+const APP_VERSION='3.66.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3820,7 +3821,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
-{v:'3.65.1',d:'19/11/2026',t:'Textos de notificações para celular e computador (PATCH)',n:['O botão passa a usar o texto “Ativar notificações”, sem limitar o recurso ao celular.','A descrição e as confirmações passam a usar linguagem compatível com qualquer dispositivo.'],c:['Nenhuma alteração no funcionamento do envio, nas permissões ou nos dados de notificações.']},
+{v:'3.66.0',d:'19/11/2026',t:'Consolidação de Cronograma e Checklist em Rotinas (MINOR)',n:['Cronograma e Checklists passam a ser acessados por uma única área chamada Rotinas.','As duas visões continuam disponíveis dentro da área unificada, preservando seus registros e fluxos anteriores.','Em Registros, as duas áreas também passam a compartilhar uma única entrada, mantendo as permissões antigas de cada parte.'],c:['Esta etapa consolida a navegação; os vínculos de procedimentos, regras avançadas de conclusão e evidências fotográficas serão adicionados em etapas seguintes.']}, {v:'3.65.1',d:'19/11/2026',t:'Textos de notificações para celular e computador (PATCH)',n:['O botão passa a usar o texto “Ativar notificações”, sem limitar o recurso ao celular.','A descrição e as confirmações passam a usar linguagem compatível com qualquer dispositivo.'],c:['Nenhuma alteração no funcionamento do envio, nas permissões ou nos dados de notificações.']},
 {v:'3.64.1',d:'19/11/2026',t:'Correção do vínculo entre respostas e itens dos checklists (PATCH)',n:['Preserva os índices originais dos itens ao salvar a fotografia histórica do checklist.','O painel de falhas passa a consultar a resposta no índice original, inclusive quando há títulos de seção.','Mantém a verificação de correspondência do conteúdo e exclui históricos antigos quando não é possível garantir o alinhamento.'],c:['Aplicações antigas com títulos de seção e sem índice preservado não são usadas no cálculo.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.64.0',d:'19/11/2026',t:'Falhas recorrentes em itens de checklist por setor (MINOR)',n:['O painel gerencial identifica itens de checklist com marcações recorrentes de “Não”, agrupados por setor.','Exige pelo menos três respostas e duas marcações de “Não” para destacar um item.','Usa apenas aplicações em que os itens históricos podem ser alinhados com segurança ao modelo atual.'],c:['Aplicações cujo modelo foi alterado ou não pode ser conferido são excluídas do levantamento.','Os resultados orientam investigação e correção de rotina; não determinam responsabilidade individual.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.63.0',d:'19/11/2026',t:'Comparação do encarregado com a equipe e tarefas recorrentes (MINOR)',n:['Na visão do encarregado, compara o índice e as dimensões de execução do líder com a média dos funcionários diretamente vinculados no cadastro.','Mostra resultados individuais da equipe, cobertura de dados e evolução em relação ao período anterior.','Identifica tarefas recorrentes entre as pendências usando apenas fotografias diárias do cronograma já preservadas.'],c:['A média da equipe não inclui o encarregado e não substitui análise do contexto de cada função.','Tarefas de dias sem fotografia histórica não entram no levantamento de recorrência.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
@@ -3950,8 +3951,8 @@ const APP_HIST=[
 {v:'3.0.0',d:'06/11/2026',t:'Grande atualização (MAJOR)',n:['Pedidos para Compras: pedido com vários produtos e escolha do repositor, atendimento pelo comprador (comprado, parcial ou não comprado), acompanhamento pelo solicitante e encerramento.','Encaminhamento de produtos comprados para Conferência, com resultado (conferido ou divergência por quantidade, produto ou qualidade) visível no pedido.','Envio e importação de arquivos JSON com validação, prevenção de duplicidade, resumo e histórico. Pedidos e conferências entram no envio.','Indicadores automáticos de desempenho por funcionário, com pontuação geral, histórico e indicadores personalizados criados a partir de registros.','Modelos de indicadores e de cronograma editáveis, com aplicação à pessoa e atividades extras individuais.','Notificações por categoria (alterações, avisos, tarefas, atrasos e ocorrências), marcação individual, aviso geral do administrador e avisos automáticos.','Checklist de recebimento de perecíveis disponível em Lançamentos.','Perdas de perecíveis por importação de planilha CSV, com escolha obrigatória do setor, prévia e erros por linha.','Vencidos e Avariados unificados, com escolha de troca ou sem troca.','Administradores com acesso total ao sistema.','Padronização visual de animações, janelas, seções e topo dos lançamentos.','Funcionamento exclusivamente offline, sem rede local.'],c:['Atividades extras do checklist passaram a aparecer na ficha e podem ser removidas.','Compartilhamento do envio passou a ter confirmação explícita; baixar o arquivo não marca registros como enviados.','A tela mantém a posição de rolagem ao editar e abrir itens.','Filtros da Conferência passaram a filtrar de fato pelo tipo.','Botões duplicados de importação de perdas removidos.']}
 ];
 const NAV_MOVED=[],REG_MOVED=['pdc','semv','mov'];
-const TABS=[['painel','📊','Painel',rPai],['cro','🗓️','Cronograma',rCro],['ck','✅','Checklists',rCk],['ava','⭐','Avaliação',rAva],['pro','📈','Progresso',rPro],['atr','📋','Atribuições',rAtr],['reg','📝','Registros',rReg]];
-const go=t=>{const A=TABS.map(x=>x[0]);V.ckdr=null;V.cb=null;V.eqm=0;V.mm=null;V.evm=null;V.dir=A.indexOf(t)-A.indexOf(V.tab);if(t!==V.tab){V.cfO=null;V.pdcO=null;V.pdcL=[];V.tme=null;V.pim=null;V.ck=null;V.ckOnly=null;V.mdl=null;V.eqe=null;V.ed=null;V.ntnav=0;V.pte=null;V.lw=null;V.eq=null;V.eqm=0;if(t==='reg'){V.rs='home';V.reg=null}}V.tab=t;V.pe=null;V.add=0;V.te=null;V.cf=null;V.mn=0;V.sh=0;V.ce=null;V.bal=null;rMenu();R();scrollTo(0,0)};
+const TABS=[['painel','📊','Painel',rPai],['rot','🗓️','Rotinas',rRot],['ava','⭐','Avaliação',rAva],['pro','📈','Progresso',rPro],['atr','📋','Atribuições',rAtr],['reg','📝','Registros',rReg]];
+const go=t=>{if(t==='cro'||t==='ck'){V.rotView=t==='ck'?'checklists':'agenda';t='rot'}const A=TABS.map(x=>x[0]);V.ckdr=null;V.cb=null;V.eqm=0;V.mm=null;V.evm=null;V.dir=A.indexOf(t)-A.indexOf(V.tab);if(t!==V.tab){V.cfO=null;V.pdcO=null;V.pdcL=[];V.tme=null;V.pim=null;V.ck=null;V.ckOnly=null;V.mdl=null;V.eqe=null;V.ed=null;V.ntnav=0;V.pte=null;V.lw=null;V.eq=null;V.eqm=0;if(t==='reg'){V.rs='home';V.reg=null}}V.tab=t;V.pe=null;V.add=0;V.te=null;V.cf=null;V.mn=0;V.sh=0;V.ce=null;V.bal=null;rMenu();R();scrollTo(0,0)};
 const scrollables=()=>[...document.querySelectorAll('*')].filter(e=>e.scrollHeight>e.clientHeight+1||e.scrollWidth>e.clientWidth+1);
 function R(){const y=window.scrollY,pos=scrollables().map(e=>[e.scrollTop,e.scrollLeft]);R0();scrollables().forEach((e,i)=>{if(pos[i]){e.scrollTop=pos[i][0];e.scrollLeft=pos[i][1]}});window.scrollTo(0,y)}
 function migVenc(){if(!S||!S.log)return;let ch=false;[['vsc','vtc'],['asc','atc']].forEach(([from,to])=>{const L=S.log[from]||[];if(!L.length)return;S.log[to]=(S.log[to]||[]).concat(L.map(e=>({...e,tr:e.tr||'Sem troca'})));S.log[from]=[];ch=true});if(ch)save()}
@@ -3971,8 +3972,8 @@ S.migrations=S.migrations||[];S.migrations.push('fixmodels-2026');save()}
 function R0(){bell();Object.keys(CK).forEach(k=>{if(CK[k]&&CK[k].nw&&k!==V.ce&&k!==V.ck)delete CK[k]});migVenc();migAdm();migJunior();migMovUnif();migMovBack();migFix();if(!V.add)V.ed=null;
 if(!V.me){$('app').innerHTML=V.authChecking?'<div class="lgw"><div class="lgc"><div class="spin"></div><p class="mu" style="text-align:center">Verificando sua sessão…</p></div></div>':(V.wel?rWelcome():rLogin());$('nav').innerHTML='';$('hd').textContent='';if($('snd'))$('snd').style.display='none';$('dt').style.display='none';return}
 $('dt').style.display='';if(V.me.role==='emp'){const q=person(V.me.id);V.me.perm=q&&q.perm||[]}const A=TABS.filter(t=>canTab(t[0])&&!NAV_MOVED.includes(t[0]));if(!A.some(t=>t[0]===V.tab))V.tab=A.length?A[0][0]:'painel';
-const T=TABS.find(t=>t[0]===V.tab);const sg=[V.tab,V.pv,V.eq,V.ev,V.evt,V.ck,V.ce,V.reg,V.rs,V.cff,V.te,V.pe,V.date,V.ss,V.sm,V.fr,V.wedit,V.bal,V.eqm,V.evm,V.mm].join();const dc=V.dir>0?' dr':V.dir<0?' dl':'';$('app').className=sg!==V.sg?'an'+dc:'';V.sg=sg;
-const pageText={painel:'Resumo da operação e acompanhamento da equipe.',cro:'Organize as atividades, responsáveis e tarefas do dia.',ck:'Acompanhe modelos, aplicações e execução dos checklists.',ava:'Consulte avaliações, pesquisas e resultados da equipe.',pro:'Acompanhe indicadores e evolução por setor e funcionário.',atr:'Consulte atribuições e responsabilidades da equipe.',reg:'Acesse lançamentos, cadastros, importações e conferências.'};
+const T=TABS.find(t=>t[0]===V.tab);const sg=[V.tab,V.rotView,V.rotRegView,V.pv,V.eq,V.ev,V.evt,V.ck,V.ce,V.reg,V.rs,V.cff,V.te,V.pe,V.date,V.ss,V.sm,V.fr,V.wedit,V.bal,V.eqm,V.evm,V.mm].join();const dc=V.dir>0?' dr':V.dir<0?' dl':'';$('app').className=sg!==V.sg?'an'+dc:'';V.sg=sg;
+const pageText={painel:'Resumo da operação e acompanhamento da equipe.',rot:'Organize atividades, procedimentos, responsáveis e execução em um só lugar.',ava:'Consulte avaliações, pesquisas e resultados da equipe.',pro:'Acompanhe indicadores e evolução por setor e funcionário.',atr:'Consulte atribuições e responsabilidades da equipe.',reg:'Acesse lançamentos, cadastros, importações e conferências.'};
 const pageContent=((!isFullAccess()&&EMPR[V.tab])||T[3])();
 $('app').innerHTML=`<div class="page-shell"><div class="page-heading"><div><h1>${esc(T[2])}</h1><p>${pageText[V.tab]||'Consulte e gerencie as informações desta área.'}</p></div><div class="account-indicator">Conta conectada<b>${esc(V.me.n||'Usuário')}</b>${V.me.u?'@'+esc(V.me.u):'Sessão ativa'}</div></div><div class="page-content">${pageContent}</div></div>`;cnt();initSigs();
 $('nav').innerHTML=A.map(t=>`<button class="${t[0]===V.tab?'on':''}" onclick="go('${t[0]}')" aria-label="${t[2]}"><span class="ni">${IC(t[0])||t[1]}</span><span class="nl">${t[2]}</span></button>`).join('');
