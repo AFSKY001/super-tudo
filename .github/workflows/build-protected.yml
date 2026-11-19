@@ -1,0 +1,39 @@
+name: Build protected distribution
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pinned build dependency
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Build minified distribution
+        run: npm run build:protected
+      - name: Verify distribution
+        run: |
+          test -s dist/index.html
+          test -s dist/sw.js
+          test -s dist/manifest.webmanifest
+          ! grep -q 'sourceMappingURL=' dist/index.html
+      - name: Upload protected distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: super-tudo-protegido
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
