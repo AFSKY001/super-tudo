@@ -751,6 +751,23 @@ nav button.on .ni{transform:none}
 .pressable:active{
   transform:scale(.96)!important;
 }
+/* Press-and-hold nas ações principais */
+.hold-action{position:relative!important;isolation:isolate;overflow:hidden}
+.hold-action>.hold-bubble{
+  position:absolute;left:50%;top:50%;width:var(--hold-diameter);height:var(--hold-diameter);
+  border-radius:50%;background:var(--hold-color);pointer-events:none;z-index:0;
+  transform:translate(-50%,-50%) scale(0);transform-origin:center;
+  transition:transform 600ms cubic-bezier(.2,.8,.2,1);
+}
+.hold-action>.hold-bubble.is-growing{transform:translate(-50%,-50%) scale(1)}
+.hold-action>.hold-bubble.is-receding{
+  transform:translate(-50%,-50%) scale(0);
+  transition-duration:150ms;
+}
+.hold-action>*:not(.hold-bubble){position:relative;z-index:1}
+@media(prefers-reduced-motion:reduce){
+  .hold-action>.hold-bubble{transition:none!important}
+}
 @media (prefers-reduced-motion:reduce){
   :root{
     --dur-fast:0ms;
@@ -771,6 +788,7 @@ nav button.on .ni{transform:none}
 <main id="app"></main>
 <nav id="nav"></nav>
 <script>
+const HOLD_MS = 600;
 const ICP={
 "painel":'<rect x="3" y="3" width="8" height="8" rx="1.4"/><rect x="13" y="3" width="8" height="5" rx="1.4"/><rect x="13" y="10" width="8" height="11" rx="1.4"/><rect x="3" y="13" width="8" height="8" rx="1.4"/>',
 "cro":'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h3M14 14h3M7 17h3"/>',
@@ -2578,7 +2596,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.49.0';
+const APP_VERSION='3.50.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2945,14 +2963,43 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
  b.classList.add('ibtn','ibtn-'+k);b.dataset.ic=k;b.title=t;b.setAttribute('aria-label',t);
  b.innerHTML=`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICN[ic]}</svg><span class="sr-only">${esc(t)}</span>`})}
 (function(){let q=false;const run=()=>{q=false;enhBtns();enhEmojiIcons()};const mo=new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}});const go=()=>mo.observe(document.body,{childList:true,subtree:true});if(document.body)go();else document.addEventListener('DOMContentLoaded',go);enhEmojiIcons()})();
-/* ---- Movimento e feedback tátil (sem dependências externas) ---- */
+/* ---- Movimento nativo + press-and-hold nas ações principais ---- */
 (function initNativeMotion(){
   const selector='button,[role="button"],[onclick],.ch,.day,.month-cell,.reg-menu-tile';
+  const actionSelector='.bt:not(.g):not(.d),[data-haptic="true"]';
+  const TAP_MAX_MS=180;
+  const RECOIL_MS=150;
+  let active=null;
+  const blockedClicks=new WeakSet();
+
+  const vibrate=()=>{
+    try{
+      if(typeof navigator!=='undefined'&&typeof navigator.vibrate==='function')navigator.vibrate(10);
+    }catch(_){}
+  };
   const markPressables=root=>{
-    if(root.nodeType!==1 && root!==document)return;
-    if(root.matches && root.matches(selector))root.classList.add('pressable');
+    if(root.nodeType!==1&&root!==document)return;
+    if(root.matches&&root.matches(selector))root.classList.add('pressable');
     if(root.querySelectorAll)root.querySelectorAll(selector).forEach(el=>el.classList.add('pressable'));
   };
+  const getAction=target=>target instanceof Element?target.closest(actionSelector):null;
+  const removeBubble=(action,bubble)=>{
+    if(!bubble)return;
+    bubble.classList.remove('is-growing');
+    bubble.classList.add('is-receding');
+    setTimeout(()=>{
+      if(bubble.isConnected)bubble.remove();
+      if(!action.querySelector('.hold-bubble'))action.classList.remove('hold-action');
+    },RECOIL_MS);
+  };
+  const cancelActive=(clearState=false)=>{
+    if(!active||active.cancelled)return;
+    clearTimeout(active.timer);
+    active.cancelled=true;
+    removeBubble(active.action,active.bubble);
+    if(clearState)active=null;
+  };
+
   markPressables(document);
   if(document.body){
     const observer=new MutationObserver(records=>{
@@ -2962,17 +3009,78 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
     });
     observer.observe(document.body,{childList:true,subtree:true});
   }
+
+  document.addEventListener('pointerdown',event=>{
+    if(active||event.button!==0||!event.isPrimary)return;
+    const action=getAction(event.target);
+    if(!action||action.disabled||action.getAttribute('aria-disabled')==='true')return;
+    const rect=action.getBoundingClientRect();
+    const diameter=Math.max(rect.width,rect.height)*1.1;
+    const color=getComputedStyle(action).backgroundColor;
+    const match=color.match(/rgba?\(([^)]+)\)/i);
+    let translucent='rgba(36,87,230,.15)';
+    if(match){
+      const parts=(match[1].match(/[\d.]+/g)||[]).map(Number);
+      if(parts.length>=3&&parts.slice(0,3).every(Number.isFinite))translucent='rgba('+parts[0]+','+parts[1]+','+parts[2]+',.15)';
+    }
+    const bubble=document.createElement('span');
+    bubble.className='hold-bubble';
+    bubble.style.setProperty('--hold-diameter',diameter+'px');
+    bubble.style.setProperty('--hold-color',translucent);
+    bubble.style.transitionDuration=HOLD_MS+'ms';
+    action.classList.add('hold-action');
+    action.appendChild(bubble);
+    const state={action,bubble,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,
+      startedAt:performance.now(),held:false,cancelled:false,dispatching:false,timer:null};
+    active=state;
+    requestAnimationFrame(()=>{if(active===state&&!state.cancelled)bubble.classList.add('is-growing')});
+    state.timer=setTimeout(()=>{
+      if(active!==state||state.cancelled)return;
+      state.held=true;
+      state.dispatching=true;
+      action.click();
+      state.dispatching=false;
+      vibrate();
+    },HOLD_MS);
+  },true);
+
+  document.addEventListener('pointermove',event=>{
+    if(!active||event.pointerId!==active.pointerId)return;
+    if(Math.hypot(event.clientX-active.startX,event.clientY-active.startY)>10)cancelActive();
+  },true);
+  document.addEventListener('pointerleave',event=>{
+    if(active&&event.pointerId===active.pointerId)cancelActive();
+  },true);
+  document.addEventListener('pointercancel',event=>{
+    if(active&&event.pointerId===active.pointerId)cancelActive(true);
+  },true);
+  document.addEventListener('pointerup',event=>{
+    if(!active||event.pointerId!==active.pointerId)return;
+    const state=active;
+    clearTimeout(state.timer);
+    const elapsed=performance.now()-state.startedAt;
+    if(state.held){
+      if(getAction(event.target)===state.action)blockedClicks.add(state.action);
+      removeBubble(state.action,state.bubble);
+    }else if(state.cancelled||elapsed>TAP_MAX_MS){
+      if(getAction(event.target)===state.action)blockedClicks.add(state.action);
+      removeBubble(state.action,state.bubble);
+    }else{
+      removeBubble(state.action,state.bubble);
+    }
+    active=null;
+  },true);
+
   document.addEventListener('click',event=>{
+    const action=getAction(event.target);
+    if(action&&blockedClicks.has(action)){
+      blockedClicks.delete(action);
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      return;
+    }
     if(!event.isTrusted)return;
-    const action=event.target instanceof Element
-      ? event.target.closest('.bt:not(.g):not(.d),[data-haptic="true"]')
-      : null;
-    if(!action)return;
-    try{
-      if(typeof navigator!=='undefined' && typeof navigator.vibrate==='function'){
-        navigator.vibrate(10);
-      }
-    }catch(_){}
+    if(action)vibrate();
   },true);
 })();
 
