@@ -46,7 +46,10 @@ self.addEventListener('fetch', event => {
   if (url.origin === self.location.origin && request.mode === 'navigate') {
     event.respondWith((async () => {
       try {
-        const response = await fetch(request);
+        // Ignore the browser HTTP cache when checking for a newer app version.
+        // Keep the existing Cache Storage fallback below for offline launches.
+        const networkRequest = new Request(request, { cache: 'no-store' });
+        const response = await fetch(networkRequest);
         if (response && response.ok) {
           const cache = await caches.open(CACHE_NAME);
           await cache.put('/', response.clone());
