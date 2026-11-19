@@ -782,6 +782,9 @@ nav button.on .ni{transform:none}
   }
 }
 
+
+.origin-animated{will-change:transform;transform-origin:top left}
+@media(prefers-reduced-motion:reduce){.origin-animated{will-change:auto}}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
@@ -1982,7 +1985,53 @@ async function loadConfigHistory(){
  catch(e){V.configHistoryError=e.message||'Não foi possível consultar o histórico.';}
  finally{V.configHistoryLoading=false;rMenu();}
 }
-function rMenu(){
+/* ---- Origem compartilhada para menus e painéis ---- */
+let originTrigger=null,originRect=null,originHistoryOpen=false;
+function rememberOrigin(el){
+ const target=el?.closest?.('button,[role="button"],.reg-menu-tile')||el;
+ if(!target?.getBoundingClientRect)return;
+ originTrigger=target;originRect=target.getBoundingClientRect();
+}
+document.addEventListener('click',e=>{const t=e.target?.closest?.('button,[role="button"],.reg-menu-tile');if(t)rememberOrigin(t)},true);
+function originPanel(){return document.querySelector('#sh .sheet, #mn .dd')}
+function originOverlay(){return document.querySelector('#sh .ov, #mn .ov')}
+function originContent(panel){return panel?.querySelector(':scope > .c, :scope > .an, :scope > .sheet-content')||panel?.firstElementChild||panel}
+function openFromOrigin(el,contentEl){
+ if(!el)return;
+ const r=originRect||(originTrigger?.getBoundingClientRect?.());
+ const p=el.getBoundingClientRect();
+ if(!r)return;
+ const dx=r.left-p.left,dy=r.top-p.top,sx=Math.max(.01,r.width/Math.max(1,p.width)),sy=Math.max(.01,r.height/Math.max(1,p.height));
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches,overlay=originOverlay();
+ el.classList.add('origin-animated');
+ if(!reduce){
+  if(overlay)overlay.animate([{opacity:0},{opacity:.4}],{duration:220,easing:'ease-out',fill:'both'});
+  const cs=getComputedStyle(el),os=getComputedStyle(originTrigger||el);
+  el.animate([{transformOrigin:'top left',transform:`translate(${dx}px,${dy}px) scale(${sx},${sy})`,borderRadius:os.borderRadius},{transformOrigin:'top left',transform:'translate(0,0) scale(1)',borderRadius:cs.borderRadius}],{duration:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-base'))||220,easing:getComputedStyle(document.documentElement).getPropertyValue('--ease-out').trim()||'cubic-bezier(.2,.8,.2,1)',fill:'both'});
+  const inner=contentEl||originContent(el);
+  if(inner&&inner!==el)inner.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,delay:88,easing:'ease-out',fill:'both'});
+ }
+ originHistoryOpen=true;
+ if(!history.state?.stOriginPanel)history.pushState({stOriginPanel:true},'','#painel');
+}
+function closeToOrigin(panelArg){
+ const panel=panelArg||originPanel(),source=originTrigger,rect=source?.isConnected?source.getBoundingClientRect():originRect;
+ if(!panel||!rect)return;
+ const overlay=panel.querySelector('.ov')||originOverlay(),clone=panel.cloneNode(true),p=panel.getBoundingClientRect();
+ clone.removeAttribute('id');clone.style.cssText+=';position:fixed!important;left:'+p.left+'px!important;top:'+p.top+'px!important;width:'+p.width+'px!important;height:'+p.height+'px!important;margin:0!important;z-index:10001!important;overflow:hidden!important;pointer-events:none!important;transform-origin:top left!important;';
+ document.body.appendChild(clone);
+ const dx=rect.left-p.left,dy=rect.top-p.top,sx=Math.max(.01,rect.width/Math.max(1,p.width)),sy=Math.max(.01,rect.height/Math.max(1,p.height));
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  clone.animate([{transform:'translate(0,0) scale(1)',borderRadius:getComputedStyle(panel).borderRadius},{transform:`translate(${dx}px,${dy}px) scale(${sx},${sy})`,borderRadius:getComputedStyle(source||panel).borderRadius}],{duration:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-fast'))||150,easing:getComputedStyle(document.documentElement).getPropertyValue('--ease-in').trim()||'cubic-bezier(.4,0,1,1)',fill:'forwards'});
+  const inner=originContent(clone);if(inner&&inner!==clone)inner.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(6px)'}],{duration:90,easing:'ease-in',fill:'forwards'});
+  if(overlay)overlay.animate([{opacity:.4},{opacity:0}],{duration:150,easing:'ease-in',fill:'forwards'});
+ }
+ setTimeout(()=>clone.remove(),matchMedia('(prefers-reduced-motion: reduce)').matches?0:165);
+ originHistoryOpen=false;
+}
+window.openFromOrigin=openFromOrigin;window.closeToOrigin=closeToOrigin;
+
+function rMenuCore(){
  if(V.sh==='configschedules'){
   $('mn').innerHTML='';
   if(!V.configSchedules&&!V.configSchedulesLoading)loadConfigSchedules();
@@ -2007,6 +2056,15 @@ function rMenu(){
  if(V.sh==='acc'){$('mn').innerHTML='';$('sh').innerHTML=`<div class="ov dim" onclick="V.sh=0;rMenu()"></div><div class="sheet"><div class="c">${accHTML()}<div class="row u-mt10"><button class="bt g" onclick="V.sh=0;V.accE=null;V.accP=null;rMenu()">Fechar</button></div></div></div>`;return}
  rMenuOld()
 }
+
+function rMenu(){
+ const before=originPanel();
+ rMenuCore();
+ const after=originPanel();
+ if(after&&after!==before){openFromOrigin(after,originContent(after));}
+ else if(before&&!after){closeToOrigin(before);originHistoryOpen=false;}
+}
+window.addEventListener('popstate',()=>{if(V.mn||V.sh){V.mn=0;V.sh=0;rMenu();originHistoryOpen=false;}});
 const GRP=['Controle de Qualidade','Prevenção','Encarregado','Compras'],EMPT=['painel','cro','ck','atr'];
 const meOf=id=>{
   if(String(id).startsWith('cloud:')){
@@ -2596,7 +2654,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.50.0';
+const APP_VERSION='3.51.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
