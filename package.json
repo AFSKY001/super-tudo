@@ -1,0 +1,12 @@
+{
+  "name": "super-tudo",
+  "private": true,
+  "version": "3.55.0",
+  "description": "Build tooling for the Super Tudo protected browser distribution",
+  "scripts": {
+    "build:protected": "node scripts/build-protected.mjs"
+  },
+  "devDependencies": {
+    "terser": "5.31.6"
+  }
+}
