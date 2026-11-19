@@ -1807,17 +1807,21 @@ function cloneChecklistModel(k,pid){
  lz();return id;
 }
 function ensureAssignedChecklistsInRotinas(){
- S.pt=S.pt||[];let changed=false;const extraTurns=[];
+ S.pt=S.pt||[];let changed=false;
  const safe=v=>String(v||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+ // Checklists antigos que já estavam atribuídos viram atividades na agenda.
  Object.entries(CK).forEach(([k,c])=>{
   if(!c||!c.p||c.rc||c.rm||!(S.team||[]).some(p=>p.id===c.p))return;
   if(S.pt.some(x=>x.ckid===k||x.legacyCkId===k))return;
-  const firstRun=Object.keys(S.runs||{}).filter(key=>key.startsWith(k+'|')).map(key=>key.split('|')[1]).filter(Boolean).sort()[0]||today();S.pt.push({id:'ptck-'+safe(c.p)+'-'+safe(k),pid:c.p,t:c.n,days:[0,1,2,3,4,5,6],time:'',mid:'legacy-checklist-'+k,ckid:k,legacyCkId:k,photoMode:c.ph?'required':'none',createdAt:firstRun,source:'checklist'});
+  const firstRun=Object.keys(S.runs||{}).filter(key=>key.startsWith(k+'|')).map(key=>key.split('|')[1]).filter(Boolean).sort()[0]||today();
+  S.pt.push({id:'ptck-'+safe(c.p)+'-'+safe(k),pid:c.p,t:c.n,days:[0,1,2,3,4,5,6],time:'',mid:'legacy-checklist-'+k,ckid:k,legacyCkId:k,photoMode:c.ph?'required':'none',createdAt:firstRun,source:'checklist'});
   changed=true;
  });
+ // Toda atividade já cadastrada passa a ter um formulário completo de execução.
  S.pt.forEach(x=>{
   if(x.ckid&&CK[x.ckid]&&(!CK[x.ckid].p||CK[x.ckid].p!==x.pid)){
-   const n=cloneChecklistModel(x.ckid,x.pid);if(n){x.ckid=n;x.legacyCkId=n;x.mid=x.mid||'checklist-'+n;changed=true}
+   const copy=cloneChecklistModel(x.ckid,x.pid);
+   if(copy){x.ckid=copy;x.legacyCkId=copy;x.mid=x.mid||'checklist-'+copy;changed=true}
   }
   if(!x.ckid){
    const steps=Array.isArray(x.steps)&&x.steps.some(z=>z&&z[0]!=='#')?x.steps:[x.t||'Concluir atividade'];
@@ -1825,21 +1829,24 @@ function ensureAssignedChecklistsInRotinas(){
    if(id){x.ckid=id;x.legacyCkId=id;x.steps=[];changed=true}
   }
  });
+ // Atividades atribuídas a grupos recebem um procedimento individual por funcionário.
  (S.tasks||[]).forEach(t=>{
   if(!Array.isArray(t.r)||!t.r.length)return;
   if(!t.ckByPerson){t.ckByPerson={};changed=true}
   const people=(S.team||[]).filter(p=>t.r.some(r=>(p.g||[]).some(g=>nrm(g)===nrm(r))||nrm(p.n)===nrm(r)));
   people.forEach(p=>{
-   const current=t.ckByPerson[p.id];if(current&&CK[current]&&CK[current].p===p.id)return;
+   const current=t.ckByPerson[p.id];
+   if(current&&CK[current]&&CK[current].p===p.id)return;
    let id='';
    if(current&&CK[current])id=cloneChecklistModel(current,p.id);
    else if(t.ckid&&CK[t.ckid])id=cloneChecklistModel(t.ckid,p.id);
-   else {const steps=Array.isArray(t.steps)&&t.steps.some(z=>z&&z[0]!=='#')?t.steps:[t.t||'Concluir atividade'];id=createChecklistFromSteps(t.t,p.id,steps,t.photoMode,t.routineKind,t.turns,t.evaluate)}
+   else {
+    const steps=Array.isArray(t.steps)&&t.steps.some(z=>z&&z[0]!=='#')?t.steps:[t.t||'Concluir atividade'];
+    id=createChecklistFromSteps(t.t,p.id,steps,t.photoMode,t.routineKind,t.turns,t.evaluate);
+   }
    if(id){t.ckByPerson[p.id]=id;changed=true}
   });
-  const c=x.ckid&&CK[x.ckid];if(c&&Array.isArray(c.t)&&c.t.length&&!x.turnsExpanded){x.ckt=c.t[0];x.turnsExpanded=true;if(c.t.length>1)c.t.slice(1).forEach((turn,ix)=>extraTurns.push({...x,id:'ptturn-'+String(x.id)+'-'+ix,ckt:turn,turnsExpanded:true,days:[...(x.days||[])]}));changed=true}else if(c&&Array.isArray(c.t)&&c.t.length===1&&!x.ckt){x.ckt=c.t[0];x.turnsExpanded=true;changed=true}
  });
- if(extraTurns.length){S.pt.push(...extraTurns);changed=true}
  if(changed)save();
 }
 function applyModel(k,pid,days,time){const c=CK[k],id=cloneChecklistModel(k,pid);if(!id)return;S.pt=S.pt||[];S.pt.push({id:'pt'+uid(),pid,t:c.n,days:Array.isArray(days)&&days.length?[...days]:[0,1,2,3,4,5,6],time:time||'',mid:'ck:'+k,ckid:id,legacyCkId:id,photoMode:c.ph?'required':'none',createdAt:today(),source:'checklist'});notify([pid],'✅ Nova atividade adicionada à sua Rotina: '+c.n,{t:'ck',id},'ckadd|'+id,'tar');save();R()}
