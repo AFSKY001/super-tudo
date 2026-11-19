@@ -1866,7 +1866,10 @@ const _0x1b945d=_0x54e1;(function(_0x3005eb,_0x419ab5){const _0x372205=_0x54e1,_
     }
 
     const visibilityChanged = records.some(function (record) {
-      return record.target === bell && record.type === 'attributes';
+      return record.target === bell &&
+        record.type === 'attributes' &&
+        /display\s*:\s*none/i.test(record.oldValue || '') &&
+        visible;
     });
     if (!ready || visibilityChanged) {
       lastUnread = readUnreadCount();
@@ -1885,7 +1888,11 @@ const _0x1b945d=_0x54e1;(function(_0x3005eb,_0x419ab5){const _0x372205=_0x54e1,_
     lastUnread = currentUnread;
   });
 
-  observer.observe(bell, { attributes: true, attributeFilter: ['style'] });
+  observer.observe(bell, {
+    attributes: true,
+    attributeFilter: ['style'],
+    attributeOldValue: true
+  });
   observer.observe(badge, { childList: true, characterData: true, subtree: true });
 })();
 </script>
