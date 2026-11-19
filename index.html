@@ -3446,7 +3446,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.62.0';
+const APP_VERSION='3.63.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3703,6 +3703,41 @@ function perfManagementActionHTML(people,period,current){
  return html;
 }
 
+
+function perfLeaderTeamAnalysisHTML(leader,period){
+ const ids=new Set((Array.isArray(leader&&leader.lead)?leader.lead:[]).map(String));
+ const team=(S.team||[]).filter(p=>!p.adm&&String(p.id)!==String(leader.id)&&ids.has(String(p.id)));
+ if(!team.length)return '<h3>Gestão da equipe</h3><div class="c mu">Nenhum funcionário está vinculado diretamente a este encarregado. Revise a lista “Pessoas pelas quais é responsável” no cadastro para habilitar a comparação.</div>';
+ const own=perfActivityForPerson(leader,period.start,period.end),ownIndex=perfIndex(own);
+ const agg=perfActivityAggregate(team,period.start,period.end),prev=perfActivityAggregate(team,period.prevStart,period.prevEnd);
+ const teamIndexes=agg.data.map(perfIndex).filter(v=>v!==null),prevIndexes=prev.data.map(perfIndex).filter(v=>v!==null);
+ const teamIndex=teamIndexes.length?teamIndexes.reduce((a,b)=>a+b,0)/teamIndexes.length:null,prevTeamIndex=prevIndexes.length?prevIndexes.reduce((a,b)=>a+b,0)/prevIndexes.length:null;
+ const fmt=v=>v===null?'—':v.toFixed(1);
+ const gap=ownIndex!==null&&teamIndex!==null?ownIndex-teamIndex:null;
+ let html='<h3>Gestão da equipe</h3><div class="c"><b>Encarregado × equipe</b><p class="mu">Comparação do índice de execução e avaliação. A equipe considera somente os funcionários vinculados diretamente no cadastro, sem incluir o encarregado na média.</p><div class="g2"><div><div class="mu">Índice do encarregado</div><div class="big">'+fmt(ownIndex)+'</div><div class="mu">Cronograma '+(own.tasks.percent===null?'—':own.tasks.percent.toFixed(1)+'%')+' · Checklist '+(own.checks.percent===null?'—':own.checks.percent.toFixed(1)+'%')+' · Avaliação '+(own.evals.avg===null?'—':own.evals.avg.toFixed(1)+'/10')+'</div></div><div><div class="mu">Média da equipe</div><div class="big">'+fmt(teamIndex)+'</div><div class="mu">'+teamIndexes.length+'/'+team.length+' pessoas com dados</div></div></div><div class="it"><span>Diferença encarregado − equipe</span><b>'+(gap===null?'Sem base suficiente':(gap>0?'+':'')+gap.toFixed(1)+' pontos')+'</b></div><div class="it"><span>Evolução da equipe vs. período anterior</span><b>'+(teamIndex===null||prevTeamIndex===null?'Sem base de comparação':(teamIndex-prevTeamIndex>0?'+':'')+(teamIndex-prevTeamIndex).toFixed(1)+' pontos')+'</b></div><div class="g2"><div><div class="mu">Cronogramas da equipe</div><div class="big">'+(agg.taskPct===null?'—':agg.taskPct.toFixed(1)+'%')+'</div><div class="mu">'+agg.tasks.done+'/'+agg.tasks.planned+' atividades</div></div><div><div class="mu">Checklists completos da equipe</div><div class="big">'+(agg.checkPct===null?'—':agg.checkPct.toFixed(1)+'%')+'</div><div class="mu">'+agg.checks.complete+'/'+agg.checks.total+' aplicações</div></div><div><div class="mu">Avaliação média da equipe</div><div class="big">'+(agg.evalAvg===null?'—':agg.evalAvg.toFixed(1)+'/10')+'</div><div class="mu">'+agg.evalN+' avaliação(ões)</div></div></div></div>';
+ const taskMap=new Map();let snapshotDays=0,scheduled=0,missed=0,dt=period.start;
+ while(dt<=period.end&&dt<=today()){
+  team.forEach(p=>{
+   const snap=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id];
+   if(!snap||!Array.isArray(snap.tasks))return;
+   snapshotDays++;
+   snap.tasks.forEach(t=>{
+    const name=String(t.t||'').trim();if(!name)return;
+    const x=taskMap.get(name)||{name,planned:0,done:0,missed:0};
+    x.planned++;if(pdn(dt,t,p))x.done++;else x.missed++;
+    taskMap.set(name,x);scheduled++;if(!pdn(dt,t,p))missed++;
+   });
+  });
+  dt=addD(dt,1);
+ }
+ const repeated=[...taskMap.values()].filter(x=>x.planned>=2&&x.missed>0).sort((a,b)=>b.missed-a.missed||b.planned-a.planned).slice(0,5);
+ html+='<div class="c"><b>Tarefas que mais se repetem entre as pendências</b><p class="mu">Considera somente fotografias diárias do cronograma já preservadas para os funcionários desta equipe. Tarefas sem fotografia histórica não entram nesta lista.</p>';
+ html+=repeated.length?repeated.map(x=>'<div class="it"><div style="flex:1"><b>'+esc(x.name)+'</b><div class="mu">'+x.missed+' pendência(s) em '+x.planned+' atribuições registradas · '+(100*x.missed/x.planned).toFixed(1)+'% não concluídas</div></div><span class="b '+(x.missed/x.planned>=.5?'no':'wa')+'">'+x.missed+' pendentes</span></div>').join(''):'<div class="mu">Ainda não há tarefa repetida com pelo menos duas atribuições e uma pendência no histórico preservado.</div>';
+ html+='<div class="mu">Cobertura analisada: '+snapshotDays+' dias-pessoa com fotografia · '+scheduled+' atribuições · '+missed+' pendências.</div></div>';
+ html+='<div class="c"><b>Equipe vinculada</b>'+agg.data.map(x=>{const ix=perfIndex(x),label=ix===null?'Sem dados':ix.toFixed(1)+'/100';return '<div class="it"><div style="flex:1"><b>'+esc(x.p.n)+'</b><div class="mu">'+esc(x.p.s||'Sem setor')+' · Cronograma '+(x.tasks.percent===null?'—':x.tasks.percent.toFixed(1)+'%')+' · Checklists '+(x.checks.percent===null?'—':x.checks.percent.toFixed(1)+'%')+' · Avaliações '+(x.evals.avg===null?'—':x.evals.avg.toFixed(1)+'/10')+'</div></div><b>'+label+'</b></div>'}).join('')+'</div>';
+ return html;
+}
+
 function perfDashboardHTML(){
  const full=typeof isFullAccess==='function'&&isFullAccess(),me=(S.team||[]).find(p=>V.me&&String(p.id)===String(V.me.id))||null;
  let scope=V.proScope||(full?'store':(V.me&&V.me.role==='encarregado'?'leader':'employee'));if(!full)scope=V.me&&V.me.role==='encarregado'?'leader':'employee';
@@ -3721,6 +3756,7 @@ function perfDashboardHTML(){
  const periodControl='<div class="row"><label>Relatório<select onchange="V.proMode=this.value;R()"><option value="month" '+(mode==='month'?'selected':'')+'>Mensal</option><option value="year" '+(mode==='year'?'selected':'')+'>Anual</option></select></label><label>'+(mode==='month'?'Mês':'Ano')+(mode==='month'?'<input type="month" value="'+esc(V.proMonth)+'" onchange="V.proMonth=this.value;R()">':'<input type="number" min="2000" max="2100" value="'+esc(V.proYear)+'" onchange="V.proYear=this.value;R()">')+'</label></div>';
  let html='<div class="c"><h2>📈 Desempenho e evolução</h2><p class="mu">Análise de '+esc(scopeName)+'.</p>'+periodControl+chips+entityControl+'</div>';
  if(full&&scope==='store')html+=perfManagementActionHTML(people,period,current);
+ if(scope==='leader'&&entity)html+=perfLeaderTeamAnalysisHTML(entity,period);
  html+='<div class="c"><div class="row sp"><b>Comparação de períodos</b><span class="mu">'+period.label+' × '+period.prevLabel+'</span></div><div class="g2"><div><div class="mu">Melhoraram</div><div class="big">'+(counts.good||0)+'</div></div><div><div class="mu">Pioraram</div><div class="big">'+(counts.bad||0)+'</div></div><div><div class="mu">Estáveis</div><div class="big">'+(counts.same||0)+'</div></div><div><div class="mu">Contexto / informativo</div><div class="big">'+(counts.neutral||0)+'</div></div><div><div class="mu">Sem base</div><div class="big">'+(counts.nodata||0)+'</div></div></div><p class="mu">O resumo conta apenas indicadores com comparação possível. Vendas e recebimentos são dados de contexto, não melhoram ou pioram automaticamente.</p></div>';
  html+='<h3>Indicadores operacionais</h3>'+ (keys.length?current.map(x=>perfMetricCard(x.k,period,scope,entity)).join(''):'<div class="c mu">Nenhum indicador operacional foi atribuído a esta pessoa. Você pode escolher os indicadores no cadastro da equipe. Cronogramas, checklists e avaliações continuam sendo acompanhados abaixo.</div>');
  if(keys.includes('semv')&&scope!=='sector')html+=perfSemvHistoryHTML(period);
@@ -3730,6 +3766,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.63.0',d:'19/11/2026',t:'Comparação do encarregado com a equipe e tarefas recorrentes (MINOR)',n:['Na visão do encarregado, compara o índice e as dimensões de execução do líder com a média dos funcionários diretamente vinculados no cadastro.','Mostra resultados individuais da equipe, cobertura de dados e evolução em relação ao período anterior.','Identifica tarefas recorrentes entre as pendências usando apenas fotografias diárias do cronograma já preservadas.'],c:['A média da equipe não inclui o encarregado e não substitui análise do contexto de cada função.','Tarefas de dias sem fotografia histórica não entram no levantamento de recorrência.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.62.0',d:'19/11/2026',t:'Visão geral e alertas de atenção por setor (MINOR)',n:['O painel gerencial passa a resumir a evolução geral da loja com índice médio, cobertura de dados, cronogramas, checklists e avaliações.','Destaca setores com índice abaixo de 60 ou queda de pelo menos 8 pontos percentuais em relação ao período anterior.','Exibe quantas pessoas do setor possuem dados para contextualizar a leitura.'],c:['Os alertas indicam necessidade de investigação e não determinam a causa do resultado.','O índice é calculado apenas com dimensões disponíveis; ausência de dados não vira zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.61.0',d:'19/11/2026',t:'Painel gerencial de prioridades e alertas (MINOR)',n:['A visão da loja inteira passa a destacar funcionários que merecem acompanhamento, considerando índice abaixo de 60 ou queda de pelo menos 8 pontos percentuais.','Mostra indicadores operacionais que pioraram e sugere ações iniciais de investigação por tipo de indicador.','Exige dados em pelo menos duas dimensões para gerar alerta individual e mantém indicadores operacionais separados do índice individual.'],c:['Os alertas são sinais para investigação e não determinam a causa nem substituem a avaliação da liderança.','A ausência de dados não é tratada como resultado zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.60.0',d:'19/11/2026',t:'Comparativo de resultados por setor (MINOR)',n:['O painel da loja passa a comparar cronogramas, checklists e avaliações por setor no período selecionado.','Mostra quantidade de pessoas, resultados atuais e variação em relação ao período anterior.','Inclui um índice síntese médio dos funcionários com dados para apoiar a leitura gerencial.'],c:['O índice é uma média simples e não elimina diferenças de rotina, volume ou atribuições entre setores.','Setores sem pessoas vinculadas não são exibidos.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
