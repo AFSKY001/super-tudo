@@ -2596,7 +2596,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.49.0';
+const APP_VERSION='3.50.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3020,7 +3020,7 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
     const match=color.match(/rgba?\(([^)]+)\)/i);
     let translucent='rgba(36,87,230,.15)';
     if(match){
-      const parts=match[1].split(',').map(v=>parseFloat(v.trim()));
+      const parts=(match[1].match(/[\d.]+/g)||[]).map(Number);
       if(parts.length>=3&&parts.slice(0,3).every(Number.isFinite))translucent='rgba('+parts[0]+','+parts[1]+','+parts[2]+',.15)';
     }
     const bubble=document.createElement('span');
@@ -3049,10 +3049,10 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
     if(Math.hypot(event.clientX-active.startX,event.clientY-active.startY)>10)cancelActive();
   },true);
   document.addEventListener('pointerleave',event=>{
-    if(active&&event.pointerId===active.pointerId)cancelActive(true);
+    if(active&&event.pointerId===active.pointerId)cancelActive();
   },true);
   document.addEventListener('pointercancel',event=>{
-    if(active&&event.pointerId===active.pointerId)cancelActive();
+    if(active&&event.pointerId===active.pointerId)cancelActive(true);
   },true);
   document.addEventListener('pointerup',event=>{
     if(!active||event.pointerId!==active.pointerId)return;
@@ -3060,7 +3060,7 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
     clearTimeout(state.timer);
     const elapsed=performance.now()-state.startedAt;
     if(state.held){
-      blockedClicks.add(state.action);
+      if(getAction(event.target)===state.action)blockedClicks.add(state.action);
       removeBubble(state.action,state.bubble);
     }else if(state.cancelled||elapsed>TAP_MAX_MS){
       if(getAction(event.target)===state.action)blockedClicks.add(state.action);
