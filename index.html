@@ -2007,6 +2007,7 @@ function ckSaveRun(){
    assignedPersonId:String(cc.p||''),assignedPersonName:(person(cc.p)||{}).n||'',
    evaluatedPersonId:String(r.av||''),sector:String(cc.z||(person(cc.p)||{}).s||''),
    items:(cc.l||[]).filter(x=>x&&x[0]!=='#').map(x=>String(x)),
+   itemIndexes:(cc.l||[]).map((x,i)=>({x,i})).filter(v=>v.x&&v.x[0]!=='#').map(v=>v.i),
    photoRequired:!!cc.ph
   };
   const snapItems=Array.isArray(snap.items)?snap.items:[];
@@ -3446,7 +3447,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.64.0';
+const APP_VERSION='3.64.1';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3745,15 +3746,21 @@ function perfChecklistFailuresBySectorHTML(period){
   const parts=key.split('|'),model=parts[0],date=parts[1];
   if(!perfInRange(date,period.start,period.end))return;
   const snap=r.perfSnapshot,items=Array.isArray(snap.items)?snap.items:null,c=CK[model];
-  // r.a uses original item indexes; require an exact match to avoid false attribution.
-  if(!items||!c||!Array.isArray(c.l)||c.l.some(x=>String(x).startsWith('#'))||
-     c.l.length!==items.length||!c.l.every((x,i)=>String(x)===String(items[i]))){
-   skippedRuns++;return;
+  if(!items||!c||!Array.isArray(c.l)){skippedRuns++;return}
+  const currentItems=c.l.map(x=>x&&x[0]!=='#'?String(x):null).filter(x=>x!==null);
+  if(currentItems.length!==items.length||!currentItems.every((x,i)=>x===String(items[i]))){skippedRuns++;return}
+  let indexes;
+  if(Array.isArray(snap.itemIndexes)&&snap.itemIndexes.length===items.length&&snap.itemIndexes.every(x=>Number.isInteger(x)&&x>=0)&&new Set(snap.itemIndexes).size===items.length){
+   indexes=snap.itemIndexes;
+  }else{
+   // Older snapshots compacted section headings. Only header-free models have safe legacy indexes.
+   if(c.l.some(x=>String(x).startsWith('#'))||c.l.length!==items.length){skippedRuns++;return}
+   indexes=items.map((_,i)=>i);
   }
   const sector=String(snap.sector||((person(snap.assignedPersonId)||person(snap.evaluatedPersonId)||{}).s)||'Sem setor').trim()||'Sem setor';
   let used=false;
   items.forEach((label,i)=>{
-   const answer=r.a&&r.a[i];
+   const answer=r.a&&r.a[indexes[i]];
    if(answer!=='s'&&answer!=='n')return;
    const name=String(label||'').trim();if(!name)return;
    const k=nomeChave(sector)+'|'+nomeChave(name);
@@ -3766,9 +3773,9 @@ function perfChecklistFailuresBySectorHTML(period){
  });
  const rows=[...groups.values()].filter(x=>x.checks>=3&&x.no>=2)
   .sort((a,b)=>(b.no/b.checks)-(a.no/a.checks)||b.no-a.no||a.sector.localeCompare(b.sector,'pt-BR')).slice(0,10);
- let html='<h3>Itens de checklist com falhas recorrentes por setor</h3><p class="mu">Itens com pelo menos 3 respostas registradas e 2 marcações de “Não” no período. A lista considera somente checklists cujo modelo atual ainda corresponde exatamente à fotografia histórica.</p>';
+ let html='<h3>Itens de checklist com falhas recorrentes por setor</h3><p class="mu">Itens com pelo menos 3 respostas registradas e 2 marcações de “Não” no período. As respostas são vinculadas aos índices originais dos itens, preservados na aplicação.</p>';
  html+=rows.length?rows.map(x=>'<div class="c"><div class="row sp"><b>'+esc(x.item)+'</b><span class="b no">'+x.no+' “Não”</span></div><div class="mu">'+esc(x.sector)+' · '+x.checks+' respostas · '+(100*x.no/x.checks).toFixed(1)+'% de “Não” · '+x.checklists.size+' checklist(s)</div>'+bar(100*x.no/x.checks)+'</div>').join(''):'<div class="c mu">Ainda não há itens que atinjam o mínimo de registros e falhas para apontar recorrência.</div>';
- html+='<p class="mu">Cobertura: '+eligibleRuns+' aplicação(ões) com itens analisáveis. '+skippedRuns+' aplicação(ões) foram desconsideradas porque o modelo atual não permite confirmar o alinhamento dos itens. As marcações são sinais para conferência e correção da rotina, não uma conclusão sobre responsabilidade individual.</p>';
+ html+='<p class="mu">Cobertura: '+eligibleRuns+' aplicação(ões) com itens analisáveis. '+skippedRuns+' aplicação(ões) foram desconsideradas porque não foi possível confirmar o alinhamento histórico. As marcações orientam conferência e correção da rotina, não determinam responsabilidade individual.</p>';
  return html;
 }
 
@@ -3801,6 +3808,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.64.1',d:'19/11/2026',t:'Correção do vínculo entre respostas e itens dos checklists (PATCH)',n:['Preserva os índices originais dos itens ao salvar a fotografia histórica do checklist.','O painel de falhas passa a consultar a resposta no índice original, inclusive quando há títulos de seção.','Mantém a verificação de correspondência do conteúdo e exclui históricos antigos quando não é possível garantir o alinhamento.'],c:['Aplicações antigas com títulos de seção e sem índice preservado não são usadas no cálculo.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.64.0',d:'19/11/2026',t:'Falhas recorrentes em itens de checklist por setor (MINOR)',n:['O painel gerencial identifica itens de checklist com marcações recorrentes de “Não”, agrupados por setor.','Exige pelo menos três respostas e duas marcações de “Não” para destacar um item.','Usa apenas aplicações em que os itens históricos podem ser alinhados com segurança ao modelo atual.'],c:['Aplicações cujo modelo foi alterado ou não pode ser conferido são excluídas do levantamento.','Os resultados orientam investigação e correção de rotina; não determinam responsabilidade individual.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.63.0',d:'19/11/2026',t:'Comparação do encarregado com a equipe e tarefas recorrentes (MINOR)',n:['Na visão do encarregado, compara o índice e as dimensões de execução do líder com a média dos funcionários diretamente vinculados no cadastro.','Mostra resultados individuais da equipe, cobertura de dados e evolução em relação ao período anterior.','Identifica tarefas recorrentes entre as pendências usando apenas fotografias diárias do cronograma já preservadas.'],c:['A média da equipe não inclui o encarregado e não substitui análise do contexto de cada função.','Tarefas de dias sem fotografia histórica não entram no levantamento de recorrência.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.62.0',d:'19/11/2026',t:'Visão geral e alertas de atenção por setor (MINOR)',n:['O painel gerencial passa a resumir a evolução geral da loja com índice médio, cobertura de dados, cronogramas, checklists e avaliações.','Destaca setores com índice abaixo de 60 ou queda de pelo menos 8 pontos percentuais em relação ao período anterior.','Exibe quantas pessoas do setor possuem dados para contextualizar a leitura.'],c:['Os alertas indicam necessidade de investigação e não determinam a causa do resultado.','O índice é calculado apenas com dimensões disponíveis; ausência de dados não vira zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
