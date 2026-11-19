@@ -1475,6 +1475,74 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
 }
 @media(prefers-reduced-motion:reduce){.config-menu-card{transition:none!important}}
 
+
+
+/* SUPER TUDO — ETAPA 1: COMPONENTES TÁTEIS | CSS ONLY */
+:root{
+ --ui-card-radius:20px;--ui-control-radius:15px;--ui-button-radius:16px;
+ --ui-touch-size:44px;--ui-space-card:16px;
+ --ui-shadow-card:0 2px 5px rgba(24,38,61,.035),0 10px 26px rgba(24,38,61,.065);
+ --ui-shadow-card-hover:0 5px 12px rgba(24,38,61,.055),0 16px 34px rgba(24,38,61,.105);
+ --ui-shadow-button:0 4px 0 color-mix(in srgb,var(--pr) 72%,#10264b);
+ --ui-shadow-button-soft:0 4px 0 color-mix(in srgb,var(--bd) 78%,#65758d);
+ --ui-shadow-button-danger:0 4px 0 color-mix(in srgb,var(--no) 72%,#681d2b);
+ --ui-motion-fast:160ms;--ui-motion-base:210ms;--ui-motion-enter:280ms;
+ --ui-ease:cubic-bezier(.2,.8,.2,1);
+}
+/* Cards */
+.c,details,.page-content .c,.reg-menu-tile{
+ border-radius:var(--ui-card-radius)!important;box-shadow:var(--ui-shadow-card)!important;
+ transition:transform var(--ui-motion-base) var(--ui-ease),box-shadow var(--ui-motion-base) var(--ui-ease),border-color var(--ui-motion-base) var(--ui-ease)!important;
+}
+.c,details,.page-content .c{padding:var(--ui-space-card)!important}
+.c .mu,details .mu,.page-content .c .mu{line-height:1.5}
+.c h2,.c h3,.c h4,details>summary{letter-spacing:-.018em}
+@media(hover:hover){.c[onclick]:hover,.c.tap:hover,.reg-menu-tile:hover{transform:translateY(-2px)!important;box-shadow:var(--ui-shadow-card-hover)!important}}
+/* Buttons */
+.bt,.ibtn,button.ibtn-add,button.ibtn-back{
+ min-height:var(--ui-touch-size)!important;border-radius:var(--ui-button-radius)!important;
+ box-shadow:var(--ui-shadow-button)!important;
+ transition:transform var(--ui-motion-fast) var(--ui-ease),box-shadow var(--ui-motion-fast) var(--ui-ease),filter var(--ui-motion-fast) var(--ui-ease),background-color var(--ui-motion-fast) var(--ui-ease)!important;
+ -webkit-tap-highlight-color:transparent;
+}
+.bt{padding:11px 16px!important;font-weight:700!important;letter-spacing:-.01em}
+.bt.g{box-shadow:var(--ui-shadow-button-soft)!important}.bt.d{box-shadow:var(--ui-shadow-button-danger)!important}
+.bt:active,.ibtn:active,button.ibtn-add:active,button.ibtn-back:active{transform:translateY(3px)!important;box-shadow:0 1px 0 color-mix(in srgb,var(--pr) 72%,#10264b)!important}
+.bt.g:active{box-shadow:0 1px 0 color-mix(in srgb,var(--bd) 78%,#65758d)!important}
+.bt.d:active{box-shadow:0 1px 0 color-mix(in srgb,var(--no) 72%,#681d2b)!important}
+@media(hover:hover){.bt:not(:disabled):hover,.ibtn:not(:disabled):hover,button.ibtn-add:not(:disabled):hover,button.ibtn-back:not(:disabled):hover{transform:translateY(-1px);filter:brightness(1.035)}}
+.bt:disabled,.bt[aria-disabled="true"],.ibtn:disabled,button.ibtn-add:disabled,button.ibtn-back:disabled{opacity:.48!important;filter:saturate(.55)!important;transform:none!important;box-shadow:none!important;cursor:not-allowed!important}
+.ch,.day,.sn button,.rail .rb,nav button{min-height:var(--ui-touch-size);transition:transform var(--ui-motion-fast) var(--ui-ease),background-color var(--ui-motion-fast) var(--ui-ease),color var(--ui-motion-fast) var(--ui-ease),border-color var(--ui-motion-fast) var(--ui-ease)!important}
+.ch{padding:9px 14px!important}.day{padding:8px 5px!important}
+/* Inputs */
+input,select,textarea{
+ min-height:48px!important;padding:11px 13px!important;border-radius:var(--ui-control-radius)!important;border:1px solid var(--bd)!important;
+ transition:border-color var(--ui-motion-base) var(--ui-ease),box-shadow var(--ui-motion-base) var(--ui-ease),background-color var(--ui-motion-base) var(--ui-ease)!important;
+}
+textarea{min-height:104px!important}
+input::placeholder,textarea::placeholder{color:var(--mu)!important;opacity:.72}
+input:focus,select:focus,textarea:focus{border-color:var(--pr)!important;outline:0!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--pr) 17%,transparent)!important}
+input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="true"],input.is-invalid,select.is-invalid,textarea.is-invalid{
+ border-color:var(--no)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--no) 13%,transparent)!important;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Ccircle cx='10' cy='10' r='8' stroke='%23D84B55' stroke-width='1.7'/%3E%3Cpath d='M10 5.5v5' stroke='%23D84B55' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='13.7' r='1' fill='%23D84B55'/%3E%3C/svg%3E")!important;
+ background-repeat:no-repeat!important;background-position:right 12px center!important;background-size:17px 17px!important;padding-right:40px!important;
+}
+input[aria-invalid="false"],select[aria-invalid="false"],textarea[aria-invalid="false"],input.is-valid,select.is-valid,textarea.is-valid{border-color:var(--ok)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 12%,transparent)!important}
+/* Motion: transform/opacity only; progress bars scale instead of animating width */
+@keyframes gr{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.an>*{animation-duration:var(--ui-motion-enter)!important}
+.an>*:nth-child(2){animation-delay:50ms!important}.an>*:nth-child(3){animation-delay:100ms!important}
+.an>*:nth-child(4){animation-delay:150ms!important}.an>*:nth-child(5){animation-delay:200ms!important}
+.an>*:nth-child(n+6){animation-delay:250ms!important}
+.an .bar i{transform:scaleX(1);transform-origin:left center;animation:gr var(--ui-motion-enter) var(--ui-ease) both!important}
+.an .cols i{animation-duration:var(--ui-motion-enter)!important}.an .rg{animation:none!important}
+.an.dr>*,.an.dl>*{animation-duration:var(--ui-motion-enter)!important}
+.dd,.balloon,.sheet{animation-duration:var(--ui-motion-enter)!important}
+@media(prefers-reduced-motion:reduce){
+ .c,.page-content .c,.reg-menu-tile,.bt,.ibtn,button.ibtn-add,button.ibtn-back,.ch,.day,.sn button,.rail .rb,nav button,input,select,textarea{transition:none!important}
+ .an>*,.an .bar i,.an .cols i,.an .rg,.an.dr>*,.an.dl>*,.dd,.balloon,.sheet{animation:none!important}
+}
+
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
