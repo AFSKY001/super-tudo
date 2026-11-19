@@ -2987,16 +2987,17 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
     if(!bubble)return;
     bubble.classList.remove('is-growing');
     bubble.classList.add('is-receding');
-    setTimeout(()=>{if(bubble.isConnected)bubble.remove()},RECOIL_MS);
-    action.classList.remove('hold-action');
+    setTimeout(()=>{
+      if(bubble.isConnected)bubble.remove();
+      if(!action.querySelector('.hold-bubble'))action.classList.remove('hold-action');
+    },RECOIL_MS);
   };
-  const cancelActive=()=>{
-    if(!active)return;
+  const cancelActive=(clearState=false)=>{
+    if(!active||active.cancelled)return;
     clearTimeout(active.timer);
     active.cancelled=true;
-    active.action && blockedClicks.add(active.action);
     removeBubble(active.action,active.bubble);
-    active=null;
+    if(clearState)active=null;
   };
 
   markPressables(document);
@@ -3048,7 +3049,7 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
     if(Math.hypot(event.clientX-active.startX,event.clientY-active.startY)>10)cancelActive();
   },true);
   document.addEventListener('pointerleave',event=>{
-    if(active&&event.pointerId===active.pointerId)cancelActive();
+    if(active&&event.pointerId===active.pointerId)cancelActive(true);
   },true);
   document.addEventListener('pointercancel',event=>{
     if(active&&event.pointerId===active.pointerId)cancelActive();
@@ -3062,7 +3063,7 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
       blockedClicks.add(state.action);
       removeBubble(state.action,state.bubble);
     }else if(state.cancelled||elapsed>TAP_MAX_MS){
-      blockedClicks.add(state.action);
+      if(getAction(event.target)===state.action)blockedClicks.add(state.action);
       removeBubble(state.action,state.bubble);
     }else{
       removeBubble(state.action,state.bubble);
