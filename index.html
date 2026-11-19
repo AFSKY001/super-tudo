@@ -674,6 +674,62 @@ nav button.on .ni{transform:none}
  nav button .nl{font-size:7.5px;letter-spacing:-.35px}
 }
 
+
+/* Correção visual solicitada: azul em toda a identidade e menu inferior flutuante */
+:root{
+ --pr:#2457e6!important;--vi:#2457e6!important;--ac:#2457e6!important;
+ --prs:#eaf0ff!important;--grad:linear-gradient(135deg,#2457e6 0%,#4169f5 100%)!important;
+ --glow:0 5px 14px rgba(36,87,230,.22)!important;
+}
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]){
+  --pr:#80a5ff!important;--vi:#9bb5ff!important;--ac:#80a5ff!important;
+  --prs:#1b2b4e!important;--grad:linear-gradient(135deg,#416fe8 0%,#638cff 100%)!important;
+  --glow:0 5px 14px rgba(80,125,245,.25)!important;
+ }
+}
+:root[data-theme="dark"]{
+ --pr:#80a5ff!important;--vi:#9bb5ff!important;--ac:#80a5ff!important;
+ --prs:#1b2b4e!important;--grad:linear-gradient(135deg,#416fe8 0%,#638cff 100%)!important;
+ --glow:0 5px 14px rgba(80,125,245,.25)!important;
+}
+@media(max-width:1023px){
+ body{padding-bottom:104px!important}
+ nav{
+  left:10px!important;right:10px!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
+  width:auto!important;max-width:none!important;
+  display:flex!important;grid-template-columns:none!important;
+  justify-content:center!important;align-items:stretch!important;gap:2px!important;
+  padding:6px!important;overflow:hidden!important;
+  border:1px solid var(--bd)!important;border-radius:26px!important;
+  background:var(--cd)!important;box-shadow:var(--sh2,0 8px 24px rgba(16,24,40,.16))!important;
+ }
+ nav button{
+  flex:1 1 0!important;min-width:0!important;width:0!important;max-width:120px!important;
+  height:56px!important;margin:0!important;padding:2px 1px!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:3px!important;border:0!important;border-radius:18px!important;
+  background:transparent!important;box-shadow:none!important;color:var(--mu)!important;
+ }
+ nav button.on{background:transparent!important;color:var(--pr)!important}
+ nav button.on::after{display:none!important;content:none!important}
+ nav button .ni{
+  width:38px!important;height:28px!important;display:grid!important;place-items:center!important;
+  border-radius:0!important;background:transparent!important;box-shadow:none!important;
+  color:inherit!important;font-size:21px!important;
+ }
+ nav button.on .ni{background:transparent!important;color:var(--pr)!important;box-shadow:none!important}
+ nav button .nl{display:block!important;width:100%!important;max-width:100%!important;height:13px!important;
+  font-size:clamp(8px,2.4vw,10px)!important;line-height:13px!important;font-weight:600!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;opacity:1!important}
+ nav button.on .nl{font-weight:750!important}
+}
+@media(max-width:360px){
+ nav{left:7px!important;right:7px!important}
+ nav button .ni{width:32px!important;font-size:19px!important}
+ nav button .nl{font-size:7.5px!important;letter-spacing:-.3px!important}
+}
+
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
