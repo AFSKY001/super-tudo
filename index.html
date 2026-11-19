@@ -541,7 +541,7 @@ const tstat=e=>{const t=+e.t;if(e.t===''||e.t==null||isNaN(t))return null;const 
 const BADGE={temp:tstat,desp:e=>{const p=+e.a?+e.b/+e.a*100:0;return[p.toFixed(1)+'% · '+money(+e.b*+e.c),p>5?'no':p>2?'wa':'ok']},os:e=>e.st?[e.st,e.st==='Liberado para uso'?'ok':e.st==='Interditado'?'no':'wa']:null};
 function seed(){return{team:[],runs:{},done:{},ev:[],log:{}}}
 const hsh=(u,p)=>{let h=2166136261;const t='supertudo|'+String(u).toLowerCase()+'|'+String(p);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+'x'+t.length};
-const K='supertudo-cloud-v1';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null,authChecking:true,configHistory:null,configHistoryLoading:false,configHistoryError:null};
+const K='supertudo-cloud-v1';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null,authChecking:true,configHistory:null,configHistoryLoading:false,configHistoryError:null,configSchedules:null,configSchedulesLoading:false,configSchedulesError:null,configScheduleSourceIndex:0};
 
 /* ---- Supabase ---- */
 const SUPA_URL='https://xsvcjfsgkropzdfcehsh.supabase.co';
@@ -814,7 +814,7 @@ function dupCk(){const c=CK[V.ce],id='c'+uid();CK[id]={...c,n:c.n+' (cópia)',l:
 function ckDelModel(k){if(!ask('cm'+k))return;delete CK[k];if(V.mdl===k)V.mdl=null;save();R()}
 function delCk(){if(!confirm('Excluir este checklist?'))return;delete CK[V.ce];V.ce=null;ceRet();save();R()}
 function rMenuOld(){
- $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&V.me.role==='master'?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button><button onclick="V.mn=0;V.sh=\'ntsettings\';rMenu()">🔔 Distribuição de notificações</button>':''}${V.me&&(V.me.role==='master'||V.me.role==='gerente')?'<button onclick="V.mn=0;V.configHistory=null;V.configHistoryError=null;V.sh=\'confighistory\';rMenu()">🗂️ Histórico de configurações</button>':''}<button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
+ $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&V.me.role==='master'?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button><button onclick="V.mn=0;V.sh=\'ntsettings\';rMenu()">🔔 Distribuição de notificações</button>':''}${V.me&&(V.me.role==='master'||V.me.role==='gerente')?'<button onclick="V.mn=0;V.configHistory=null;V.configHistoryError=null;V.sh=\'confighistory\';rMenu()">🗂️ Histórico de configurações</button><button onclick="V.mn=0;V.configSchedules=null;V.configSchedulesError=null;V.sh='configschedules';rMenu()">🗓️ Mudanças programadas</button>':''}<button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
  $('sh').innerHTML='';
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(V.mn||V.sh)){V.mn=0;V.sh=0;rMenu()}});
@@ -1567,6 +1567,63 @@ function configHistoryHTML(){
  (V.configHistoryLoading?'<p class="mu">Carregando histórico…</p>':V.configHistoryError?'<p class="mu" style="color:var(--no)">'+esc(V.configHistoryError)+'</p>':!rows.length?'<p class="mu">Nenhuma versão encontrada.</p>':rows.map(x=>'<details class="c"><summary><b>'+esc(x.module)+' / '+esc(x.record_id)+'</b><span class="mu"> · rev. '+esc(x.revision)+' · '+esc(date(x.effective_at))+'</span></summary><div class="mu u-mt6">Tipo: '+esc(x.kind)+' · Origem: '+esc(x.source)+'<br>Registrado em: '+esc(date(x.recorded_at))+'<br>Responsável: '+esc(x.recorded_by||'—')+(x.deleted_at?'<br>Excluído em: '+esc(date(x.deleted_at)):'')+'</div><pre class="u-mt6" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px">'+esc(JSON.stringify(x.data,null,2))+'</pre></details>').join(''))+
  '<div class="row u-mt8"><button class="bt g" onclick="loadConfigHistory()">Atualizar</button></div>';
 }
+
+function configScheduleSources(){
+ const latest=new Map();
+ (Array.isArray(V.configHistory)?V.configHistory:[]).filter(x=>x&&String(x.kind||'').startsWith('cfg:')&&!x.deleted_at&&x.data&&typeof x.data==='object').forEach(x=>{
+  const k=String(x.module)+'|'+String(x.record_id),p=latest.get(k);
+  if(!p||Number(x.revision)>Number(p.revision))latest.set(k,x);
+ });
+ return [...latest.values()].sort((a,b)=>(String(a.module)+'|'+String(a.record_id)).localeCompare(String(b.module)+'|'+String(b.record_id)));
+}
+function configScheduleSelect(i){
+ V.configScheduleSourceIndex=Math.max(0,Number(i)||0);
+ const src=configScheduleSources()[V.configScheduleSourceIndex],ta=$('cfg_sched_data');
+ if(ta&&src)ta.value=JSON.stringify(src.data,null,2);
+}
+function configScheduleDefaultDate(){
+ const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+1);d.setHours(9,0,0,0);
+ const p=n=>String(n).padStart(2,'0');
+ return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T09:00';
+}
+function configSchedulesHTML(){
+ const rows=Array.isArray(V.configSchedules)?V.configSchedules:[],src=configScheduleSources(),chosen=src[V.configScheduleSourceIndex||0];
+ const date=x=>{const d=new Date(x);return Number.isNaN(d.getTime())?String(x||'—'):d.toLocaleString('pt-BR')};
+ let h='<h3>🗓️ Mudanças programadas</h3><p class="mu">Programe uma nova versão de uma configuração. A versão atual permanece ativa até a data escolhida. Apenas administrador e gerente podem administrar estas mudanças.</p>';
+ if(V.configSchedulesLoading)h+='<p class="mu">Carregando agendamentos…</p>';
+ else if(V.configSchedulesError)h+='<p style="color:var(--no)">'+esc(V.configSchedulesError)+'</p>';
+ else if(!rows.length)h+='<p class="mu">Nenhuma mudança programada.</p>';
+ else h+=rows.map(x=>'<div class="c"><div class="row sp"><b>'+esc(x.module)+' / '+esc(x.record_id)+'</b><span class="b '+(x.status==='pending'?'wa':x.status==='applied'?'ok':'mu')+'">'+esc(x.status)+'</span></div><div class="mu">Tipo: '+esc(x.kind)+' · Revisão base: '+esc(x.base_revision)+'<br>Início previsto: '+esc(date(x.effective_at))+(x.applied_at?'<br>Aplicado em: '+esc(date(x.applied_at)):'')+'</div>'+(x.status==='pending'?'<button class="bt d u-mt8" onclick="cancelConfigSchedule(\''+esc(x.id)+'\')">Cancelar agendamento</button>':'')+'</div>').join('');
+ h+='<div class="c"><h4>Nova mudança</h4>';
+ if(!src.length)h+='<p class="mu">Não há versões atuais disponíveis para agendar. Registre uma configuração e atualize o histórico primeiro.</p>';
+ else h+='<label>Configuração<select id="cfg_sched_source" onchange="configScheduleSelect(this.value)">'+src.map((x,i)=>'<option value="'+i+'" '+(i===(V.configScheduleSourceIndex||0)?'selected':'')+'>'+esc(x.module+' / '+x.record_id+' · '+x.kind+' · rev. '+x.revision)+'</option>').join('')+'</select></label><label class="u-mt8">Data e hora para entrar em vigor<input id="cfg_sched_date" type="datetime-local" value="'+configScheduleDefaultDate()+'"></label><label class="u-mt8">Nova configuração (JSON)<textarea id="cfg_sched_data" rows="8" style="font-family:monospace">'+esc(JSON.stringify(chosen?.data||{},null,2))+'</textarea></label><p class="mu">O conteúdo começa preenchido com a versão atual. Edite somente o que deseja alterar. A data padrão é o primeiro dia do próximo mês.</p><button class="bt u-mt8" onclick="createConfigSchedule()">Programar mudança</button>';
+ h+='<div class="row u-mt8"><button class="bt g" onclick="loadConfigSchedules()">Atualizar lista</button><button class="bt g" onclick="V.sh=0;rMenu()">Fechar</button></div></div>';
+ return h;
+}
+async function loadConfigSchedules(){
+ V.configSchedulesLoading=true;V.configSchedulesError=null;rMenu();
+ try{const [hist,list]=await Promise.all([configHistoryCall('history'),configHistoryCall('list')]);V.configHistory=Array.isArray(hist?.history)?hist.history:[];V.configSchedules=Array.isArray(list?.schedules)?list.schedules:[];V.configScheduleSourceIndex=0;}
+ catch(e){V.configSchedulesError=e.message||'Não foi possível consultar os agendamentos.';}
+ finally{V.configSchedulesLoading=false;rMenu();}
+}
+async function createConfigSchedule(){
+ try{
+  const src=configScheduleSources()[V.configScheduleSourceIndex||0];if(!src)throw new Error('Selecione uma configuração válida.');
+  const effective=$('cfg_sched_date')?.value;if(!effective)throw new Error('Informe a data de início.');
+  const data=JSON.parse($('cfg_sched_data')?.value||'');
+  if(!confirm('Programar esta nova versão para '+new Date(effective).toLocaleString('pt-BR')+'?'))return;
+  const result=await configHistoryCall('create',{module:src.module,record_id:src.record_id,kind:src.kind,base_revision:Number(src.revision),data,effective_at:new Date(effective).toISOString()});
+  if(!result?.ok)throw new Error(result?.error||'Não foi possível criar o agendamento.');
+  alert('Mudança programada. A configuração atual continuará valendo até a data escolhida.');
+  await loadConfigSchedules();
+ }catch(e){alert(e.message||'Não foi possível programar a mudança.');}
+}
+async function cancelConfigSchedule(id){
+ if(!confirm('Cancelar esta mudança programada? A configuração atual não será alterada.'))return;
+ try{const result=await configHistoryCall('cancel',{id});if(!result?.ok)throw new Error(result?.error||'Não foi possível cancelar.');await loadConfigSchedules();}
+ catch(e){alert(e.message||'Falha ao cancelar o agendamento.');}
+}
+
 async function loadConfigHistory(){
  V.configHistoryLoading=true;V.configHistoryError=null;rMenu();
  try{const result=await configHistoryCall('history');V.configHistory=Array.isArray(result?.history)?result.history:[];}
@@ -1575,6 +1632,12 @@ async function loadConfigHistory(){
 }
 function rMenu(){
  if(V.sh==='acc'&&V.me?.role==='master'&&!V.accLinksLoaded&&!V.accLinksLoading){V.accLinksLoading=true;refreshCloudAccessLinks().catch(e=>console.warn('Não foi possível atualizar os vínculos de login:',e)).finally(()=>{V.accLinksLoading=false;V.accLinksLoaded=true;R()})}
+ if(V.sh==='configschedules'){
+  $('mn').innerHTML='';
+  if(!V.configSchedules&&!V.configSchedulesLoading)loadConfigSchedules();
+  $('sh').innerHTML='<div class="ov dim" onclick="V.sh=0;rMenu()"></div><div class="sheet"><div class="c">'+configSchedulesHTML()+'</div></div>';
+  return;
+ }
  if(V.sh==='confighistory'){
   $('mn').innerHTML='';
   if(!V.configHistory&&!V.configHistoryLoading)loadConfigHistory();
@@ -2181,7 +2244,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.45.0';
+const APP_VERSION='3.45.1';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
