@@ -3446,7 +3446,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.63.0';
+const APP_VERSION='3.64.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3738,6 +3738,40 @@ function perfLeaderTeamAnalysisHTML(leader,period){
  return html;
 }
 
+function perfChecklistFailuresBySectorHTML(period){
+ const groups=new Map();let eligibleRuns=0,skippedRuns=0;
+ Object.entries(S.runs||{}).forEach(([key,r])=>{
+  if(!r||!r.perfSnapshot||typeof r.perfSnapshot!=='object')return;
+  const parts=key.split('|'),model=parts[0],date=parts[1];
+  if(!perfInRange(date,period.start,period.end))return;
+  const snap=r.perfSnapshot,items=Array.isArray(snap.items)?snap.items:null,c=CK[model];
+  // r.a uses original item indexes; require an exact match to avoid false attribution.
+  if(!items||!c||!Array.isArray(c.l)||c.l.some(x=>String(x).startsWith('#'))||
+     c.l.length!==items.length||!c.l.every((x,i)=>String(x)===String(items[i]))){
+   skippedRuns++;return;
+  }
+  const sector=String(snap.sector||((person(snap.assignedPersonId)||person(snap.evaluatedPersonId)||{}).s)||'Sem setor').trim()||'Sem setor';
+  let used=false;
+  items.forEach((label,i)=>{
+   const answer=r.a&&r.a[i];
+   if(answer!=='s'&&answer!=='n')return;
+   const name=String(label||'').trim();if(!name)return;
+   const k=nomeChave(sector)+'|'+nomeChave(name);
+   const x=groups.get(k)||{sector,item:name,yes:0,no:0,checks:0,checklists:new Set()};
+   if(answer==='n')x.no++;else x.yes++;
+   x.checks++;x.checklists.add(String(snap.checklistName||model));
+   groups.set(k,x);used=true;
+  });
+  if(used)eligibleRuns++;
+ });
+ const rows=[...groups.values()].filter(x=>x.checks>=3&&x.no>=2)
+  .sort((a,b)=>(b.no/b.checks)-(a.no/a.checks)||b.no-a.no||a.sector.localeCompare(b.sector,'pt-BR')).slice(0,10);
+ let html='<h3>Itens de checklist com falhas recorrentes por setor</h3><p class="mu">Itens com pelo menos 3 respostas registradas e 2 marcações de “Não” no período. A lista considera somente checklists cujo modelo atual ainda corresponde exatamente à fotografia histórica.</p>';
+ html+=rows.length?rows.map(x=>'<div class="c"><div class="row sp"><b>'+esc(x.item)+'</b><span class="b no">'+x.no+' “Não”</span></div><div class="mu">'+esc(x.sector)+' · '+x.checks+' respostas · '+(100*x.no/x.checks).toFixed(1)+'% de “Não” · '+x.checklists.size+' checklist(s)</div>'+bar(100*x.no/x.checks)+'</div>').join(''):'<div class="c mu">Ainda não há itens que atinjam o mínimo de registros e falhas para apontar recorrência.</div>';
+ html+='<p class="mu">Cobertura: '+eligibleRuns+' aplicação(ões) com itens analisáveis. '+skippedRuns+' aplicação(ões) foram desconsideradas porque o modelo atual não permite confirmar o alinhamento dos itens. As marcações são sinais para conferência e correção da rotina, não uma conclusão sobre responsabilidade individual.</p>';
+ return html;
+}
+
 function perfDashboardHTML(){
  const full=typeof isFullAccess==='function'&&isFullAccess(),me=(S.team||[]).find(p=>V.me&&String(p.id)===String(V.me.id))||null;
  let scope=V.proScope||(full?'store':(V.me&&V.me.role==='encarregado'?'leader':'employee'));if(!full)scope=V.me&&V.me.role==='encarregado'?'leader':'employee';
@@ -3756,6 +3790,7 @@ function perfDashboardHTML(){
  const periodControl='<div class="row"><label>Relatório<select onchange="V.proMode=this.value;R()"><option value="month" '+(mode==='month'?'selected':'')+'>Mensal</option><option value="year" '+(mode==='year'?'selected':'')+'>Anual</option></select></label><label>'+(mode==='month'?'Mês':'Ano')+(mode==='month'?'<input type="month" value="'+esc(V.proMonth)+'" onchange="V.proMonth=this.value;R()">':'<input type="number" min="2000" max="2100" value="'+esc(V.proYear)+'" onchange="V.proYear=this.value;R()">')+'</label></div>';
  let html='<div class="c"><h2>📈 Desempenho e evolução</h2><p class="mu">Análise de '+esc(scopeName)+'.</p>'+periodControl+chips+entityControl+'</div>';
  if(full&&scope==='store')html+=perfManagementActionHTML(people,period,current);
+ if(full&&scope==='store')html+=perfChecklistFailuresBySectorHTML(period);
  if(scope==='leader'&&entity)html+=perfLeaderTeamAnalysisHTML(entity,period);
  html+='<div class="c"><div class="row sp"><b>Comparação de períodos</b><span class="mu">'+period.label+' × '+period.prevLabel+'</span></div><div class="g2"><div><div class="mu">Melhoraram</div><div class="big">'+(counts.good||0)+'</div></div><div><div class="mu">Pioraram</div><div class="big">'+(counts.bad||0)+'</div></div><div><div class="mu">Estáveis</div><div class="big">'+(counts.same||0)+'</div></div><div><div class="mu">Contexto / informativo</div><div class="big">'+(counts.neutral||0)+'</div></div><div><div class="mu">Sem base</div><div class="big">'+(counts.nodata||0)+'</div></div></div><p class="mu">O resumo conta apenas indicadores com comparação possível. Vendas e recebimentos são dados de contexto, não melhoram ou pioram automaticamente.</p></div>';
  html+='<h3>Indicadores operacionais</h3>'+ (keys.length?current.map(x=>perfMetricCard(x.k,period,scope,entity)).join(''):'<div class="c mu">Nenhum indicador operacional foi atribuído a esta pessoa. Você pode escolher os indicadores no cadastro da equipe. Cronogramas, checklists e avaliações continuam sendo acompanhados abaixo.</div>');
@@ -3766,6 +3801,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.64.0',d:'19/11/2026',t:'Falhas recorrentes em itens de checklist por setor (MINOR)',n:['O painel gerencial identifica itens de checklist com marcações recorrentes de “Não”, agrupados por setor.','Exige pelo menos três respostas e duas marcações de “Não” para destacar um item.','Usa apenas aplicações em que os itens históricos podem ser alinhados com segurança ao modelo atual.'],c:['Aplicações cujo modelo foi alterado ou não pode ser conferido são excluídas do levantamento.','Os resultados orientam investigação e correção de rotina; não determinam responsabilidade individual.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.63.0',d:'19/11/2026',t:'Comparação do encarregado com a equipe e tarefas recorrentes (MINOR)',n:['Na visão do encarregado, compara o índice e as dimensões de execução do líder com a média dos funcionários diretamente vinculados no cadastro.','Mostra resultados individuais da equipe, cobertura de dados e evolução em relação ao período anterior.','Identifica tarefas recorrentes entre as pendências usando apenas fotografias diárias do cronograma já preservadas.'],c:['A média da equipe não inclui o encarregado e não substitui análise do contexto de cada função.','Tarefas de dias sem fotografia histórica não entram no levantamento de recorrência.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.62.0',d:'19/11/2026',t:'Visão geral e alertas de atenção por setor (MINOR)',n:['O painel gerencial passa a resumir a evolução geral da loja com índice médio, cobertura de dados, cronogramas, checklists e avaliações.','Destaca setores com índice abaixo de 60 ou queda de pelo menos 8 pontos percentuais em relação ao período anterior.','Exibe quantas pessoas do setor possuem dados para contextualizar a leitura.'],c:['Os alertas indicam necessidade de investigação e não determinam a causa do resultado.','O índice é calculado apenas com dimensões disponíveis; ausência de dados não vira zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.61.0',d:'19/11/2026',t:'Painel gerencial de prioridades e alertas (MINOR)',n:['A visão da loja inteira passa a destacar funcionários que merecem acompanhamento, considerando índice abaixo de 60 ou queda de pelo menos 8 pontos percentuais.','Mostra indicadores operacionais que pioraram e sugere ações iniciais de investigação por tipo de indicador.','Exige dados em pelo menos duas dimensões para gerar alerta individual e mantém indicadores operacionais separados do índice individual.'],c:['Os alertas são sinais para investigação e não determinam a causa nem substituem a avaliação da liderança.','A ausência de dados não é tratada como resultado zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
