@@ -16,7 +16,7 @@ const runtimeFiles = [
 
 const pkg = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
 const version = String(pkg.version || '');
-if (!/^\\d+\\.\\d+\\.\\d+$/.test(version)) {
+if (!/^\d+\.\d+\.\d+$/.test(version)) {
   throw new Error('Invalid application version in package.json.');
 }
 
@@ -27,7 +27,7 @@ for (const file of runtimeFiles) {
   const source = path.join(root, file);
   const target = path.join(dist, file);
   const stat = await fs.stat(source).catch(() => null);
-  if (!stat?.isFile()) throw new Error(`Required runtime file is missing: ${file}`);
+  if (!stat?.isFile()) throw new Error('Required runtime file is missing: ' + file);
   await fs.copyFile(source, target);
 }
 
@@ -51,21 +51,21 @@ const obfuscationOptions = {
 function protectJavaScript(source, label) {
   const result = JavaScriptObfuscator.obfuscate(source, obfuscationOptions);
   const code = result.getObfuscatedCode();
-  if (!code || !code.trim()) throw new Error(`Obfuscator returned empty output for ${label}.`);
+  if (!code || !code.trim()) throw new Error('Obfuscator returned empty output for ' + label + '.');
   return code;
 }
 
 const htmlPath = path.join(dist, 'index.html');
 let html = await fs.readFile(htmlPath, 'utf8');
-const versionPattern = /const APP_VERSION\\s*=\\s*['"][^'"]+['"]/;
+const versionPattern = /const APP_VERSION\s*=\s*['"][^'"]+['"]/;
 if (!versionPattern.test(html)) throw new Error('APP_VERSION declaration was not found.');
-html = html.replace(versionPattern, `const APP_VERSION='${version}'`);
+html = html.replace(versionPattern, "const APP_VERSION='" + version + "'");
 
 let transformed = 0;
-const scriptTag = /<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi;
+const scriptTag = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
 html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
-  if (/\\bsrc\\s*=/.test(attrs)) return whole;
-  const type = attrs.match(/\\btype\\s*=\\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
+  if (/\bsrc\s*=/.test(attrs)) return whole;
+  const type = attrs.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
   if (type && !['text/javascript', 'application/javascript', 'module'].includes(type)) return whole;
   if (!source.trim()) return whole;
 
@@ -83,7 +83,7 @@ html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
   const code = protectJavaScript(minified.code, 'index.html inline script');
   if (type !== 'module') new Function(code);
   transformed++;
-  return `<script${attrs}>\\n${code}\\n</script>`;
+  return '<script' + attrs + '>\n' + code + '\n</script>';
 });
 
 if (transformed < 1) throw new Error('No inline JavaScript was protected.');
@@ -91,9 +91,9 @@ await fs.writeFile(htmlPath, html, 'utf8');
 
 const swPath = path.join(dist, 'sw.js');
 const swSource = await fs.readFile(swPath, 'utf8');
-const cachePattern = /const CACHE_NAME\\s*=\\s*['"]super-tudo-v[^'"]+['"]/;
+const cachePattern = /const CACHE_NAME\s*=\s*['"]super-tudo-v[^'"]+['"]/;
 if (!cachePattern.test(swSource)) throw new Error('Service worker cache version was not found.');
-const versionedSw = swSource.replace(cachePattern, `const CACHE_NAME='super-tudo-v${version}'`);
+const versionedSw = swSource.replace(cachePattern, "const CACHE_NAME='super-tudo-v" + version + "'");
 const swMinified = await minify(versionedSw, {
   compress: { passes: 2, drop_debugger: true },
   mangle: { toplevel: false },
@@ -111,7 +111,7 @@ await fs.writeFile(swPath, protectedSw, 'utf8');
 const actualFiles = (await fs.readdir(dist)).sort();
 const expectedFiles = [...runtimeFiles].sort();
 if (JSON.stringify(actualFiles) !== JSON.stringify(expectedFiles)) {
-  throw new Error(`Unexpected distribution contents: ${actualFiles.join(', ')}`);
+  throw new Error('Unexpected distribution contents: ' + actualFiles.join(', '));
 }
 
 const forbiddenPatterns = [
@@ -126,7 +126,7 @@ for (const file of runtimeFiles) {
   if (file.endsWith('.html') || file.endsWith('.js') || file.endsWith('.webmanifest') || file.endsWith('.svg') || file === 'LICENSE') {
     const text = content.toString('utf8');
     for (const pattern of forbiddenPatterns) {
-      if (pattern.test(text)) throw new Error(`Forbidden content matched ${pattern} in ${file}.`);
+      if (pattern.test(text)) throw new Error('Forbidden content matched ' + pattern + ' in ' + file + '.');
     }
   }
 }
