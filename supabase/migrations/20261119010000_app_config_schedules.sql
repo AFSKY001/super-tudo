@@ -14,9 +14,12 @@ create table if not exists public.app_config_schedules (
   created_at timestamptz not null default now(),
   applied_at timestamptz,
   result jsonb,
-  constraint app_config_schedules_future_check check (effective_at > created_at),
-  constraint app_config_schedules_active_unique unique (org_id,module,record_id,status)
+  constraint app_config_schedules_future_check check (effective_at > created_at)
 );
+
+create unique index if not exists app_config_schedules_one_pending_idx
+  on public.app_config_schedules (org_id,module,record_id)
+  where status = 'pending';
 
 create index if not exists app_config_schedules_due_idx
   on public.app_config_schedules (effective_at)
