@@ -1999,7 +1999,19 @@ function ckBack(ed){if(ckDirty()&&!confirm('Há alterações não salvas neste c
 function ckSaveRun(){
  const d=V.ckdr;if(!d)return;const r=d.r,cc=CK[V.ck];
  if(cc&&isRec(cc)){if(!String(r.who||'').trim())return alert('Escolha o responsável pelo recebimento.');if(!(r.temps||[]).some(v=>v!==''&&v!=null&&isFinite(+v)))return alert('Informe pelo menos uma temperatura.')}
- r.by=V.me?V.me.id:'';r.sent=false;S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();
+ r.by=V.me?V.me.id:'';r.sent=false;
+ if(cc){
+  const snap=r.perfSnapshot&&typeof r.perfSnapshot==='object'?r.perfSnapshot:{
+   version:1,checklistId:String(V.ck),checklistName:String(cc.n||'Checklist'),
+   assignedPersonId:String(cc.p||''),assignedPersonName:(person(cc.p)||{}).n||'',
+   evaluatedPersonId:String(r.av||''),sector:String(cc.z||(person(cc.p)||{}).s||''),
+   items:(cc.l||[]).filter(x=>x&&x[0]!=='#').map(x=>String(x)),
+   photoRequired:!!cc.ph
+  };
+  const snapItems=Array.isArray(snap.items)?snap.items:[];
+  r.perfSnapshot={...snap,score:snapItems.length?sc({l:snapItems.map(x=>[x])},r):null};
+ }
+ S.runs[d.k]=JSON.parse(JSON.stringify(r));if(cc&&cc.rc)cc.company=String(r.company||'').trim();
  ckNote(r);if(cc)delete cc.nw;if(!save())return;
  if(V.tab==='reg'&&(V.rs==='ck'||V.rs==='lanc'&&(V.reg==='ck'||V.reg==='chrec'))){V.ck=null;V.ckdr=null;V.ce=null;if(V.rs==='lanc'){if(V.reg==='ck'){V.ckTab='home';V.lw=''}else V.chrecTab='home'}}
  alert('Checklist salvo.');R();scrollTo(0,0);
@@ -3411,7 +3423,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.56.1';
+const APP_VERSION='3.57.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3498,7 +3510,24 @@ function perfAnnualSeriesHTML(keys,year,scope,entity){
 function perfTaskStats(p,start,end){let planned=0,done=0,days=0,dt=start;while(dt<=end&&dt<=today()){const L=myT(p,dt);if(L.length)days++;L.forEach(x=>{planned++;if(pdn(dt,x,p))done++});dt=addD(dt,1)}return {planned,done,percent:planned?done/planned*100:null,days}}
 function perfChecklistStats(p,start,end){
  let total=0,complete=0,answered=0,possible=0,qualitySum=0,qualityN=0;
- Object.entries(S.runs||{}).forEach(([key,r])=>{if(!r)return;const a=key.split('|'),model=a[0],date=a[1],c=CK[model];if(!c||!perfInRange(date,start,end))return;const assigned=String(c.p||'')===String(p.id),evaluated=String(r.av||'')===String(p.id);if(!assigned&&!evaluated)return;total++;const items=(c.l||[]).filter(x=>x&&x[0]!=='#').length,n=Object.keys(r.a||{}).filter(k=>r.a[k]!==undefined&&r.a[k]!==null&&r.a[k]!=='').length;answered+=n;possible+=items;if(items&&n>=items&&(!c.ph||!!r.photo))complete++;if(evaluated&&typeof sc==='function'){const score=sc(c,r);if(score!==null&&score!==undefined){qualitySum+=score;qualityN++}}});
+ Object.entries(S.runs||{}).forEach(([key,r])=>{
+  if(!r)return;
+  const a=key.split('|'),model=a[0],date=a[1],c=CK[model],snap=r.perfSnapshot&&typeof r.perfSnapshot==='object'?r.perfSnapshot:null;
+  if(!perfInRange(date,start,end)||(!c&&!snap))return;
+  const assigned=String(snap?snap.assignedPersonId:(c&&c.p)||'')===String(p.id);
+  const evaluated=String(snap?snap.evaluatedPersonId:r.av||'')===String(p.id);
+  if(!assigned&&!evaluated)return;
+  total++;
+  const items=snap&&Array.isArray(snap.items)?snap.items.length:(c&&c.l||[]).filter(x=>x&&x[0]!=='#').length;
+  const photoRequired=snap?!!snap.photoRequired:!!(c&&c.ph);
+  const n=Object.keys(r.a||{}).filter(k=>r.a[k]!==undefined&&r.a[k]!==null&&r.a[k]!=='').length;
+  answered+=n;possible+=items;
+  if(items&&n>=items&&(!photoRequired||!!r.photo))complete++;
+  if(evaluated&&typeof sc==='function'){
+   const score=snap?(snap.score===null||snap.score===undefined?null:Number(snap.score)):(c?sc(c,r):null);
+   if(score!==null&&score!==undefined&&isFinite(score)){qualitySum+=score;qualityN++}
+  }
+ });
  return {total,complete,percent:total?complete/total*100:null,answered,possible,answerPercent:possible?answered/possible*100:null,quality:qualityN?qualitySum/qualityN:null,qualityN}
 }
 function perfEvaluationStats(p,start,end){const L=(S.ev||[]).filter(e=>perfInRange(e.d,start,end)&&(((!e.t||e.t==='ind')&&String(e.p||'')===String(p.id))||(e.t==='resp'&&nomeChave(e.n||'')===nomeChave(p.n||'')))),avgVal=L.length?L.reduce((a,e)=>a+avg(e.r),0)/L.length*2.5:null;return {count:L.length,avg:avgVal}}
@@ -3576,6 +3605,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.57.0',d:'19/11/2026',t:'Histórico confiável de checklists para desempenho (MINOR)',n:['Cada checklist salvo registra uma cópia dos itens, responsável, setor e exigência de foto daquele momento.','O painel de desempenho passa a usar esse registro histórico mesmo se o modelo for editado ou removido depois.'],c:['Registros antigos sem cópia histórica continuam sendo calculados com os dados disponíveis do modelo atual.','Nenhuma tabela, função, política ou estrutura do Supabase foi alterada.']},
 {v:'3.56.1',d:'19/11/2026',t:'Redução adicional do logo na tela de login (PATCH)',n:['A imagem acima dos campos de usuário e senha fica limitada a 72 px no celular e 80 px em telas maiores.'],c:['Ajuste restrito à apresentação da tela de login; não altera autenticação, cadastros ou dados.']},
 {v:'3.56.0',d:'19/11/2026',t:'Distribuição protegida e controle seguro da sincronização (MINOR)',n:['O pacote de distribuição passa a compactar e ofuscar o JavaScript próprio do Super Tudo.','A distribuição inclui somente os arquivos necessários para executar o aplicativo, sem fontes de banco, funções ou ferramentas de compilação.','O processo verifica a ausência de source maps e de chaves secretas de servidor.'],c:['A ofuscação dificulta a engenharia reversa, mas não torna invisível o código que precisa executar no navegador.','O acesso direto às tabelas internas de sincronização foi removido; a sincronização continua pelos endpoints autorizados do servidor.']},
 
