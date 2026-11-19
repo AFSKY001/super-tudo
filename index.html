@@ -541,7 +541,7 @@ const tstat=e=>{const t=+e.t;if(e.t===''||e.t==null||isNaN(t))return null;const 
 const BADGE={temp:tstat,desp:e=>{const p=+e.a?+e.b/+e.a*100:0;return[p.toFixed(1)+'% · '+money(+e.b*+e.c),p>5?'no':p>2?'wa':'ok']},os:e=>e.st?[e.st,e.st==='Liberado para uso'?'ok':e.st==='Interditado'?'no':'wa']:null};
 function seed(){return{team:[],runs:{},done:{},ev:[],log:{}}}
 const hsh=(u,p)=>{let h=2166136261;const t='supertudo|'+String(u).toLowerCase()+'|'+String(p);for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)+'x'+t.length};
-const K='supertudo-cloud-v1';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null,authChecking:true};
+const K='supertudo-cloud-v1';let S,V={tab:'painel',date:today(),f:'Todos',ck:null,ckd:today(),ckt:'',ev:'rank',reg:'temp',te:null,add:0,dr:{p:'',d:today(),r:{},o:''},sbSession:null,authChecking:true,configHistory:null,configHistoryLoading:false,configHistoryError:null};
 
 /* ---- Supabase ---- */
 const SUPA_URL='https://xsvcjfsgkropzdfcehsh.supabase.co';
@@ -814,7 +814,7 @@ function dupCk(){const c=CK[V.ce],id='c'+uid();CK[id]={...c,n:c.n+' (cópia)',l:
 function ckDelModel(k){if(!ask('cm'+k))return;delete CK[k];if(V.mdl===k)V.mdl=null;save();R()}
 function delCk(){if(!confirm('Excluir este checklist?'))return;delete CK[V.ce];V.ce=null;ceRet();save();R()}
 function rMenuOld(){
- $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&V.me.role==='master'?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button><button onclick="V.mn=0;V.sh=\'ntsettings\';rMenu()">🔔 Distribuição de notificações</button>':''}<button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
+ $('mn').innerHTML=V.mn?`<div class="ov" onclick="V.mn=0;rMenu()"></div><div class="dd">${canImp()?'<button onclick="V.mn=0;V.sh=\'hist\';rMenu()">📜 Histórico de atualizações</button>':''}${V.me&&V.me.role==='master'?'<button onclick="V.mn=0;V.accLinksLoaded=false;V.sh=\'acc\';rMenu()">👤 Acessos e logins</button><button onclick="V.mn=0;V.sh=\'ntsettings\';rMenu()">🔔 Distribuição de notificações</button>':''}<button onclick="V.mn=0;V.configHistory=null;V.configHistoryError=null;V.sh='confighistory';rMenu()">🗂️ Histórico de configurações</button><button onclick="V.mn=0;V.sh='pw';rMenu()">🔑 Trocar senha</button><button onclick="V.mn=0;V.sh='help';V.hs=0;V.hoff=helpOff();rMenu()">❓ Ajuda</button><button onclick="logout()">🚪 Sair</button></div>`:'';
  $('sh').innerHTML='';
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&(V.mn||V.sh)){V.mn=0;V.sh=0;rMenu()}});
@@ -1560,8 +1560,27 @@ async function saveNtModeA(){
  if(!confirm('Confirmar o Modo A? Avisos gerais e notificações automáticas da gestão serão entregues a todos os usuários ativos. Eventos operacionais permanecem direcionados aos responsáveis durante a etapa de validação.'))return;
  try{const result=await pushCall('notification-settings-set',{distributionMode:'all'});if(!result||!result.ok)throw new Error('Não foi possível salvar.');V.ntSettings={distributionMode:'all',updatedAt:new Date().toISOString(),routingEnabled:true};V.ntSettingsError=null;rMenu();alert('Modo A salvo. A distribuição global está ativa para notificações da gestão; eventos operacionais continuam direcionados.');}catch(e){alert(e.message||'Falha ao salvar.');}
 }
+function configHistoryHTML(){
+ const rows=Array.isArray(V.configHistory)?V.configHistory:[];
+ const date=x=>{const d=new Date(x);return Number.isNaN(d.getTime())?String(x||'—'):d.toLocaleString('pt-BR')};
+ return '<h3>🗂️ Histórico de configurações</h3><p class="mu">Registros da organização, em ordem da data efetiva. O histórico começa quando havia auditoria suficiente.</p>'+
+ (V.configHistoryLoading?'<p class="mu">Carregando histórico…</p>':V.configHistoryError?'<p class="mu" style="color:var(--no)">'+esc(V.configHistoryError)+'</p>':!rows.length?'<p class="mu">Nenhuma versão encontrada.</p>':rows.map(x=>'<details class="c"><summary><b>'+esc(x.module)+' / '+esc(x.record_id)+'</b><span class="mu"> · rev. '+esc(x.revision)+' · '+esc(date(x.effective_at))+'</span></summary><div class="mu u-mt6">Tipo: '+esc(x.kind)+' · Origem: '+esc(x.source)+'<br>Registrado em: '+esc(date(x.recorded_at))+'<br>Responsável: '+esc(x.recorded_by||'—')+(x.deleted_at?'<br>Excluído em: '+esc(date(x.deleted_at)):'')+'</div><pre class="u-mt6" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px">'+esc(JSON.stringify(x.data,null,2))+'</pre></details>').join(''))+
+ '<div class="row u-mt8"><button class="bt g" onclick="loadConfigHistory()">Atualizar</button></div>';
+}
+async function loadConfigHistory(){
+ V.configHistoryLoading=true;V.configHistoryError=null;rMenu();
+ try{const result=await configHistoryCall('history');V.configHistory=Array.isArray(result?.history)?result.history:[];}
+ catch(e){V.configHistoryError=e.message||'Não foi possível consultar o histórico.';}
+ finally{V.configHistoryLoading=false;rMenu();}
+}
 function rMenu(){
  if(V.sh==='acc'&&V.me?.role==='master'&&!V.accLinksLoaded&&!V.accLinksLoading){V.accLinksLoading=true;refreshCloudAccessLinks().catch(e=>console.warn('Não foi possível atualizar os vínculos de login:',e)).finally(()=>{V.accLinksLoading=false;V.accLinksLoaded=true;R()})}
+ if(V.sh==='confighistory'){
+  $('mn').innerHTML='';
+  if(!V.configHistory&&!V.configHistoryLoading)loadConfigHistory();
+  $('sh').innerHTML='<div class="ov dim" onclick="V.sh=0;rMenu()"></div><div class="sheet"><div class="c">'+configHistoryHTML()+'<div class="row u-mt8"><button class="bt g" onclick="V.sh=0;rMenu()">Fechar</button></div></div></div>';
+  return;
+ }
  if(V.sh==='ntsettings'){
   $('mn').innerHTML='';
   if(!V.ntSettings&&!V.ntSettingsLoading){V.ntSettingsLoading=true;pushCall('notification-settings-get').then(x=>{V.ntSettings=x;}).catch(e=>{V.ntSettingsError=e.message||'Falha ao consultar.';}).finally(()=>{V.ntSettingsLoading=false;rMenu();});}
@@ -2162,7 +2181,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.9';
+const APP_VERSION='3.45.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2327,6 +2346,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.45.0',d:'19/11/2026',t:'Consulta ao histórico de configurações (MINOR)',n:['Administração e gerência podem consultar versões anteriores das configurações da organização.','Cada versão mostra data efetiva, revisão, origem e conteúdo registrado.'],c:['O histórico é consultado por endpoint autenticado e não libera leitura direta da tabela.']},
 {v:'3.44.9',d:'19/11/2026',t:'Base para alterações programadas de configuração (MINOR)',n:['O sistema verifica alterações de configuração com data efetiva vencida ao iniciar a sincronização.','Mudanças programadas só são aplicadas se a revisão original continuar igual.'],c:['A configuração vigente permanece intacta antes da data escolhida.']},
 {v:'3.44.8',d:'18/11/2026',t:'Ajuste de segurança e transparência do Modo A (PATCH)',n:['O painel explica que avisos globais são restritos à gestão enquanto eventos operacionais são validados no servidor.'],c:['Notificações originadas por contas operacionais continuam direcionadas aos responsáveis; não há broadcast indiscriminado.']},
 {v:'3.44.7',d:'18/11/2026',t:'Modo A de notificações ativado (MINOR)',n:['Notificações automáticas passam a ser distribuídas a todos os usuários ativos da organização.','Envios automáticos têm limite temporário no servidor para reduzir abuso.'],c:['Avisos pessoais continuam restritos ao usuário; avisos gerais seguem autorizados apenas para administrador e gerente.','Modo B permanece bloqueado até validar vínculos de equipe.']},
