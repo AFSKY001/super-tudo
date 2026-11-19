@@ -1751,9 +1751,9 @@ function dayTasks(dt){
  }
  (S.tasks||[]).forEach(x=>{
   const match=x.repeat==='daily'||(x.repeat==='weekly'&&(x.days||[]).includes(i))||(x.repeat==='monthly'&&+dt.slice(8)===+x.day)||(x.repeat==='date'&&x.date===dt);
-  if(match)L.push({t:x.t,r:x.r||[],i:'custom-'+x.id,custom:true,id:x.id,time:x.time||'',desc:x.desc||'',ckid:x.ckid||'',steps:Array.isArray(x.steps)?x.steps:[],photoMode:x.photoMode||'none',createdAt:x.createdAt||''});
+  if(match)L.push({t:x.t,r:x.r||[],i:'custom-'+x.id,custom:true,id:x.id,time:x.time||'',desc:x.desc||'',ckid:x.ckid||'',ckByPerson:x.ckByPerson||{},steps:Array.isArray(x.steps)?x.steps:[],photoMode:x.photoMode||'none',routineKind:x.routineKind||'',turns:x.turns||[],createdAt:x.createdAt||''});
  });
- (S.pt||[]).forEach(x=>{if((x.days||[]).includes(i)&&(!x.createdAt||dt>=x.createdAt)){const p=person(x.pid);if(p)L.push({t:x.t,r:[p.n],i:'pt-'+x.id,custom:true,ptid:x.id,time:x.time||'',desc:x.desc||'',ckid:x.ckid||'',steps:Array.isArray(x.steps)?x.steps:[],photoMode:x.photoMode||'none',createdAt:x.createdAt||''})}});
+ (S.pt||[]).forEach(x=>{if((x.days||[]).includes(i)&&(!x.createdAt||dt>=x.createdAt)){const p=person(x.pid);if(p)L.push({t:x.t,r:[p.n],i:'pt-'+x.id,custom:true,ptid:x.id,time:x.time||'',desc:x.desc||'',ckid:x.ckid||'',steps:Array.isArray(x.steps)?x.steps:[],photoMode:x.photoMode||'none',ckt:x.ckt||'',routineKind:x.routineKind||'',createdAt:x.createdAt||''})}});
  return L;
 }
 function moveMonth(s,n){const d=new Date(s+'T12:00');d.setDate(1);d.setMonth(d.getMonth()+n);return iso(d)}
@@ -2977,11 +2977,7 @@ async function doLogin(){
   }
 }
 /* ---- funcionário ---- */
-const myT=(p,dt)=>{
- const saved=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id];
- if(saved&&Array.isArray(saved.tasks)){const out=saved.tasks.slice(),seen=new Set(out.map(x=>String(x.i)));dayTasks(dt).filter(x=>x.createdAt&&dt>=x.createdAt&&!seen.has(String(x.i))&&(x.r||[]).some(r=>(p.g||[]).some(g=>nrm(r)===nrm(g))||nrm(r)===nrm(p.n))).forEach(x=>out.push(x));return out}
- return dayTasks(dt).filter(x=>(x.r||[]).some(r=>(p.g||[]).includes(r)||nrm(r)===nrm(p.n)));
-};
+const myT=(p,dt)=>{const applies=x=>(x.r||[]).some(r=>(p.g||[]).some(g=>nrm(r)===nrm(g))||nrm(r)===nrm(p.n)),current=dayTasks(dt),byId=new Map(current.map(x=>[String(x.i),x])),decorate=L=>L.map(x=>{const latest=byId.get(String(x.i)),map=x.ckByPerson||latest&&latest.ckByPerson,id=map&&map[p.id];return id?{...x,ckid:id,steps:[],ckt:x.ckt||latest&&latest.ckt||''}:x}),saved=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id];if(saved&&Array.isArray(saved.tasks)){const out=saved.tasks.slice(),seen=new Set(out.map(x=>String(x.i)));current.filter(x=>x.createdAt&&dt>=x.createdAt&&!seen.has(String(x.i))&&applies(x)).forEach(x=>out.push(x));return decorate(out)}return decorate(current.filter(applies))};
 function captureTaskHistory(dt,people){
  if(!dt||dt>today()||!Array.isArray(people)||!people.length)return false;
  S.taskHistory=S.taskHistory&&typeof S.taskHistory==='object'?S.taskHistory:{};
@@ -2991,7 +2987,7 @@ function captureTaskHistory(dt,people){
  people.forEach(p=>{
   if(!p||!p.id||day[p.id])return;
   const tasks=all.filter(x=>(x.r||[]).some(r=>(p.g||[]).includes(r)||nrm(r)===nrm(p.n))).map(x=>({
-   i:String(x.i),t:String(x.t||''),r:Array.isArray(x.r)?x.r.map(String):[],time:String(x.time||''),desc:String(x.desc||''),ckid:String(x.ckid||''),steps:Array.isArray(x.steps)?x.steps.map(String):[],photoMode:String(x.photoMode||'none'),
+   i:String(x.i),t:String(x.t||''),r:Array.isArray(x.r)?x.r.map(String):[],time:String(x.time||''),desc:String(x.desc||''),ckid:String(x.ckid||''),ckByPerson:x.ckByPerson&&typeof x.ckByPerson==='object'?{...x.ckByPerson}:{},steps:Array.isArray(x.steps)?x.steps.map(String):[],photoMode:String(x.photoMode||'none'),routineKind:String(x.routineKind||''),
    base:!!x.base,custom:!!x.custom,ptid:x.ptid?String(x.ptid):''
   }));
   day[p.id]={version:1,tasks,capturedOn:today()};
