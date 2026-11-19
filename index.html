@@ -1824,6 +1824,19 @@ function ensureAssignedChecklistsInRotinas(){
    if(id){x.ckid=id;x.legacyCkId=id;x.steps=[];changed=true}
   }
  });
+ (S.tasks||[]).forEach(t=>{
+  if(!Array.isArray(t.r)||!t.r.length)return;
+  if(!t.ckByPerson){t.ckByPerson={};changed=true}
+  const people=(S.team||[]).filter(p=>t.r.some(r=>(p.g||[]).some(g=>nrm(g)===nrm(r))||nrm(p.n)===nrm(r)));
+  people.forEach(p=>{
+   const current=t.ckByPerson[p.id];if(current&&CK[current]&&CK[current].p===p.id)return;
+   let id='';
+   if(current&&CK[current])id=cloneChecklistModel(current,p.id);
+   else if(t.ckid&&CK[t.ckid])id=cloneChecklistModel(t.ckid,p.id);
+   else if(Array.isArray(t.steps)&&t.steps.some(z=>z&&z[0]!=='#'))id=createChecklistFromSteps(t.t,p.id,t.steps,t.photoMode,t.routineKind,t.turns,t.evaluate);
+   if(id){t.ckByPerson[p.id]=id;changed=true}
+  });
+ });
  if(changed)save();
 }
 function applyModel(k,pid,days,time){const c=CK[k],id=cloneChecklistModel(k,pid);if(!id)return;S.pt=S.pt||[];S.pt.push({id:'pt'+uid(),pid,t:c.n,days:Array.isArray(days)&&days.length?[...days]:[0,1,2,3,4,5,6],time:time||'',mid:'ck:'+k,ckid:id,legacyCkId:id,photoMode:c.ph?'required':'none',createdAt:today(),source:'checklist'});notify([pid],'✅ Nova atividade adicionada à sua Rotina: '+c.n,{t:'ck',id},'ckadd|'+id,'tar');save();R()}
@@ -1960,7 +1973,7 @@ function rCroMain(){
  const active=admin&&selected!=='all'?people.filter(p=>p.id===selected):people;
  const tasksFor=(p,d)=>myT(p,d),doneFor=(p,d)=>tasksFor(p,d).filter(x=>pdn(d,x,p)).length;
  const stats=d=>{let total=0,done=0;active.forEach(p=>{const t=tasksFor(p,d);total+=t.length;done+=t.filter(x=>pdn(d,x,p)).length});return{total,done}};
- let h='<div class="row sp"><div><h3 style="margin:0">'+(admin?'Acompanhamento dos cronogramas':'Meu cronograma')+'</h3><div class="mu">'+(admin?'Acompanhe a execução por funcionário e por dia.':'Marque as atividades que você concluiu. Você não pode alterar as atividades do modelo.')+'</div></div></div>';
+ let h='<div class="row sp"><div><h3 style="margin:0">'+(admin?'Acompanhamento das Rotinas':'Minhas Rotinas')+'</h3><div class="mu">'+(admin?'Acompanhe a execução por funcionário, atividade e procedimento.':'Veja suas atividades e preencha os procedimentos previstos para cada dia.')+'</div></div></div>';
  if(admin){
   h+='<div class="c"><label>Funcionário<select id="cro_person_filter" onchange="V.croPerson=this.value;R()"><option value="all" '+(selected==='all'?'selected':'')+'>Todos os funcionários</option>'+people.map(p=>'<option value="'+esc(p.id)+'" '+(selected===p.id?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label><label>Dia selecionado<input type="date" value="'+esc(dt)+'" onchange="V.date=this.value;R()"></label></div>';
  }else{
@@ -1981,7 +1994,7 @@ function rCroMain(){
   h+=groups.length?groups.map(({p,t})=>{const n=t.filter(x=>pdn(dt,x,p)).length;return '<div class="c"><div class="row sp"><b>'+esc(p.n)+'</b><span class="mu">'+n+'/'+t.length+' concluídas</span></div>'+bar(t.length?n/t.length*100:0)+t.map(x=>{const d=pdn(dt,x,p);return '<div class="it"><span>'+(d?'✓':'○')+'</span><div style="'+(d?'opacity:.6;text-decoration:line-through':'')+'"><b>'+esc(x.t)+'</b><div class="mu">'+(x.r||[]).map(esc).join(' · ')+(x.time?' · '+esc(x.time):'')+'</div></div><span class="b '+(d?'ok':'wa')+'">'+(d?'Feito':'Pendente')+'</span><button class="bt g" onclick="openRotTask(\''+dt+'\',\''+String(x.i)+'\',\''+p.id+'\')">Ver registro</button></div>'}).join('')+'</div>'}).join(''):'<div class="c mu">Nenhuma atividade prevista para este dia e filtro.</div>';
  }else{
   const t=tasksFor(self,dt);
-  h+=t.length?t.map(x=>{const d=pdn(dt,x,self),k=dt+'|'+x.i;return '<div class="c"><div class="it"><button type="button" class="ch '+(d?'on':'')+'" onclick="tgp(\''+k+'\',\''+self.id+'\')">'+(d?'✓':'○')+'</button><div style="flex:1;'+(d?'opacity:.58;text-decoration:line-through':'')+'"><b>'+esc(x.t)+'</b><div class="mu">'+(x.time?esc(x.time)+' · ':'')+(x.r||[]).map(esc).join(' · ')+(x.ptid?' · Atividade extra':'')+'</div></div><span class="b '+(d?'ok':'wa')+'">'+(d?'Concluída':'Pendente')+'</span></div></div>'}).join(''):'<div class="c mu">Você não tem atividades previstas para este dia.</div>';
+  h+=t.length?t.map(x=>{const d=pdn(dt,x,self),k=dt+'|'+x.i;return '<div class="c"><div class="it"><button type="button" class="ch '+(d?'on':'')+'" onclick="openRotTask(\''+dt+'\',\''+x.i+'\',\''+self.id+'\')">'+(d?'✓':'○')+'</button><div style="flex:1;'+(d?'opacity:.58;text-decoration:line-through':'')+'"><b>'+esc(x.t)+'</b><div class="mu">'+(x.time?esc(x.time)+' · ':'')+(x.r||[]).map(esc).join(' · ')+(x.ptid?' · Atividade extra':'')+'</div></div><span class="b '+(d?'ok':'wa')+'">'+(d?'Concluída':'Pendente')+'</span></div></div>'}).join(''):'<div class="c mu">Você não tem atividades previstas para este dia.</div>';
   h+='<div class="c"><h3>Adicionar atividade ao meu cronograma</h3><p class="mu">A atividade será acrescentada à sua rotina e também ficará visível para o administrador acompanhar. Isso não altera o modelo que foi atribuído a você.</p><label>Nome da atividade<input id="ptn_'+self.id+'" placeholder="Descreva o que você precisa fazer"></label><div class="week-picks u-g2 u-mt6">'+tmDaysHTML('ptnd_'+self.id,[dow(dt)])+'</div><div class="row u-mt6"><input id="pth_'+self.id+'" type="time" class="u-fx1"><button class="bt" onclick="ptAdd(\''+self.id+'\')">Adicionar atividade</button></div></div>';
  }
  return h;
@@ -1999,7 +2012,7 @@ S.tmod=S.tmod||[];const rec={id:e.id==='new'?'tm'+uid():e.id,n:e.n,items:it.map(
 function tmDel(id){if(!ask('tm'+id))return;S.tmod=(S.tmod||[]).filter(x=>x.id!==id);V.tme=null;save();R()}
 function tmEditor(){const e=V.tme;return `<button class="ch" onclick="V.tme=null;R()">‹ Modelos</button><div class="c"><label>Nome do modelo<input id="tm_n" value="${esc(e.n)}"></label></div>`+e.items.map((it,j)=>`<div class="c"><label>Atividade<input id="tmi_t_${j}" value="${esc(it.t)}" placeholder="Atividade"></label><label>Instruções<textarea id="tmi_desc_${j}" rows="2">${esc(it.desc||'')}</textarea></label><label>Etapas (uma por linha)<textarea id="tmi_steps_${j}" rows="3">${esc((it.steps||[]).join(String.fromCharCode(10)))}</textarea></label><label>Checklist completo vinculado (opcional)<select id="tmi_ckid_${j}">${rotChecklistOptions(it.ckid||'')}</select></label><label>Foto na conclusão<select id="tmi_photo_${j}"><option value="none" ${(!it.photoMode||it.photoMode==='none')?'selected':''}>Não solicitar</option><option value="optional" ${it.photoMode==='optional'?'selected':''}>Opcional</option><option value="required" ${it.photoMode==='required'?'selected':''}>Obrigatória</option></select></label><div class="week-picks u-g2 u-mt6">${tmDaysHTML('tmi_d_'+j,it.days||[])}</div><div class="row u-mt6"><input id="tmi_h_${j}" type="time" value="${esc(it.time||'')}" class="u-fx1"><button class="bt d" onclick="tmItemDel(${j})">✕</button></div></div>`).join('')+`<div class="row u-mt8"><button class="bt g" onclick="tmItemAdd()">+ Adicionar atividade</button></div><div class="row u-mt8"><button class="bt" onclick="tmSave()">Salvar modelo</button><button class="bt g" onclick="V.tme=null;R()">Cancelar</button></div>`}
 function rotChecklistModels(){
- const models=Object.entries(CK).filter(([k,c])=>!c.p&&k!=='rec'&&!c.rc&&!c.rm);
+ const models=Object.entries(CK).filter(([k,c])=>!c.p&&!c.rc&&!c.rm);
  let h='<div class="c"><div class="row sp"><b>Modelos de checklist que compõem as Rotinas</b><button class="bt" onclick="newCk()">+ Novo modelo</button></div><p class="mu">Cada modelo pode ser adicionado à agenda de um funcionário, com dias e horário. A execução abre o formulário completo na própria Rotina, mantendo seções, turnos, responsável, avaliado, fotos, observações, temperaturas, nota e histórico.</p></div>';
  h+=models.map(([k,c])=>'<div class="c"><div class="row sp"><b>'+(c.e||'☑️')+' '+esc(c.n)+'</b><span class="mu">'+c.l.filter(x=>x[0]!=='#').length+' itens</span></div><div class="mu">'+esc(ckKind(c))+(c.t&&c.t.length?' · Turnos: '+esc(c.t.join(', ')):'')+(c.ph?' · Foto obrigatória':'')+'</div><div class="row u-mt8"><button class="bt g" onclick="V.ce=\''+k+'\';V.rotCkEdit=true;V.rotInlineChecklistEdit=false;R()">Editar modelo</button><button class="bt d" onclick="ckDelModel(\''+k+'\')">'+(V.cf==='cm'+k?'Confirmar?':'✕')+'</button></div></div>').join('');
  return h||'<div class="c mu">Nenhum modelo cadastrado ainda.</div>';
