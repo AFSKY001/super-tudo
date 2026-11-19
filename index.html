@@ -486,6 +486,10 @@ nav button .ni{transition:transform 180ms var(--ease-emphasis)}
 nav button.on .ni{transform:scale(1.06)}
 /* Animações nunca devem bloquear uma ação nem competir com leitura */
 @media(prefers-reduced-motion:reduce){
+ .an>*,.dd,.nbx,.sheet,.dim,.balloon,details[open]>:not(summary){animation:none!important}
+ button,.c,.ch,.day,.reg-menu-tile,nav button .ni{transition-duration:0.01ms!important}
+ button:active,.c[onclick]:active,.c.tap:active,.reg-menu-tile:active{transform:none!important}
+}
 
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
