@@ -1754,6 +1754,10 @@ function pushCall(action,payload={}){
  if(!V.sbSession||!V.cloudIdentity)return Promise.resolve(null);
  return supa.functions.invoke('push-notifications',{body:{action,...payload}}).then(({data,error})=>{if(error)throw error;return data});
 }
+function configHistoryCall(action,payload={}){
+ if(!V.sbSession||!V.cloudIdentity)return Promise.resolve(null);
+ return supa.functions.invoke('config-history',{body:{action,...payload}}).then(({data,error})=>{if(error)throw error;return data});
+}
 function pushAddRemote(row){
  if(!V.me||!row)return;
  S.log.nt=S.log.nt||[];
@@ -1841,6 +1845,8 @@ async function pushStart(){
    }).subscribe();
   if(!V.pushOnlineHook){window.addEventListener('online',()=>{pushFlushLocalNotifications();pushSyncNotifications().catch(err=>console.warn(err))});V.pushOnlineHook=true}
   await pushSyncNotifications();
+  // Aplica alterações de configuração já vencidas; o servidor valida revisão e organização.
+  try{await configHistoryCall('apply-due')}catch(err){console.warn('Agendamentos de configuração aguardam sincronização:',err)}
   if('Notification' in window&&Notification.permission==='granted')await pushEnsureSubscription();
   pushFlushLocalNotifications();
   pushVersionNotice();
@@ -2156,7 +2162,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.8';
+const APP_VERSION='3.44.9';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2321,6 +2327,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.44.9',d:'19/11/2026',t:'Base para alterações programadas de configuração (MINOR)',n:['O sistema verifica alterações de configuração com data efetiva vencida ao iniciar a sincronização.','Mudanças programadas só são aplicadas se a revisão original continuar igual.'],c:['A configuração vigente permanece intacta antes da data escolhida.']},
 {v:'3.44.8',d:'18/11/2026',t:'Ajuste de segurança e transparência do Modo A (PATCH)',n:['O painel explica que avisos globais são restritos à gestão enquanto eventos operacionais são validados no servidor.'],c:['Notificações originadas por contas operacionais continuam direcionadas aos responsáveis; não há broadcast indiscriminado.']},
 {v:'3.44.7',d:'18/11/2026',t:'Modo A de notificações ativado (MINOR)',n:['Notificações automáticas passam a ser distribuídas a todos os usuários ativos da organização.','Envios automáticos têm limite temporário no servidor para reduzir abuso.'],c:['Avisos pessoais continuam restritos ao usuário; avisos gerais seguem autorizados apenas para administrador e gerente.','Modo B permanece bloqueado até validar vínculos de equipe.']},
 {v:'3.44.6',d:'18/11/2026',t:'Configuração de distribuição de notificações (PATCH)',n:['Área administrativa para consultar e registrar o Modo A.'],c:['Modo B bloqueado até validar vínculos de equipe; roteamento global ainda não ativado.']},
