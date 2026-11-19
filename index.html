@@ -1847,6 +1847,8 @@ function ensureAssignedChecklistsInRotinas(){
    if(id){t.ckByPerson[p.id]=id;changed=true}
   });
  });
+ S.rotCkByTask=S.rotCkByTask||{};
+ for(let offset=0;offset<7;offset++){const date=addD(today(),offset);dayTasks(date).filter(x=>x.base).forEach(task=>{const targets=(S.team||[]).filter(p=>(task.r||[]).some(role=>(p.g||[]).some(g=>nrm(g)===nrm(role))||nrm(p.n)===nrm(role)));targets.forEach(p=>{const key=String(p.id)+'|'+String(task.i);if(S.rotCkByTask[key]&&CK[S.rotCkByTask[key]])return;const id=createChecklistFromSteps(task.t,p.id,[task.t],'none','Rotina diária',[],false);if(id){S.rotCkByTask[key]=id;changed=true}})})}
  const turnCopies=[];
  S.pt.forEach(x=>{const c=x.ckid&&CK[x.ckid],turns=c&&Array.isArray(c.t)?c.t.filter(Boolean):[];if(!turns.length||x.turnsExpanded)return;x.ckt=x.ckt||turns[0];x.turnsExpanded=true;turns.slice(1).forEach((turn,i)=>turnCopies.push({...x,id:String(x.id)+'-turn-'+(i+1),ckt:turn,days:[...(x.days||[])]}));changed=true});
  if(turnCopies.length)S.pt.push(...turnCopies);
@@ -3027,7 +3029,7 @@ async function doLogin(){
   }
 }
 /* ---- funcionário ---- */
-const myT=(p,dt)=>{const applies=x=>(x.r||[]).some(r=>(p.g||[]).some(g=>nrm(r)===nrm(g))||nrm(r)===nrm(p.n)),current=dayTasks(dt),byId=new Map(current.map(x=>[String(x.i),x])),decorate=L=>L.map(x=>{const latest=byId.get(String(x.i)),map=x.ckByPerson||latest&&latest.ckByPerson,id=map&&map[p.id];return id?{...x,ckid:id,steps:[],ckt:x.ckt||latest&&latest.ckt||''}:x}),saved=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id];if(saved&&Array.isArray(saved.tasks)){const out=saved.tasks.slice(),seen=new Set(out.map(x=>String(x.i)));current.filter(x=>x.createdAt&&dt>=x.createdAt&&!seen.has(String(x.i))&&applies(x)).forEach(x=>out.push(x));return decorate(out)}return decorate(current.filter(applies))};
+const myT=(p,dt)=>{const applies=x=>(x.r||[]).some(r=>(p.g||[]).some(g=>nrm(r)===nrm(g))||nrm(r)===nrm(p.n)),current=dayTasks(dt),byId=new Map(current.map(x=>[String(x.i),x])),decorate=L=>L.map(x=>{const latest=byId.get(String(x.i)),map=x.ckByPerson||latest&&latest.ckByPerson,id=(map&&map[p.id])||(S.rotCkByTask||{})[String(p.id)+'|'+String(x.i)];return id?{...x,ckid:id,steps:[],ckt:x.ckt||latest&&latest.ckt||''}:x}),saved=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id];if(saved&&Array.isArray(saved.tasks)){const out=saved.tasks.slice(),seen=new Set(out.map(x=>String(x.i)));current.filter(x=>x.createdAt&&dt>=x.createdAt&&!seen.has(String(x.i))&&applies(x)).forEach(x=>out.push(x));return decorate(out)}return decorate(current.filter(applies))};
 function captureTaskHistory(dt,people){
  if(!dt||dt>today()||!Array.isArray(people)||!people.length)return false;
  S.taskHistory=S.taskHistory&&typeof S.taskHistory==='object'?S.taskHistory:{};
