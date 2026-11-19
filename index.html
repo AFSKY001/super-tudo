@@ -3446,7 +3446,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.61.0';
+const APP_VERSION='3.62.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3658,6 +3658,27 @@ function perfPersonEvolutionHTML(people,period){
 
 function perfGetPeople(scope,entity){if(scope==='employee')return entity?[entity]:[];if(scope==='leader')return perfLeaderPeople(entity);if(scope==='sector')return (S.team||[]).filter(p=>perfNormSector(p.s)===perfNormSector(entity));return (S.team||[]).filter(p=>!p.adm)}
 
+
+function perfManagementStoreTrendHTML(people,period){
+ const now=perfActivityAggregate(people,period.start,period.end),prev=perfActivityAggregate(people,period.prevStart,period.prevEnd);
+ const cur=now.data.map(perfIndex).filter(x=>x!==null),old=prev.data.map(perfIndex).filter(x=>x!==null);
+ const a=cur.length?cur.reduce((x,y)=>x+y,0)/cur.length:null,b=old.length?old.reduce((x,y)=>x+y,0)/old.length:null,delta=a!==null&&b!==null?a-b:null;
+ return '<div class="c"><b>Visão geral da loja</b><div class="g2"><div><div class="mu">Índice médio /100</div><div class="big">'+(a===null?'—':a.toFixed(1))+'</div><div class="mu">Anterior: '+(b===null?'—':b.toFixed(1))+' · '+(delta===null?'Sem base anterior':(delta>0?'+':'')+delta.toFixed(1)+' p.p.')+'</div></div><div><div class="mu">Pessoas com dados</div><div class="big">'+cur.length+'/'+people.length+'</div><div class="mu">Índice formado por cronogramas, checklists e avaliações disponíveis</div></div><div><div class="mu">Cronogramas</div><div class="big">'+(now.taskPct===null?'—':now.taskPct.toFixed(1)+'%')+'</div><div class="mu">'+now.tasks.done+'/'+now.tasks.planned+' atividades</div></div><div><div class="mu">Checklists</div><div class="big">'+(now.checkPct===null?'—':now.checkPct.toFixed(1)+'%')+'</div><div class="mu">'+now.checks.complete+'/'+now.checks.total+' completos</div></div><div><div class="mu">Avaliações</div><div class="big">'+(now.evalAvg===null?'—':now.evalAvg.toFixed(1)+'/10')+'</div><div class="mu">'+now.evalN+' avaliação(ões)</div></div></div></div>';
+}
+function perfManagementSectorAlertsHTML(period){
+ const names=[...new Set([...(S.sectors||[]),...(S.team||[]).map(p=>p.s).filter(Boolean)])].filter(Boolean);
+ const rows=names.map(name=>{
+  const people=(S.team||[]).filter(p=>!p.adm&&perfNormSector(p.s)===perfNormSector(name));
+  if(!people.length)return null;
+  const now=perfActivityAggregate(people,period.start,period.end),prev=perfActivityAggregate(people,period.prevStart,period.prevEnd);
+  const a=now.data.map(perfIndex).filter(x=>x!==null),b=prev.data.map(perfIndex).filter(x=>x!==null);
+  const current=a.length?a.reduce((x,y)=>x+y,0)/a.length:null,previous=b.length?b.reduce((x,y)=>x+y,0)/b.length:null,delta=current!==null&&previous!==null?current-previous:null;
+  if(current===null||!(current<60||(delta!==null&&delta<=-8)))return null;
+  return {name,current,previous,delta,people:people.length,withData:a.length};
+ }).filter(Boolean).sort((a,b)=>(a.current-b.current)||(a.delta===null?0:a.delta)-(b.delta===null?0:b.delta)).slice(0,4);
+ return '<div class="c"><b>Setores que precisam de atenção</b>'+(rows.length?rows.map(x=>'<div class="it"><div style="flex:1"><b>'+esc(x.name)+'</b><div class="mu">Índice '+x.current.toFixed(1)+'/100 · '+x.withData+'/'+x.people+' pessoas com dados</div><div class="mu">'+(x.delta===null?'Sem comparação anterior':(x.delta>0?'+':'')+x.delta.toFixed(1)+' p.p. em relação ao período anterior')+'</div><div class="mu">Revisar rotina, distribuição das tarefas e obstáculos do setor com o encarregado.</div></div><span class="b '+(x.current<50?'no':'wa')+'">Atenção</span></div>').join(''):'<div class="mu">Nenhum setor atingiu os critérios de atenção ou ainda não há dados suficientes.</div>')+'</div>';
+}
+
 function perfManagementActionHTML(people,period,current){
  const employeeRows=people.map(p=>{
   const now=perfActivityForPerson(p,period.start,period.end),prev=perfActivityForPerson(p,period.prevStart,period.prevEnd),ix=perfIndex(now),px=perfIndex(prev);
@@ -3670,7 +3691,7 @@ function perfManagementActionHTML(people,period,current){
  }).filter(Boolean).sort((a,b)=>(a.critical?0:1)-(b.critical?0:1)||(a.delta===null?0:a.delta)-(b.delta===null?0:b.delta)||a.ix-b.ix).slice(0,6);
  const bad=current.filter(x=>x.dir!=='neu'&&perfCompare(x.cur,x.prev,x.dir).status==='bad').map(x=>({...x,def:perfMetricDef(x.k),cmp:perfCompare(x.cur,x.prev,x.dir)})).sort((a,b)=>Math.abs(b.cmp.pct||b.cmp.delta||0)-Math.abs(a.cmp.pct||a.cmp.delta||0)).slice(0,4);
  const actions={venc:'Conferir validade, retirar itens de risco e revisar a rotina de verificação.',avar:'Identificar origem das avarias e reforçar manuseio, armazenamento e conferência.',perd:'Revisar causas das perdas e acompanhar os registros do setor.',desp:'Conferir produção, sobras e previsão de demanda da padaria.',rup:'Priorizar os itens em ruptura e verificar reposição e abastecimento.',etq:'Organizar a correção das etiquetas pendentes e conferir a exposição.',ent:'Verificar entregas em aberto, responsáveis e motivos do atraso.',semv:'Revisar os produtos sem giro e definir encaminhamento com a gerência.'};
- let html='<h3>Prioridades para a gerência</h3><p class="mu">Alertas baseados nos dados registrados no período e na comparação disponível. São pontos para investigar, não conclusões sobre a causa do resultado.</p>';
+ let html='<h3>Prioridades para a gerência</h3>';html+=perfManagementStoreTrendHTML(people,period)+perfManagementSectorAlertsHTML(period);html+='<p class="mu">Alertas baseados nos dados registrados no período e na comparação disponível. São pontos para investigar, não conclusões sobre a causa do resultado.</p>';
  html+='<div class="c"><b>Funcionários que merecem acompanhamento</b>';
  html+=employeeRows.length?employeeRows.map(x=>'<div class="it"><div style="flex:1"><b>'+esc(x.p.n)+'</b><div class="mu">'+esc(x.p.s||'Sem setor')+' · Índice '+x.ix.toFixed(1)+'/100'+(x.delta===null?'':' · '+(x.delta>0?'+':'')+x.delta.toFixed(1)+' p.p. vs. período anterior')+'</div><div class="mu">'+(x.critical?'Revisar os pontos básicos e combinar acompanhamento próximo.':x.fall?'Investigar a queda e alinhar um plano de recuperação.':'Acompanhar evolução e remover obstáculos.')+'</div></div><span class="b '+(x.critical?'no':'wa')+'">'+(x.critical?'Prioridade alta':'Acompanhar')+'</span></div>').join(''):'<div class="mu">Nenhum alerta individual pelos critérios atuais, ou ainda não há dados suficientes em pelo menos duas dimensões.</div>';
  html+='</div><div class="c"><b>Indicadores que pioraram</b>';
@@ -3709,6 +3730,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.62.0',d:'19/11/2026',t:'Visão geral e alertas de atenção por setor (MINOR)',n:['O painel gerencial passa a resumir a evolução geral da loja com índice médio, cobertura de dados, cronogramas, checklists e avaliações.','Destaca setores com índice abaixo de 60 ou queda de pelo menos 8 pontos percentuais em relação ao período anterior.','Exibe quantas pessoas do setor possuem dados para contextualizar a leitura.'],c:['Os alertas indicam necessidade de investigação e não determinam a causa do resultado.','O índice é calculado apenas com dimensões disponíveis; ausência de dados não vira zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.61.0',d:'19/11/2026',t:'Painel gerencial de prioridades e alertas (MINOR)',n:['A visão da loja inteira passa a destacar funcionários que merecem acompanhamento, considerando índice abaixo de 60 ou queda de pelo menos 8 pontos percentuais.','Mostra indicadores operacionais que pioraram e sugere ações iniciais de investigação por tipo de indicador.','Exige dados em pelo menos duas dimensões para gerar alerta individual e mantém indicadores operacionais separados do índice individual.'],c:['Os alertas são sinais para investigação e não determinam a causa nem substituem a avaliação da liderança.','A ausência de dados não é tratada como resultado zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.60.0',d:'19/11/2026',t:'Comparativo de resultados por setor (MINOR)',n:['O painel da loja passa a comparar cronogramas, checklists e avaliações por setor no período selecionado.','Mostra quantidade de pessoas, resultados atuais e variação em relação ao período anterior.','Inclui um índice síntese médio dos funcionários com dados para apoiar a leitura gerencial.'],c:['O índice é uma média simples e não elimina diferenças de rotina, volume ou atribuições entre setores.','Setores sem pessoas vinculadas não são exibidos.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.59.0',d:'19/11/2026',t:'Evolução individual mês a mês no desempenho (MINOR)',n:['O painel de desempenho passa a exibir a evolução mensal de cronogramas, checklists e avaliações por funcionário.','No relatório mensal, compara os últimos seis meses até o mês selecionado; no anual, mostra os meses do ano selecionado.','Apresenta um índice síntese de 0 a 100 e a diferença entre o primeiro e o último mês com dados.'],c:['O índice é uma média simples das dimensões disponíveis e não substitui avaliação qualitativa da liderança.','Meses sem dados aparecem sem nota, sem serem tratados como zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
