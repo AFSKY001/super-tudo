@@ -1405,6 +1405,28 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
   .login-logo{width:128px!important;max-width:128px!important}
 }
 
+
+/* Correção definitiva: logo compacto acima dos campos de acesso */
+.lgc .lgt img.login-logo{
+  display:block!important;
+  width:72px!important;
+  min-width:72px!important;
+  max-width:72px!important;
+  height:72px!important;
+  min-height:72px!important;
+  max-height:72px!important;
+  aspect-ratio:1/1!important;
+  object-fit:contain!important;
+  margin:0 auto 6px!important;
+  border-radius:12px!important;
+  box-shadow:none!important;
+}
+@media(min-width:700px){
+  .lgc .lgt img.login-logo{
+    width:80px!important;min-width:80px!important;max-width:80px!important;
+    height:80px!important;min-height:80px!important;max-height:80px!important;
+  }
+}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
@@ -3389,7 +3411,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.56.0';
+const APP_VERSION='3.56.1';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3554,6 +3576,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.56.1',d:'19/11/2026',t:'Redução adicional do logo na tela de login (PATCH)',n:['A imagem acima dos campos de usuário e senha fica limitada a 72 px no celular e 80 px em telas maiores.'],c:['Ajuste restrito à apresentação da tela de login; não altera autenticação, cadastros ou dados.']},
 {v:'3.56.0',d:'19/11/2026',t:'Distribuição protegida e controle seguro da sincronização (MINOR)',n:['O pacote de distribuição passa a compactar e ofuscar o JavaScript próprio do Super Tudo.','A distribuição inclui somente os arquivos necessários para executar o aplicativo, sem fontes de banco, funções ou ferramentas de compilação.','O processo verifica a ausência de source maps e de chaves secretas de servidor.'],c:['A ofuscação dificulta a engenharia reversa, mas não torna invisível o código que precisa executar no navegador.','O acesso direto às tabelas internas de sincronização foi removido; a sincronização continua pelos endpoints autorizados do servidor.']},
 
 {v:'3.48.0',d:'18/11/2026',t:'Exportação de recuperação de temperaturas e equipamentos (PATCH)',n:['Permite exportar uma cópia local dos equipamentos cadastrados e dos registros de temperatura em JSON.'],c:['A exportação não altera nem exclui dados e não envia o arquivo automaticamente.']},
