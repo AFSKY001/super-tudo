@@ -1,4 +1,4 @@
-name: Build protected distribution
+name: Prepare deployment distribution
 
 on:
   pull_request:
@@ -28,8 +28,8 @@ jobs:
         run: npm ci --include=dev --ignore-scripts --no-audit --no-fund
       - name: Verify dependency lockfile
         run: test -s package-lock.json
-      - name: Build protected distribution
-        run: npm run build:protected
+      - name: Prepare existing protected bundle (no re-obfuscation)
+        run: npm run build:deploy
       - name: Verify protected distribution
         run: |
           test -s dist/index.html
