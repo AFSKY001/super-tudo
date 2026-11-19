@@ -3375,7 +3375,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.55.0';
+const APP_VERSION='3.56.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3540,7 +3540,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
-{v:'3.55.0',d:'19/11/2026',t:'Reformulação visual do aplicativo (MINOR)',n:['Nova identidade visual Super Tudo com hierarquia tipográfica, cores consistentes e superfícies mais limpas.','Cabeçalho, navegação, páginas, indicadores, formulários, tabelas e janelas receberam um padrão visual unificado.','Melhorias de adaptação para celular, tablet e computador, mantendo a navegação e as funções existentes.'],c:['Atualização de apresentação; não altera cadastros, lançamentos, permissões ou dados do Supabase.']},
+{v:'3.56.0',d:'19/11/2026',t:'Distribuição protegida e controle seguro da sincronização (MINOR)',n:['O pacote de distribuição passa a compactar e ofuscar o JavaScript próprio do Super Tudo.','A distribuição inclui somente os arquivos necessários para executar o aplicativo, sem fontes de banco, funções ou ferramentas de compilação.','O processo verifica a ausência de source maps e de chaves secretas de servidor.'],c:['A ofuscação dificulta a engenharia reversa, mas não torna invisível o código que precisa executar no navegador.','O acesso direto às tabelas internas de sincronização foi removido; a sincronização continua pelos endpoints autorizados do servidor.']},
 
 {v:'3.48.0',d:'18/11/2026',t:'Exportação de recuperação de temperaturas e equipamentos (PATCH)',n:['Permite exportar uma cópia local dos equipamentos cadastrados e dos registros de temperatura em JSON.'],c:['A exportação não altera nem exclui dados e não envia o arquivo automaticamente.']},
 {v:'3.47.0',d:'18/11/2026',t:'Animações suaves e mudanças programadas (MINOR)',n:['Recupera transições discretas e acessíveis em menus, painéis e conteúdos.','Administração e gerência podem programar alterações de configuração para uma data futura e cancelar agendamentos pendentes.','Ao recuperar a conexão, o sistema volta a verificar mudanças programadas vencidas.'],c:['Mudanças programadas continuam protegidas por validação de revisão no servidor.']},
