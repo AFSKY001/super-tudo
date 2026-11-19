@@ -1986,7 +1986,7 @@ async function loadConfigHistory(){
  catch(e){V.configHistoryError=e.message||'Não foi possível consultar o histórico.';}
  finally{V.configHistoryLoading=false;rMenu();}
 }
-/* ---- Sistema global de janelas com animação a partir da origem ---- */
+/* ---- Animação nativa de janelas ancoradas na origem ---- */
 let originTrigger=null,originRect=null,pendingOriginTrigger=null,pendingOriginRect=null,pendingOriginAt=0;
 const originStack=[];
 function rememberOrigin(el){
@@ -2025,25 +2025,27 @@ function transferOriginWindow(oldPanel,newPanel){
 function clearOriginAnimations(el){
  if(!el)return;
  el.getAnimations?.().forEach(a=>{try{a.cancel()}catch(_){}});
- el.style.removeProperty('transform');
- el.style.removeProperty('border-radius');
- el.style.removeProperty('opacity');
+ ['transform','transform-origin','border-radius','opacity','will-change'].forEach(k=>el.style.removeProperty(k));
+}
+function originPoint(rect,panelRect){
+ return {x:rect.left+rect.width/2-panelRect.left,y:rect.top+rect.height/2-panelRect.top};
 }
 function openFromOrigin(el,contentEl,overlayEl,triggerEl){
  if(!el)return false;
  const fresh=pendingOriginRect&&Date.now()-pendingOriginAt<5000;
- const r=fresh?pendingOriginRect:null;
- if(!r)return false;
+ const rect=fresh?{...pendingOriginRect}:null;
+ if(!rect)return false;
  const trigger=triggerEl||pendingOriginTrigger||originTrigger;
  pendingOriginRect=null;pendingOriginTrigger=null;pendingOriginAt=0;
- const stackEntry={rect:{...r},trigger:trigger||null};
+ const entry={rect,trigger:trigger||null};
  const p=el.getBoundingClientRect();
  if(!p.width||!p.height)return false;
- originStack.push(stackEntry);el.__originStackEntry=stackEntry;
- originRect={...r};originTrigger=trigger||null;
+ originStack.push(entry);el.__originStackEntry=entry;
+ originRect={...rect};originTrigger=trigger||null;
  el.__originFinalRect={left:p.left,top:p.top,width:p.width,height:p.height};
  el.__originStacked=true;el.__originCloseHandled=false;
- const dx=r.left-p.left,dy=r.top-p.top,sx=Math.max(.01,Math.min(1,r.width/p.width)),sy=Math.max(.01,Math.min(1,r.height/p.height));
+ const point=originPoint(rect,p);
+ const sx=Math.max(.025,Math.min(1,rect.width/p.width)),sy=Math.max(.025,Math.min(1,rect.height/p.height));
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const overlay=overlayEl||originOverlay(el);
  el.classList.add('origin-animated');
@@ -2052,15 +2054,21 @@ function openFromOrigin(el,contentEl,overlayEl,triggerEl){
  const inner=contentEl||originContent(el);
  if(inner&&inner!==el)clearOriginAnimations(inner);
  if(!reduce){
+  el.style.transformOrigin=point.x+'px '+point.y+'px';
+  el.style.willChange='transform,opacity,border-radius';
+  const finalRadius=getComputedStyle(el).borderRadius;
+  const startRadius=trigger&&trigger.isConnected?getComputedStyle(trigger).borderRadius:'50%';
+  const anim=el.animate([
+   {transform:'scale('+sx+','+sy+')',opacity:.35,borderRadius:startRadius},
+   {transform:'scale(1,1)',opacity:1,borderRadius:finalRadius}
+  ],{duration:240,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'});
+  anim.onfinish=()=>{anim.cancel();['transform','transform-origin','border-radius','opacity','will-change'].forEach(k=>el.style.removeProperty(k))};
   if(overlay){
-   const oa=overlay.animate([{opacity:0},{opacity:.4}],{duration:220,easing:'ease-out',fill:'none'});
-   oa.onfinish=()=>{overlay.style.opacity='.4';oa.cancel()};
+   const oa=overlay.animate([{opacity:0},{opacity:1}],{duration:180,easing:'ease-out',fill:'both'});
+   oa.onfinish=()=>{oa.cancel();overlay.style.removeProperty('opacity')};
   }
-  const cs=getComputedStyle(el),os=getComputedStyle(trigger||el);
-  const anim=el.animate([{transformOrigin:'top left',transform:'translate('+dx+'px,'+dy+'px) scale('+sx+','+sy+')',borderRadius:os.borderRadius},{transformOrigin:'top left',transform:'translate(0,0) scale(1)',borderRadius:cs.borderRadius}],{duration:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-base'))||220,easing:getComputedStyle(document.documentElement).getPropertyValue('--ease-out').trim()||'cubic-bezier(.2,.8,.2,1)',fill:'none'});
-  anim.onfinish=()=>{anim.cancel();el.style.removeProperty('transform');el.style.removeProperty('border-radius')};
   if(inner&&inner!==el){
-   const ia=inner.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,delay:88,easing:'ease-out',fill:'none'});
+   const ia=inner.animate([{opacity:0,transform:'translateY(5px)'},{opacity:1,transform:'translateY(0)'}],{duration:190,delay:55,easing:'ease-out',fill:'both'});
    ia.onfinish=()=>{ia.cancel();inner.style.removeProperty('opacity');inner.style.removeProperty('transform')};
   }
  }
@@ -2076,22 +2084,30 @@ function closeToOrigin(panelArg,overlayArg){
  if(!rect)return;
  const overlay=overlayArg||originOverlay(panel),overlayClone=overlay?.cloneNode(true),clone=panel.cloneNode(true);
  const p=panel.__originFinalRect||panel.getBoundingClientRect();
+ const point=originPoint(rect,p);
+ const sx=Math.max(.025,Math.min(1,rect.width/Math.max(1,p.width))),sy=Math.max(.025,Math.min(1,rect.height/Math.max(1,p.height)));
  clone.removeAttribute('id');
  clone.classList.add('origin-animated');
- clone.style.cssText+=';position:fixed!important;left:'+p.left+'px!important;top:'+p.top+'px!important;width:'+p.width+'px!important;height:'+p.height+'px!important;margin:0!important;z-index:10001!important;overflow:hidden!important;pointer-events:none!important;transform-origin:top left!important;';
+ clone.style.cssText+=';position:fixed!important;left:'+p.left+'px!important;top:'+p.top+'px!important;width:'+p.width+'px!important;height:'+p.height+'px!important;margin:0!important;z-index:10001!important;overflow:hidden!important;pointer-events:none!important;transform-origin:'+point.x+'px '+point.y+'px!important;will-change:transform,opacity!important;';
  document.body.appendChild(clone);
  if(overlayClone){
   overlayClone.removeAttribute('id');overlayClone.classList.add('origin-overlay-animated');
-  overlayClone.style.cssText+=';position:fixed!important;inset:0!important;z-index:10000!important;pointer-events:none!important;';document.body.appendChild(overlayClone);
+  overlayClone.style.cssText+=';position:fixed!important;inset:0!important;z-index:10000!important;pointer-events:none!important;';
+  document.body.appendChild(overlayClone);
  }
- const dx=rect.left-p.left,dy=rect.top-p.top,sx=Math.max(.01,Math.min(1,rect.width/Math.max(1,p.width))),sy=Math.max(.01,Math.min(1,rect.height/Math.max(1,p.height)));
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  if(!reduce){
-  clone.animate([{transform:'translate(0,0) scale(1)',borderRadius:getComputedStyle(panel).borderRadius},{transform:'translate('+dx+'px,'+dy+'px) scale('+sx+','+sy+')',borderRadius:source?getComputedStyle(source).borderRadius:getComputedStyle(panel).borderRadius}],{duration:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-fast'))||150,easing:getComputedStyle(document.documentElement).getPropertyValue('--ease-in').trim()||'cubic-bezier(.4,0,1,1)',fill:'forwards'});
-  const inner=originContent(clone);if(inner&&inner!==clone)inner.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(6px)'}],{duration:90,easing:'ease-in',fill:'forwards'});
-  if(overlayClone)overlayClone.animate([{opacity:.4},{opacity:0}],{duration:150,easing:'ease-in',fill:'forwards'});
- }
- setTimeout(()=>{clone.remove();overlayClone?.remove()},reduce?0:165);
+  const fromRadius=getComputedStyle(panel).borderRadius;
+  const toRadius=source&&source.isConnected?getComputedStyle(source).borderRadius:'50%';
+  const anim=clone.animate([
+   {transform:'scale(1,1)',opacity:1,borderRadius:fromRadius},
+   {transform:'scale('+sx+','+sy+')',opacity:.35,borderRadius:toRadius}
+  ],{duration:190,easing:'cubic-bezier(.4,0,1,1)',fill:'both'});
+  if(overlayClone)overlayClone.animate([{opacity:1},{opacity:0}],{duration:170,easing:'ease-in',fill:'both'});
+  const inner=originContent(clone);
+  if(inner&&inner!==clone)inner.animate([{opacity:1,transform:'translateY(0)'},{opacity:0,transform:'translateY(5px)'}],{duration:110,easing:'ease-in',fill:'both'});
+  anim.onfinish=()=>{clone.remove();overlayClone?.remove()};
+ }else{clone.remove();overlayClone?.remove()}
  panel.__originStacked=false;panel.__originStackEntry=null;
  const previous=originStack[originStack.length-1];
  originRect=previous?.rect||null;originTrigger=previous?.trigger||null;
@@ -2109,14 +2125,12 @@ const originObserver=new MutationObserver(records=>{
  added.forEach(panel=>{
   const replaced=removed.find(old=>old.parentElement===panel.parentElement&&old.__originStacked);
   if(replaced){transferOriginWindow(replaced,panel);return;}
-  /* Ao trocar uma janela por outra em outro contêiner, descarta a origem da janela antiga. */
   removed.filter(old=>old.__originStacked).forEach(old=>{
    const idx=originStack.indexOf(old.__originStackEntry);if(idx>=0)originStack.splice(idx,1);
    old.__originStacked=false;old.__originCloseHandled=true;old.__originStackEntry=null;
   });
   if(panel.classList.contains('origin-animated')||!pendingOriginRect||Date.now()-pendingOriginAt>=5000)return;
-  const overlay=originOverlay(panel);
-  openFromOrigin(panel,originContent(panel),overlay,pendingOriginTrigger);
+  openFromOrigin(panel,originContent(panel),originOverlay(panel),pendingOriginTrigger);
  });
  removed.forEach(panel=>{
   if(panel.__originCloseHandled||!panel.__originStacked||added.length)return;
@@ -2756,7 +2770,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.53.0';
+const APP_VERSION='3.54.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
