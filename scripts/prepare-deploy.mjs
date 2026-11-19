@@ -14,18 +14,20 @@ const runtimeFiles = [
 
 const pkg = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
 const version = String(pkg.version || '');
-if (!/^\\d+\\.\\d+\\.\\d+$/.test(version)) {
+if (!/^\d+\.\d+\.\d+$/.test(version)) {
   throw new Error('Invalid application version in package.json.');
 }
 
 const html = await fs.readFile(path.join(root, 'index.html'), 'utf8');
-const versionPattern = new RegExp("const APP_VERSION\\s*=\\s*['\\"]" + version.replaceAll('.', '\\\\.') + "['\\"]");
-if (!versionPattern.test(html)) {
+if (
+  !html.includes("const APP_VERSION='" + version + "'") &&
+  !html.includes('const APP_VERSION="' + version + '"')
+) {
   throw new Error('index.html version does not match package.json (' + version + ').');
 }
 
 const sw = await fs.readFile(path.join(root, 'sw.js'), 'utf8');
-if (!sw.includes("super-tudo-v" + version)) {
+if (!sw.includes('super-tudo-v' + version)) {
   throw new Error('Service worker cache version does not match package.json (' + version + ').');
 }
 
