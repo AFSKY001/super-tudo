@@ -757,7 +757,7 @@ nav button.on .ni{transform:none}
   position:absolute;left:50%;top:50%;width:var(--hold-diameter);height:var(--hold-diameter);
   border-radius:50%;background:var(--hold-color);pointer-events:none;z-index:0;
   transform:translate(-50%,-50%) scale(0);transform-origin:center;
-  transition:transform ${HOLD_MS}ms cubic-bezier(.2,.8,.2,1);
+  transition:transform 600ms cubic-bezier(.2,.8,.2,1);
 }
 .hold-action>.hold-bubble.is-growing{transform:translate(-50%,-50%) scale(1)}
 .hold-action>.hold-bubble.is-receding{
@@ -3026,6 +3026,7 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
     bubble.className='hold-bubble';
     bubble.style.setProperty('--hold-diameter',diameter+'px');
     bubble.style.setProperty('--hold-color',translucent);
+    bubble.style.transitionDuration=HOLD_MS+'ms';
     action.classList.add('hold-action');
     action.appendChild(bubble);
     const state={action,bubble,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,
