@@ -1672,6 +1672,87 @@ header p{font-size:11px!important}
   #bl,nav button,nav button .ni{transition:none!important}
 }
 
+
+/* ================================================================
+   SUPER TUDO — ETAPA 3: FEEDBACK VISUAL E ESTADOS
+   Somente CSS. Reutiliza estados e componentes já existentes.
+   ================================================================ */
+
+/* Etiquetas de estado: sucesso, atenção e erro */
+.b{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:26px;
+  padding:5px 10px;
+  border:1px solid transparent;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:750;
+  line-height:1.2;
+  letter-spacing:.01em;
+  vertical-align:middle;
+  transition:background-color .18s ease,border-color .18s ease, color .18s ease, transform .18s ease;
+}
+.b.ok{background:var(--oks)!important;color:var(--ok)!important;border-color:color-mix(in srgb,var(--ok) 20%,transparent)!important}
+.b.wa{background:var(--was)!important;color:var(--wa)!important;border-color:color-mix(in srgb,var(--wa) 22%,transparent)!important}
+.b.no{background:var(--nos)!important;color:var(--no)!important;border-color:color-mix(in srgb,var(--no) 20%,transparent)!important}
+
+/* Estado de conexão/sincronização já presente no cabeçalho */
+#syncStatus{
+  min-height:28px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  line-height:1.25;
+  white-space:nowrap;
+  transition:background-color .2s ease,border-color .2s ease,color .2s ease,opacity .2s ease;
+}
+
+/* Carregamento existente */
+.spin{
+  width:34px!important;
+  height:34px!important;
+  border-width:3px!important;
+  border-color:var(--bd)!important;
+  border-top-color:var(--pr)!important;
+  box-shadow:0 3px 12px rgba(30,60,120,.08);
+}
+
+/* Textos auxiliares e mensagens de estado */
+.mu{
+  line-height:1.55;
+}
+#mn:empty{display:none!important}
+
+/* Compatibilidade visual para skeletons/estados vazios já marcados no HTML,
+   sem criar conteúdo ou alterar o comportamento do aplicativo. */
+.skeleton{
+  position:relative;
+  overflow:hidden;
+  color:transparent!important;
+  background:linear-gradient(90deg,var(--sf) 25%,color-mix(in srgb,var(--bd) 55%,var(--sf)) 好 50%,var(--sf) 75%);
+  background-size:200% 100%;
+  animation:st-skeleton 1.35s ease-in-out infinite;
+  border-radius:12px;
+}
+@keyframes st-skeleton{to{background-position:-200% 0}}
+.empty-state{
+  text-align:center;
+  padding:26px 18px;
+  color:var(--mu);
+  border:1px dashed var(--bd);
+  border-radius:18px;
+  background:color-mix(in srgb,var(--sf) 72%,transparent);
+}
+.empty-state :is(svg,.ico,.icon){opacity:.72}
+@media(prefers-reduced-motion:reduce){
+  .b,#syncStatus{transition:none!important}
+  .skeleton{animation:none!important}
+}
+
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
