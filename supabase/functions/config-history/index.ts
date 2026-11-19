@@ -38,42 +38,12 @@ Deno.serve(async (req: Request) => {
     // Qualquer membro ativo pode solicitar aplicação de itens que já venceram.
     // Somente admin/gerente podem consultar, criar ou cancelar agendamentos.
     if (action === "apply-due") {
-      const { data: due, error } = await admin.from("app_config_schedules")
-        .select("*").eq("org_id", orgId).eq("status", "pending")
-        .lte("effective_at", new Date().toISOString()).order("effective_at").limit(50);
+      const { data, error } = await admin.rpc("apply_due_app_config_schedules", {
+        p_org_id: orgId,
+        p_requested_by: user.id,
+      });
       if (error) throw error;
-      const results = [];
-      for (const item of due || []) {
-        const claimed = await admin.from("app_config_schedules")
-          .update({ status: "applying" }).eq("id", item.id).eq("status", "pending").select("id").maybeSingle();
-        if (claimed.error) throw claimed.error;
-        if (!claimed.data) continue;
-        const current = await admin.from("app_records").select("id,revision,kind,module,record_id")
-          .eq("org_id", orgId).eq("module", item.module).eq("record_id", item.record_id).maybeSingle();
-        if (current.error) throw current.error;
-        if (!current.data || current.data.kind !== item.kind || current.data.revision !== item.base_revision) {
-          const reason = !current.data ? "Registro não encontrado" : "Configuração mudou após o agendamento";
-          await admin.from("app_config_schedules").update({
-            status: "conflict", result: { reason, expected_revision: item.base_revision, actual_revision: current.data?.revision ?? null },
-          }).eq("id", item.id);
-          results.push({ id: item.id, status: "conflict", reason });
-          continue;
-        }
-        const changed = await admin.from("app_records").update({ data: item.data, updated_by: item.scheduled_by })
-          .eq("id", current.data.id).eq("revision", item.base_revision).select("revision").maybeSingle();
-        if (changed.error || !changed.data) {
-          const reason = changed.error?.message || "Conflito de revisão durante a aplicação";
-          await admin.from("app_config_schedules").update({ status: "conflict", result: { reason } }).eq("id", item.id);
-          results.push({ id: item.id, status: "conflict", reason });
-          continue;
-        }
-        await admin.from("app_config_schedules").update({
-          status: "applied", applied_at: new Date().toISOString(),
-          result: { applied_revision: changed.data.revision },
-        }).eq("id", item.id);
-        results.push({ id: item.id, status: "applied", revision: changed.data.revision });
-      }
-      return json({ ok: true, processed: results.length, results });
+      return json({ ok: true, ...(data || { processed: 0, results: [] }) });
     }
 
     if (!["admin", "gerente"].includes(member.role)) return json({ error: "Somente administrador ou gerente pode gerenciar agendamentos." }, 403);
