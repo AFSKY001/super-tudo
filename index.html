@@ -1790,7 +1790,43 @@ const pcks=id=>Object.entries(CK).filter(([k,c])=>c.p===id&&!c.rm).map(([k,c])=>
 function ckRemove(k){softP();if(!CK[k]||!CK[k].p||!ask('ck'+k))return;CK[k].rm=true;lz();save();R()}
 const CKT=['Rotina diária','Abertura/fechamento','Avaliação','Recebimento','Inventário','Outro'],ckKind=c=>c.k||(c.t?'Abertura/fechamento':c.av?'Avaliação':'Rotina diária');
 const isRec=c=>!!c&&(c.m==='rec'||(!c.m&&(c.n===((CK.rec||{}).n)||c.n==='Recebimento de perecíveis')));
-function applyModel(k,pid){const c=CK[k],id='c'+uid();CK[id]={n:c.n,e:c.e,i:c.i,ph:!!c.ph,p:pid,k:c.k,m:k};if(c.t)CK[id].t=[...c.t];notify([pid],'✅ Novo checklist: '+c.n,{t:'ck',id},'ckadd|'+id,'tar');lz();save();R()}
+function createChecklistFromSteps(name,pid,steps,photoMode,kind,turns,evaluate){
+ const L=(Array.isArray(steps)?steps:[]).map(x=>String(x||'').trim()).filter(Boolean);
+ if(!L.some(x=>x[0]!=='#'))return '';
+ const id='c'+uid(),receipt=kind==='Recebimento';
+ CK[id]={n:name||'Rotina',e:'☑️',i:L.join('|'),p:pid,k:kind||'Rotina diária',ph:photoMode==='required',m:receipt?'rec':'routine-inline'};
+ if(evaluate)CK[id].av=1;
+ if(Array.isArray(turns)&&turns.length)CK[id].t=[...turns];
+ lz();return id;
+}
+function cloneChecklistModel(k,pid){
+ const c=CK[k];if(!c||!pid)return '';
+ const id='c'+uid();
+ CK[id]={n:c.n,e:c.e,i:c.i,ph:!!c.ph,p:pid,k:c.k,m:c.m==='rec'?'rec':k,av:c.av||0};
+ if(c.t)CK[id].t=[...c.t];
+ lz();return id;
+}
+function ensureAssignedChecklistsInRotinas(){
+ S.pt=S.pt||[];let changed=false;
+ const safe=v=>String(v||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+ Object.entries(CK).forEach(([k,c])=>{
+  if(!c||!c.p||c.rc||c.rm||k==='rec'||!(S.team||[]).some(p=>p.id===c.p))return;
+  if(S.pt.some(x=>x.ckid===k||x.legacyCkId===k))return;
+  S.pt.push({id:'ptck-'+safe(c.p)+'-'+safe(k),pid:c.p,t:c.n,days:[0,1,2,3,4,5,6],time:'',mid:'legacy-checklist-'+k,ckid:k,legacyCkId:k,photoMode:c.ph?'required':'none',createdAt:today(),source:'checklist'});
+  changed=true;
+ });
+ S.pt.forEach(x=>{
+  if(x.ckid&&CK[x.ckid]&&(!CK[x.ckid].p||CK[x.ckid].p!==x.pid)){
+   const n=cloneChecklistModel(x.ckid,x.pid);if(n){x.ckid=n;x.legacyCkId=n;x.mid=x.mid||'checklist-'+n;changed=true}
+  }
+  if(!x.ckid&&Array.isArray(x.steps)&&x.steps.some(z=>z&&z[0]!=='#')){
+   const id=createChecklistFromSteps(x.t,x.pid,x.steps,x.photoMode,x.routineKind,x.turns,x.evaluate);
+   if(id){x.ckid=id;x.legacyCkId=id;x.steps=[];changed=true}
+  }
+ });
+ if(changed)save();
+}
+function applyModel(k,pid,days,time){const c=CK[k],id=cloneChecklistModel(k,pid);if(!id)return;S.pt=S.pt||[];S.pt.push({id:'pt'+uid(),pid,t:c.n,days:Array.isArray(days)&&days.length?[...days]:[0,1,2,3,4,5,6],time:time||'',mid:'ck:'+k,ckid:id,legacyCkId:id,photoMode:c.ph?'required':'none',createdAt:today(),source:'checklist'});notify([pid],'✅ Nova atividade adicionada à sua Rotina: '+c.n,{t:'ck',id},'ckadd|'+id,'tar');save();R()}
 function aplCk(k){const pid=($('ap_'+k)||{}).value;if(pid){V.mdl=null;V.cff=pid;applyModel(k,pid)}}
 function addMod(pid){softP();const k=($('md_'+pid)||{}).value;if(k&&CK[k])applyModel(k,pid)}
 const ckHist=k=>{const n=CK[k].l.filter(x=>x[0]!=='#').length||1,o={};Object.entries(S.runs).forEach(([x,r])=>{const a=x.split('|');if(a[0]===k)o[a[1]]=Math.max(o[a[1]]||0,Object.keys(r.a).length/n)});return Object.entries(o).sort((a,b)=>b[0].localeCompare(a[0]))};
@@ -1800,14 +1836,14 @@ if(!P){if(V.mdl&&CK[V.mdl]){const k=V.mdl,c=CK[k];return `<button class="ch" onc
 return chips+`<div class="c"><button class="bt" onclick="newCk()">+ Novo modelo</button><p class="mu">Modelos de checklist: crie e edite aqui. Depois adicione à pessoa na ficha, na seção Checklist.</p></div>`+(Object.entries(CK).filter(([k,c])=>!person(c.p)&&k!=='rec'&&!c.rc).map(([k,c])=>`<div class="c tap" onclick="V.mdl='${k}';R()"><div class="row sp"><b>${c.e} ${esc(c.n)}</b><span class="row">${kb(c)}<button class="bt d" title="Excluir modelo" aria-label="Excluir modelo" onclick="event.stopPropagation();ckDelModel('${k}')">${V.cf==='cm'+k?'Confirmar?':'✕'}</button></span></div><div class="mu">${c.l.filter(x=>x[0]!=='#').length} itens ›</div></div>`).join('')||'<div class="c mu">Nenhum modelo.</div>')}
 const ks=Object.keys(CK).filter(k=>CK[k].p===P.id),tot=ks.length?ks.reduce((a,k)=>a+ckProg(k),0)/ks.length:0,mods=Object.entries(CK).filter(([k,c])=>!person(c.p)&&k!=='rec'&&!c.rc);
 return chips+`<div class="c"><div class="row sp"><b>${esc(P.n)}</b><span class="mu">${esc(P.f||'')}${P.s?' · '+esc(P.s):''}</span></div><div class="mu">Hoje: ${ks.filter(k=>ckDone(k)).length}/${ks.length} concluídos · ${Math.round(tot*100)}%</div>${bar(tot*100)}</div>`+(ks.map(k=>{const c=CK[k],n=c.l.filter(x=>x[0]!=='#').length,pr=ckProg(k),H=ckHist(k).slice(0,5);return `<div class="c"><div class="row sp"><b>${c.e} ${esc(c.n)}</b>${kb(c)}</div><div class="mu">Hoje ${Math.round(pr*n)}/${n}${c.ph?' · 📷 foto':''}</div>${bar(pr*100)}<div class="mu u-mt6">${H.length?'Últimos: '+H.map(([d,v])=>br(d).slice(0,5)+' '+Math.round(v*100)+'%').join(' · '):'Ainda não preenchido'}</div><div class="row u-mt8"><button class="bt" onclick="${go(k,c)}">Preencher</button><button class="bt g" onclick="V.ce='${k}';R()">✏️ Editar</button></div></div>`}).join('')||'<div class="c mu">Nenhum checklist para esta pessoa.</div>')+`<div class="c"><h3>Adicionar</h3>${mods.length?`<div class="row"><select id="md_${P.id}" style="flex:1;margin:0">${mods.map(([k,c])=>`<option value="${k}">${c.e} ${esc(c.n)}</option>`).join('')}</select><button class="bt" onclick="addMod('${P.id}')">Adicionar modelo</button></div>`:'<p class="mu">Ainda não há modelos. Crie um em Registros › Checklists.</p>'}</div>`}
-function newCk(pid){const id='c'+uid();CK[id]={n:pid?'Checklist de '+person(pid).n:'Novo checklist',e:'📝',k:'Rotina diária',p:pid||'',i:'#Seção|Item 1|Item 2',nw:true};lz();V.tab='reg';V.rs='ck';V.ck=null;V.ce=id;R();scrollTo(0,0)}
+function newCk(pid){const id='c'+uid();CK[id]={n:pid?'Rotina de '+(person(pid)||{}).n:'Nova rotina com checklist',e:'📝',k:'Rotina diária',p:pid||'',i:'#Seção|Item 1|Item 2',nw:true};lz();V.tab='reg';V.rs='rot';V.rotCkEdit=true;V.rotInlineChecklistEdit=false;V.ck=null;V.ce=id;R();scrollTo(0,0)}
 function rCe(){const c=CK[V.ce];return `<button class="ch" onclick="ceBack()">‹ Voltar</button><div class="c"><h3>Editar checklist</h3><div class="row"><div class="u-w72"><label>Ícone<input id="ce_e" value="${esc(c.e)}"></label></div><div style="flex:1"><label>Nome<input id="ce_n" value="${esc(c.n)}"></label></div></div>
-<label>Tipo de checklist<select id="ce_k">${CKT.map(t=>`<option ${t===ckKind(c)?'selected':''}>${t}</option>`).join('')}</select></label><label>Pessoa (vazio = modelo)<select id="ce_p"><option value="">Modelo (sem pessoa)</option>${S.team.map(p=>`<option value="${p.id}" ${p.id===c.p?'selected':''}>${esc(p.n)}</option>`).join('')}</select></label>
+<label>Tipo de checklist<select id="ce_k">${CKT.map(t=>`<option ${t===ckKind(c)?'selected':''}>${t}</option>`).join('')}</select></label><label>Pessoa (vazio = modelo)<select id="ce_p" ${(V.rotCkEdit||V.rotInlineChecklistEdit)?'disabled':''}><option value="">Modelo (sem pessoa)</option>${S.team.map(p=>`<option value="${p.id}" ${p.id===c.p?'selected':''}>${esc(p.n)}</option>`).join('')}</select></label>
 <label class="u-row-c u-mt10"><input type="checkbox" id="ce_ph" ${c.ph?'checked':''} class="u-wauto">Exige foto ao preencher (obrigatória)</label><label>Turnos (separe por vírgula; vazio = sem turnos)<input id="ce_t" value="${esc((c.t||[]).join(', '))}"></label>
 <label>Itens — um por linha. Linha começando com # vira título de seção.<textarea id="ce_i" rows="14">${esc(c.l.join('\n'))}</textarea></label>
 <p class="mu">Ao reordenar ou remover itens, respostas já salvas em dias anteriores podem ficar desalinhadas. Para mudanças grandes, prefira duplicar e criar um novo.</p>
 <div class="row"><button class="bt" onclick="saveCk()">Salvar</button><button class="bt g" onclick="ceBack()">Cancelar</button><button class="bt g" onclick="dupCk()">Duplicar</button></div></div>`}
-function saveCk(){const id=V.ce,c=CK[id],isReceipt=!!(c&&c.rc),L=$('ce_i').value.split('\n').map(s=>s.replace(/\|/g,'/').trim()).filter(Boolean);if(!L.some(x=>x[0]!=='#'))return alert('Adicione ao menos um item.');c.n=$('ce_n').value.trim()||c.n;c.e=$('ce_e').value.trim()||'✅';c.p=$('ce_p').value;c.k=$('ce_k').value;c.ph=$('ce_ph').checked;const t=$('ce_t').value.split(',').map(s=>s.trim()).filter(Boolean);if(t.length)c.t=t;else delete c.t;c.i=L.join('|');c.l=L;delete c.nw;V.ce=null;if(isReceipt){V.ck=id;V.ckd=c.d||today()}else ceRet();save();R();scrollTo(0,0)}
+function saveCk(){const id=V.ce,c=CK[id],isReceipt=!!(c&&c.rc),fromRot=!!V.rotCkEdit,inlineEdit=!!V.rotInlineChecklistEdit,L=$('ce_i').value.split('\n').map(s=>s.replace(/\|/g,'/').trim()).filter(Boolean);if(!L.some(x=>x[0]!=='#'))return alert('Adicione ao menos um item.');c.n=$('ce_n').value.trim()||c.n;c.e=$('ce_e').value.trim()||'✅';c.p=fromRot?'':inlineEdit?c.p:($('ce_p')||{}).value||'';c.k=$('ce_k').value;c.m=c.k==='Recebimento'?'rec':(c.m==='rec'?'routine-inline':c.m);c.ph=$('ce_ph').checked;const t=$('ce_t').value.split(',').map(s=>s.trim()).filter(Boolean);if(t.length)c.t=t;else delete c.t;c.i=L.join('|');c.l=L;delete c.nw;V.ce=null;V.rotCkEdit=false;V.rotInlineChecklistEdit=false;if(isReceipt){V.ck=id;V.ckd=c.d||today()}else if(!fromRot&&!inlineEdit)ceRet();save();R();scrollTo(0,0)}
 function dupCk(){const c=CK[V.ce],id='c'+uid();CK[id]={...c,n:c.n+' (cópia)',l:[...c.l],nw:true};if(c.t)CK[id].t=[...c.t];V.ce=id;R();scrollTo(0,0)}
 function ckDelModel(k){if(!ask('cm'+k))return;delete CK[k];if(V.mdl===k)V.mdl=null;save();R()}
 function delCk(){if(!confirm('Excluir este checklist?'))return;delete CK[V.ce];V.ce=null;ceRet();save();R()}
@@ -1962,6 +1998,12 @@ function tmSave(){tmRead();const e=V.tme;if(!e.n)return alert('Informe o nome do
 S.tmod=S.tmod||[];const rec={id:e.id==='new'?'tm'+uid():e.id,n:e.n,items:it.map(x=>({id:x.id||uid(),t:x.t,desc:x.desc||'',days:x.days,time:x.time||'',steps:Array.isArray(x.steps)?x.steps:[],ckid:x.ckid||'',photoMode:x.photoMode||'none'}))};const k=S.tmod.findIndex(x=>x.id===rec.id);if(k>=0)S.tmod[k]=rec;else S.tmod.push(rec);V.tme=null;save();R()}
 function tmDel(id){if(!ask('tm'+id))return;S.tmod=(S.tmod||[]).filter(x=>x.id!==id);V.tme=null;save();R()}
 function tmEditor(){const e=V.tme;return `<button class="ch" onclick="V.tme=null;R()">‹ Modelos</button><div class="c"><label>Nome do modelo<input id="tm_n" value="${esc(e.n)}"></label></div>`+e.items.map((it,j)=>`<div class="c"><label>Atividade<input id="tmi_t_${j}" value="${esc(it.t)}" placeholder="Atividade"></label><label>Instruções<textarea id="tmi_desc_${j}" rows="2">${esc(it.desc||'')}</textarea></label><label>Etapas (uma por linha)<textarea id="tmi_steps_${j}" rows="3">${esc((it.steps||[]).join(String.fromCharCode(10)))}</textarea></label><label>Checklist completo vinculado (opcional)<select id="tmi_ckid_${j}">${rotChecklistOptions(it.ckid||'')}</select></label><label>Foto na conclusão<select id="tmi_photo_${j}"><option value="none" ${(!it.photoMode||it.photoMode==='none')?'selected':''}>Não solicitar</option><option value="optional" ${it.photoMode==='optional'?'selected':''}>Opcional</option><option value="required" ${it.photoMode==='required'?'selected':''}>Obrigatória</option></select></label><div class="week-picks u-g2 u-mt6">${tmDaysHTML('tmi_d_'+j,it.days||[])}</div><div class="row u-mt6"><input id="tmi_h_${j}" type="time" value="${esc(it.time||'')}" class="u-fx1"><button class="bt d" onclick="tmItemDel(${j})">✕</button></div></div>`).join('')+`<div class="row u-mt8"><button class="bt g" onclick="tmItemAdd()">+ Adicionar atividade</button></div><div class="row u-mt8"><button class="bt" onclick="tmSave()">Salvar modelo</button><button class="bt g" onclick="V.tme=null;R()">Cancelar</button></div>`}
+function rotChecklistModels(){
+ const models=Object.entries(CK).filter(([k,c])=>!c.p&&k!=='rec'&&!c.rc&&!c.rm);
+ let h='<div class="c"><div class="row sp"><b>Modelos de checklist que compõem as Rotinas</b><button class="bt" onclick="newCk()">+ Novo modelo</button></div><p class="mu">Cada modelo pode ser adicionado à agenda de um funcionário, com dias e horário. A execução abre o formulário completo na própria Rotina, mantendo seções, turnos, responsável, avaliado, fotos, observações, temperaturas, nota e histórico.</p></div>';
+ h+=models.map(([k,c])=>'<div class="c"><div class="row sp"><b>'+(c.e||'☑️')+' '+esc(c.n)+'</b><span class="mu">'+c.l.filter(x=>x[0]!=='#').length+' itens</span></div><div class="mu">'+esc(ckKind(c))+(c.t&&c.t.length?' · Turnos: '+esc(c.t.join(', ')):'')+(c.ph?' · Foto obrigatória':'')+'</div><div class="row u-mt8"><button class="bt g" onclick="V.ce=\''+k+'\';V.rotCkEdit=true;V.rotInlineChecklistEdit=false;R()">Editar modelo</button><button class="bt d" onclick="ckDelModel(\''+k+'\')">'+(V.cf==='cm'+k?'Confirmar?':'✕')+'</button></div></div>').join('');
+ return h||'<div class="c mu">Nenhum modelo cadastrado ainda.</div>';
+}
 function rRotReg(){if(!canR('rot'))return '<div class="c mu">Você não tem acesso a esta área.</div>';ensureAssignedChecklistsInRotinas();if(V.rotTaskContext&&V.ck&&CK[V.ck])return rCkReg();if(V.ce)return rCe();if(V.tme)return tmEditor();return tmList()+rotChecklistModels()} function rCroReg(){return rRotReg()}
 function ptAdd(pid){softP();const t=(($('ptn_'+pid)||{}).value||'').trim(),days=tmDaysRead('ptnd_'+pid),time=(($('pth_'+pid)||{}).value||''),desc=(($('ptdesc_'+pid)||{}).value||'').trim(),steps=parseRoutineSteps(($('ptsteps_'+pid)||{}).value||''),ckid=(($('ptckid_'+pid)||{}).value||''),photoMode=(($('ptphoto_'+pid)||{}).value||'none');if(!t)return alert('Informe a atividade.');if(!days.length)return alert('Escolha ao menos um dia.');S.pt=S.pt||[];S.pt.push({id:'pt'+uid(),pid,t,days,time,mid:null,desc,steps,ckid,photoMode,createdAt:today()});save();R()}
 function ptSave(id){const x=(S.pt||[]).find(y=>y.id===id);if(!x)return;const t=(($('pt_t_'+id)||{}).value||'').trim();if(!t)return alert('Informe a atividade.');const days=tmDaysRead('pt_d_'+id);if(!days.length)return alert('Escolha ao menos um dia.');x.t=t;x.days=days;x.time=(($('pt_h_'+id)||{}).value||'');x.desc=(($('pt_desc_'+id)||{}).value||'').trim();x.steps=parseRoutineSteps(($('pt_steps_'+id)||{}).value||'');x.ckid=(($('pt_ckid_'+id)||{}).value||'');x.photoMode=(($('pt_photo_'+id)||{}).value||'none');V.pte=null;save();R()}
@@ -3046,7 +3088,7 @@ function cpTask(pid){softP();const p=person(pid),t=(S.tasks||[]).find(x=>x.id===
 
 
 function ceRet(){if(V.cb){V.rs='eq';V.eq='p';V.pe=V.cb;V.cb=null}}
-function ceBack(){const id=V.ce,c=CK[id];if(c&&c.nw&&!c.rc)delete CK[id];V.ce=null;if(c&&c.rc){V.ck=id;V.ckd=c.d||today()}else ceRet();R();scrollTo(0,0)}
+function ceBack(){const id=V.ce,c=CK[id],fromRot=!!V.rotCkEdit,inlineEdit=!!V.rotInlineChecklistEdit;if(c&&c.nw&&!c.rc)delete CK[id];V.ce=null;V.rotCkEdit=false;V.rotInlineChecklistEdit=false;if(c&&c.rc){V.ck=id;V.ckd=c.d||today()}else if(!fromRot&&!inlineEdit)ceRet();R();scrollTo(0,0)}
 
 const pExtra=p=>'';
 const nomeChave=n=>String(n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
