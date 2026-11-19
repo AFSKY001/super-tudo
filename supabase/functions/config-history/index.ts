@@ -48,6 +48,22 @@ Deno.serve(async (req: Request) => {
 
     if (!["admin", "gerente"].includes(member.role)) return json({ error: "Somente administrador ou gerente pode gerenciar agendamentos." }, 403);
 
+    if (action === "history") {
+      const module = typeof body.module === "string" ? body.module.trim() : "";
+      const recordId = typeof body.record_id === "string" ? body.record_id.trim() : "";
+      let query = admin.from("app_config_history")
+        .select("id,module,record_id,kind,revision,deleted_at,recorded_at,effective_at,recorded_by,source,data")
+        .eq("org_id", orgId)
+        .order("effective_at", { ascending: false })
+        .order("revision", { ascending: false })
+        .limit(200);
+      if (module) query = query.eq("module", module);
+      if (recordId) query = query.eq("record_id", recordId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return json({ ok: true, history: data || [] });
+    }
+
     if (action === "list") {
       const { data, error } = await admin.from("app_config_schedules").select("id,module,record_id,kind,base_revision,data,effective_at,status,created_at,applied_at,result")
         .eq("org_id", orgId).order("effective_at", { ascending: true }).limit(100);
