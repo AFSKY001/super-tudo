@@ -1843,7 +1843,7 @@ async function pushStart(){
    .on('postgres_changes',{event:'INSERT',schema:'public',table:'app_notifications',filter:'recipient_user_id=eq.'+userId},payload=>{
     pushAddRemote(payload.new);save();bell();if(V.nb)rNb();
    }).subscribe();
-  if(!V.pushOnlineHook){window.addEventListener('online',()=>{pushFlushLocalNotifications();pushSyncNotifications().catch(err=>console.warn(err))});V.pushOnlineHook=true}
+  if(!V.pushOnlineHook){window.addEventListener('online',()=>{pushFlushLocalNotifications();pushSyncNotifications().catch(err=>console.warn(err));configHistoryCall('apply-due').catch(err=>console.warn('Agendamentos aguardam sincronização:',err))});V.pushOnlineHook=true}
   await pushSyncNotifications();
   // Aplica alterações de configuração já vencidas; o servidor valida revisão e organização.
   try{await configHistoryCall('apply-due')}catch(err){console.warn('Agendamentos de configuração aguardam sincronização:',err)}
@@ -2162,7 +2162,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.44.9';
+const APP_VERSION='3.44.10';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -2327,6 +2327,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.44.10',d:'19/11/2026',t:'Aplicação de mudanças programadas ao reconectar (PATCH)',n:['Mudanças de configuração vencidas também são verificadas quando o aparelho recupera a conexão.'],c:['Se a configuração tiver sido alterada depois do agendamento, o sistema registra conflito e preserva a versão vigente.']},
 {v:'3.44.9',d:'19/11/2026',t:'Base para alterações programadas de configuração (MINOR)',n:['O sistema verifica alterações de configuração com data efetiva vencida ao iniciar a sincronização.','Mudanças programadas só são aplicadas se a revisão original continuar igual.'],c:['A configuração vigente permanece intacta antes da data escolhida.']},
 {v:'3.44.8',d:'18/11/2026',t:'Ajuste de segurança e transparência do Modo A (PATCH)',n:['O painel explica que avisos globais são restritos à gestão enquanto eventos operacionais são validados no servidor.'],c:['Notificações originadas por contas operacionais continuam direcionadas aos responsáveis; não há broadcast indiscriminado.']},
 {v:'3.44.7',d:'18/11/2026',t:'Modo A de notificações ativado (MINOR)',n:['Notificações automáticas passam a ser distribuídas a todos os usuários ativos da organização.','Envios automáticos têm limite temporário no servidor para reduzir abuso.'],c:['Avisos pessoais continuam restritos ao usuário; avisos gerais seguem autorizados apenas para administrador e gerente.','Modo B permanece bloqueado até validar vínculos de equipe.']},
