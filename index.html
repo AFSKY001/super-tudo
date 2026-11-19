@@ -3078,17 +3078,17 @@ async function pushEnable(){
    if(permission!=='granted')return alert('A permissão foi negada. Ative as notificações do Super Tudo nas configurações do navegador ou do aplicativo.');
   }
   await pushEnsureSubscription();
-  await pushCall('notify-self',{message:'As notificações do Super Tudo foram ativadas neste aparelho.',cat:'avi',key:'push-enabled|'+V.cloudIdentity.id+'|'+Date.now()});
+  await pushCall('notify-self',{message:'As notificações do Super Tudo foram ativadas neste dispositivo.',cat:'avi',key:'push-enabled|'+V.cloudIdentity.id+'|'+Date.now()});
   await pushSyncNotifications();
   if(V.nb)rNb();
-  alert('Notificações ativadas neste aparelho.');
+  alert('Notificações ativadas neste dispositivo.');
  }catch(e){console.error('Falha ao ativar notificações:',e);alert('Não foi possível ativar as notificações. '+(e.message||''))}
 }
 function pushButton(){
  if(!('Notification' in window)||!('PushManager' in window))return '<span class="mu">Este navegador não oferece notificações push.</span>';
  if(Notification.permission==='denied')return '<span class="mu">Permissão bloqueada. Ative nas configurações do navegador.</span>';
- if(V.pushEnabled)return '<span class="b ok">Ativadas neste aparelho</span>';
- return '<button class="ch" onclick="pushEnable()">Ativar no celular</button>';
+ if(V.pushEnabled)return '<span class="b ok">Notificações ativadas</span>';
+ return '<button class="ch" onclick="pushEnable()">Ativar notificações</button>';
 }
 function pushNotifyCloud(e){
  if(!e)return Promise.resolve(null);
@@ -3164,7 +3164,7 @@ function bell(){const b=$('bl');if(!b)return;b.style.display=V.me?'':'none';if(!
 const stBadge=e=>e.st==='c'?'<span class="b ok">Comprado'+(e.emp?' · '+esc(e.emp):'')+'</span>':e.st==='n'?'<span class="b no">Não comprado'+(e.emp?' · '+esc(e.emp):'')+'</span>':'<span class="b wa">Pendente</span>';
 function rNbCore(){const el=$('nbx');if(!V.nb||!V.me){el.innerHTML='';bell();return}const me=V.me.id,L=myNt().sort((a,b)=>b.ts-a.ts),filt=L.filter(e=>(V.ntc||'all')==='all'||catOf2(e)===V.ntc);let b;
 if(V.nd){const x=V.nd,e=(S.log[x.k]||[]).find(y=>y.id===x.id),F=FS[x.k];if(!e)b='<button class="ch" onclick="V.nd=null;rNb()">‹ Notificações</button><p class="mu">Registro não encontrado.</p>';else{const can=V.me.role!=='emp'||isBuyer(person(me));b=`<button class="ch" onclick="V.nd=null;rNb()">‹ Notificações</button><div class="c"><b>${F.e} ${esc(F.n)}</b>${F.F.filter(f=>e[f.k]!==''&&e[f.k]!=null).map(f=>`<div>${f.l}: <b>${fv(f,e)}</b></div>`).join('')}<div class="mu">Pedido por ${esc(rqName(e))}</div><div class="u-mv6">${stBadge(e)}</div>${can?`<label>Empresa onde comprou<input id="nd_emp" value="${esc(e.emp||'')}" placeholder="Nome da empresa"></label><div class="row u-mt8"><button class="bt" onclick="buy('${x.k}','${e.id}','c')">✅ Comprado</button><button class="bt d" onclick="buy('${x.k}','${e.id}','n')">❌ Não comprado</button></div>`:''}</div>`}}
-else b=ntTabs(L)+(canImp()?ntCompose():'')+`<div class="c"><div class="row sp"><b>🔔 Notificações</b><span class="row">${L.some(e=>!e.rd.includes(me))?'<button class="ch" onclick="ntAll()">Marcar lidas</button>':''}${L.length?'<button class="ch" onclick="ntDeleteAll()">Excluir todas</button>':''}</span></div><div class="row sp"><span class="mu">Avisos também na tela do celular</span>${pushButton()}</div></div>`+(filt.length?filt.slice(0,60).map(e=>`<div class="c tap ${e.rd.includes(me)?'':'nw'}" onclick="ntOpen('${e.id}')"><div>${esc(e.m)}</div>${e.rd.includes(me)?'':`<button class="ch" onclick="event.stopPropagation();ntOne('${e.id}')">Marcar lida</button>`}<div class="mu">${NT_CATS.find(c=>c[0]===catOf2(e))[1]} · ${esc(e.by||'')} · ${new Date(e.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`).join(''):'<div class="c mu">Nenhuma notificação.</div>');
+else b=ntTabs(L)+(canImp()?ntCompose():'')+`<div class="c"><div class="row sp"><b>🔔 Notificações</b><span class="row">${L.some(e=>!e.rd.includes(me))?'<button class="ch" onclick="ntAll()">Marcar lidas</button>':''}${L.length?'<button class="ch" onclick="ntDeleteAll()">Excluir todas</button>':''}</span></div><div class="row sp"><span class="mu">Receba notificações do Super Tudo neste dispositivo</span>${pushButton()}</div></div>`+(filt.length?filt.slice(0,60).map(e=>`<div class="c tap ${e.rd.includes(me)?'':'nw'}" onclick="ntOpen('${e.id}')"><div>${esc(e.m)}</div>${e.rd.includes(me)?'':`<button class="ch" onclick="event.stopPropagation();ntOne('${e.id}')">Marcar lida</button>`}<div class="mu">${NT_CATS.find(c=>c[0]===catOf2(e))[1]} · ${esc(e.by||'')} · ${new Date(e.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`).join(''):'<div class="c mu">Nenhuma notificação.</div>');
 el.innerHTML=`<div class="ov" onclick="V.nb=0;V.nd=null;rNb()"></div><div class="nbx">${b}</div>`;bell()}
 function rNb(){
  const host=$('nbx'),before=host.querySelector('.nbx'),beforeOverlay=host.querySelector('.ov');
@@ -3447,7 +3447,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.65.0';
+const APP_VERSION='3.65.1';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3810,6 +3810,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.65.1',d:'19/11/2026',t:'Textos de notificações para celular e computador (PATCH)',n:['O botão passa a usar o texto “Ativar notificações”, sem limitar o recurso ao celular.','A descrição e as confirmações passam a usar linguagem compatível com qualquer dispositivo.'],c:['Nenhuma alteração no funcionamento do envio, nas permissões ou nos dados de notificações.']},
 {v:'3.64.1',d:'19/11/2026',t:'Correção do vínculo entre respostas e itens dos checklists (PATCH)',n:['Preserva os índices originais dos itens ao salvar a fotografia histórica do checklist.','O painel de falhas passa a consultar a resposta no índice original, inclusive quando há títulos de seção.','Mantém a verificação de correspondência do conteúdo e exclui históricos antigos quando não é possível garantir o alinhamento.'],c:['Aplicações antigas com títulos de seção e sem índice preservado não são usadas no cálculo.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.64.0',d:'19/11/2026',t:'Falhas recorrentes em itens de checklist por setor (MINOR)',n:['O painel gerencial identifica itens de checklist com marcações recorrentes de “Não”, agrupados por setor.','Exige pelo menos três respostas e duas marcações de “Não” para destacar um item.','Usa apenas aplicações em que os itens históricos podem ser alinhados com segurança ao modelo atual.'],c:['Aplicações cujo modelo foi alterado ou não pode ser conferido são excluídas do levantamento.','Os resultados orientam investigação e correção de rotina; não determinam responsabilidade individual.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.63.0',d:'19/11/2026',t:'Comparação do encarregado com a equipe e tarefas recorrentes (MINOR)',n:['Na visão do encarregado, compara o índice e as dimensões de execução do líder com a média dos funcionários diretamente vinculados no cadastro.','Mostra resultados individuais da equipe, cobertura de dados e evolução em relação ao período anterior.','Identifica tarefas recorrentes entre as pendências usando apenas fotografias diárias do cronograma já preservadas.'],c:['A média da equipe não inclui o encarregado e não substitui análise do contexto de cada função.','Tarefas de dias sem fotografia histórica não entram no levantamento de recorrência.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
