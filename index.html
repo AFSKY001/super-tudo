@@ -1894,6 +1894,7 @@ function rCroMain(){
  const dt=V.date||today(),admin=isFullAccess(),self=person(V.me&&V.me.id),view=V.croView||'semana';
  if(!admin&&!self)return '<div class="c mu">Seu cadastro de funcionário não foi encontrado. Peça ao administrador para revisar seu acesso.</div>';
  const people=admin?(S.team||[]).filter(p=>!p.adm):[self];
+ captureTaskHistory(dt,admin?people:[self]);
  const selected=admin?(V.croPerson||'all'):self.id;
  const active=admin&&selected!=='all'?people.filter(p=>p.id===selected):people;
  const tasksFor=(p,d)=>myT(p,d),doneFor=(p,d)=>tasksFor(p,d).filter(x=>pdn(d,x,p)).length;
@@ -2896,7 +2897,29 @@ async function doLogin(){
   }
 }
 /* ---- funcionário ---- */
-const myT=(p,dt)=>dayTasks(dt).filter(x=>(x.r||[]).some(r=>(p.g||[]).includes(r)||nrm(r)===nrm(p.n)));
+const myT=(p,dt)=>{
+ const saved=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id];
+ if(saved&&Array.isArray(saved.tasks))return saved.tasks;
+ return dayTasks(dt).filter(x=>(x.r||[]).some(r=>(p.g||[]).includes(r)||nrm(r)===nrm(p.n)));
+};
+function captureTaskHistory(dt,people){
+ if(!dt||dt>today()||!Array.isArray(people)||!people.length)return false;
+ S.taskHistory=S.taskHistory&&typeof S.taskHistory==='object'?S.taskHistory:{};
+ const day=S.taskHistory[dt]&&typeof S.taskHistory[dt]==='object'?S.taskHistory[dt]:(S.taskHistory[dt]={});
+ let changed=false;
+ const all=dayTasks(dt);
+ people.forEach(p=>{
+  if(!p||!p.id||day[p.id])return;
+  const tasks=all.filter(x=>(x.r||[]).some(r=>(p.g||[]).includes(r)||nrm(r)===nrm(p.n))).map(x=>({
+   i:String(x.i),t:String(x.t||''),r:Array.isArray(x.r)?x.r.map(String):[],time:String(x.time||''),
+   base:!!x.base,custom:!!x.custom,ptid:x.ptid?String(x.ptid):''
+  }));
+  day[p.id]={version:1,tasks,capturedOn:today()};
+  changed=true;
+ });
+ if(changed)save();
+ return changed;
+}
 const pdn=(dt,x,p)=>!!S.done[dt+'|'+x.i+'|'+p.id];
 function tgp(k,pid){const q=k+'|'+pid;S.done[q]=!S.done[q];if(S.done[q])S.done[k]=true;else if(!S.team.some(p=>S.done[k+'|'+p.id]))delete S.done[k];save();R()}
 function pStat(p){const t=today(),tk=myT(p,t),dn=tk.filter(x=>pdn(t,x,p)).length,ks=Object.keys(CK).filter(k=>CK[k].p===p.id),ck=ks.length?ks.reduce((a,k)=>a+ckProg(k),0)/ks.length:null,tt=tk.length?dn/tk.length:null,pr=[tt,ck].filter(x=>x!=null),r=rankRows().find(x=>x.p.id===p.id);return{p,tk,dn,ks,ck,pct:pr.length?pr.reduce((a,b)=>a+b)/pr.length:null,g:r?r.g:null}}
@@ -3423,7 +3446,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.57.0';
+const APP_VERSION='3.58.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3507,7 +3530,18 @@ function perfAnnualSeriesHTML(keys,year,scope,entity){
   return '<div class="c"><b>'+d.e+' '+esc(d.n)+'</b>'+(rows.length?rows.map(x=>{const val=x.v.hasData?perfFmt(x.v.value,x.v.unit):'—',pct=x.v.hasData?Math.max(0,Math.min(100,x.v.value/mx*100)):0;return '<div class="it"><div style="flex:1"><div class="row sp"><span>'+x.key.slice(5)+'/'+x.key.slice(0,4)+'</span><b>'+val+'</b></div>'+(x.v.hasData?bar(pct):'<div class="mu">Sem lançamentos</div>')+'</div></div>'}).join(''):'<div class="mu">Sem dados anuais.</div>')+'</div>';
  }).join('')
 }
-function perfTaskStats(p,start,end){let planned=0,done=0,days=0,dt=start;while(dt<=end&&dt<=today()){const L=myT(p,dt);if(L.length)days++;L.forEach(x=>{planned++;if(pdn(dt,x,p))done++});dt=addD(dt,1)}return {planned,done,percent:planned?done/planned*100:null,days}}
+function perfTaskStats(p,start,end){
+ let planned=0,done=0,days=0,historyDays=0,legacyDays=0,dt=start;
+ while(dt<=end&&dt<=today()){
+  const saved=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id],hasHistory=!!(saved&&Array.isArray(saved.tasks));
+  const L=hasHistory?saved.tasks:myT(p,dt);
+  if(hasHistory)historyDays++;else legacyDays++;
+  if(L.length)days++;
+  L.forEach(x=>{planned++;if(pdn(dt,x,p))done++});
+  dt=addD(dt,1);
+ }
+ return {planned,done,percent:planned?done/planned*100:null,days,historyDays,legacyDays}
+}
 function perfChecklistStats(p,start,end){
  let total=0,complete=0,answered=0,possible=0,qualitySum=0,qualityN=0;
  Object.entries(S.runs||{}).forEach(([key,r])=>{
@@ -3541,7 +3575,7 @@ function perfPersonIndicatorSummary(p,period){
 
 function perfActivityAggregate(people,start,end){
  const data=people.map(p=>perfActivityForPerson(p,start,end));
- const tasks=data.reduce((a,x)=>({planned:a.planned+x.tasks.planned,done:a.done+x.tasks.done}),{planned:0,done:0});
+ const tasks=data.reduce((a,x)=>({planned:a.planned+x.tasks.planned,done:a.done+x.tasks.done,historyDays:a.historyDays+x.tasks.historyDays,legacyDays:a.legacyDays+x.tasks.legacyDays}),{planned:0,done:0,historyDays:0,legacyDays:0});
  const checks=data.reduce((a,x)=>({total:a.total+x.checks.total,complete:a.complete+x.checks.complete}),{total:0,complete:0});
  const evalN=data.reduce((a,x)=>a+x.evals.count,0),evalSum=data.reduce((a,x)=>a+(x.evals.avg===null?0:x.evals.avg*x.evals.count),0);
  return {data,tasks,checks,evalN,evalAvg:evalN?evalSum/evalN:null,taskPct:tasks.planned?tasks.done/tasks.planned*100:null,checkPct:checks.total?checks.complete/checks.total*100:null};
@@ -3558,7 +3592,7 @@ function perfActivityHTML(people,period,showPersonKpis){
  html+='<div class="c"><div class="mu">Cronogramas concluídos</div><div class="big">'+(now.taskPct===null?'—':now.taskPct.toFixed(1)+'%')+'</div><div class="mu">'+now.tasks.done+' de '+now.tasks.planned+' atividades</div><div class="mu">Anterior: '+(prev.taskPct===null?'—':prev.taskPct.toFixed(1)+'%')+' · '+perfRateDelta(now.taskPct,prev.taskPct,'%')+'</div></div>';
  html+='<div class="c"><div class="mu">Checklists completos</div><div class="big">'+(now.checkPct===null?'—':now.checkPct.toFixed(1)+'%')+'</div><div class="mu">'+now.checks.complete+' de '+now.checks.total+' aplicações registradas</div><div class="mu">Anterior: '+(prev.checkPct===null?'—':prev.checkPct.toFixed(1)+'%')+' · '+perfRateDelta(now.checkPct,prev.checkPct,'%')+'</div></div>';
  html+='<div class="c"><div class="mu">Média das avaliações</div><div class="big">'+(now.evalAvg===null?'—':now.evalAvg.toFixed(1)+'/10')+'</div><div class="mu">'+now.evalN+' avaliação(ões)</div><div class="mu">Anterior: '+(prev.evalAvg===null?'—':prev.evalAvg.toFixed(1)+'/10')+' · '+perfRateDelta(now.evalAvg,prev.evalAvg,'pt')+'</div></div></div>';
- html+='<p class="mu">O índice por pessoa abaixo é uma síntese simples das dimensões disponíveis de cronograma, checklist e avaliação; não inclui perdas nem indicadores operacionais, que aparecem separadamente. Sem atribuição ou sem registro, a dimensão fica sem nota. O histórico de cronogramas é reconstruído a partir dos modelos atuais.</p>';
+ html+='<p class="mu">O índice por pessoa abaixo é uma síntese simples das dimensões disponíveis de cronograma, checklist e avaliação; não inclui perdas nem indicadores operacionais, que aparecem separadamente. Sem atribuição ou sem registro, a dimensão fica sem nota. Os cronogramas passam a guardar uma fotografia diária das atividades e responsáveis quando o dia é aberto; dias antigos ainda sem fotografia usam o modelo disponível e podem não refletir alterações históricas. Cobertura no período atual: '+now.tasks.historyDays+' dias-pessoa com histórico preservado e '+now.tasks.legacyDays+' dias-pessoa sem fotografia histórica.</p>';
  const prevBy=new Map(prev.data.map(x=>[String(x.p.id),x]));
  const sorted=now.data.map(x=>({x,index:perfIndex(x)})).sort((a,b)=>(b.index===null?-1:b.index)-(a.index===null?-1:a.index));
  html+='<h3>Execução e avaliação por pessoa</h3>'+sorted.map(({x,index})=>{
@@ -3605,6 +3639,7 @@ function perfDashboardHTML(){
 }
 
 const APP_HIST=[
+{v:'3.58.0',d:'19/11/2026',t:'Histórico diário dos cronogramas no desempenho (MINOR)',n:['Ao abrir o cronograma em um dia atual ou passado, o sistema preserva a lista de atividades e responsáveis daquele dia por funcionário.','O cálculo de desempenho passa a usar a fotografia salva, mesmo após alterações futuras nos modelos ou exclusão de atividades.','O painel informa quantos dias-pessoa têm fotografia histórica e quantos ainda dependem dos modelos disponíveis.'],c:['Dias antigos que ainda não tinham fotografia antes desta versão não podem ser reconstruídos com precisão e continuam usando os modelos disponíveis.','Nenhuma tabela, função, política ou estrutura do Supabase foi alterada.']},
 {v:'3.57.0',d:'19/11/2026',t:'Histórico confiável de checklists para desempenho (MINOR)',n:['Cada checklist salvo registra uma cópia dos itens, responsável, setor e exigência de foto daquele momento.','O painel de desempenho passa a usar esse registro histórico mesmo se o modelo for editado ou removido depois.'],c:['Registros antigos sem cópia histórica continuam sendo calculados com os dados disponíveis do modelo atual.','Nenhuma tabela, função, política ou estrutura do Supabase foi alterada.']},
 {v:'3.56.1',d:'19/11/2026',t:'Redução adicional do logo na tela de login (PATCH)',n:['A imagem acima dos campos de usuário e senha fica limitada a 72 px no celular e 80 px em telas maiores.'],c:['Ajuste restrito à apresentação da tela de login; não altera autenticação, cadastros ou dados.']},
 {v:'3.56.0',d:'19/11/2026',t:'Distribuição protegida e controle seguro da sincronização (MINOR)',n:['O pacote de distribuição passa a compactar e ofuscar o JavaScript próprio do Super Tudo.','A distribuição inclui somente os arquivos necessários para executar o aplicativo, sem fontes de banco, funções ou ferramentas de compilação.','O processo verifica a ausência de source maps e de chaves secretas de servidor.'],c:['A ofuscação dificulta a engenharia reversa, mas não torna invisível o código que precisa executar no navegador.','O acesso direto às tabelas internas de sincronização foi removido; a sincronização continua pelos endpoints autorizados do servidor.']},
