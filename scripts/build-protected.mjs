@@ -1,39 +1,75 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { minify } from 'terser';
+import JavaScriptObfuscator from 'javascript-obfuscator';
 
 const root = process.cwd();
 const dist = path.join(root, 'dist');
-const excluded = new Set(['.git', '.github', 'node_modules', 'dist', 'scripts']);
-const excludedFiles = new Set(['package.json', 'package-lock.json']);
+const runtimeFiles = [
+  'index.html',
+  'sw.js',
+  'manifest.webmanifest',
+  'logo.webp',
+  'icon.svg',
+  'LICENSE'
+];
 
-async function copyTree(source, target) {
-  await fs.mkdir(target, { recursive: true });
-  for (const entry of await fs.readdir(source, { withFileTypes: true })) {
-    if (excluded.has(entry.name) || excludedFiles.has(entry.name)) continue;
-    if (entry.name.startsWith('.')) continue;
-    const from = path.join(source, entry.name);
-    const to = path.join(target, entry.name);
-    if (entry.isDirectory()) await copyTree(from, to);
-    else if (entry.isFile()) await fs.copyFile(from, to);
-  }
+const pkg = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8'));
+const version = String(pkg.version || '');
+if (!/^\\d+\\.\\d+\\.\\d+$/.test(version)) {
+  throw new Error('Invalid application version in package.json.');
 }
 
 await fs.rm(dist, { recursive: true, force: true });
-await copyTree(root, dist);
+await fs.mkdir(dist, { recursive: true });
+
+for (const file of runtimeFiles) {
+  const source = path.join(root, file);
+  const target = path.join(dist, file);
+  const stat = await fs.stat(source).catch(() => null);
+  if (!stat?.isFile()) throw new Error(`Required runtime file is missing: ${file}`);
+  await fs.copyFile(source, target);
+}
+
+const obfuscationOptions = {
+  compact: true,
+  identifierNamesGenerator: 'hexadecimal',
+  renameGlobals: false,
+  renameProperties: false,
+  stringArray: true,
+  stringArrayEncoding: ['base64'],
+  stringArrayThreshold: 0.25,
+  controlFlowFlattening: false,
+  deadCodeInjection: false,
+  debugProtection: false,
+  selfDefending: false,
+  sourceMap: false,
+  target: 'browser',
+  unicodeEscapeSequence: false
+};
+
+function protectJavaScript(source, label) {
+  const result = JavaScriptObfuscator.obfuscate(source, obfuscationOptions);
+  const code = result.getObfuscatedCode();
+  if (!code || !code.trim()) throw new Error(`Obfuscator returned empty output for ${label}.`);
+  return code;
+}
 
 const htmlPath = path.join(dist, 'index.html');
 let html = await fs.readFile(htmlPath, 'utf8');
-let transformed = 0;
-const scriptTag = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
+const versionPattern = /const APP_VERSION\\s*=\\s*['"][^'"]+['"]/;
+if (!versionPattern.test(html)) throw new Error('APP_VERSION declaration was not found.');
+html = html.replace(versionPattern, `const APP_VERSION='${version}'`);
 
+let transformed = 0;
+const scriptTag = /<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi;
 html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
-  if (/\bsrc\s*=/i.test(attrs)) return whole;
-  const type = attrs.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
+  if (/\\bsrc\\s*=/.test(attrs)) return whole;
+  const type = attrs.match(/\\btype\\s*=\\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
   if (type && !['text/javascript', 'application/javascript', 'module'].includes(type)) return whole;
   if (!source.trim()) return whole;
 
-  const result = await minify(source, {
+  const minified = await minify(source, {
     compress: { passes: 2, drop_debugger: true },
     mangle: { toplevel: false },
     format: { comments: /^!/ },
@@ -41,22 +77,71 @@ html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
     module: type === 'module',
     sourceMap: false
   });
-  if (result.error) throw result.error;
-  if (!result.code) throw new Error('Terser returned empty code for an inline script.');
+  if (minified.error) throw minified.error;
+  if (!minified.code) throw new Error('Terser returned empty output for an inline script.');
+
+  const code = protectJavaScript(minified.code, 'index.html inline script');
+  if (type !== 'module') new Function(code);
   transformed++;
-  return `<script${attrs}>\n${result.code}\n</script>`;
+  return `<script${attrs}>\\n${code}\\n</script>`;
 });
 
-if (transformed < 1) throw new Error('No inline JavaScript was transformed.');
-if (/sourceMappingURL=/.test(html)) throw new Error('Unexpected source map reference in protected HTML.');
+if (transformed < 1) throw new Error('No inline JavaScript was protected.');
 await fs.writeFile(htmlPath, html, 'utf8');
 
-const output = await fs.stat(htmlPath);
+const swPath = path.join(dist, 'sw.js');
+const swSource = await fs.readFile(swPath, 'utf8');
+const cachePattern = /const CACHE_NAME\\s*=\\s*['"]super-tudo-v[^'"]+['"]/;
+if (!cachePattern.test(swSource)) throw new Error('Service worker cache version was not found.');
+const versionedSw = swSource.replace(cachePattern, `const CACHE_NAME='super-tudo-v${version}'`);
+const swMinified = await minify(versionedSw, {
+  compress: { passes: 2, drop_debugger: true },
+  mangle: { toplevel: false },
+  format: { comments: false },
+  ecma: 2022,
+  sourceMap: false
+});
+if (swMinified.error || !swMinified.code) {
+  throw swMinified.error || new Error('Terser returned empty service worker output.');
+}
+const protectedSw = protectJavaScript(swMinified.code, 'sw.js');
+new Function(protectedSw);
+await fs.writeFile(swPath, protectedSw, 'utf8');
+
+const actualFiles = (await fs.readdir(dist)).sort();
+const expectedFiles = [...runtimeFiles].sort();
+if (JSON.stringify(actualFiles) !== JSON.stringify(expectedFiles)) {
+  throw new Error(`Unexpected distribution contents: ${actualFiles.join(', ')}`);
+}
+
+const forbiddenPatterns = [
+  /sourceMappingURL=/i,
+  /SUPABASE_SERVICE_ROLE_KEY/i,
+  /sb_secret_[A-Za-z0-9_-]+/i,
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/
+];
+for (const file of runtimeFiles) {
+  const filePath = path.join(dist, file);
+  const content = await fs.readFile(filePath);
+  if (file.endsWith('.html') || file.endsWith('.js') || file.endsWith('.webmanifest') || file.endsWith('.svg') || file === 'LICENSE') {
+    const text = content.toString('utf8');
+    for (const pattern of forbiddenPatterns) {
+      if (pattern.test(text)) throw new Error(`Forbidden content matched ${pattern} in ${file}.`);
+    }
+  }
+}
+
+const htmlStat = await fs.stat(htmlPath);
+const swStat = await fs.stat(swPath);
 console.log(JSON.stringify({
-  output: 'dist/index.html',
-  inlineScriptsMinified: transformed,
-  outputBytes: output.size,
-  sourceMaps: false
+  version,
+  outputFiles: actualFiles,
+  inlineScriptsProtected: transformed,
+  serviceWorkerProtected: true,
+  indexBytes: htmlStat.size,
+  serviceWorkerBytes: swStat.size,
+  sourceMaps: false,
+  supabaseProjectFilesIncluded: false
 }, null, 2));
 
 async function replaceAsync(input, regex, replacer) {
