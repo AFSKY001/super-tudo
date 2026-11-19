@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: protected-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,16 +24,26 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install pinned build dependency
+      - name: Install exact build dependencies
         run: npm install --ignore-scripts --no-audit --no-fund
-      - name: Build minified distribution
+      - name: Build protected distribution
         run: npm run build:protected
-      - name: Verify distribution
+      - name: Verify protected distribution
         run: |
           test -s dist/index.html
           test -s dist/sw.js
           test -s dist/manifest.webmanifest
-          ! grep -q 'sourceMappingURL=' dist/index.html
+          test -s dist/logo.webp
+          test -s dist/icon.svg
+          test -s dist/LICENSE
+          test ! -d dist/supabase
+          test ! -d dist/.github
+          test ! -d dist/scripts
+          test ! -f dist/package.json
+          test ! -f dist/package-lock.json
+          test "$(find dist -type f | wc -l | tr -d ' ')" = "6"
+          ! find dist -type f -name '*.map' | grep .
+          ! grep -R -E 'sourceMappingURL=|SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+' dist
       - name: Upload protected distribution
         uses: actions/upload-artifact@v4
         with:
