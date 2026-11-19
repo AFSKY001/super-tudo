@@ -491,6 +491,137 @@ nav button.on .ni{transform:scale(1.06)}
  button:active,.c[onclick]:active,.c.tap:active,.reg-menu-tile:active{transform:none!important}
 }
 
+
+/* =====================================================================
+   SUPER TUDO — POLIMENTO CORPORATIVO v1
+   Camada visual CSS-only: preserva estrutura, fluxos e componentes.
+   ===================================================================== */
+:root{
+  --pr:#155e75;--on:#fff;--vi:#0f766e;--ac:#d69e36;--prs:#e8f1f4;
+  --grad:#155e75;--bg:#f3f5f7;--cd:#fff;--tx:#172b3a;--mu:#647482;
+  --bd:#dce3e8;--sf:#edf2f5;--ok:#167653;--no:#c43d36;--wa:#946200;
+  --oks:#e7f3ed;--nos:#fbeceb;--was:#fff5df;
+  --r-s:7px;--r-m:9px;--r-l:11px;--rad:10px;--rad-sheet:14px;
+  --sh1:0 1px 2px rgba(20,42,56,.045);--sh2:0 5px 16px rgba(20,42,56,.09);
+  --glow:none;--fn:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  color-scheme:light;
+}
+@media(prefers-color-scheme:dark){
+ :root:not([data-theme="light"]){
+  --pr:#65b6c8;--on:#10242b;--vi:#58b8a9;--ac:#e2b65e;--prs:#1b343d;
+  --grad:#65b6c8;--bg:#101a20;--cd:#17252d;--tx:#e6eef1;--mu:#9aabb3;
+  --bd:#2b3d46;--sf:#20323b;--ok:#66c69b;--no:#ff8379;--wa:#e4bd68;
+  --oks:#18352c;--nos:#3b2425;--was:#3a3020;--sh1:0 1px 2px rgba(0,0,0,.2);--sh2:0 6px 18px rgba(0,0,0,.28);color-scheme:dark;
+ }
+}
+:root[data-theme="dark"]{
+ --pr:#65b6c8;--on:#10242b;--vi:#58b8a9;--ac:#e2b65e;--prs:#1b343d;
+ --grad:#65b6c8;--bg:#101a20;--cd:#17252d;--tx:#e6eef1;--mu:#9aabb3;
+ --bd:#2b3d46;--sf:#20323b;--ok:#66c69b;--no:#ff8379;--wa:#e4bd68;
+ --oks:#18352c;--nos:#3b2425;--was:#3a3020;--sh1:0 1px 2px rgba(0,0,0,.2);--sh2:0 6px 18px rgba(0,0,0,.28);color-scheme:dark;
+}
+body{background:var(--bg);color:var(--tx);font-family:var(--fn);font-size:14px;line-height:1.45;padding-bottom:92px;-webkit-font-smoothing:antialiased}
+body::before{display:none}
+header{gap:10px;padding:14px 16px 6px}
+header h1{font-size:16px;font-weight:700;letter-spacing:-.15px}
+header p{font-size:12px;color:var(--mu)}
+.app-brand-logo{width:38px;height:38px;border-radius:8px}
+.dots{width:38px;height:38px;border:1px solid var(--bd);border-radius:9px;background:var(--cd);box-shadow:none;color:var(--tx)}
+.logo,.lgt{background:var(--pr);color:var(--on);box-shadow:none;border-radius:9px}
+main{padding:8px 16px}
+.page-shell{max-width:1240px;padding:4px 0 28px}
+.page-heading{margin:2px 0 14px;padding:0 0 12px;border-bottom:1px solid var(--bd)}
+.page-heading h1{font-size:clamp(20px,2.5vw,25px);font-weight:700;letter-spacing:-.025em}
+.page-heading p{font-size:13px;color:var(--mu)}
+.account-indicator{border-radius:8px;background:var(--cd);box-shadow:none;padding:7px 10px}
+h2,.page-content h2{font-size:15px;font-weight:700;letter-spacing:-.01em;margin:18px 2px 8px}
+h3,.page-content h3{font-size:14px;font-weight:650}
+h4{font-size:12px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+.c,details,.page-content .c{border:1px solid var(--bd);border-radius:10px;padding:13px;margin:8px 0;box-shadow:none;background:var(--cd)}
+.g2{gap:10px}
+.g2 .c{padding:13px;border-radius:10px}
+.c.nw{border-left:3px solid var(--pr)}
+.it{border-top:1px solid var(--bd);padding:10px 0}
+.big{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.bt{background:var(--pr);color:var(--on);border:1px solid var(--pr);border-radius:8px;padding:9px 13px;font:600 13px var(--fn);box-shadow:none}
+.bt.g{background:var(--cd);color:var(--tx);border:1px solid var(--bd);box-shadow:none}
+.bt.d{background:var(--nos);color:var(--no);border:1px solid transparent;box-shadow:none}
+.ch{border:1px solid var(--bd);border-radius:8px;padding:7px 11px;background:var(--cd);color:var(--tx);box-shadow:none;font-size:12px}
+.ch.on{background:var(--prs);color:var(--pr);border-color:color-mix(in srgb,var(--pr) 32%,var(--bd));font-weight:700;box-shadow:none}
+.b{border-radius:5px;padding:3px 7px;font-size:11px}
+input,select,textarea{background:var(--cd);border:1px solid var(--bd);border-radius:7px;padding:9px 10px;font:14px var(--fn);color:var(--tx);box-shadow:none}
+input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--pr) 25%,transparent);border-color:var(--pr)}
+label{font-size:12px;font-weight:600;color:var(--mu)}
+table{font-size:12.5px}
+td,th{padding:8px 7px;border-bottom:1px solid var(--bd)}
+th{font-size:11px;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.035em;background:var(--sf)}
+.day,.month-cell{border:1px solid var(--bd);border-radius:8px;box-shadow:none;background:var(--cd)}
+.day.on,.month-cell.on,.rt button.on{background:var(--pr);color:var(--on);border-color:var(--pr);box-shadow:none}
+.rt button{border:1px solid var(--bd);border-radius:7px;background:var(--cd)}
+.launch-card{padding:14px 16px;border-radius:12px!important}
+.launch-primary{min-height:82px;gap:12px}
+.launch-plus{width:52px;height:52px;min-height:52px!important;flex-basis:52px!important;border-radius:10px;background:var(--pr);box-shadow:none;font-size:27px}
+.launch-info{font-size:13px}
+.reg-menu-grid{gap:8px}
+.reg-menu-tile,.reg-menu-screen.launch-menu .reg-menu-tile{min-height:78px;padding:11px 12px;gap:10px;border:1px solid var(--bd);border-radius:9px;background:var(--cd);box-shadow:none}
+.reg-menu-icon{width:27px;height:27px;flex-basis:27px;color:var(--pr)}
+.reg-menu-icon>.ic,.reg-menu-icon>.emj-svg{width:21px;height:21px}
+.reg-menu-label{font-size:12.5px;font-weight:650}
+.reg-menu-hint{font-size:10.5px}
+.reg-menu-arrow{font-size:17px}
+.reg-back-mini{border-radius:7px!important;box-shadow:none!important}
+.dd,.nbx{border:1px solid var(--bd);border-radius:10px;background:var(--cd);box-shadow:var(--sh2)}
+.sheet{border-radius:14px 14px 0 0;border:1px solid var(--bd);box-shadow:0 -8px 28px rgba(20,42,56,.10)}
+.balloon{border-radius:9px;box-shadow:var(--sh2)}
+nav{background:var(--cd);border-color:var(--bd);box-shadow:none}
+nav button{border-radius:8px}
+nav button.on{background:var(--prs);color:var(--pr)}
+nav button .ni{font-size:22px}
+nav button .nl{font-size:10px;font-weight:600;opacity:1;height:12px;line-height:12px}
+nav button.on .ni{transform:none}
+.rail .rb{border-radius:8px;box-shadow:none}
+.rail .rb.on{background:var(--prs);color:var(--pr);border-color:var(--bd)}
+.bt:hover,.c[onclick]:hover,.c.tap:hover,.reg-menu-tile:hover{box-shadow:none}
+@media(min-width:700px){
+ header,main{max-width:1240px}
+ header{padding:18px 28px 8px}
+ main{padding:8px 28px}
+ .c,details{padding:14px}
+ .g2{gap:12px}
+}
+@media(min-width:1024px){
+ body{padding:0 0 28px var(--sb)}
+ nav{background:var(--cd);border-right:1px solid var(--bd);padding:18px 10px;gap:3px}
+ nav::before{margin-bottom:16px;font-size:14px;background-color:transparent}
+ nav button{height:42px;padding:0 11px;border-radius:7px}
+ nav button .ni{width:21px;height:21px;font-size:21px}
+ nav button .nl{font-size:13px;font-weight:500}
+ nav button.on{background:var(--prs);color:var(--pr);box-shadow:inset 3px 0 0 var(--pr)}
+ nav button.on .nl{font-weight:700}
+ header,main{max-width:1320px}
+ header{padding:24px 34px 8px}
+ main{padding:8px 34px}
+ .page-shell{max-width:1320px}
+ .sheet{border-radius:12px;box-shadow:var(--sh2)}
+}
+@media(max-width:520px){
+ header{padding:12px 12px 5px}
+ main{padding:7px 12px}
+ .page-shell{padding:2px 0 22px}
+ .page-heading{gap:8px}
+ .page-heading h1{font-size:20px}
+ .account-indicator{border-radius:7px}
+ .reg-menu-grid{gap:7px}
+ .reg-menu-tile,.reg-menu-screen.launch-menu .reg-menu-tile{min-height:72px;padding:9px}
+ nav{padding:5px 4px calc(5px + env(safe-area-inset-bottom,0px));}
+ nav button{height:56px;gap:2px;border-radius:7px}
+ nav button .ni{font-size:21px}
+ nav button .nl{font-size:9.5px}
+}
+@media(prefers-reduced-motion:reduce){
+ .c,.reg-menu-tile,.bt,button{transition:none!important}
+}
+
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
