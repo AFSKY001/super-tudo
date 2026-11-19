@@ -2026,10 +2026,11 @@ function openFromOrigin(el,contentEl,overlayEl,triggerEl){
  if(!r)return false;
  const trigger=triggerEl||pendingOriginTrigger||originTrigger;
  pendingOriginRect=null;pendingOriginTrigger=null;pendingOriginAt=0;
- originStack.push({rect:{...r},trigger:trigger||null});
- originRect={...r};originTrigger=trigger||null;
+ const stackEntry={rect:{...r},trigger:trigger||null};
  const p=el.getBoundingClientRect();
  if(!p.width||!p.height)return false;
+ originStack.push(stackEntry);el.__originStackEntry=stackEntry;
+ originRect={...r};originTrigger=trigger||null;
  el.__originFinalRect={left:p.left,top:p.top,width:p.width,height:p.height};
  el.__originStacked=true;el.__originCloseHandled=false;
  const dx=r.left-p.left,dy=r.top-p.top,sx=Math.max(.01,Math.min(1,r.width/p.width)),sy=Math.max(.01,Math.min(1,r.height/p.height));
@@ -2059,7 +2060,8 @@ function closeToOrigin(panelArg,overlayArg){
  const panel=panelArg||originPanel();
  if(!panel||panel.__originCloseHandled||!panel.__originStacked)return;
  panel.__originCloseHandled=true;
- const entry=originStack.pop()||{rect:originRect,trigger:originTrigger};
+ const stackIndex=originStack.indexOf(panel.__originStackEntry);
+ const entry=stackIndex>=0?originStack.splice(stackIndex,1)[0]:{rect:originRect,trigger:originTrigger};
  const rect=entry?.rect||originRect,source=entry?.trigger||originTrigger;
  if(!rect)return;
  const overlay=overlayArg||originOverlay(panel),overlayClone=overlay?.cloneNode(true),clone=panel.cloneNode(true);
@@ -2080,7 +2082,7 @@ function closeToOrigin(panelArg,overlayArg){
   if(overlayClone)overlayClone.animate([{opacity:.4},{opacity:0}],{duration:150,easing:'ease-in',fill:'forwards'});
  }
  setTimeout(()=>{clone.remove();overlayClone?.remove()},reduce?0:165);
- panel.__originStacked=false;
+ panel.__originStacked=false;panel.__originStackEntry=null;
  const previous=originStack[originStack.length-1];
  originRect=previous?.rect||null;originTrigger=previous?.trigger||null;
 }
@@ -2095,13 +2097,25 @@ const originObserver=new MutationObserver(records=>{
  };
  records.forEach(rec=>{rec.addedNodes.forEach(n=>collect(n,added));rec.removedNodes.forEach(n=>collect(n,removed))});
  added.forEach(panel=>{
+  const replaced=removed.find(old=>old.parentElement===panel.parentElement&&old.__originStacked);
+  if(replaced){
+   panel.__originStackEntry=replaced.__originStackEntry;
+   panel.__originFinalRect=(()=>{const x=panel.getBoundingClientRect();return {left:x.left,top:x.top,width:x.width,height:x.height}})();
+   panel.__originStacked=true;panel.__originCloseHandled=false;panel.classList.add('origin-animated');
+   replaced.__originStacked=false;replaced.__originCloseHandled=true;replaced.__originStackEntry=null;
+   return;
+  }
+  /* Ao trocar uma janela por outra em outro contêiner, descarta a origem da janela antiga. */
+  removed.filter(old=>old.__originStacked).forEach(old=>{
+   const idx=originStack.indexOf(old.__originStackEntry);if(idx>=0)originStack.splice(idx,1);
+   old.__originStacked=false;old.__originCloseHandled=true;old.__originStackEntry=null;
+  });
   if(panel.classList.contains('origin-animated')||!pendingOriginRect||Date.now()-pendingOriginAt>=3000)return;
   const overlay=originOverlay(panel);
   openFromOrigin(panel,originContent(panel),overlay,pendingOriginTrigger);
  });
  removed.forEach(panel=>{
-  if(panel.__originCloseHandled||!panel.__originStacked)return;
-  if(added.some(next=>next.parentElement===panel.parentElement))return;
+  if(panel.__originCloseHandled||!panel.__originStacked||added.length)return;
   const overlay=records.flatMap(rec=>[...rec.removedNodes]).find(n=>n.nodeType===1&&n!==panel&&n.matches?.('.ov,.overlay,.dim'))||null;
   closeToOrigin(panel,overlay);
  });
@@ -2137,7 +2151,7 @@ function rMenu(){
  const before=originPanel(),beforeOverlay=originOverlay();
  rMenuCore();
  const after=originPanel();
- if(after&&after!==before){openFromOrigin(after,originContent(after),originOverlay(after),originTrigger);}
+ if(after&&after!==before){if(before&&before.parentElement===after.parentElement){const r=after.getBoundingClientRect();after.__originStackEntry=before.__originStackEntry;after.__originFinalRect={left:r.left,top:r.top,width:r.width,height:r.height};after.__originStacked=!!before.__originStacked;after.classList.add('origin-animated');before.__originStacked=false;before.__originCloseHandled=true;before.__originStackEntry=null;}else openFromOrigin(after,originContent(after),originOverlay(after),pendingOriginTrigger);}
  else if(before&&!after){closeToOrigin(before,beforeOverlay);originHistoryOpen=false;if(history.state?.stOriginPanel)history.back();}
 }
 window.addEventListener('popstate',()=>{if(V.mn||V.sh){V.mn=0;V.sh=0;rMenu();originHistoryOpen=false;}});
@@ -2461,7 +2475,8 @@ function rNb(){
  const host=$('nbx'),before=host.querySelector('.nbx'),beforeOverlay=host.querySelector('.ov');
  rNbCore();
  const after=host.querySelector('.nbx');
- if(after&&!before)openFromOrigin(after,originContent(after),host.querySelector('.ov'),originTrigger);
+ if(after&&!before)openFromOrigin(after,originContent(after),host.querySelector('.ov'),pendingOriginTrigger);
+ else if(after&&before&&after!==before){const r=after.getBoundingClientRect();after.__originStackEntry=before.__originStackEntry;after.__originFinalRect={left:r.left,top:r.top,width:r.width,height:r.height};after.__originStacked=!!before.__originStacked;after.classList.add('origin-animated');before.__originStacked=false;before.__originCloseHandled=true;before.__originStackEntry=null;}
  else if(before&&!after)closeToOrigin(before,beforeOverlay);
 }
 function ntRead(e){if(!e.rd.includes(V.me.id)){e.rd.push(V.me.id);e.u=Date.now()}}
