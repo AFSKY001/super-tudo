@@ -47,7 +47,7 @@ jobs:
           ! find dist -type f -name '*.map' | grep .
           ! grep -R -E 'sourceMappingURL=|SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+' dist
       - name: Upload protected distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: super-tudo-protegido
           path: dist/
