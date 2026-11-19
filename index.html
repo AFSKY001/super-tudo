@@ -1751,7 +1751,7 @@ function dayTasks(dt){
  }
  (S.tasks||[]).forEach(x=>{
   const match=x.repeat==='daily'||(x.repeat==='weekly'&&(x.days||[]).includes(i))||(x.repeat==='monthly'&&+dt.slice(8)===+x.day)||(x.repeat==='date'&&x.date===dt);
-  if(match)L.push({t:x.t,r:x.r||[],i:'custom-'+x.id,custom:true,id:x.id,time:x.time||'',desc:x.desc||'',ckid:x.ckid||'',photoMode:x.photoMode||'none'});
+  if(match)L.push({t:x.t,r:x.r||[],i:'custom-'+x.id,custom:true,id:x.id,time:x.time||'',desc:x.desc||'',ckid:x.ckid||'',photoMode:x.photoMode||'none',createdAt:x.createdAt||''});
  });
  (S.pt||[]).forEach(x=>{if((x.days||[]).includes(i)&&(!x.createdAt||dt>=x.createdAt)){const p=person(x.pid);if(p)L.push({t:x.t,r:[p.n],i:'pt-'+x.id,custom:true,ptid:x.id,time:x.time||'',desc:x.desc||'',ckid:x.ckid||'',photoMode:x.photoMode||'none',createdAt:x.createdAt||''})}});
  return L;
@@ -1976,7 +1976,7 @@ function newTask(){V.taskEdit='new';V.taskList=false;V.cal=null;R()}
 function editTask(id){V.taskEdit=id;V.taskList=false;R()}
 function saveBaseTask(){const id=String(V.taskEdit),t=$('ct_base_name').value.trim();if(!t)return alert('Informe a atividade.');S.taskEdits=S.taskEdits||{};S.taskEdits[id]={t,r:$('ct_base_resp').value.split(',').map(x=>x.trim()).filter(Boolean),time:$('ct_base_time').value};notifyGroups(S.taskEdits[id].r,'🗓️ Cronograma alterado: '+t);V.taskEdit=undefined;save();R()}
 function taskRepeatUI(){const r=$('ct_repeat').value;$('ct_days').style.display=r==='weekly'?'block':'none';$('ct_month').style.display=r==='monthly'?'block':'none';$('ct_date').style.display=r==='date'?'block':'none'}
-function saveTask(){const t=$('ct_name').value.trim(),repeat=$('ct_repeat').value;if(!t)return alert('Informe a atividade.');notifyGroups($('ct_resp').value.split(',').map(x=>x.trim()).filter(Boolean),'🗓️ Cronograma alterado: '+t);const x={id:V.taskEdit==='new'?uid():V.taskEdit,t,repeat,r:$('ct_resp').value.split(',').map(x=>x.trim()).filter(Boolean),time:$('ct_time').value,desc:($('ct_desc').value||'').trim(),ckid:$('ct_ckid').value,photoMode:$('ct_photo_mode').value};if(repeat==='weekly'){x.days=[...document.querySelectorAll('input[name="ct_day"]:checked')].map(e=>+e.value);if(!x.days.length)return alert('Selecione pelo menos um dia da semana.')}if(repeat==='monthly'){x.day=Math.max(1,Math.min(31,+$('ct_day').value||1))}if(repeat==='date'){x.date=$('ct_date_value').value;if(!x.date)return alert('Escolha a data da atividade.')}S.tasks=S.tasks||[];const i=S.tasks.findIndex(z=>z.id===x.id);if(i>=0)S.tasks[i]=x;else S.tasks.push(x);V.taskEdit=undefined;save();R()}
+function saveTask(){const t=$('ct_name').value.trim(),repeat=$('ct_repeat').value;if(!t)return alert('Informe a atividade.');notifyGroups($('ct_resp').value.split(',').map(x=>x.trim()).filter(Boolean),'🗓️ Cronograma alterado: '+t);const old=(S.tasks||[]).find(z=>z.id===V.taskEdit),x={id:V.taskEdit==='new'?uid():V.taskEdit,t,repeat,r:$('ct_resp').value.split(',').map(x=>x.trim()).filter(Boolean),time:$('ct_time').value,desc:($('ct_desc').value||'').trim(),ckid:$('ct_ckid').value,photoMode:$('ct_photo_mode').value,createdAt:old&&old.createdAt||today()};if(repeat==='weekly'){x.days=[...document.querySelectorAll('input[name="ct_day"]:checked')].map(e=>+e.value);if(!x.days.length)return alert('Selecione pelo menos um dia da semana.')}if(repeat==='monthly'){x.day=Math.max(1,Math.min(31,+$('ct_day').value||1))}if(repeat==='date'){x.date=$('ct_date_value').value;if(!x.date)return alert('Escolha a data da atividade.')}S.tasks=S.tasks||[];const i=S.tasks.findIndex(z=>z.id===x.id);if(i>=0)S.tasks[i]=x;else S.tasks.push(x);V.taskEdit=undefined;save();R()}
 function delTask(id){if(!confirm('Excluir esta atividade do cronograma?'))return;S.tasks=(S.tasks||[]).filter(x=>x.id!==id);save();R()}
 function openCal(id,d){const x=dayTasks(d).find(t=>String(t.i)===String(id));V.cal={id,d,time:x&&x.time||'09:00',rem:15};R()}
 function icsEscape(s){return String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;')}
@@ -2913,7 +2913,7 @@ async function doLogin(){
 /* ---- funcionário ---- */
 const myT=(p,dt)=>{
  const saved=S.taskHistory&&S.taskHistory[dt]&&S.taskHistory[dt][p.id];
- if(saved&&Array.isArray(saved.tasks)){const out=saved.tasks.slice(),seen=new Set(out.map(x=>String(x.i)));dayTasks(dt).filter(x=>x.ptid&&x.createdAt&&dt>=x.createdAt&&!seen.has(String(x.i))&&(x.r||[]).some(r=>nrm(r)===nrm(p.n))).forEach(x=>out.push(x));return out}
+ if(saved&&Array.isArray(saved.tasks)){const out=saved.tasks.slice(),seen=new Set(out.map(x=>String(x.i)));dayTasks(dt).filter(x=>x.createdAt&&dt>=x.createdAt&&!seen.has(String(x.i))&&(x.r||[]).some(r=>(p.g||[]).some(g=>nrm(r)===nrm(g))||nrm(r)===nrm(p.n))).forEach(x=>out.push(x));return out}
  return dayTasks(dt).filter(x=>(x.r||[]).some(r=>(p.g||[]).includes(r)||nrm(r)===nrm(p.n)));
 };
 function captureTaskHistory(dt,people){
