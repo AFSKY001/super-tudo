@@ -2003,7 +2003,7 @@ document.addEventListener('click',e=>{
  if(t)rememberOrigin(t);
 },true);
 const ORIGIN_SURFACES='.sheet,.dd,.nbx,.balloon,[role="dialog"],.modal,.popover,[data-floating-window]';
-function originPanel(){return document.querySelector('#sh .sheet, #mn .dd, #nbx .nbx, [data-floating-window], [role="dialog"], .popover, .modal')}
+function originPanel(){return document.querySelector('#sh .sheet, #mn .dd')}
 function originOverlay(panel){
  if(panel?.parentElement){
   const sibling=[...panel.parentElement.children].find(x=>x!==panel&&x.matches?.('.ov,.overlay,.dim'));
@@ -2012,6 +2012,16 @@ function originOverlay(panel){
  return document.querySelector('#sh .ov, #mn .ov, #nbx .ov, .overlay');
 }
 function originContent(panel){return panel?.querySelector(':scope > .c, :scope > .an, :scope > .sheet-content')||panel?.firstElementChild||panel}
+function transferOriginWindow(oldPanel,newPanel){
+ const r=newPanel.getBoundingClientRect();
+ newPanel.__originStackEntry=oldPanel.__originStackEntry;
+ newPanel.__originFinalRect={left:r.left,top:r.top,width:r.width,height:r.height};
+ newPanel.__originStacked=!!oldPanel.__originStacked;
+ newPanel.__originCloseHandled=false;
+ newPanel.classList.add('origin-animated');
+ const overlay=originOverlay(newPanel);if(overlay)overlay.classList.add('origin-overlay-animated');
+ oldPanel.__originStacked=false;oldPanel.__originCloseHandled=true;oldPanel.__originStackEntry=null;
+}
 function clearOriginAnimations(el){
  if(!el)return;
  el.getAnimations?.().forEach(a=>{try{a.cancel()}catch(_){}});
@@ -2098,13 +2108,7 @@ const originObserver=new MutationObserver(records=>{
  records.forEach(rec=>{rec.addedNodes.forEach(n=>collect(n,added));rec.removedNodes.forEach(n=>collect(n,removed))});
  added.forEach(panel=>{
   const replaced=removed.find(old=>old.parentElement===panel.parentElement&&old.__originStacked);
-  if(replaced){
-   panel.__originStackEntry=replaced.__originStackEntry;
-   panel.__originFinalRect=(()=>{const x=panel.getBoundingClientRect();return {left:x.left,top:x.top,width:x.width,height:x.height}})();
-   panel.__originStacked=true;panel.__originCloseHandled=false;panel.classList.add('origin-animated');
-   replaced.__originStacked=false;replaced.__originCloseHandled=true;replaced.__originStackEntry=null;
-   return;
-  }
+  if(replaced){transferOriginWindow(replaced,panel);return;}
   /* Ao trocar uma janela por outra em outro contêiner, descarta a origem da janela antiga. */
   removed.filter(old=>old.__originStacked).forEach(old=>{
    const idx=originStack.indexOf(old.__originStackEntry);if(idx>=0)originStack.splice(idx,1);
@@ -2151,7 +2155,7 @@ function rMenu(){
  const before=originPanel(),beforeOverlay=originOverlay();
  rMenuCore();
  const after=originPanel();
- if(after&&after!==before){if(before&&before.parentElement===after.parentElement){const r=after.getBoundingClientRect();after.__originStackEntry=before.__originStackEntry;after.__originFinalRect={left:r.left,top:r.top,width:r.width,height:r.height};after.__originStacked=!!before.__originStacked;after.classList.add('origin-animated');before.__originStacked=false;before.__originCloseHandled=true;before.__originStackEntry=null;}else openFromOrigin(after,originContent(after),originOverlay(after),pendingOriginTrigger);}
+ if(after&&after!==before){if(before&&before.parentElement===after.parentElement)transferOriginWindow(before,after);else openFromOrigin(after,originContent(after),originOverlay(after),pendingOriginTrigger);}
  else if(before&&!after){closeToOrigin(before,beforeOverlay);originHistoryOpen=false;if(history.state?.stOriginPanel)history.back();}
 }
 window.addEventListener('popstate',()=>{if(V.mn||V.sh){V.mn=0;V.sh=0;rMenu();originHistoryOpen=false;}});
@@ -2476,7 +2480,7 @@ function rNb(){
  rNbCore();
  const after=host.querySelector('.nbx');
  if(after&&!before)openFromOrigin(after,originContent(after),host.querySelector('.ov'),pendingOriginTrigger);
- else if(after&&before&&after!==before){const r=after.getBoundingClientRect();after.__originStackEntry=before.__originStackEntry;after.__originFinalRect={left:r.left,top:r.top,width:r.width,height:r.height};after.__originStacked=!!before.__originStacked;after.classList.add('origin-animated');before.__originStacked=false;before.__originCloseHandled=true;before.__originStackEntry=null;}
+ else if(after&&before&&after!==before)transferOriginWindow(before,after);
  else if(before&&!after)closeToOrigin(before,beforeOverlay);
 }
 function ntRead(e){if(!e.rd.includes(V.me.id)){e.rd.push(V.me.id);e.u=Date.now()}}
