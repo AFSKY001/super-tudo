@@ -3446,7 +3446,7 @@ setor:c=>`<h2>Hoje por setor</h2>${secRows(secStats(e=>e.d===c.t))}`};
 function wmv(i,d){const j=i+d;if(j<0||j>=S.wid.length)return;[S.wid[i],S.wid[j]]=[S.wid[j],S.wid[i]];save();R()}
 function wrm(id){S.wid=S.wid.filter(x=>x!==id);save();R()}
 function wadd(id){S.wid.push(id);save();R()}
-const APP_VERSION='3.58.0';
+const APP_VERSION='3.59.0';
 
 function perfNormSector(s){const k=nomeChave(s||'');if(!k)return '';if(k.includes('padaria'))return 'padaria';if(k.includes('acougue'))return 'acougue';if(k.includes('hortifruti'))return 'hortifruti';return k}
 function perfLastDay(y,m){return new Date(y,m,0).getDate()}
@@ -3612,6 +3612,33 @@ function perfActivityAnnualHTML(people,year){
  return '<h3>Execução e qualidade mês a mês · '+year+'</h3><div class="c">'+(rows.length?rows.map(x=>'<div class="it"><div style="flex:1"><b>'+x.key.slice(5)+'/'+x.key.slice(0,4)+'</b><div class="mu">Cronograma: '+(x.a.taskPct===null?'—':x.a.taskPct.toFixed(1)+'%')+' · Checklists: '+(x.a.checkPct===null?'—':x.a.checkPct.toFixed(1)+'%')+' · Avaliação: '+(x.a.evalAvg===null?'—':x.a.evalAvg.toFixed(1)+'/10')+'</div></div></div>').join(''):'<div class="mu">Sem dados no ano.</div>')+'</div>';
 }
 
+
+function perfPersonEvolutionHTML(people,period){
+ const months=[];
+ const endKey=period.mode==='year'?period.key+'-12':period.key;
+ const endDate=new Date(+endKey.slice(0,4),+endKey.slice(5,7)-1,1);
+ const count=period.mode==='year'?12:6;
+ for(let off=count-1;off>=0;off--){
+  const d=new Date(endDate.getFullYear(),endDate.getMonth()-off,1),key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),start=key+'-01';
+  if(start>today())continue;
+  const last=perfLastDay(d.getFullYear(),d.getMonth()+1),rawEnd=key+'-'+String(last).padStart(2,'0'),end=rawEnd>today()?today():rawEnd;
+  months.push({key,start,end});
+ }
+ if(!months.length)return '';
+ const cards=people.map(p=>{
+  const series=months.map(m=>({month:m.key,data:perfActivityForPerson(p,m.start,m.end)}));
+  const valid=series.filter(x=>perfIndex(x.data)!==null),first=valid[0],last=valid[valid.length-1],delta=first&&last?last.data===first.data?0:perfIndex(last.data)-perfIndex(first.data):null;
+  const trend=delta===null?'<span class="mu">Sem base para tendência</span>':delta>0.0001?'<span class="b ok">Melhora de '+delta.toFixed(1)+' p.p.</span>':delta< -0.0001?'<span class="b no">Queda de '+Math.abs(delta).toFixed(1)+' p.p.</span>':'<span class="b wa">Estável</span>';
+  return '<div class="c"><div class="row sp"><b>'+esc(p.n)+'</b>'+trend+'</div><div class="mu">'+esc(p.s||p.f||'Sem setor')+' · Índice síntese /100</div>'+
+   series.map(x=>{
+    const a=x.data,ix=perfIndex(a),label=x.month.slice(5)+'/'+x.month.slice(0,4);
+    return '<div class="it"><div style="flex:1"><b>'+label+'</b><div class="mu">Cronograma: '+(a.tasks.percent===null?'—':a.tasks.percent.toFixed(1)+'%')+' · Checklist: '+(a.checks.percent===null?'—':a.checks.percent.toFixed(1)+'%')+' · Avaliação: '+(a.evals.avg===null?'—':a.evals.avg.toFixed(1)+'/10')+'</div></div><b>'+(ix===null?'—':ix.toFixed(1))+'</b></div>';
+   }).join('')+
+   '<div class="mu">Primeiro mês com dados: '+(first?first.month.slice(5)+'/'+first.month.slice(0,4)+' ('+perfIndex(first.data).toFixed(1)+')':'—')+' · Último: '+(last?last.month.slice(5)+'/'+last.month.slice(0,4)+' ('+perfIndex(last.data).toFixed(1)+')':'—')+'</div></div>';
+ }).join('');
+ return '<h3>Evolução individual mês a mês</h3><p class="mu">Índice síntese de 0 a 100, calculado pela média simples das dimensões disponíveis: cronogramas, checklists e avaliações convertidas para escala de 0 a 100. A tendência compara o primeiro e o último mês com dados; não representa uma avaliação isolada.</p>'+(cards||'<div class="c mu">Sem pessoas neste recorte.</div>');
+}
+
 function perfGetPeople(scope,entity){if(scope==='employee')return entity?[entity]:[];if(scope==='leader')return perfLeaderPeople(entity);if(scope==='sector')return (S.team||[]).filter(p=>perfNormSector(p.s)===perfNormSector(entity));return (S.team||[]).filter(p=>!p.adm)}
 function perfDashboardHTML(){
  const full=typeof isFullAccess==='function'&&isFullAccess(),me=(S.team||[]).find(p=>V.me&&String(p.id)===String(V.me.id))||null;
@@ -3633,12 +3660,13 @@ function perfDashboardHTML(){
  html+='<div class="c"><div class="row sp"><b>Comparação de períodos</b><span class="mu">'+period.label+' × '+period.prevLabel+'</span></div><div class="g2"><div><div class="mu">Melhoraram</div><div class="big">'+(counts.good||0)+'</div></div><div><div class="mu">Pioraram</div><div class="big">'+(counts.bad||0)+'</div></div><div><div class="mu">Estáveis</div><div class="big">'+(counts.same||0)+'</div></div><div><div class="mu">Contexto / informativo</div><div class="big">'+(counts.neutral||0)+'</div></div><div><div class="mu">Sem base</div><div class="big">'+(counts.nodata||0)+'</div></div></div><p class="mu">O resumo conta apenas indicadores com comparação possível. Vendas e recebimentos são dados de contexto, não melhoram ou pioram automaticamente.</p></div>';
  html+='<h3>Indicadores operacionais</h3>'+ (keys.length?current.map(x=>perfMetricCard(x.k,period,scope,entity)).join(''):'<div class="c mu">Nenhum indicador operacional foi atribuído a esta pessoa. Você pode escolher os indicadores no cadastro da equipe. Cronogramas, checklists e avaliações continuam sendo acompanhados abaixo.</div>');
  if(keys.includes('semv')&&scope!=='sector')html+=perfSemvHistoryHTML(period);
- html+=perfActivityHTML(people,period,scope!=='employee');
+ html+=perfActivityHTML(people,period,scope!=='employee');if(scope==='employee'||scope==='leader')html+=perfPersonEvolutionHTML(people,period);
  if(mode==='year'){html+=perfAnnualSeriesHTML(keys,+period.key,scope,entity);html+=perfActivityAnnualHTML(people,+period.key)}
  return html
 }
 
 const APP_HIST=[
+{v:'3.59.0',d:'19/11/2026',t:'Evolução individual mês a mês no desempenho (MINOR)',n:['O painel de desempenho passa a exibir a evolução mensal de cronogramas, checklists e avaliações por funcionário.','No relatório mensal, compara os últimos seis meses até o mês selecionado; no anual, mostra os meses do ano selecionado.','Apresenta um índice síntese de 0 a 100 e a diferença entre o primeiro e o último mês com dados.'],c:['O índice é uma média simples das dimensões disponíveis e não substitui avaliação qualitativa da liderança.','Meses sem dados aparecem sem nota, sem serem tratados como zero.','Nenhuma tabela, função, política ou configuração do Supabase foi alterada.']},
 {v:'3.58.0',d:'19/11/2026',t:'Histórico diário dos cronogramas no desempenho (MINOR)',n:['Ao abrir o cronograma em um dia atual ou passado, o sistema preserva a lista de atividades e responsáveis daquele dia por funcionário.','O cálculo de desempenho passa a usar a fotografia salva, mesmo após alterações futuras nos modelos ou exclusão de atividades.','O painel informa quantos dias-pessoa têm fotografia histórica e quantos ainda dependem dos modelos disponíveis.'],c:['Dias antigos que ainda não tinham fotografia antes desta versão não podem ser reconstruídos com precisão e continuam usando os modelos disponíveis.','Nenhuma tabela, função, política ou estrutura do Supabase foi alterada.']},
 {v:'3.57.0',d:'19/11/2026',t:'Histórico confiável de checklists para desempenho (MINOR)',n:['Cada checklist salvo registra uma cópia dos itens, responsável, setor e exigência de foto daquele momento.','O painel de desempenho passa a usar esse registro histórico mesmo se o modelo for editado ou removido depois.'],c:['Registros antigos sem cópia histórica continuam sendo calculados com os dados disponíveis do modelo atual.','Nenhuma tabela, função, política ou estrutura do Supabase foi alterada.']},
 {v:'3.56.1',d:'19/11/2026',t:'Redução adicional do logo na tela de login (PATCH)',n:['A imagem acima dos campos de usuário e senha fica limitada a 72 px no celular e 80 px em telas maiores.'],c:['Ajuste restrito à apresentação da tela de login; não altera autenticação, cadastros ou dados.']},
