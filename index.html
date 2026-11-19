@@ -2547,6 +2547,18 @@ function enhBtns(){document.querySelectorAll('button:not(.ibtn)').forEach(b=>{if
  b.innerHTML=`<svg viewBox="0 0 24 24" width="${sz}" height="${sz}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICN[ic]}</svg><span class="sr-only">${esc(t)}</span>`})}
 (function(){let q=false;const run=()=>{q=false;enhBtns();enhEmojiIcons()};const mo=new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}});const go=()=>mo.observe(document.body,{childList:true,subtree:true});if(document.body)go();else document.addEventListener('DOMContentLoaded',go);enhEmojiIcons()})();
 </script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(e=>console.warn('Não foi possível registrar o aplicativo offline:',e)));}</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',async()=>{
+    try{
+      const registration=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
+      // Confere imediatamente se existe uma versão mais recente do Service Worker.
+      await registration.update();
+    }catch(e){
+      console.warn('Não foi possível verificar atualização do aplicativo offline:',e);
+    }
+  });
+}
+</script>
 </body></html>
 <!-- Teste de atualização automática -->
