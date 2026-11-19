@@ -2002,17 +2002,17 @@ function completeRotTask(){
  const key=c.d+'|'+c.i+'|'+c.pid;S.done[key]=true;S.done[c.d+'|'+c.i]=true;r.status='done';r.completedAt=new Date().toISOString();r.completedBy=V.me?V.me.id:'';if(!save())return;V.rotTask=null;R()
 } function rRot(){ensureAssignedChecklistsInRotinas();if(V.rotTaskContext&&V.ck&&CK[V.ck])return rCkReg();if(V.rotTask)return rTaskDetail();return rCroMain()} function rRotEmp(){ensureAssignedChecklistsInRotinas();if(V.rotTaskContext&&V.ck&&CK[V.ck])return rCkReg();if(V.rotTask)return rTaskDetail();return rCroMain()} function rCro(){return rCroMain()}
 function rCroMain(){
- const dt=V.date||today(),admin=isFullAccess(),self=person(V.me&&V.me.id),view=V.croView||'semana';
+ const dt=V.date||today(),admin=isFullAccess(),self=person(V.me&&V.me.id),leader=!!(self&&self.l&&teamOf(self).length),managerView=admin||leader,view=V.croView||'semana';
  if(!admin&&!self)return '<div class="c mu">Seu cadastro de funcionário não foi encontrado. Peça ao administrador para revisar seu acesso.</div>';
- const people=admin?(S.team||[]).filter(p=>!p.adm):[self];
- captureTaskHistory(dt,admin?people:[self]);
- const selected=admin?(V.croPerson||'all'):self.id;
- const active=admin&&selected!=='all'?people.filter(p=>p.id===selected):people;
+ const people=admin?(S.team||[]).filter(p=>!p.adm):leader?[self,...teamOf(self)]:[self];
+ captureTaskHistory(dt,managerView?people:[self]);
+ const selected=managerView?(V.croPerson||'all'):self.id;
+ const active=managerView&&selected!=='all'?people.filter(p=>p.id===selected):people;
  const tasksFor=(p,d)=>myT(p,d),doneFor=(p,d)=>tasksFor(p,d).filter(x=>pdn(d,x,p)).length;
  const stats=d=>{let total=0,done=0;active.forEach(p=>{const t=tasksFor(p,d);total+=t.length;done+=t.filter(x=>pdn(d,x,p)).length});return{total,done}};
- let h='<div class="row sp"><div><h3 style="margin:0">'+(admin?'Acompanhamento das Rotinas':'Minhas Rotinas')+'</h3><div class="mu">'+(admin?'Acompanhe a execução por funcionário, atividade e procedimento.':'Veja suas atividades e preencha os procedimentos previstos para cada dia.')+'</div></div></div>';
- if(admin){
-  h+='<div class="c"><label>Funcionário<select id="cro_person_filter" onchange="V.croPerson=this.value;R()"><option value="all" '+(selected==='all'?'selected':'')+'>Todos os funcionários</option>'+people.map(p=>'<option value="'+esc(p.id)+'" '+(selected===p.id?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label><label>Dia selecionado<input type="date" value="'+esc(dt)+'" onchange="V.date=this.value;R()"></label></div>';
+ let h='<div class="row sp"><div><h3 style="margin:0">'+(managerView?'Acompanhamento das Rotinas':'Minhas Rotinas')+'</h3><div class="mu">'+(managerView?'Acompanhe a execução da sua equipe, por funcionário, atividade e procedimento.':'Veja suas atividades e preencha os procedimentos previstos para cada dia.')+'</div></div></div>';
+ if(managerView){
+  h+='<div class="c"><label>'+(admin?'Funcionário':'Pessoa da equipe')+'<select id="cro_person_filter" onchange="V.croPerson=this.value;R()"><option value="all" '+(selected==='all'?'selected':'')+'>'+(admin?'Todos os funcionários':'Minha equipe')+'</option>'+people.map(p=>'<option value="'+esc(p.id)+'" '+(selected===p.id?'selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></label><label>Dia selecionado<input type="date" value="'+esc(dt)+'" onchange="V.date=this.value;R()"></label></div>';
  }else{
   h+='<div class="c"><div class="row sp"><b>'+esc(self.n)+'</b><span class="mu">'+esc(self.s||self.f||'')+'</span></div></div>';
  }
@@ -2026,7 +2026,7 @@ function rCroMain(){
  }
  const all=stats(dt);
  h+='<div class="c"><div class="row sp"><b>'+DN[dow(dt)]+', '+br(dt)+'</b><span class="mu">'+all.done+'/'+all.total+' concluídas</span></div>'+bar(all.total?all.done/all.total*100:0)+'</div>';
- if(admin){
+ if(managerView){
   const groups=active.map(p=>({p,t:tasksFor(p,dt)})).filter(x=>x.t.length);
   h+=groups.length?groups.map(({p,t})=>{const n=t.filter(x=>pdn(dt,x,p)).length;return '<div class="c"><div class="row sp"><b>'+esc(p.n)+'</b><span class="mu">'+n+'/'+t.length+' concluídas</span></div>'+bar(t.length?n/t.length*100:0)+t.map(x=>{const d=pdn(dt,x,p);return '<div class="it"><span>'+(d?'✓':'○')+'</span><div style="'+(d?'opacity:.6;text-decoration:line-through':'')+'"><b>'+esc(x.t)+'</b><div class="mu">'+(x.r||[]).map(esc).join(' · ')+(x.time?' · '+esc(x.time):'')+'</div></div><span class="b '+(d?'ok':'wa')+'">'+(d?'Feito':'Pendente')+'</span><button class="bt g" onclick="openRotTask(\''+dt+'\',\''+String(x.i)+'\',\''+p.id+'\')">Ver registro</button></div>'}).join('')+'</div>'}).join(''):'<div class="c mu">Nenhuma atividade prevista para este dia e filtro.</div>';
  }else{
