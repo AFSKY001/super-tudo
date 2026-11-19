@@ -1543,6 +1543,135 @@ input[aria-invalid="false"],select[aria-invalid="false"],textarea[aria-invalid="
  .an>*,.an .bar i,.an .cols i,.an .rg,.an.dr>*,.an.dl>*,.dd,.balloon,.sheet{animation:none!important}
 }
 
+
+
+/* ================================================================
+   SUPER TUDO — ETAPA 2: NAVEGAÇÃO MOBILE
+   CSS only. Mantém a navegação e as permissões já implementadas.
+   ================================================================ */
+
+/* Cabeçalho: marca, notificações e sincronização */
+header{
+  gap:10px!important;
+  align-items:center!important;
+  padding-top:max(12px,env(safe-area-inset-top,0px))!important;
+  padding-bottom:9px!important;
+}
+header>div:first-child{min-width:0;flex:1 1 auto}
+header h1{display:flex;align-items:center;gap:9px;min-width:0}
+header h1 .app-brand-logo{width:34px;height:34px;object-fit:contain;flex:0 0 auto}
+header h1{font-size:clamp(16px,4.3vw,20px)!important;letter-spacing:-.45px}
+header p{font-size:11px!important}
+#syncStatus{flex:0 0 auto;font-size:10px!important;max-width:84px;overflow:hidden;text-overflow:ellipsis}
+#dt{display:none!important}
+#bl{
+  display:inline-flex!important;
+  flex:0 0 42px;
+  width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+  align-items:center;justify-content:center;
+  border:1px solid var(--bd)!important;
+  border-radius:14px!important;
+  background:var(--cd)!important;
+  color:var(--pr)!important;
+  box-shadow:var(--sh1)!important;
+}
+#bl .ic{width:21px;height:21px}
+#bn{top:1px!important;right:1px!important;min-width:17px!important;height:17px!important;border:2px solid var(--cd);line-height:13px!important}
+
+/* Barra inferior: alvos consistentes, ícones claros e estado ativo evidente */
+@media(max-width:1023px){
+  body{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))!important}
+  nav{
+    position:fixed!important;
+    left:10px!important;right:10px!important;
+    bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
+    top:auto!important;width:auto!important;max-width:none!important;
+    display:flex!important;flex-direction:row!important;
+    align-items:stretch!important;justify-content:space-between!important;
+    gap:2px!important;padding:6px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;
+    overscroll-behavior-x:contain;scrollbar-width:none;
+    border:1px solid color-mix(in srgb,var(--bd) 82%,transparent)!important;
+    border-radius:22px!important;
+    background:color-mix(in srgb,var(--cd) 94%,transparent)!important;
+    box-shadow:0 8px 28px rgba(24,38,61,.16)!important;
+    -webkit-backdrop-filter:blur(18px);
+    backdrop-filter:blur(18px);
+  }
+  nav::-webkit-scrollbar{display:none}
+  nav button{
+    position:relative!important;
+    flex:1 0 0!important;min-width:0!important;width:auto!important;
+    max-width:none!important;height:58px!important;min-height:58px!important;
+    padding:4px 2px!important;margin:0!important;
+    display:flex!important;flex-direction:column!important;
+    align-items:center!important;justify-content:center!important;
+    gap:4px!important;border:0!important;border-radius:15px!important;
+    background:transparent!important;box-shadow:none!important;
+    color:var(--mu)!important;
+    transition:background-color 180ms var(--ui-ease),color 180ms var(--ui-ease),transform 150ms var(--ui-ease)!important;
+  }
+  nav button .ni{
+    width:30px!important;height:28px!important;
+    display:grid!important;place-items:center!important;
+    border-radius:10px!important;font-size:21px!important;line-height:1!important;
+    color:currentColor!important;
+    transition:background-color 180ms var(--ui-ease),transform 180ms var(--ui-ease)!important;
+  }
+  nav button .ni .ic{width:21px!important;height:21px!important}
+  nav button .nl{
+    display:block!important;max-width:100%!important;
+    height:13px!important;line-height:13px!important;
+    overflow:hidden!important;text-overflow:ellipsis!important;
+    white-space:nowrap!important;opacity:1!important;
+    font-size:clamp(8px,2.35vw,10px)!important;
+    font-weight:600!important;letter-spacing:-.2px!important;
+  }
+  nav button.on{
+    color:var(--pr)!important;
+    background:var(--prs)!important;
+  }
+  nav button.on .ni{
+    background:color-mix(in srgb,var(--pr) 13%,transparent)!important;
+    transform:translateY(-1px)!important;
+  }
+  nav button.on .nl{font-weight:800!important}
+  nav button:active{transform:scale(.97)!important}
+  nav button:focus-visible{outline:2px solid var(--pr)!important;outline-offset:-2px}
+}
+@media(max-width:390px){
+  nav{left:6px!important;right:6px!important;padding:5px!important;gap:1px!important}
+  nav button{border-radius:12px!important}
+  nav button .ni{width:26px!important;height:26px!important;font-size:19px!important}
+  nav button .nl{font-size:8px!important;letter-spacing:-.3px!important}
+}
+@media(min-width:391px) and (max-width:1023px){
+  nav button .nl{font-size:10px!important}
+}
+
+/* Configuração e janelas em formato de folha no celular */
+.sheet{
+  max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))!important;
+  -webkit-overflow-scrolling:touch;
+}
+.sheet>.c{min-width:0}
+.nbx{
+  max-height:calc(100dvh - 100px - env(safe-area-inset-bottom,0px))!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+}
+
+/* Estados vazios já existentes: melhor leitura, sem inventar conteúdo */
+.c.mu{
+  line-height:1.55;
+}
+@media(prefers-reduced-motion:reduce){
+  #bl,nav button,nav button .ni{transition:none!important}
+}
+
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
