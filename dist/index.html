@@ -1753,6 +1753,36 @@ header p{font-size:11px!important}
   .skeleton{animation:none!important}
 }
 
+
+/* ================================================================
+   SUPER TUDO — ETAPA 4: MOVIMENTO DO SINO DE NOTIFICAÇÕES
+   O sino se move apenas quando o total de notificações não lidas aumenta.
+   ================================================================ */
+@keyframes st-bell-ringing{
+  0%,100%{transform:rotate(0deg)}
+  10%{transform:rotate(16deg)}
+  22%{transform:rotate(-14deg)}
+  34%{transform:rotate(11deg)}
+  46%{transform:rotate(-8deg)}
+  58%{transform:rotate(5deg)}
+  70%{transform:rotate(-2deg)}
+  82%{transform:rotate(0deg)}
+}
+@keyframes st-bell-badge-pop{
+  0%{opacity:.65;transform:scale(.72)}
+  65%{opacity:1;transform:scale(1.14)}
+  100%{opacity:1;transform:scale(1)}
+}
+#bl .ic{transform-box:fill-box;transform-origin:50% 12%}
+#bl.is-ringing .ic{
+  animation:st-bell-ringing 560ms cubic-bezier(.36,.07,.19,.97) both;
+}
+#bl.is-ringing #bn{
+  animation:st-bell-badge-pop 190ms cubic-bezier(.2,.8,.2,1) both;
+}
+@media(prefers-reduced-motion:reduce){
+  #bl.is-ringing .ic,#bl.is-ringing #bn{animation:none!important}
+}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
@@ -1793,5 +1823,72 @@ function regMenuIcon(_0x206eed){const _0x39f289=REG_MENU_ICON_PATHS[_0x206eed];r
 <script>
 const _0x1b945d=_0x54e1;(function(_0x3005eb,_0x419ab5){const _0x372205=_0x54e1,_0x2c1b2d=_0x3005eb();while(!![]){try{const _0x126aba=parseInt(_0x372205(0x1d5))/0x1*(-parseInt(_0x372205(0x1cc))/0x2)+-parseInt(_0x372205(0x1d4))/0x3+-parseInt(_0x372205(0x1d1))/0x4*(-parseInt(_0x372205(0x1d6))/0x5)+parseInt(_0x372205(0x1cb))/0x6*(-parseInt(_0x372205(0x1ce))/0x7)+-parseInt(_0x372205(0x1d2))/0x8+-parseInt(_0x372205(0x1c9))/0x9*(-parseInt(_0x372205(0x1cf))/0xa)+parseInt(_0x372205(0x1d0))/0xb;if(_0x126aba===_0x419ab5)break;else _0x2c1b2d['push'](_0x2c1b2d['shift']());}catch(_0x486cb9){_0x2c1b2d['push'](_0x2c1b2d['shift']());}}}(_0x2900,0xe87a3));function _0x54e1(_0x4686e5,_0x434db5){_0x4686e5=_0x4686e5-0x1c9;const _0x2900ba=_0x2900();let _0x54e102=_0x2900ba[_0x4686e5];if(_0x54e1['dxQkUx']===undefined){var _0xeaa741=function(_0x13bb37){const _0x4dad10='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let _0x239cf7='',_0x2ca70f='';for(let _0x25b066=0x0,_0x5a4e44,_0x1ffd8a,_0x12431b=0x0;_0x1ffd8a=_0x13bb37['charAt'](_0x12431b++);~_0x1ffd8a&&(_0x5a4e44=_0x25b066%0x4?_0x5a4e44*0x40+_0x1ffd8a:_0x1ffd8a,_0x25b066++%0x4)?_0x239cf7+=String['fromCharCode'](0xff&_0x5a4e44>>(-0x2*_0x25b066&0x6)):0x0){_0x1ffd8a=_0x4dad10['indexOf'](_0x1ffd8a);}for(let _0x46bf37=0x0,_0xde4a08=_0x239cf7['length'];_0x46bf37<_0xde4a08;_0x46bf37++){_0x2ca70f+='%'+('00'+_0x239cf7['charCodeAt'](_0x46bf37)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(_0x2ca70f);};_0x54e1['ehHMLw']=_0xeaa741,_0x54e1['BKmVSm']={},_0x54e1['dxQkUx']=!![];}const _0x4f761f=_0x2900ba[0x0];_0x54e1['ZJgAAC']!==_0x4f761f&&(_0x54e1['BKmVSm']={},_0x54e1['ZJgAAC']=_0x4f761f);const _0x54057b=_0x54e1['BKmVSm'][_0x4686e5];return _0x54057b===undefined?(_0x54e102=_0x54e1['ehHMLw'](_0x54e102),_0x54e1['BKmVSm'][_0x4686e5]=_0x54e102):_0x54e102=_0x54057b,_0x54e102;}if('serviceWorker'in navigator){let e=!0x1;const o=!!navigator['serviceWorker']['controller'];navigator[_0x1b945d(0x1d3)]['addEventListener']('controllerchange',()=>{const _0x2a564e=_0x1b945d;o&&!e&&(e=!0x0,window[_0x2a564e(0x1ca)]['reload']());}),window[_0x1b945d(0x1cd)]('load',async()=>{const _0x2c54b0=_0x1b945d;try{const _0x2ca70f=await navigator[_0x2c54b0(0x1d3)]['register']('/sw.js',{'scope':'/'});await _0x2ca70f['update']();}catch(_0x25b066){console['warn']('Não\x20foi\x20possível\x20verificar\x20atualização\x20do\x20aplicativo\x20offline:',_0x25b066);}});}function _0x2900(){const _0x17d5e3=['ngzcA3jzBq','otG0mZyXnMLmDNnUvG','C2vYDMLJzvDVCMTLCG','mZuYnJe1nxDUDvferG','mtKWmdfdr0nrDgS','ndyWnte1nw56C3PRyW','mtGXntnAq1DMDLm','Bg9JyxrPB24','nJbLBvPTu3m','nJz5wwDbC3y','ywrKrxzLBNrmAxn0zw5LCG','otq0otmWANPlD1bN','mty0mez2EfLfvq','ndq5mtq5ntHszNjSuKG'];_0x2900=function(){return _0x17d5e3;};return _0x2900();}
 </script>
+
+<script>
+/* Etapa 4: observa somente o contador existente; não altera notificações ou dados. */
+(function () {
+  const bell = document.getElementById('bl');
+  const badge = document.getElementById('bn');
+  if (!bell || !badge || typeof MutationObserver === 'undefined') return;
+
+  let ready = getComputedStyle(bell).display !== 'none';
+  let lastUnread = readUnreadCount();
+
+  function readUnreadCount() {
+    const value = (badge.textContent || '').trim();
+    if (!value) return 0;
+    if (value.endsWith('+')) return 100;
+    const count = Number.parseInt(value, 10);
+    return Number.isFinite(count) ? count : 0;
+  }
+
+  function ringBell() {
+    if (window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    bell.classList.remove('is-ringing');
+    void bell.offsetWidth;
+    bell.classList.add('is-ringing');
+  }
+
+  bell.addEventListener('animationend', function (event) {
+    if (event.animationName === 'st-bell-ringing') {
+      bell.classList.remove('is-ringing');
+    }
+  });
+
+  const observer = new MutationObserver(function (records) {
+    const visible = getComputedStyle(bell).display !== 'none';
+    if (!visible) {
+      ready = false;
+      lastUnread = 0;
+      bell.classList.remove('is-ringing');
+      return;
+    }
+
+    const visibilityChanged = records.some(function (record) {
+      return record.target === bell && record.type === 'attributes';
+    });
+    if (!ready || visibilityChanged) {
+      lastUnread = readUnreadCount();
+      ready = true;
+      return;
+    }
+
+    const badgeChanged = records.some(function (record) {
+      return record.target === badge ||
+        (record.target instanceof Node && badge.contains(record.target));
+    });
+    if (!badgeChanged) return;
+
+    const currentUnread = readUnreadCount();
+    if (currentUnread > lastUnread) ringBell();
+    lastUnread = currentUnread;
+  });
+
+  observer.observe(bell, { attributes: true, attributeFilter: ['style'] });
+  observer.observe(badge, { childList: true, characterData: true, subtree: true });
+})();
+</script>
+
 </body></html>
 <!-- Teste de atualização automática -->
