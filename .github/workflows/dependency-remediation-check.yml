@@ -41,8 +41,11 @@ jobs:
       - name: Verify no high or critical vulnerabilities remain
         run: npm audit --audit-level=high
 
-      - name: Run protected production build
-        run: npm run build:deploy
+      - name: Verify application sync contract
+        run: npm run check:sync
+
+      - name: Verify global UI standards
+        run: npm run check:ui
 
       - name: Upload candidate dependency manifests
         uses: actions/upload-artifact@v7
