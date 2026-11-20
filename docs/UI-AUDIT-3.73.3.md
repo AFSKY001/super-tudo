@@ -57,3 +57,10 @@ Os limites dos diálogos são temporários: quando a migração global for concl
 - A versão do aplicativo permanece 3.73.3; esta etapa prepara uma proteção de qualidade no processo de build, não uma atualização funcional publicada.
 
 **Conclusão:** a prioridade é eliminar a causa das diferenças na camada compartilhada e impedir regressões futuras. Não fazer uma limpeza geral de CSS sem testes por módulo.
+
+
+## Continuação — dimensões globais dos controles
+
+Na etapa seguinte, foi adicionada ao CSS global uma camada única de tokens para dimensões recorrentes: `--ui-control-height` (42px), `--ui-chip-height` (36px), `--ui-field-height` (44px) e `--ui-control-radius`. Botões e chips usam esses tokens em todos os módulos; ações em `.page-content` mantêm altura mínima de 42px. Campos de entrada e seleção usam o token de 44px, preservando a exceção de checkboxes e radios.
+
+O verificador de build também passou a exigir esses tokens e seus seletores globais. Esta é uma padronização de dimensões, não uma remoção dos estilos históricos: as regras anteriores permanecem para evitar regressão inesperada e serão consolidadas em etapas futuras.

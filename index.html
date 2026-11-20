@@ -1642,3 +1642,17 @@ const _0x1b945d=_0x54e1;(function(_0x3005eb,_0x419ab5){const _0x372205=_0x54e1,_
 </script>
 </body></html>
 <!-- Teste de atualização automática -->
+
+/* Contrato global de dimensões dos controles — reutilizar em todos os módulos */
+:root{
+  --ui-control-height:42px;
+  --ui-chip-height:36px;
+  --ui-field-height:44px;
+  --ui-control-radius:var(--r-s,8px);
+}
+.bt{min-height:var(--ui-control-height)}
+.ch{min-height:var(--ui-chip-height)}
+.page-content button.bt,
+.page-content button.ch{min-height:var(--ui-control-height)}
+input:not([type="checkbox"]):not([type="radio"]),
+select{min-height:var(--ui-field-height)}
