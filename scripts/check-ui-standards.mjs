@@ -16,14 +16,14 @@ const [html, rules, agent, sw, packageJson, packageLock] = await Promise.all([
 
 const pkg = JSON.parse(packageJson);
 const lock = JSON.parse(packageLock);
-const sourceVersion = html.match(/const APP_VERSION\\s*=\\s*['"]([^'"]+)['"]/);
-const cacheVersion = sw.match(/const CACHE_NAME\\s*=\\s*['"]super-tudo-v([^'"]+)['"]/);
+const sourceVersion = html.match(/const APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+const cacheVersion = sw.match(/const CACHE_NAME\s*=\s*['"]super-tudo-v([^'"]+)['"]/);
 
 const requireCheck = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-requireCheck(/^\\d+\\.\\d+\\.\\d+$/.test(String(pkg.version || '')), 'package.json must contain a semantic application version.');
+requireCheck(/^\d+\.\d+\.\d+$/.test(String(pkg.version || '')), 'package.json must contain a semantic application version.');
 requireCheck(lock.version === pkg.version && lock.packages?.['']?.version === pkg.version, 'package-lock.json root versions must match package.json.');
 requireCheck(sourceVersion?.[1] === pkg.version, 'index.html APP_VERSION must match package.json.');
 requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match package.json.');
