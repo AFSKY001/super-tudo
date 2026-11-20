@@ -388,3 +388,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Cada remoção preserva a declaração equivalente já definida anteriormente no mesmo seletor global, sem alteração intermediária do mesmo atributo.
 - Mantidos os blocos responsivos, temas, estados, animações e regras específicas de componentes.
 - Nenhuma alteração em HTML funcional, JavaScript, autenticação, permissões, sessão, banco de dados ou sincronização.
+
+
+## Limpeza agrupada de CSS — versão 3.73.25
+
+- Removidas 11 declarações repetidas em regras globais de chips, títulos, indicadores, formulários, navegação, cabeçalho e marca.
+- As declarações removidas tinham o mesmo valor definido anteriormente no mesmo seletor global, sem alteração intermediária da propriedade; mantidas as regras finais e os estados visuais.
+- Preservados temas, breakpoints, dimensões, animações e comportamento dos componentes.
+- Alinhadas as duas referências de versão do `package-lock.json` com `package.json`.
+- Nenhuma alteração em HTML funcional, JavaScript, autenticação, permissões, sessão, banco de dados ou sincronização.
