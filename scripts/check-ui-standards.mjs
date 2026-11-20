@@ -28,6 +28,9 @@ requireCheck(lock.version === pkg.version && lock.packages?.['']?.version === pk
 requireCheck(sourceVersion?.[1] === pkg.version, 'index.html APP_VERSION must match package.json.');
 requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match package.json.');
 
+const deleteAllMatch = html.match(/async function ntDeleteAll\(\)\{[\s\S]*?\}\s*function buy\(/);
+requireCheck(!!deleteAllMatch && /await window\.stConfirm\(/.test(deleteAllMatch?.[0] || '') && !/\bconfirm\s*\(/.test(deleteAllMatch?.[0] || ''), 'Notification delete-all must use the internal Super Tudo confirmation dialog.');
+
 requireCheck(agent.includes('padrão global, nunca solução isolada'), 'AGENTS.md is missing the repository-wide UI rule.');
 requireCheck(rules.includes('Design system global'), 'The global design system document is missing or invalid.');
 requireCheck(html.includes('class="ch dashboard-edit-icon"'), 'Dashboard edit action must remain icon-only.');

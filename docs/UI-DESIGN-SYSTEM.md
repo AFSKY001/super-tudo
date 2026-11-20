@@ -117,7 +117,7 @@ Se um componente compartilhado não atender a uma necessidade real, primeiro evo
 - Não exibir sucesso antes de confirmar a operação.
 
 ### Janelas e mensagens
-- Não introduzir `alert()`, `confirm()` ou `prompt()` nativos em novas funcionalidades.
+- Não introduzir `alert()`, `confirm()` ou `prompt()` nativos em novas funcionalidades. A exclusão de todas as notificações usa explicitamente `window.stConfirm()` e deve permanecer coberta pela verificação automatizada.
 - A migração global das chamadas legadas para toasts, mensagens inline e diálogos internos está registrada como uma etapa própria no planejamento. O serviço central foi iniciado na versão 3.73.43. Na versão 3.73.44, confirmações e entrada de texto passam a usar o mesmo diálogo interno, com migração assíncrona automática na etapa de build. Não inventar uma API alternativa por módulo.
 - Mensagens rápidas não bloqueantes devem ser toasts; decisões críticas/destrutivas podem usar diálogo central; validação específica deve ficar junto ao campo.
 - Não empilhar diálogos nem perder o foco/contexto da tela.
