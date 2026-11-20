@@ -412,3 +412,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidas 11 declarações CSS repetidas na navegação responsiva (mesmo seletor, breakpoint, valor e prioridade, sem sobrescrita intermediária da propriedade).
 - Preservadas as regras finais de aparência, estados ativos, dimensões, acessibilidade e comportamento em telas pequenas.
 - Atualizados APP_VERSION, package.json, package-lock.json e cache do service worker para 3.73.27.
+
+
+## Consolidação final de propriedades da navegação — versão 3.73.28
+
+- Removidas 7 declarações redundantes de propriedades repetidas na navegação móvel, mantendo a definição anterior idêntica no mesmo seletor e breakpoint.
+- Preservadas as regras específicas de estado ativo, ícones, rótulos e tamanhos de tela.
+- Atualizados APP_VERSION, package.json, package-lock.json e cache do service worker para 3.73.28.
