@@ -1757,7 +1757,7 @@ function syncConflictDialog(key,server,notice){
     actions.className='row';
     actions.style.justifyContent='flex-end';
     actions.style.marginTop='18px';
-    const finish=value=>{overlay.remove();resolve(value);};
+    const finish=value=>{document.removeEventListener('keydown',onKey);overlay.remove();resolve(value);};
     if(server&&!notice){
       const keep=document.createElement('button');
       keep.type='button';keep.className='bt';keep.textContent='Manter minha alteração';
@@ -1774,14 +1774,14 @@ function syncConflictDialog(key,server,notice){
     panel.append(actions);
     overlay.addEventListener('click',event=>{if(event.target===overlay)finish('later');});
     const onKey=event=>{if(event.key==='Escape'){document.removeEventListener('keydown',onKey);finish('later');}};
-    document.addEventListener('keydown',onKey,{once:true});
+    document.addEventListener('keydown',onKey);
     overlay.append(panel);
     document.body.append(overlay);
     (server&&!notice?actions.firstElementChild:later).focus();
   });
 }
 async function syncResolveConflictsUI(){
-  const keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
+  let keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
   if(!keys.length)return;
   if(typeof navigator!=='undefined'&&!navigator.onLine){
     await syncConflictDialog('',null,'Conecte este aparelho à internet para consultar a versão atual da nuvem. Suas alterações locais continuam salvas.');
@@ -1797,6 +1797,8 @@ async function syncResolveConflictsUI(){
     await syncConflictDialog('',null,'Não consegui consultar a versão mais recente da nuvem. Suas alterações locais continuam salvas. Tente novamente quando a conexão estiver estável.');
     return;
   }
+  keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
+  if(!keys.length){syncStatusUpdate();return;}
   for(const key of keys){
     const conflict=syncMeta.conflicts[key];
     const server=conflict?.server_record;
