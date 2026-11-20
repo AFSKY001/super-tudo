@@ -1515,6 +1515,10 @@ select{min-height:var(--ui-field-height)}
    Não altera estrutura, identificadores, dados ou comportamento JavaScript.
    ===================================================================== */
 :root{
+  --ui-motion-feedback:120ms;
+  --ui-motion-state:190ms;
+  --ui-motion-enter:250ms;
+  --ui-motion-panel:300ms;
   --ui-motion-fast:160ms;
   --ui-motion:220ms;
   --ui-motion-slow:300ms;
@@ -1821,59 +1825,59 @@ textarea{min-height:96px;resize:vertical}
     -webkit-backdrop-filter:blur(18px) saturate(1.25);
   }
   nav button{
-    flex:1 1 0!important;
-    width:auto!important;
-    min-width:0!important;
-    max-width:none!important;
-    height:62px!important;
-    min-height:62px!important;
-    margin:0!important;
-    padding:3px 1px!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:4px!important;
-    border:0!important;
-    border-radius:15px!important;
-    background:transparent!important;
-    color:var(--mu)!important;
-    box-shadow:none!important;
+    flex:1 1 0;
+    width:auto;
+    min-width:0;
+    max-width:none;
+    height:62px;
+    min-height:62px;
+    margin:0;
+    padding:3px 1px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    border:0;
+    border-radius:15px;
+    background:transparent;
+    color:var(--mu);
+    box-shadow:none;
     transform:none;
   }
   nav button .ni{
-    width:28px!important;height:28px!important;flex:0 0 28px!important;
-    display:grid!important;place-items:center!important;
-    font-size:21px!important;line-height:1!important;
-    border-radius:10px!important;background:transparent!important;
+    width:28px;height:28px;flex:0 0 28px;
+    display:grid;place-items:center;
+    font-size:21px;line-height:1;
+    border-radius:10px;background:transparent;
     transition:transform var(--ui-motion-fast) var(--ui-motion-ease),background-color var(--ui-motion) var(--ui-motion-ease),color var(--ui-motion) var(--ui-motion-ease);
   }
-  nav button .ni .ic{width:21px!important;height:21px!important}
+  nav button .ni .ic{width:21px;height:21px}
   nav button .nl{
-    display:block!important;
-    width:100%!important;
-    height:12px!important;min-height:12px!important;
-    overflow:hidden!important;
-    opacity:.78!important;
-    font-size:clamp(8px,2.35vw,10px)!important;
-    font-weight:650!important;line-height:12px!important;
-    letter-spacing:-.15px!important;text-align:center!important;
-    white-space:nowrap!important;text-overflow:clip!important;
+    display:block;
+    width:100%;
+    height:12px;min-height:12px;
+    overflow:hidden;
+    opacity:.78;
+    font-size:clamp(8px,2.35vw,10px);
+    font-weight:650;line-height:12px;
+    letter-spacing:-.15px;text-align:center;
+    white-space:nowrap;text-overflow:clip;
     transform:translateY(1px);
   }
   nav button.on{
-    background:var(--prs)!important;
-    color:var(--pr)!important;
-    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pr) 9%,transparent)!important;
+    background:var(--prs);
+    color:var(--pr);
+    box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pr) 9%,transparent);
   }
   nav button.on .ni{
-    background:var(--pr)!important;
-    color:#fff!important;
-    box-shadow:0 3px 8px rgba(36,87,230,.2)!important;
-    transform:translateY(-1px)!important;
+    background:var(--pr);
+    color:#fff;
+    box-shadow:0 3px 8px rgba(36,87,230,.2);
+    transform:translateY(-1px);
   }
-  nav button.on .nl{opacity:1!important}
-  nav button::after{display:none!important}
+  nav button.on .nl{opacity:1}
+  nav button::after{display:none}
 }
 @media(max-width:360px){
   nav{width:calc(100vw - 14px)!important}
@@ -1907,12 +1911,35 @@ details[open]>:not(summary){animation:st-visual-enter 190ms var(--ui-motion-ease
 .empty-state .ic,.empty .ic,.state-empty .ic{width:30px;height:30px;margin:0 auto 8px;color:var(--pr)}
 @keyframes st-skeleton{from{opacity:.55}to{opacity:1}}
 
+
+/* Indicador ativo e transição entre rotas */
+nav button{position:relative}
+nav button.on::after{
+  content:"";position:absolute;left:50%;bottom:2px;width:18px;height:3px;
+  border-radius:999px;background:var(--pr);opacity:1;transform:translateX(-50%);
+}
+input[type="checkbox"]:focus-visible,input[type="radio"]:focus-visible{
+  box-shadow:var(--ui-focus);
+}
+@keyframes st-screen-enter-forward{
+  from{opacity:0;transform:translate3d(12px,0,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes st-screen-enter-back{
+  from{opacity:0;transform:translate3d(-12px,0,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+#app.an>*{animation:st-screen-enter-forward 220ms var(--ui-motion-ease) both}
+#app.an.dr>*{animation:st-screen-enter-forward 220ms var(--ui-motion-ease) both}
+#app.an.dl>*{animation:st-screen-enter-back 220ms var(--ui-motion-ease) both}
+
 /* Acessibilidade: remove movimento sem retirar estados visuais */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}
   #app.an>*,.sheet,.dd,.balloon,.nbx{animation:none!important}
   button:active,.c[onclick]:active,.c.tap:active,.reg-menu-tile:active{transform:none!important}
 }
+
 
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
