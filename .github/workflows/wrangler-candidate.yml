@@ -12,7 +12,7 @@ on:
       - 'scripts/**'
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: wrangler-candidate-${{ github.ref }}
@@ -53,6 +53,26 @@ jobs:
             console.log(JSON.stringify({name,severity:item.severity,range:item.range,fixAvailable:item.fixAvailable,via:item.via}));
           }
           NODE
+      - name: Commit tested Wrangler pin
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const report = JSON.parse(fs.readFileSync('npm-audit-candidate.json', 'utf8'));
+          const counts = report.metadata?.vulnerabilities ?? {};
+          if ((counts.total ?? 0) !== 0) {
+            throw new Error('Wrangler candidate has npm audit findings; refusing to commit.');
+          }
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(deps): pin tested Wrangler 4.165.0"
+            git push
+          else
+            echo "The tested Wrangler lockfile is already committed."
+          fi
       - name: Upload Wrangler candidate files and audit report
         uses: actions/upload-artifact@v7
         with:
