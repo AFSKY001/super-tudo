@@ -30,7 +30,7 @@ O comando `npm run check:sync` confirma a presença de 13 contratos estruturais:
 ## Pontos encontrados que exigem correção antes do teste final
 
 - O cliente chama `sync_pull` sempre com `p_since: null`, portanto busca o snapshot completo a cada atualização. Hoje o banco tem poucos registros, mas o custo crescerá com o uso. A migração para cursor incremental exige cursor gerado pelo servidor; não usar relógio local do aparelho.
-- Foram encontrados 21 resultados históricos de conflito na tabela `sync_ops`, todos do tipo `r:ck`; não há resultados `forbidden` ou `invalid` no histórico consultado. Isso não informa se ainda há fila pendente em algum aparelho.
+- Foram encontrados 21 resultados históricos de conflito na tabela `sync_ops`, todos do tipo `r:ck`. Os 21 têm `server_revision`, indicando divergência de revisão base (edição concorrente), e não erro de formato ou registro inexistente. Não há resultados `forbidden` ou `invalid` no histórico consultado. Isso não informa se ainda há fila pendente em algum aparelho.
 - O cliente marca itens da fila como `conflict` e o envio ignora itens com status preenchido. Não foi localizado um fluxo explícito de resolução manual que compare versão local e versão do servidor e gere uma nova operação com novo `client_id` e revisão base atualizada. **Não reprocessar conflitos automaticamente**, pois isso pode apagar alterações feitas por outro funcionário.
 - O callback de Realtime não recebe/trata o estado de inscrição no código atual; o polling de 30 segundos funciona como recuperação, mas falhas de inscrição podem ficar invisíveis ao usuário.
 
@@ -38,7 +38,7 @@ O comando `npm run check:sync` confirma a presença de 13 contratos estruturais:
 
 - 67 registros em `app_records`, dos quais 18 são tombstones de exclusão.
 - 1.443 operações registradas em `sync_ops`: 1.422 aplicadas e 21 conflitos.
-- Os 21 conflitos são do tipo `r:ck`. Não foram encontrados resultados `forbidden` ou `invalid` no conjunto consultado.
+- Os 21 conflitos são do tipo `r:ck` e todos incluem `server_revision`, confirmando conflito por revisão base desatualizada. Não foram encontrados resultados `forbidden` ou `invalid` no conjunto consultado.
 - Nenhuma linha, política, função ou permissão foi alterada durante essa inspeção.
 
 ## Critério de conclusão
