@@ -2,7 +2,7 @@
 
 ## Escopo e limites
 
-Auditoria somente de leitura do repositório `main`, do build de produção Cloudflare e do projeto Supabase conectado. Nenhuma tabela, política, função, credencial, usuário ou dado de produção foi alterado nesta auditoria.
+Auditoria do repositório `main`, da distribuição protegida e do projeto Supabase conectado. A inspeção inicial foi somente leitura; em etapa posterior foram aplicadas duas migrações aditivas: uma para índices de chaves estrangeiras e outra para otimizar três políticas RLS. Nenhum usuário, credencial ou dado de negócio foi alterado.
 
 A versão preparada nesta correção é **3.73.32**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; a confirmação do deploy real deve ser feita no painel do Cloudflare.
 
@@ -42,8 +42,8 @@ Verificações estáticas realizadas no HTML principal:
   - A consulta de privilégios confirmou que `anon` e `authenticated` não têm acesso direto a essas tabelas; o acesso administrativo fica reservado ao `service_role`. Portanto, o alerta de RLS sem política é informativo nesse desenho e não deve ser corrigido criando políticas permissivas.
   - 11 funções `SECURITY DEFINER` podem ser executadas por `authenticated`; nenhuma das 11 pode ser executada por `anon`. Incluem funções auxiliares usadas pelas políticas e as RPCs `sync_pull`/`sync_push`. Não revogar permissões em bloco: isso pode interromper RLS e sincronização.
   - A proteção contra senhas vazadas está desabilitada. É uma melhoria recomendada de Auth, mas não foi alterada porque pode afetar o cadastro/login e exige validação própria.
-- O performance advisor encontrou 10 chaves estrangeiras sem índice dedicado, 3 políticas com chamadas de autenticação reavaliadas por linha e 2 índices sem uso registrado. Não foram criados nem removidos índices: o benefício depende dos planos de consulta e do crescimento real das tabelas.
-- Não foram feitas alterações em autenticação, RLS, permissões, funções, tabelas ou dados do Supabase. A correção de conflitos desta etapa foi exclusivamente no cliente web.
+- Na primeira leitura, o performance advisor encontrou 10 chaves estrangeiras sem índice dedicado e 3 políticas com chamadas de autenticação reavaliadas por linha. Essas duas classes de alertas foram corrigidas em migrações posteriores, detalhadas na seção 5.2.
+- Não foram alteradas configurações de autenticação, grants de funções, definições de funções, tabelas, usuários ou dados de negócio. As mudanças de banco ficaram limitadas à criação de índices e à otimização dos predicados das três políticas RLS.
 
 ## 5. Divergências entre GitHub e Supabase
 
@@ -66,13 +66,13 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 
 ### Migrações — reconciliação concluída
 
-- O banco registra 13 versões e a pasta `supabase/migrations` agora contém os 13 arquivos com o mesmo par `version_name`.
+- Na reconciliação inicial, o banco registrava 13 versões e a pasta `supabase/migrations` continha os 13 arquivos correspondentes. Duas migrações posteriores foram aplicadas com versões `20261120190624` e `20261120190636`; o histórico atual registra 15 versões.
 - As cinco fontes que faltavam foram recuperadas diretamente do campo `statements` de `supabase_migrations.schema_migrations`, sem reconstruir SQL por inferência.
 - As fontes foram comparadas com o histórico aplicado; as 13 passaram na comparação normalizada de SQL.
 - Os nomes de arquivo que tinham timestamps diferentes foram alinhados às versões realmente registradas no banco.
 - O arquivo `20261117180000_purchases_conference_lead_access.sql` não aparece no histórico de migrações. Ele foi preservado em `supabase/archive/`, fora da pasta que o Supabase CLI trata como migrações pendentes. As definições ativas de `can_read_kind` e `can_write_kind` foram comparadas com esse arquivo e correspondem exatamente; ambas permitem execução por `authenticated` e negam execução por `anon`.
 
-**Limite desta etapa:** nenhum SQL foi executado no banco, nenhuma migração foi reaplicada e nenhuma tabela, função, política, permissão ou dado de produção foi alterado. A reconciliação foi somente de versionamento e documentação.
+**Limite da reconciliação inicial:** naquele momento nenhum SQL foi executado nem migração reaplicada; foi somente versionamento. As duas migrações posteriores estão documentadas na seção 5.2.
 
 ### Revisão de segurança Supabase — 20/11/2026
 
@@ -87,17 +87,15 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 
 ### Revisão de performance do banco — 20/11/2026
 
-- O advisor identificou **10 chaves estrangeiras sem índice de cobertura**, em `app_config_history`, `app_config_schedules` (duas), `app_notifications` (duas), `app_push_subscriptions`, `app_records` (duas), `audit_log` e `org_members`. São candidatas a índices para reduzir custo de joins e exclusões/atualizações nas tabelas referenciadas.
-- Três políticas RLS (`app_records_insert`, `app_records_update` e `app_notifications_select_own`) reavaliam chamadas de autenticação por linha. A recomendação é encapsular chamadas como `auth.uid()` em `(select auth.uid())` onde semanticamente equivalente, após teste de política.
-- Dois índices aparecem como não utilizados (`app_records_updated_at_idx` e `app_config_schedules_due_idx`). Não foram removidos: métricas de uso podem estar incompletas em banco com baixo volume/recém-criado e o índice de atualização pode ser importante para sincronização incremental futura.
-- O advisor de saúde não retornou alertas. Nenhuma alteração de DDL, índice, política ou dado foi executada nesta etapa; as consultas foram somente leitura.
+- Na leitura inicial, o advisor identificou **10 chaves estrangeiras sem índice de cobertura** nas tabelas `app_config_history`, `app_config_schedules`, `app_notifications`, `app_push_subscriptions`, `app_records`, `audit_log` e `org_members`.
+- Também identificou três políticas RLS (`app_records_insert`, `app_records_update` e `app_notifications_select_own`) que reavaliavam chamadas de autenticação por linha.
+- O advisor de saúde não retornou alertas. As correções aditivas posteriores estão registradas na seção 5.2; não foram removidos índices existentes.
 
-### Índices para chaves estrangeiras — migração preparada
+### Índices para chaves estrangeiras — migração aplicada
 
-- O advisor confirmou exatamente 10 chaves estrangeiras sem índice de cobertura. Foi criada a migração `20261120180000_add_missing_foreign_key_indexes.sql`, com um índice simples por coluna FK indicada pelo advisor.
-- A migração é aditiva e usa `CREATE INDEX IF NOT EXISTS`; não remove índices, não altera políticas RLS e não modifica dados da aplicação.
-- **A migração ainda não foi aplicada ao banco de produção.** O histórico Supabase consultado continua com 13 migrações aplicadas. A aplicação deve ocorrer em janela controlada, seguida de nova leitura do advisor para confirmar a redução dos 10 alertas.
-- Nenhuma alteração de banco foi executada nesta rodada; foi versionado apenas o arquivo SQL no GitHub.
+- A migração efetivamente aplicada é `20261120190624_add_missing_foreign_key_indexes`; ela cria 10 índices simples para as colunas de chaves estrangeiras indicadas pelo advisor.
+- O arquivo local foi alinhado ao timestamp registrado no histórico do Supabase. A migração é aditiva, usa `CREATE INDEX IF NOT EXISTS` e não remove índices nem altera dados de negócio.
+- A confirmação de aplicação e o resultado da nova leitura do advisor estão registrados na seção 5.2. O histórico atual do banco contém 15 migrações.
 
 ### Dependências e Wrangler — validação concluída
 
@@ -138,11 +136,11 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 
 ## 5.1. Snapshot atualizado do repositório — 20/11/2026
 
-- Commit `main` verificado antes desta atualização: `6d26aff42155ba6f644db9486271b560c963a0a7` (inclui a distribuição protegida gerada pelo workflow).
-- `package.json`, `package-lock.json` e `sw.js` estão alinhados à versão `3.73.32`; o Wrangler está fixado em `4.165.0`.
-- Os workflows `Prepare deployment distribution` e `Test dependency security remediation` concluíram com sucesso no commit de preparação `851df077a30f2a27fbc6e0278ce0b7f789f48807`.
-- O workflow de distribuição executou compilação protegida, verificação do contrato de sincronização, verificação dos padrões globais de UI, validação `wrangler deploy --dry-run`, auditoria de vulnerabilidades, atualização e conferência da distribuição protegida.
-- O sucesso do `dry-run` não comprova que houve publicação real no Cloudflare. A confirmação da implantação ativa continua pendente no painel/endpoint de produção.
+- A distribuição protegida da versão `3.73.32` foi gerada no workflow `44800162740` e posteriormente regenerada no workflow `44800642591`, ambos com conclusão `success`.
+- O commit automatizado mais recente de distribuição verificado nesta auditoria foi `0894daa1fc12d198dcc91fdbee528e715de1c92d`; `dist/index.html` e `dist/sw.js` foram conferidos na versão `3.73.32`.
+- `package.json`, `package-lock.json`, `index.html` e `sw.js` estão alinhados na versão `3.73.32`; Wrangler permanece fixado em `4.165.0`.
+- O pipeline passou pelo contrato de sincronização, padrões globais de UI, build protegido, `wrangler deploy --dry-run` e `npm audit --audit-level=high` com zero vulnerabilidades.
+- O `dry-run` não publica no Cloudflare. A implantação ativa continua pendente de confirmação no painel/endpoint de produção.
 
 ### Reconciliação da conexão de produção — 20/11/2026
 
@@ -153,7 +151,7 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 
 - Aplicada a migração `20261120190624_add_missing_foreign_key_indexes`: 10 índices simples para as colunas de chaves estrangeiras anteriormente sem cobertura.
 - Aplicada a migração `20261120190636_optimize_auth_uid_rls_initplans`: as três políticas identificadas foram ajustadas para avaliar `auth.uid()` via subconsulta escalar, preservando os predicados de organização, tipo, criador e permissões.
-- Reconsulta do advisor de performance: os alertas `unindexed_foreign_keys` e `auth_rls_initplan` deixaram de aparecer. Restaram 12 avisos de índices sem uso observado; os 10 índices recém-criados e dois índices preexistentes foram mantidos, pois o banco ainda tem baixo volume/uso e não há base para remoção.
+- Reconsulta do advisor de performance: os alertas `unindexed_foreign_keys` e `auth_rls_initplan` deixaram de aparecer. Uma leitura posterior registrou 9 avisos de índices sem uso observado; a contagem varia com as estatísticas de utilização. Os 10 índices novos foram mantidos, pois não há base suficiente para removê-los.
 - A inspeção de `pg_policies` confirmou que os três predicados foram gravados como planejado. O histórico Supabase confirmou as duas migrações aplicadas.
 - Os arquivos SQL locais foram alinhados às versões efetivamente registradas no banco (`20261120190624` e `20261120190636`). Uma migração local redundante, não aplicada, foi removida para evitar divergência no próximo `db push`.
 - Não houve mudança em dados, permissões de função, tabelas, regras de organização ou fluxo de sincronização.
@@ -174,7 +172,7 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 ## 6. Ordem segura de continuidade
 
 1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
-2. Reconciliar as 13 migrações aplicadas com fontes versionadas — concluído; nenhuma foi executada novamente.
+2. Reconciliar as migrações aplicadas com fontes versionadas — 13 na reconciliação inicial; 2 migrações adicionais aplicadas posteriormente, total atual 15.
 3. Executar `npm audit` e fixar o Wrangler em versão exata — concluído; zero vulnerabilidades e `wrangler deploy --dry-run` aprovado.
 4. Validar versão, cache offline e conteúdo da distribuição protegida — concluído na 3.73.32.
 5. Testar a resolução manual de conflitos em dois aparelhos; não reprocessar conflitos automaticamente.
