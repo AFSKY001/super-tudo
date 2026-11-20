@@ -329,3 +329,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidos dois blocos responsivos antigos do menu inferior (largura total e breakpoint de até 360px), cujas propriedades de navegação são substituídas pelas camadas posteriores da versão atual.
 - Mantidos os tokens de identidade azul e as regras atuais de navegação, incluindo o layout móvel flutuante e o layout desktop.
 - Nenhum HTML funcional, JavaScript, autenticação, dados, permissões ou sincronização foi alterado.
+
+
+## Limpeza incremental de CSS — versão 3.73.17
+
+- Removida a camada legada de navegação móvel identificada como etapa 3.73.3: ajustes de rótulos/ícones para até 700px e até 360px, além de uma regra reduzida de transição.
+- A navegação móvel atual e seu contrato de acessibilidade/redução de movimento permanecem definidos pelas regras globais posteriores.
+- Nenhum HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterado.
