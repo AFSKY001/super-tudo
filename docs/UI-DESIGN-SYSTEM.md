@@ -250,3 +250,27 @@ A versão 3.73.8 aplica o contrato aos botões, filtros, navegação inferior, c
 ### Próximas aplicações por módulo
 
 Aplicar o mesmo contrato em etapas específicas a: conclusão de rotinas e checklists, feedback de gravação e validação de formulários, carregamentos e sincronização, importações e conferências. Estados de sucesso ou erro só devem animar quando houver uma confirmação real da operação.
+
+
+## 12. Navegação e transição entre telas — versão 3.73.9
+
+### Barra inferior (mobile)
+
+- Manter os sete destinos acessíveis e sempre identificáveis.
+- Usar rótulos compactos: Painel, Rotina, Avaliar, Progresso, Equipe, Registro e Ajustes.
+- A opção ativa recebe fundo de destaque e ícone com preenchimento em gradiente; não depender somente de sublinhado.
+- Barra flutuante com superfície translúcida, desfoque moderado, borda discreta, cantos arredondados e sombra suave.
+- Reservar espaço inferior no conteúdo e respeitar a área segura do dispositivo.
+- Cada item informa `aria-label`, `aria-current` e `title`.
+
+### Transições e rolagem
+
+- Mudança de rota/tela (chave de tela `V.sg` diferente): iniciar a nova tela no topo, zerando a rolagem da janela e dos contêineres roláveis.
+- Atualização na mesma tela (chave `V.sg` igual): preservar posição de rolagem para não deslocar o usuário ao marcar tarefas, salvar ou atualizar conteúdo.
+- Transições de tela entram lateralmente em 220ms, conforme direção da navegação, em vez de deslocamento vertical que sugira continuidade da tela anterior.
+- Respeitar `prefers-reduced-motion`.
+- O desktop mantém a navegação lateral; a nova barra inferior só se aplica a larguras abaixo de 1024px.
+
+### Ícone Configuração
+
+Usar desenho vetorial de engrenagem com dentes e eixo central, mantendo traço e dimensões coerentes com os demais ícones de navegação.
