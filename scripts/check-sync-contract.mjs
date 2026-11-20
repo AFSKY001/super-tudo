@@ -31,6 +31,10 @@ const checks = [
   ['usar nuvem aplica a versão remota', /syncApplyRecord\(server\)/],
   ['Realtime informa o estado da inscrição', /\['subscribe'\]\(function\(status\)/],
   ['controle de sincronização é acessível por teclado', /syncStatusControl\.addEventListener\('keydown'/],
+  ['fila bloqueada não é apresentada como envio ativo', /_0xblocked=\(syncMeta\['queue'\]\|\|\[\]\)\.filter/],
+  ['há revisão específica de operações recusadas', /async function syncBlockedQueueUI\(\)/],
+  ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)syncResolveConflictsUI/],
+  ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
 ];
 
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
