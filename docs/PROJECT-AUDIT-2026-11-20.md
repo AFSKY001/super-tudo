@@ -4,7 +4,7 @@
 
 Auditoria somente de leitura do repositório `main`, do build de produção Cloudflare e do projeto Supabase conectado. Nenhuma tabela, política, função, credencial, usuário ou dado de produção foi alterado nesta auditoria.
 
-A aplicação publicada está na versão **3.73.28**. O build protegido do GitHub e o build de produção do Cloudflare foram concluídos com sucesso.
+A versão preparada nesta correção é **3.73.29**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; a confirmação do deploy real deve ser feita no painel do Cloudflare.
 
 ## 1. Interface e CSS
 
@@ -27,11 +27,11 @@ Verificações estáticas realizadas no HTML principal:
 
 ## 3. Build e dependências
 
-- O pacote e o lockfile estão alinhados na versão 3.73.28.
-- O lockfile registra 133 pacotes de desenvolvimento/transitivos; não há dependências de runtime declaradas no pacote raiz.
-- O Wrangler não está fixado no `package.json`/lockfile, embora o comando de build Cloudflare use `npx wrangler preview`. Isso reduz a reprodutibilidade do ambiente de deploy. Próxima melhoria: fixar uma versão testada do Wrangler e gerar o lockfile com o gerenciador de pacotes, sem editar o lockfile manualmente.
+- O pacote e o lockfile estão alinhados na versão 3.73.29.
+- O lockfile fixa 252 pacotes de desenvolvimento/transitivos; não há dependências de runtime declaradas no pacote raiz.
+- O Wrangler está fixado exatamente em `4.165.0` no `package.json` e no lockfile.
+- `npm audit` foi executado no pipeline com zero vulnerabilidades. Os quatro alertas altos relatados anteriormente não foram reproduzidos no lockfile atual.
 - O cliente Supabase do navegador é carregado por CDN em uma versão explícita, mas sem atributo SRI. Avaliar integridade/substituição apenas com hash verificado e teste de compatibilidade.
-- Foram mencionadas anteriormente quatro vulnerabilidades altas durante a instalação do ambiente Cloudflare. A origem e as versões afetadas ainda não foram identificadas; não executar `npm audit fix` sem mapear a árvore e testar.
 
 ## 4. Supabase — estado e segurança
 
@@ -43,7 +43,7 @@ Verificações estáticas realizadas no HTML principal:
   - 11 funções `SECURITY DEFINER` podem ser executadas por `authenticated`; nenhuma das 11 pode ser executada por `anon`. Incluem funções auxiliares usadas pelas políticas e as RPCs `sync_pull`/`sync_push`. Não revogar permissões em bloco: isso pode interromper RLS e sincronização.
   - A proteção contra senhas vazadas está desabilitada. É uma melhoria recomendada de Auth, mas não foi alterada porque pode afetar o cadastro/login e exige validação própria.
 - O performance advisor encontrou 10 chaves estrangeiras sem índice dedicado, 3 políticas com chamadas de autenticação reavaliadas por linha e 2 índices sem uso registrado. Não foram criados nem removidos índices: o benefício depende dos planos de consulta e do crescimento real das tabelas.
-- Não foram feitas alterações em autenticação, RLS, permissões, sincronização, banco ou dados.
+- Não foram feitas alterações em autenticação, RLS, permissões, funções, tabelas ou dados do Supabase. A correção de conflitos desta etapa foi exclusivamente no cliente web.
 
 ## 5. Divergências entre GitHub e Supabase
 
@@ -97,10 +97,11 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 - A aplicação salva o estado local em `localStorage`, mantém fila separada por identidade, usa `sync_push` com `client_id` idempotente e `base_revision`, consulta `sync_pull`, assina Realtime para `app_records`, retoma ao evento `online` e tem polling de segurança de 30 segundos.
 - Consulta somente leitura do banco: 67 registros em `app_records`, 18 tombstones; 1.443 operações em `sync_ops`, sendo 1.422 aplicadas e 21 conflitos. Todos os 21 conflitos históricos são de checklist (`r:ck`) e incluem `server_revision`, confirmando divergência de revisão base; nenhum resultado `forbidden` ou `invalid` foi encontrado nessa amostra.
 - O cliente sempre chama `sync_pull` com `p_since: null`, buscando o snapshot completo. O índice de atualização existe, mas a sincronização incremental não está ativada. Para implementá-la com segurança, o cursor deve vir do relógio do servidor; não se deve confiar no relógio local dos aparelhos.
-- O código preserva a alteração local quando detecta conflito e bloqueia o reenvio automático do item conflitado. Não foi localizado fluxo explícito de resolução manual que compare os dois lados e crie uma nova operação com novo `client_id` e revisão base atualizada. Não automatizar a resolução: isso poderia sobrescrever alterações de outro funcionário.
-- O callback de Realtime não trata explicitamente o estado de inscrição; o polling de 30 segundos atua como recuperação, mas falhas de inscrição podem ficar pouco visíveis.
+- O código preserva a alteração local quando detecta conflito e bloqueia o reenvio automático do item conflitado. **Corrigido em 3.73.29:** o cliente guarda o snapshot remoto e oferece uma resolução manual no indicador de sincronização: manter local (novo `client_id` e rebase sobre a revisão do servidor) ou usar nuvem (aplicar o registro remoto e remover a fila local). O snapshot é atualizado antes da escolha; se indisponível, nenhuma alteração é descartada.
+- **Corrigido em 3.73.29:** a inscrição Realtime trata os estados `SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT` e `CLOSED`, com informação no indicador e polling de 30 segundos como fallback.
+- A leitura continua usando `p_since: null` e baixa o snapshot completo. Cursor incremental continua pendente; não foi implementado porque o cursor timestamp atual não oferece garantia suficiente contra transações longas que confirmam fora de ordem.
 - Foi criado `docs/SYNC-RELIABILITY-TEST-PLAN.md` com nove testes funcionais para dois aparelhos, incluindo operação offline, exclusão, conflito, resposta perdida, troca de conta, sessão expirada e permissão revogada.
-- Foi criado `npm run check:sync`, com 13 verificações estáticas da estrutura de sincronização, e ele foi incorporado ao workflow principal antes da preparação do pacote protegido. O teste passou no GitHub Actions. Ele é uma proteção estática, não um teste E2E real.
+- O comando `npm run check:sync` agora executa 22 verificações estruturais e valida a sintaxe dos scripts inline. Ele passou no GitHub Actions; é uma proteção estática, não um teste E2E real.
 
 **Limite desta etapa:** a inspeção do banco foi somente leitura. Nenhum dado, função, tabela, política ou permissão de produção foi alterado.
 
@@ -113,15 +114,15 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 
 ### Proteções incorporadas ao CI
 
-O workflow principal agora confirma que a versão instalada do Wrangler corresponde à versão exata do `package.json`, executa `wrangler deploy --dry-run` sem publicar, bloqueia builds diante de vulnerabilidades npm altas/críticas e continua validando que o conteúdo protegido de `dist/` não foi alterado.
+O workflow principal verifica o contrato de sincronização e a sintaxe dos scripts, valida padrões globais de UI, gera o pacote protegido, confere Wrangler `4.165.0`, executa `wrangler deploy --dry-run` e `npm audit`. Após todas as validações, atualiza `dist/` por commit automatizado `[skip ci]`, mantendo o pacote publicado versionado.
 
 ## 6. Ordem segura de continuidade
 
 1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
 2. Reconciliar as 13 migrações aplicadas com fontes versionadas — concluído; nenhuma foi executada novamente.
 3. Executar `npm audit` e fixar o Wrangler em versão exata — concluído; zero vulnerabilidades e `wrangler deploy --dry-run` aprovado.
-5. Implementar uma resolução manual segura para conflitos de sincronização e testar em dois aparelhos; não reprocessar conflitos automaticamente.
-6. Instrumentar o estado da inscrição Realtime e planejar cursor incremental gerado no servidor.
+5. Testar a resolução manual de conflitos em dois aparelhos; não reprocessar conflitos automaticamente.
+6. Projetar cursor incremental com garantia de ordenação/commit no servidor antes de ativá-lo.
 7. Avaliar a proteção contra senhas vazadas e revisar funções `SECURITY DEFINER` com testes de autorização.
 8. Recuperar a fonte legível do JavaScript e planejar a consolidação do CSS com testes visuais antes de remover camadas.
 
