@@ -200,3 +200,10 @@ Cartões e painéis baseados em `.c` devem compartilhar os tokens globais abaixo
 | `--ui-card-background` | `var(--cd)` | Superfície compatível com os temas |
 
 O contrato global aplica essas dimensões aos cartões comuns, aos cartões da área de conteúdo e ao dashboard. Estados de interação, cartões informativos com destaque e cartões internos preservam suas funções; o espaçamento interno dos cartões aninhados usa o token específico. Não criar valores locais concorrentes sem uma variante reutilizável documentada.
+
+
+## Ajuste do painel principal — versão 3.73.6
+
+- Os filtros **Hoje** e **Mês** e a ação **Editar painel** compartilham a mesma linha de controles.
+- O botão de edição não ocupa mais uma linha exclusiva entre os filtros e os cartões.
+- O espaçamento vertical do painel deve ser compacto e consistente, sem reduzir a área útil dos cartões nem causar rolagem horizontal em telas estreitas.
