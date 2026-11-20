@@ -5,10 +5,11 @@ const root = process.cwd();
 const read = file => fs.readFile(path.join(root, file), 'utf8');
 const failures = [];
 
-const [html, rules, agent] = await Promise.all([
+const [html, rules, agent, sw] = await Promise.all([
   read('index.html'),
   read('docs/UI-DESIGN-SYSTEM.md'),
-  read('AGENTS.md')
+  read('AGENTS.md'),
+  read('sw.js')
 ]);
 
 const requireCheck = (condition, message) => {
@@ -59,6 +60,58 @@ const requiredPatterns = [
 for (const [label, pattern] of requiredPatterns) {
   requireCheck(pattern.test(html), 'Global UI requirement missing: ' + label + '.');
 }
+
+
+// Structural checks: catch malformed CSS and JavaScript before packaging.
+function balancedCss(source) {
+  let braces = 0, parentheses = 0, brackets = 0;
+  let quote = '', escaped = false, comment = false;
+  for (let i = 0; i < source.length; i++) {
+    const ch = source[i], next = source[i + 1];
+    if (comment) {
+      if (ch === '*' && next === '/') { comment = false; i++; }
+      continue;
+    }
+    if (quote) {
+      if (escaped) { escaped = false; continue; }
+      if (ch === '\\\\') { escaped = true; continue; }
+      if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '/' && next === '*') { comment = true; i++; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (ch === '{' && ++braces < 0) return false;
+    if (ch === '}' && --braces < 0) return false;
+    if (ch === '(' && ++parentheses < 0) return false;
+    if (ch === ')' && --parentheses < 0) return false;
+    if (ch === '[' && ++brackets < 0) return false;
+    if (ch === ']' && --brackets < 0) return false;
+  }
+  return braces === 0 && parentheses === 0 && brackets === 0 && !quote && !comment;
+}
+const styleBlocks = [...html.matchAll(/<style\\b[^>]*>([\\s\\S]*?)<\\/style\\s*>/gi)];
+requireCheck(styleBlocks.length === 1, 'Expected exactly one primary application style block.');
+if (styleBlocks.length === 1) {
+  requireCheck(balancedCss(styleBlocks[0][1]), 'Application CSS has unbalanced braces, brackets, parentheses, strings, or comments.');
+}
+const inlineScripts = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)]
+  .filter(([, attrs, source]) => !/\\bsrc\\s*=/.test(attrs) && source.trim());
+for (let i = 0; i < inlineScripts.length; i++) {
+  const [, attrs, source] = inlineScripts[i];
+  const type = attrs.match(/\\btype\\s*=\\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
+  if (type && !['text/javascript', 'application/javascript'].includes(type)) continue;
+  try { new Function(source); }
+  catch (error) { failures.push('Inline JavaScript ' + (i + 1) + ' has a syntax error: ' + error.message); }
+}
+try { new Function(sw); }
+catch (error) { failures.push('Service worker JavaScript has a syntax error: ' + error.message); }
+
+const staticIds = [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(match => match[1]);
+requireCheck(new Set(staticIds).size === staticIds.length, 'Duplicate static HTML IDs detected.');
+requireCheck((html.match(/function editL\\s*\\(/g) || []).length === 1, 'The editL action must have exactly one declaration.');
+requireCheck((html.match(/function editTempRecord\\s*\\(/g) || []).length === 1, 'The temperature edit action must have exactly one declaration.');
+requireCheck(html.includes('editTempRecord(this.dataset.id)'), 'Temperature history must call its dedicated edit action.');
+requireCheck((html.match(/!important/g) || []).length <= 882, 'The global CSS !important count increased above the audited baseline (882).');
 
 // Legacy native browser dialogs are being migrated in controlled groups.
 // These ceilings match the audited 3.73.3 baseline and prevent new usages
