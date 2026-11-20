@@ -4,7 +4,7 @@
 
 Auditoria somente de leitura do repositório `main`, do build de produção Cloudflare e do projeto Supabase conectado. Nenhuma tabela, política, função, credencial, usuário ou dado de produção foi alterado nesta auditoria.
 
-A versão preparada nesta correção é **3.73.29**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; a confirmação do deploy real deve ser feita no painel do Cloudflare.
+A versão preparada nesta correção é **3.73.31**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; a confirmação do deploy real deve ser feita no painel do Cloudflare.
 
 ## 1. Interface e CSS
 
@@ -99,9 +99,10 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 - O cliente sempre chama `sync_pull` com `p_since: null`, buscando o snapshot completo. O índice de atualização existe, mas a sincronização incremental não está ativada. Para implementá-la com segurança, o cursor deve vir do relógio do servidor; não se deve confiar no relógio local dos aparelhos.
 - O código preserva a alteração local quando detecta conflito e bloqueia o reenvio automático do item conflitado. **Corrigido em 3.73.29:** o cliente guarda o snapshot remoto e oferece uma resolução manual no indicador de sincronização: manter local (novo `client_id` e rebase sobre a revisão do servidor) ou usar nuvem (aplicar o registro remoto e remover a fila local). O snapshot é atualizado antes da escolha; se indisponível, nenhuma alteração é descartada.
 - **Corrigido em 3.73.29:** a inscrição Realtime trata os estados `SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT` e `CLOSED`, com informação no indicador e polling de 30 segundos como fallback.
+- **Corrigido em 3.73.31:** operações recusadas por `forbidden`/`invalid` ou outros estados bloqueados agora são separadas dos conflitos reais. O indicador informa `Revisar envio`, mostra o motivo e evita sugerir que a fila está enviando quando o servidor a recusou. Nenhuma operação bloqueada é reenviada automaticamente.
 - A leitura continua usando `p_since: null` e baixa o snapshot completo. Cursor incremental continua pendente; não foi implementado porque o cursor timestamp atual não oferece garantia suficiente contra transações longas que confirmam fora de ordem.
 - Foi criado `docs/SYNC-RELIABILITY-TEST-PLAN.md` com nove testes funcionais para dois aparelhos, incluindo operação offline, exclusão, conflito, resposta perdida, troca de conta, sessão expirada e permissão revogada.
-- O comando `npm run check:sync` agora executa 22 verificações estruturais e valida a sintaxe dos scripts inline. Ele passou no GitHub Actions; é uma proteção estática, não um teste E2E real.
+- O comando `npm run check:sync` agora executa 29 verificações estruturais e valida a sintaxe dos scripts inline. Ele passou no GitHub Actions; é uma proteção estática, não um teste E2E real.
 
 **Limite desta etapa:** a inspeção do banco foi somente leitura. Nenhum dado, função, tabela, política ou permissão de produção foi alterado.
 
