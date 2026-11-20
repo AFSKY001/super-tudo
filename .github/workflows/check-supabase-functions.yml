@@ -33,7 +33,7 @@ jobs:
           deno-version: v2.9.8
       - name: Type-check deployed Edge Functions
         run: |
-          deno check supabase/functions/login-usuario/index.ts
-          deno check supabase/functions/criar-usuario/index.ts
-          deno check supabase/functions/config-history/index.ts
-          deno check supabase/functions/push-notifications/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/login-usuario/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/criar-usuario/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/config-history/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/push-notifications/index.ts
