@@ -28,7 +28,14 @@ const requiredPatterns = [
   ['global chip height token', /--ui-chip-height\s*:\s*36px/i],
   ['global field height token', /--ui-field-height\s*:\s*44px/i],
   ['global button sizing contract', /\.bt\s*\{[^}]*min-height:\s*var\(--ui-control-height\)/s],
-  ['global chip sizing contract', /\.ch\s*\{[^}]*min-height:\s*var\(--ui-chip-height\)/s]
+  ['global chip sizing contract', /\.ch\s*\{[^}]*min-height:\s*var\(--ui-chip-height\)/s],
+  ['global card padding token', /--ui-card-padding\s*:\s*16px/i],
+  ['global nested card padding token', /--ui-card-nested-padding\s*:\s*12px/i],
+  ['global card radius token', /--ui-card-radius\s*:\s*16px/i],
+  ['global card margin token', /--ui-card-margin\s*:\s*9px/i],
+  ['global card shadow token', /--ui-card-shadow\s*:\s*var\(--sh1\)/i],
+  ['global card surface token', /--ui-card-background\s*:\s*var\(--cd\)/i],
+  ['global card sizing contract', /\.c,\s*\.page-content \.c,\s*\.dashboard-home \.c\s*\{[^}]*padding:\s*var\(--ui-card-padding\)!important/s]
 ];
 
 for (const [label, pattern] of requiredPatterns) {
