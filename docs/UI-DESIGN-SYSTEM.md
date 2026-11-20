@@ -427,3 +427,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - A segunda aplicação alcança contêineres roláveis que só passam a existir ou recebem dimensões após a atualização do DOM e do layout.
 - Atualizações dentro da mesma rota continuam preservando a posição de rolagem.
 - Nenhuma regra de negócio, autenticação, permissões, dados ou sincronização foi alterada.
+
+
+## Remoção de rotinas de migração vazias — versão 3.73.38
+
+- Removidas duas funções de migração sem implementação (`migJunior` e `migAdm`) e suas chamadas no ciclo de renderização.
+- Mantidas todas as migrações com implementação e seus pontos de execução.
+- A alteração elimina chamadas sem efeito sem modificar dados, permissões, autenticação ou sincronização.
