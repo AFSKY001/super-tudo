@@ -9,7 +9,7 @@ Registrar no GitHub o código que já está ativo no projeto Supabase, sem alter
 | Função | Versão ativa observada | verify_jwt | Arquivo versionado |
 |---|---:|---:|---|
 | `login-usuario` | 3 | `false` | `supabase/functions/login-usuario/index.ts` |
-| `criar-usuario` | 2 | `true` | `supabase/functions/criar-usuario/index.ts` |
+| `criar-usuario` | 3 | `true` | `supabase/functions/criar-usuario/index.ts` |
 | `config-history` | 5 | `true` | `supabase/functions/config-history/index.ts` |
 | `push-notifications` | 5 | `true` | `supabase/functions/push-notifications/index.ts` |
 
@@ -17,13 +17,13 @@ Registrar no GitHub o código que já está ativo no projeto Supabase, sem alter
 - As versões de `config-history` e `push-notifications` foram alinhadas com a produção.
 - `supabase/config.toml` registra explicitamente `verify_jwt = false` apenas para `login-usuario`; as demais funções mantêm o padrão de verificação JWT habilitada.
 - `login-usuario` valida método POST, formato do usuário, tamanho da senha, perfil ativo, vínculo ativo e autenticação antes de devolver a sessão.
-- A função `criar-usuario` contém um log temporário chamado `DIAGNOSTICO_PERMISSIONS`, que registra metadados da validação, não o conteúdo das permissões. Foi preservado para não misturar alteração funcional com versionamento. Remover em mudança separada, após revisar logs e testar criação de usuários.
+- A função `criar-usuario` teve o diagnóstico temporário `DIAGNOSTICO_PERMISSIONS` removido em uma atualização separada; a validação de permissões foi preservada.
 - O arquivo ativo de `criar-usuario` tem aproximadamente 895 KB por causa de espaçamento/indentação excessivos. Não foi reformatado nesta etapa para manter fidelidade com a fonte ativa.
 
 ## Verificação da cópia
 
 - `login-usuario`: correspondência exata; versão ativa 3; verify_jwt=false; 2779 caracteres.
-- `criar-usuario`: correspondência exata; versão ativa 2; verify_jwt=true; 895070 caracteres.
+- `criar-usuario`: correspondência exata com a produção verificada em 20/11/2026; versão ativa 3; verify_jwt=true; 882438 caracteres; sem `DIAGNOSTICO_PERMISSIONS`.
 - `config-history`: correspondência exata; versão ativa 5; verify_jwt=true; 6512 caracteres.
 - `push-notifications`: correspondência exata; versão ativa 5; verify_jwt=true; 13600 caracteres.
 
@@ -55,9 +55,21 @@ O GitHub também contém `20261117180000_purchases_conference_lead_access.sql`, 
 
 Não renomear arquivos, inserir versões artificiais no histórico, executar migrations novamente ou fazer reset. Primeiro recuperar o SQL exato das cinco versões ausentes, investigar a origem dos seis timestamps divergentes e comparar o schema atual com cada operação. Só então propor reconciliação de arquivos, sem aplicar SQL automaticamente.
 
+## Auditoria de segurança e permissões — 20/11/2026
+
+Verificações somente de leitura realizadas diretamente no projeto de produção:
+
+- As seis tabelas sinalizadas pelo advisor com RLS habilitado e sem políticas (`app_config_history`, `app_config_schedules`, `app_notification_settings`, `app_push_config`, `app_push_subscriptions` e `team_lead_members`) concedem privilégios de tabela somente a `postgres` e `service_role`; não foi encontrado grant direto a `anon` ou `authenticated`. Isso é compatível com o desenho de acesso exclusivo por Edge Functions/service role e não deve ser “corrigido” criando políticas genéricas.
+- O advisor sinaliza 11 funções `SECURITY DEFINER` executáveis por `authenticated`. Entre elas estão auxiliares usadas pelas próprias políticas RLS e pelas rotinas de sincronização. Não revogar permissões nem trocar para `SECURITY INVOKER` sem análise de dependências e testes, pois isso pode interromper leitura, escrita e sincronização.
+- As funções examinadas usam `search_path` vazio e qualificam objetos com schema. As rotinas de sincronização verificam `auth.uid()` antes de operar.
+- A proteção do Supabase Auth contra senhas vazadas está desativada. É uma melhoria recomendada na configuração do Auth, mas deve ser avaliada e habilitada separadamente.
+- O advisor de performance apontou 10 chaves estrangeiras sem índice de cobertura e três políticas RLS com possível reavaliação por linha de funções de autenticação. São oportunidades de otimização, não mudanças aplicadas nesta auditoria.
+- Nenhuma consulta desta etapa alterou dados, permissões, políticas, funções ou configurações.
+
 ## Próximas ações controladas
 
-1. Revisar `criar-usuario` e remover o diagnóstico temporário em mudança separada.
-2. Recuperar as cinco migrações ausentes e reconciliar os seis timestamps, sem executar SQL.
-3. Fixar uma versão testada do Wrangler e investigar as vulnerabilidades da árvore npm.
-4. Criar testes de regressão para login, criação de usuário, notificações, histórico de configurações e sincronização antes de qualquer deploy.
+1. Recuperar as cinco migrações ausentes e reconciliar os seis timestamps, sem executar SQL.
+2. Revisar com testes as 11 funções `SECURITY DEFINER` expostas a `authenticated`, distinguindo chamadas RPC intencionais de auxiliares necessárias às políticas RLS.
+3. Avaliar a ativação da proteção contra senhas vazadas no Supabase Auth.
+4. Fixar uma versão testada do Wrangler e investigar as vulnerabilidades da árvore npm.
+5. Criar testes de regressão para login, criação de usuário, notificações, histórico de configurações e sincronização antes de qualquer deploy.
