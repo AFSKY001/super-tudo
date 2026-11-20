@@ -157,7 +157,7 @@ button:active{transform:scale(.96)}
    ===================================================================== */
 :root{--pr:#2457e6;--on:#fff;--vi:#6a4bff;--prs:#eaf0ff;--ac:#6a4bff;--bg:#f5f6f9;--tx:#101828;--mu:#667085;--bd:#e4e7ec;--sf:#eef1f6;--ok:#12805c;--no:#d92d20;--wa:#b54708;--oks:#e6f5ee;--nos:#fdecea;--was:#fff3e0;
 --fn:"Inter","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
---s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--r-s:8px;--r-m:10px;--r-l:14px;--rad:10px;--rad-sheet:16px;
+--r-s:8px;--r-m:10px;--r-l:14px;--rad:10px;--rad-sheet:16px;
 --sh1:0 1px 2px rgba(16,24,40,.05);--sh2:0 8px 24px rgba(16,24,40,.10);--sb:240px}
 
 
@@ -433,7 +433,7 @@ button.ibtn-del{background:transparent;color:#dc2626;border:1px solid var(--bd);
  --motion-enter:280ms;
  --ease-standard:cubic-bezier(.2,0,0,1);
  --ease-enter:cubic-bezier(.16,1,.3,1);
- --ease-exit:cubic-bezier(.4,0,1,1);
+ 
  --ease-emphasis:cubic-bezier(.22,1,.36,1);
 }
 @keyframes st-fade-in{from{opacity:0}to{opacity:1}}
@@ -659,11 +659,11 @@ nav button.on .ni{transform:none}
    ========================================================== */
 :root{
   --dur-fast:150ms;
-  --dur-base:220ms;
-  --dur-slow:320ms;
+  
+  
   --ease-out:cubic-bezier(0.2,0.8,0.2,1);
-  --ease-in:cubic-bezier(0.4,0,1,1);
-  --ease-spring:cubic-bezier(0.34,1.3,0.64,1);
+  
+  
 }
 .pressable{
   transition-property:transform!important;
@@ -693,8 +693,8 @@ nav button.on .ni{transform:none}
 @media (prefers-reduced-motion:reduce){
   :root{
     --dur-fast:0ms;
-    --dur-base:0ms;
-    --dur-slow:0ms;
+    
+    
   }
   *,*::before,*::after{
     animation:none!important;
@@ -1463,7 +1463,7 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
   --ui-control-height:42px;
   --ui-chip-height:36px;
   --ui-field-height:44px;
-  --ui-control-radius:var(--r-s,8px);
+  
 }
 .bt{min-height:var(--ui-control-height)}
 .ch{min-height:var(--ui-chip-height)}
