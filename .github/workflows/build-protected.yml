@@ -41,23 +41,6 @@ jobs:
         run: npx wrangler deploy --dry-run
       - name: Block builds on high or critical dependency vulnerabilities
         run: npm audit --audit-level=high
-      - name: Commit refreshed protected distribution
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git add dist/
-          if ! git diff --cached --quiet; then
-            git fetch origin main
-            if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
-              echo "main avançou durante o build; não vou publicar um pacote baseado em código desatualizado."
-              exit 1
-            fi
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "build(deploy): refresh protected distribution [skip ci]"
-            git push origin HEAD:main
-          else
-            echo "A distribuição protegida já está atualizada."
-          fi
       - name: Verify protected distribution
         run: |
           test -s dist/index.html
