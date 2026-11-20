@@ -8,7 +8,7 @@ A versão preparada nesta correção é **3.73.33**. O build protegido e o `wran
 
 ## 1. Interface e CSS
 
-- O arquivo principal contém um único bloco `<style>` com 87.126 caracteres na versão 3.73.33. A contagem estrutural recursiva anterior identificou 993 instâncias de regras, incluindo regras aninhadas; a contagem por expressões regulares de blocos simples não substitui um parser CSS.
+- O arquivo principal contém um único bloco `<style>` com 87.126 caracteres na versão 3.73.33. Uma leitura sintática do bloco CSS identificou 893 regras de estilo, 395 seletores distintos e 153 seletores reaproveitados em blocos com declarações diferentes. Não foram encontrados blocos de seletor com corpo integralmente idêntico nem regras vazias; regras dentro de contextos @media/@supports devem continuar separadas.
 - Não foram encontrados blocos de regra completos exatamente duplicados no mesmo contexto.
 - Há 169 contextos com seletores repetidos. Isso não significa duplicação automática: muitos pertencem a camadas de tema, estados, breakpoints e contratos globais; não devem ser removidos em lote sem análise da cascata.
 - As versões 3.73.26, 3.73.27 e 3.73.28 removeram, respectivamente, 46, 11 e 7 declarações CSS verificadas como redundantes.
@@ -124,7 +124,7 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 
 ### Auditoria estática de CSS e JavaScript
 
-- Na leitura atual de `index.html` 3.73.33, o bloco principal de CSS tem 87.126 caracteres; o scanner estrutural recursivo anterior contou 993 instâncias de regras.
+- Na leitura atual de `index.html` 3.73.33, o bloco principal de CSS tem 87.126 caracteres; a leitura sintática contou 893 regras de estilo e 395 seletores distintos; 153 seletores aparecem em mais de um bloco, sem duplicação integral de corpo.
 - Foram encontradas 16 ocorrências de `:root`/seletores de raiz e 799 ocorrências de `!important`. A contagem de `!important` está abaixo do limite de 872 imposto pelo verificador global.
 - A busca estática identificou 10 IDs HTML estáticos, sem duplicação, e 516 declarações `function`, sem nomes duplicados nessa busca textual. Esses números são indicadores de auditoria estática, não uma prova de que todos os elementos ou funções dinâmicas estejam cobertos.
 - O JavaScript principal continua ofuscado no próprio `index.html`; não há uma pasta de fontes JavaScript legíveis identificada. Os scripts inline e o Service Worker passam nas verificações de sintaxe do pipeline.
@@ -159,7 +159,7 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 ### Auditoria estrutural CSS — 20/11/2026
 
 - Leitura integral do `index.html` antes da limpeza: 844.712 caracteres; um bloco `<style>` com 87.250 caracteres. Após a limpeza, o CSS ficou com 87.141 caracteres.
-- Scanner estrutural recursivo encontrou 993 instâncias de regras CSS, 50 `@media`, 21 `@keyframes`, 16 ocorrências de `:root` (incluindo variantes de tema) e 799 `!important`.
+- Scanner estrutural anterior contou 993 instâncias de regras. Uma leitura sintática posterior do CSS contou 893 regras de estilo, 395 seletores distintos e 153 seletores em blocos múltiplos com corpos diferentes. Também foram identificados 50 `@media`, 21 `@keyframes`, 16 ocorrências de `:root` (incluindo variantes de tema) e 799 `!important`. As contagens usam critérios diferentes: a leitura sintática separa regras de estilo e contextos aninhados; não devem ser comparadas como se fossem a mesma métrica.
 - Balanceamento de chaves fechou em zero, sem profundidade negativa; comentários e strings CSS também terminaram fechados.
 - Foram removidas três redundâncias comprovadas sem retirar estilos exclusivos: cursor repetido em cartão clicável, declaração repetida do estado `.month-cell.on` e transformação hover duplicada no segundo bloco de hover. Nova comparação encontrou zero grupos de regras exatamente duplicadas no mesmo contexto.
 - A versão `3.73.32` foi alinhada em `index.html`, `package.json`, `package-lock.json` e `sw.js`; o histórico de atualizações recebeu a entrada da versão. A versão seguinte `3.73.33` removeu o token legado `--motion-enter` e padronizou a entrada de elementos e painéis em `--ui-motion-enter:250ms`, preservando a transição específica de rota. A restauração de sessão aceita explicitamente o estado anterior `3.73.31`, evitando logout forçado por esta atualização visual.
@@ -197,3 +197,9 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 - O build de documentação executado em 44802262189 terminou com sucesso no commit 5ec06d6c97f7a8918458eaa84bfd568b9ec30736. O job completou as 14 etapas principais, incluindo contrato de sincronização, padrões globais de UI, build protegido, validação wrangler deploy --dry-run, auditoria de dependências e conferência/upload da distribuição.
 - Artefato mais recente: super-tudo-protegido, ID 14661033601, 295.428 bytes, SHA-256 5567cd3942dcd0bb31b1ba1b1db2d28ba08b5d5a5d191afbc2a75137b2e2564d. O run de origem é 44802262189; continua sendo uma validação de pacote, não publicação real.
 - Investigação da rolagem: a função de renderização R() salva as posições dos contêineres roláveis, chama R0() e compara a chave de tela anterior com a nova. Quando a chave muda, zera a rolagem da nova tela; quando não muda, tenta restaurar as posições. A folha de estilos também possui uma regra global de transição lateral para #app.an>*, que sobrepõe a animação vertical legada .an>*. A inspeção estática confirma esses contratos, mas não reproduz o comportamento visual em aparelho; não foi feita alteração no JavaScript ofuscado sem teste de execução.
+### Build protegido — 3.73.33 (execução 44802580927)
+
+- Execução concluída com sucesso no commit b4c416e4e01ea6ef9730b6fa941c18893c63d4ac. Todas as 14 etapas principais foram aprovadas: lockfile, pin do Wrangler, contrato offline/nuvem, padrões globais de UI, build protegido, dry-run de deploy, auditoria de dependências, verificação e upload.
+- Artefato super-tudo-protegido, ID 14661188706, 293.767 bytes, SHA-256 3e895fd0c53c4a624bb16c365c3b4053d22209ccac1fcf24b3aecdd83f5a6e16.
+- Distribuição confirmada em dist/index.html e dist/sw.js, ambos na versão 3.73.33. O dry-run não equivale a publicação real no Cloudflare.
+- A leitura sintática atual do CSS não encontrou regras vazias ou blocos completos duplicados. A repetição de seletores tem corpos distintos; consolidá-los sem considerar contexto e cascata pode alterar o layout, portanto não foram removidos automaticamente.
