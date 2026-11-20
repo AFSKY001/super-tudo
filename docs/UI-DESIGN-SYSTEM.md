@@ -455,3 +455,8 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removida a segunda ocorrência global de `.g2{gap:12px}` em `index.html`.
 - A regra de grade já é definida pelo contrato global posterior com `gap:12px!important`, com ajuste responsivo de `8px!important` em telas estreitas.
 - Nenhuma estrutura, classe, lógica de tela, dado ou módulo funcional foi alterado.
+
+
+## Limpeza incremental — 3.73.42
+
+- Removida a função `delCk`, que não possuía nenhuma chamada no aplicativo e mantinha uma confirmação nativa de exclusão inacessível. A remoção elimina código morto sem alterar o fluxo atual de checklists, permissões ou dados.
