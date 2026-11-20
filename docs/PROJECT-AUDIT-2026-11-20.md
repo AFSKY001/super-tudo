@@ -8,7 +8,7 @@ A versão preparada nesta correção é **3.73.31**. O build protegido e o `wran
 
 ## 1. Interface e CSS
 
-- O arquivo principal contém um único bloco `<style>`, com aproximadamente 91,6 mil caracteres e 921 blocos de regras.
+- O arquivo principal contém um único bloco `<style>`, com aproximadamente 87,25 mil caracteres e cerca de 894 blocos de regras na contagem estrutural por expressões regulares. A contagem é aproximada e não substitui um parser CSS.
 - Não foram encontrados blocos de regra completos exatamente duplicados no mesmo contexto.
 - Há 169 contextos com seletores repetidos. Isso não significa duplicação automática: muitos pertencem a camadas de tema, estados, breakpoints e contratos globais; não devem ser removidos em lote sem análise da cascata.
 - As versões 3.73.26, 3.73.27 e 3.73.28 removeram, respectivamente, 46, 11 e 7 declarações CSS verificadas como redundantes.
@@ -27,7 +27,7 @@ Verificações estáticas realizadas no HTML principal:
 
 ## 3. Build e dependências
 
-- O pacote e o lockfile estão alinhados na versão 3.73.29.
+- O pacote e o lockfile estão alinhados na versão **3.73.31** (conferidos diretamente em `package.json` e no campo raiz de `package-lock.json`).
 - O lockfile fixa 252 pacotes de desenvolvimento/transitivos; não há dependências de runtime declaradas no pacote raiz.
 - O Wrangler está fixado exatamente em `4.165.0` no `package.json` e no lockfile.
 - `npm audit` foi executado no pipeline com zero vulnerabilidades. Os quatro alertas altos relatados anteriormente não foram reproduzidos no lockfile atual.
@@ -88,7 +88,7 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 - O teste também executou `npm ci` a partir do lockfile candidato, `npm run build:deploy` e `git diff --exit-code -- dist/`; todas as etapas passaram e os arquivos protegidos em `dist/` permaneceram idênticos.
 - O `npm audit` após incluir Wrangler também retornou **zero vulnerabilidades**. O lockfile final contém 252 pacotes, todos gerados pelo npm e fixados no arquivo de lock.
 - `wrangler@4.165.0` foi adicionado como dependência de desenvolvimento exata, com integridade e árvore de dependências registradas em `package-lock.json`. Assim, o CLI local não depende mais do fallback variável de `npx`.
-- A referência da versão do aplicativo permanece `3.73.28`; esta mudança altera somente ferramentas de build/deploy, não o código funcional do supermercado.
+- A versão atual do aplicativo, pacote e lockfile é `3.73.31`; o Service Worker também usa `super-tudo-v3.73.31`. A configuração atual mantém Wrangler `4.165.0` fixado.
 
 A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` do projeto e não deve ser tratada como vulnerabilidade confirmada.
 
@@ -108,14 +108,23 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 
 ### Auditoria estática de CSS e JavaScript
 
-- O CSS principal tem 87.250 caracteres e 894 regras identificadas. Foram encontrados 157 seletores repetidos, mas os blocos têm declarações diferentes; não há grupos de regras integralmente idênticas. Isso indica camadas de sobrescrita, não duplicação simples que possa ser apagada sem análise de cascata.
-- As 13 declarações globais `:root` e as regras de tema, responsividade e movimento estão distribuídas ao longo da folha. Não foram reordenadas nem fundidas porque isso pode alterar valores herdados em telas, temas e breakpoints.
-- O JavaScript principal está ofuscado no próprio `index.html`; não há uma pasta de fontes JavaScript legíveis no repositório. Foram encontrados 512 nomes de funções, sem declarações duplicadas, e os scripts passam na validação sintática. A análise textual simples não é suficiente para declarar funções sem uso, pois os nomes de ações aparecem em templates e strings codificadas.
-- Não foram removidas funções nem blocos CSS por tentativa. Para uma limpeza real do JavaScript, é necessário recuperar a fonte legível original ou reconstruir o processo de build com testes funcionais dos módulos.
+- Na leitura atual de `index.html`, o bloco principal de CSS tem aproximadamente 87.250 caracteres e 894 regras na contagem estrutural aproximada.
+- Foram encontradas 16 ocorrências de `:root`/seletores de raiz e 799 ocorrências de `!important`. A contagem de `!important` está abaixo do limite de 872 imposto pelo verificador global.
+- A busca estática identificou 10 IDs HTML estáticos, sem duplicação, e 516 declarações `function`, sem nomes duplicados nessa busca textual. Esses números são indicadores de auditoria estática, não uma prova de que todos os elementos ou funções dinâmicas estejam cobertos.
+- O JavaScript principal continua ofuscado no próprio `index.html`; não há uma pasta de fontes JavaScript legíveis identificada. Os scripts inline e o Service Worker passam nas verificações de sintaxe do pipeline.
+- Não foram removidas funções nem blocos CSS por tentativa. A contagem de seletores repetidos não autoriza exclusão automática: temas, breakpoints, estados e ordem da cascata podem depender dessas regras. Para limpeza real do JavaScript, é necessário recuperar a fonte legível original ou reconstruir o processo de build com testes funcionais dos módulos.
 
 ### Proteções incorporadas ao CI
 
 O workflow principal verifica o contrato de sincronização e a sintaxe dos scripts, valida padrões globais de UI, gera o pacote protegido, confere Wrangler `4.165.0`, executa `wrangler deploy --dry-run` e `npm audit`. Após todas as validações, atualiza `dist/` por commit automatizado `[skip ci]`, mantendo o pacote publicado versionado.
+
+## 5.1. Snapshot atualizado do repositório — 20/11/2026
+
+- Commit `main` verificado: `429f05736525b4ac005af11a77fe53e93a851f00`.
+- `package.json`, `package-lock.json` e `sw.js` estão alinhados à versão `3.73.31`; o Wrangler está fixado em `4.165.0`.
+- Os workflows `Prepare deployment distribution` e `Test dependency security remediation` concluíram com sucesso no commit de preparação `851df077a30f2a27fbc6e0278ce0b7f789f48807`.
+- O workflow de distribuição executou compilação protegida, verificação do contrato de sincronização, verificação dos padrões globais de UI, validação `wrangler deploy --dry-run`, auditoria de vulnerabilidades, atualização e conferência da distribuição protegida.
+- O sucesso do `dry-run` não comprova que houve publicação real no Cloudflare. A confirmação da implantação ativa continua pendente no painel/endpoint de produção.
 
 ## 6. Ordem segura de continuidade
 
