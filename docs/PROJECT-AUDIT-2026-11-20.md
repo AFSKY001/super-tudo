@@ -164,6 +164,7 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 - Scanner estrutural recursivo encontrou 993 instâncias de regras CSS, 50 `@media`, 21 `@keyframes`, 16 ocorrências de `:root` (incluindo variantes de tema) e 799 `!important`.
 - Balanceamento de chaves fechou em zero, sem profundidade negativa; comentários e strings CSS também terminaram fechados.
 - Foram removidas três redundâncias comprovadas sem retirar estilos exclusivos: cursor repetido em cartão clicável, declaração repetida do estado `.month-cell.on` e transformação hover duplicada no segundo bloco de hover. Nova comparação encontrou zero grupos de regras exatamente duplicadas no mesmo contexto.
+- A versão do aplicativo foi alinhada para `3.73.32` em `index.html`, `package.json`, `package-lock.json` e `sw.js`; o histórico de atualizações também recebeu a entrada da versão. A restauração de sessão aceita explicitamente o estado anterior `3.73.31`, evitando logout forçado por esta atualização visual.
 - As 16 ocorrências de `:root` representam camadas históricas e contextos de tema diferentes; não foram consolidadas porque há tokens distintos e precedência por cascata. Os 799 `!important` também foram mantidos até classificar os componentes e estados dependentes.
 - Próxima etapa de CSS: classificar regras por contexto, comparar declarações equivalentes e executar validação visual/regressiva antes de consolidar tokens e componentes.
 
