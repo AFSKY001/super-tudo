@@ -34,6 +34,7 @@ O comando `npm run check:sync` confirma a presença de 25 contratos estruturais 
 - O cliente marca itens da fila como `conflict` e o envio ignora itens com status preenchido. **Corrigido em 3.73.29:** o snapshot remoto é armazenado quando o conflito é detectado; ao clicar no indicador de sincronização, o usuário pode escolher manter a alteração local (gera novo `client_id` e reenvia sobre a revisão atual) ou usar a versão da nuvem (aplica o snapshot e remove a operação pendente). A tela atualiza o snapshot remoto antes de oferecer as opções. Se o snapshot estiver indisponível, o sistema mantém os dados e pede nova tentativa.
 - **Corrigido em 3.73.29:** o callback de inscrição Realtime agora registra `SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT` e `CLOSED`; o indicador apresenta informação de estado e mantém o polling de 30 segundos como recuperação.
 - **Melhoria em 3.73.30:** antes de escolher, o diálogo mostra os campos diferentes lado a lado (neste aparelho / na nuvem), sinaliza exclusões e limita a exibição aos 12 primeiros campos para manter a leitura simples. Os valores são inseridos com `textContent`, sem interpretar HTML.
+- **Corrigido em 3.73.31:** o indicador agora diferencia operações realmente em conflito de operações recusadas por permissão/validação. Itens recusados aparecem em `Revisar envio`, com motivo e orientação; não ficam apresentados incorretamente como `Enviando` e não são reenviados automaticamente.
 - A resolução manual ainda precisa ser testada com dois aparelhos reais; os testes estáticos não provam o fluxo de ponta a ponta.
 
 
