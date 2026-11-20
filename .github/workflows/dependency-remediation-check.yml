@@ -1,0 +1,49 @@
+name: Test dependency security remediation
+
+on:
+  pull_request:
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/dependency-remediation-check.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  remediation:
+    name: Test patched dependency tree
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install current locked dependencies
+        run: npm ci
+
+      - name: Apply compatible Zod security override
+        run: npm pkg set 'overrides.zod=^4.6.7'
+
+      - name: Update only compatible vulnerable dependencies
+        run: npm audit fix
+
+      - name: Verify no high or critical vulnerabilities remain
+        run: npm audit --audit-level=high
+
+      - name: Run protected production build
+        run: npm run build:deploy
+
+      - name: Upload candidate dependency manifests
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-remediation-candidate
+          path: |
+            package.json
+            package-lock.json
+          if-no-files-found: error
+          retention-days: 7
