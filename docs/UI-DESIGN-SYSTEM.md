@@ -274,3 +274,11 @@ Aplicar o mesmo contrato em etapas específicas a: conclusão de rotinas e check
 ### Ícone Configuração
 
 Usar desenho vetorial de engrenagem com dentes e eixo central, mantendo traço e dimensões coerentes com os demais ícones de navegação.
+
+
+## Correção complementar de transição — versão 3.73.10
+
+- A entrada horizontal agora também é aplicada ao filho direto de `#app`, mesmo quando uma rota não renderiza `.page-shell` diretamente.
+- Isso neutraliza a animação vertical legada `.an>*` em todas as telas principais e sub-telas, mantendo o sentido horizontal de avanço/retorno.
+- A rolagem deve começar no topo ao mudar de rota; atualizações dentro da mesma rota continuam preservando a posição.
+- Nenhuma regra de autenticação, dados, permissões ou sincronização foi alterada.
