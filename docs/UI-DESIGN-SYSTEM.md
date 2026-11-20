@@ -118,7 +118,7 @@ Se um componente compartilhado não atender a uma necessidade real, primeiro evo
 
 ### Janelas e mensagens
 - Não introduzir `alert()`, `confirm()` ou `prompt()` nativos em novas funcionalidades.
-- A migração global das chamadas legadas para toasts, mensagens inline e diálogos internos está registrada como uma etapa própria no planejamento. O serviço central de avisos foi iniciado na versão 3.73.43; confirmações e entrada de texto permanecem pendentes. Não inventar uma API alternativa por módulo.
+- A migração global das chamadas legadas para toasts, mensagens inline e diálogos internos está registrada como uma etapa própria no planejamento. O serviço central foi iniciado na versão 3.73.43. Na versão 3.73.44, confirmações e entrada de texto passam a usar o mesmo diálogo interno, com migração assíncrona automática na etapa de build. Não inventar uma API alternativa por módulo.
 - Mensagens rápidas não bloqueantes devem ser toasts; decisões críticas/destrutivas podem usar diálogo central; validação específica deve ficar junto ao campo.
 - Não empilhar diálogos nem perder o foco/contexto da tela.
 
@@ -468,3 +468,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O diálogo usa os tokens visuais existentes e respeita a preferência por movimento reduzido.
 - As chamadas de confirmação `confirm()` e entrada `prompt()` não foram interceptadas: exigem migração assíncrona dos fluxos para preservar corretamente confirmar/cancelar e os valores digitados.
 - O aviso interno não bloqueia a execução JavaScript como o alerta nativo; a migração das confirmações e entradas será feita em etapa própria.
+
+
+## Diálogo global de confirmação e entrada — versão 3.73.44
+
+- Expandido o serviço central para suportar avisos, confirmações e entrada de texto em uma única interface.
+- Confirmações usam ações explícitas de confirmar/cancelar; entrada de texto permite confirmar, cancelar e devolver o valor digitado.
+- A etapa de build transforma as chamadas legadas `confirm()` e `prompt()` em chamadas assíncronas ao diálogo interno e torna assíncronas as funções que as contêm. A transformação usa AST e falha o build se encontrar chamada sem função compatível.
+- O diálogo mantém fila, foco acessível, fechamento por Escape, fundo desfocado e respeito a movimento reduzido.

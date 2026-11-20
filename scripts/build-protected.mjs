@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { minify } from 'terser';
+import { parse } from 'acorn';
 import JavaScriptObfuscator from 'javascript-obfuscator';
 
 const root = process.cwd();
@@ -48,6 +49,37 @@ const obfuscationOptions = {
   unicodeEscapeSequence: false
 };
 
+
+function migrateNativeDialogs(source) {
+  const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'script', allowAwaitOutsideFunction: false });
+  const edits = [];
+  const calls = { confirm: 0, prompt: 0 };
+  function walk(node, ancestors = []) {
+    if (!node || typeof node !== 'object') return;
+    const isFunction = ['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node.type);
+    const stack = isFunction ? [...ancestors, node] : ancestors;
+    if (node.type === 'CallExpression' && node.callee?.type === 'Identifier' && ['confirm','prompt'].includes(node.callee.name)) {
+      const kind = node.callee.name;
+      const owner = stack[stack.length - 1];
+      if (!owner) throw new Error('Native ' + kind + ' call has no enclosing function; migration aborted.');
+      calls[kind]++;
+      edits.push({ at: node.start, value: 'await st' + (kind === 'confirm' ? 'Confirm' : 'Prompt') });
+      if (!owner.async) edits.push({ at: owner.start, value: 'async ' });
+    }
+    for (const key of Object.keys(node)) {
+      if (key === 'start' || key === 'end' || key === 'loc') continue;
+      const value = node[key];
+      if (Array.isArray(value)) value.forEach(child => child && typeof child.type === 'string' && walk(child, stack));
+      else if (value && typeof value.type === 'string') walk(value, stack);
+    }
+  }
+  walk(ast);
+  edits.sort((a,b) => b.at - a.at);
+  let output = source;
+  for (const edit of edits) output = output.slice(0, edit.at) + edit.value + output.slice(edit.at);
+  return { source: output, calls };
+}
+
 function protectJavaScript(source, label) {
   const result = JavaScriptObfuscator.obfuscate(source, obfuscationOptions);
   const code = result.getObfuscatedCode();
@@ -69,7 +101,8 @@ html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
   if (type && !['text/javascript', 'application/javascript', 'module'].includes(type)) return whole;
   if (!source.trim()) return whole;
 
-  const minified = await minify(source, {
+  const migrated = migrateNativeDialogs(source);
+  const minified = await minify(migrated.source, {
     compress: { passes: 2, drop_debugger: true },
     mangle: { toplevel: false },
     format: { comments: /^!/ },
@@ -83,6 +116,7 @@ html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
   const code = protectJavaScript(minified.code, 'index.html inline script');
   if (type !== 'module') new Function(code);
   transformed++;
+  if (migrated.calls.confirm || migrated.calls.prompt) console.log('Migrated internal dialogs:', JSON.stringify(migrated.calls));
   return '<script' + attrs + '>\n' + code + '\n</script>';
 });
 
