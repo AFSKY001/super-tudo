@@ -11,7 +11,7 @@
 
 ## Verificações estáticas no CI
 
-O comando `npm run check:sync` confirma a presença de 13 contratos estruturais: persistência local, acionamento da fila, idempotência, RPCs de envio/leitura, revisão base, registro de conflitos, aviso local, eventos online/offline, Realtime, polling de segurança e bloqueio de envio sem conexão.
+O comando `npm run check:sync` confirma a presença de 22 contratos estruturais e valida a sintaxe dos scripts inline: persistência local, acionamento da fila, idempotência, RPCs de envio/leitura, revisão base, registro de conflitos, aviso local, eventos online/offline, Realtime, polling de segurança e bloqueio de envio sem conexão.
 
 **Limitação:** esse teste é estático. Ele não simula navegadores, aparelhos, queda real de rede, expiração de sessão ou concorrência entre duas contas. Não deve ser interpretado como teste E2E de sincronização.
 
@@ -31,8 +31,10 @@ O comando `npm run check:sync` confirma a presença de 13 contratos estruturais:
 
 - O cliente chama `sync_pull` sempre com `p_since: null`, portanto busca o snapshot completo a cada atualização. Hoje o banco tem poucos registros, mas o custo crescerá com o uso. A migração para cursor incremental exige cursor gerado pelo servidor; não usar relógio local do aparelho.
 - Foram encontrados 21 resultados históricos de conflito na tabela `sync_ops`, todos do tipo `r:ck`. Os 21 têm `server_revision`, indicando divergência de revisão base (edição concorrente), e não erro de formato ou registro inexistente. Não há resultados `forbidden` ou `invalid` no histórico consultado. Isso não informa se ainda há fila pendente em algum aparelho.
-- O cliente marca itens da fila como `conflict` e o envio ignora itens com status preenchido. Não foi localizado um fluxo explícito de resolução manual que compare versão local e versão do servidor e gere uma nova operação com novo `client_id` e revisão base atualizada. **Não reprocessar conflitos automaticamente**, pois isso pode apagar alterações feitas por outro funcionário.
-- O callback de Realtime não recebe/trata o estado de inscrição no código atual; o polling de 30 segundos funciona como recuperação, mas falhas de inscrição podem ficar invisíveis ao usuário.
+- O cliente marca itens da fila como `conflict` e o envio ignora itens com status preenchido. **Corrigido em 3.73.29:** o snapshot remoto é armazenado quando o conflito é detectado; ao clicar no indicador de sincronização, o usuário pode escolher manter a alteração local (gera novo `client_id` e reenvia sobre a revisão atual) ou usar a versão da nuvem (aplica o snapshot e remove a operação pendente). A tela atualiza o snapshot remoto antes de oferecer as opções. Se o snapshot estiver indisponível, o sistema mantém os dados e pede nova tentativa.
+- **Corrigido em 3.73.29:** o callback de inscrição Realtime agora registra `SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT` e `CLOSED`; o indicador apresenta informação de estado e mantém o polling de 30 segundos como recuperação.
+- A resolução manual ainda precisa ser testada com dois aparelhos reais; os testes estáticos não provam o fluxo de ponta a ponta.
+
 
 ## Estado observado no banco (consulta somente leitura)
 
