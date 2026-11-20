@@ -80,6 +80,17 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 - As 11 funções acessíveis a `authenticated` são helpers de autorização/identidade ou RPCs de sincronização. As outras cinco ficam restritas a `service_role`/proprietário.
 - Seis tabelas com RLS e sem políticas (`app_config_history`, `app_config_schedules`, `app_notification_settings`, `app_push_config`, `app_push_subscriptions`, `team_lead_members`) concedem acesso de tabela somente a `service_role` e ao proprietário. O padrão é coerente com acesso via Edge Functions e funções internas; não foram adicionadas políticas genéricas.
 - O advisor do Supabase continua apontando proteção contra senhas vazadas desativada. É uma pendência de configuração de Auth; não foi alterada nesta auditoria.
+- A consulta de ACLs no banco confirmou que as 11 funções acessíveis a `authenticated` não são executáveis por `anon`; os 11 avisos do advisor são alertas de revisão de `SECURITY DEFINER`, não evidência isolada de exploração. As funções usam `search_path` vazio e verificam a identidade/organização/permissões internamente. Não foi revogada a execução, pois isso quebraria helpers e RPCs usados pela aplicação.
+- A conferência das permissões de tabela confirmou que as seis tabelas sem políticas também não concedem `SELECT`, `INSERT`, `UPDATE` ou `DELETE` a `authenticated`/`anon`; o acesso fica restrito ao `service_role` nas Edge Functions. O alerta de RLS sem política é informativo e intencional nesse desenho.
+- O endpoint público `login-usuario` está configurado com `verify_jwt = false` por ser a porta de entrada antes da sessão. Ele valida formato do usuário/senha, consulta perfil ativo e associação ativa e delega a senha ao Supabase Auth. Não foi alterada sua configuração.
+- A proteção contra senhas vazadas continua desativada no Auth. A ferramenta disponível não oferece alteração segura dessa configuração; fica registrada para ativação no painel do Supabase.
+
+### Revisão de performance do banco — 20/11/2026
+
+- O advisor identificou **10 chaves estrangeiras sem índice de cobertura**, em `app_config_history`, `app_config_schedules` (duas), `app_notifications` (duas), `app_push_subscriptions`, `app_records` (duas), `audit_log` e `org_members`. São candidatas a índices para reduzir custo de joins e exclusões/atualizações nas tabelas referenciadas.
+- Três políticas RLS (`app_records_insert`, `app_records_update` e `app_notifications_select_own`) reavaliam chamadas de autenticação por linha. A recomendação é encapsular chamadas como `auth.uid()` em `(select auth.uid())` onde semanticamente equivalente, após teste de política.
+- Dois índices aparecem como não utilizados (`app_records_updated_at_idx` e `app_config_schedules_due_idx`). Não foram removidos: métricas de uso podem estar incompletas em banco com baixo volume/recém-criado e o índice de atualização pode ser importante para sincronização incremental futura.
+- O advisor de saúde não retornou alertas. Nenhuma alteração de DDL, índice, política ou dado foi executada nesta etapa; as consultas foram somente leitura.
 
 ### Dependências e Wrangler — validação concluída
 
@@ -120,11 +131,16 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 
 ## 5.1. Snapshot atualizado do repositório — 20/11/2026
 
-- Commit `main` verificado: `429f05736525b4ac005af11a77fe53e93a851f00`.
+- Commit `main` verificado antes desta atualização: `6d26aff42155ba6f644db9486271b560c963a0a7` (inclui a distribuição protegida gerada pelo workflow).
 - `package.json`, `package-lock.json` e `sw.js` estão alinhados à versão `3.73.31`; o Wrangler está fixado em `4.165.0`.
 - Os workflows `Prepare deployment distribution` e `Test dependency security remediation` concluíram com sucesso no commit de preparação `851df077a30f2a27fbc6e0278ce0b7f789f48807`.
 - O workflow de distribuição executou compilação protegida, verificação do contrato de sincronização, verificação dos padrões globais de UI, validação `wrangler deploy --dry-run`, auditoria de vulnerabilidades, atualização e conferência da distribuição protegida.
 - O sucesso do `dry-run` não comprova que houve publicação real no Cloudflare. A confirmação da implantação ativa continua pendente no painel/endpoint de produção.
+
+### Reconciliação da conexão de produção — 20/11/2026
+
+- O endereço Supabase embutido no `index.html` corresponde exatamente ao projeto conectado `super-tudo-teste`; as 13 migrações versionadas no GitHub também aparecem aplicadas no histórico do banco.
+- A verificação foi somente leitura: nenhuma chave, senha, token, dado pessoal ou conteúdo de assinatura foi alterado ou incluído neste relatório.
 
 ## 6. Ordem segura de continuidade
 
