@@ -146,8 +146,25 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 
 ### Reconciliação da conexão de produção — 20/11/2026
 
-- O endereço Supabase embutido no `index.html` corresponde exatamente ao projeto conectado `super-tudo-teste`; as 13 migrações versionadas no GitHub também aparecem aplicadas no histórico do banco.
+- O endereço Supabase embutido no `index.html` corresponde exatamente ao projeto conectado `super-tudo-teste`. Após esta rodada, o histórico do banco contém 15 migrações aplicadas.
 - A verificação foi somente leitura: nenhuma chave, senha, token, dado pessoal ou conteúdo de assinatura foi alterado ou incluído neste relatório.
+
+### Otimização de índices e políticas RLS — 20/11/2026
+
+- Aplicada a migração `20261120190624_add_missing_foreign_key_indexes`: 10 índices simples para as colunas de chaves estrangeiras anteriormente sem cobertura.
+- Aplicada a migração `20261120190636_optimize_auth_uid_rls_initplans`: as três políticas identificadas foram ajustadas para avaliar `auth.uid()` via subconsulta escalar, preservando os predicados de organização, tipo, criador e permissões.
+- Reconsulta do advisor de performance: os alertas `unindexed_foreign_keys` e `auth_rls_initplan` deixaram de aparecer. Restaram 12 avisos de índices sem uso observado; os 10 índices recém-criados e dois índices preexistentes foram mantidos, pois o banco ainda tem baixo volume/uso e não há base para remoção.
+- A inspeção de `pg_policies` confirmou que os três predicados foram gravados como planejado. O histórico Supabase confirmou as duas migrações aplicadas.
+- Os arquivos SQL locais foram alinhados às versões efetivamente registradas no banco (`20261120190624` e `20261120190636`). Uma migração local redundante, não aplicada, foi removida para evitar divergência no próximo `db push`.
+- Não houve mudança em dados, permissões de função, tabelas, regras de organização ou fluxo de sincronização.
+
+### Auditoria estrutural CSS — 20/11/2026
+
+- Leitura integral do `index.html`: 844.712 caracteres; um bloco `<style>` com 87.250 caracteres.
+- Scanner estrutural preliminar encontrou 894 blocos de regra, 50 `@media`, 21 `@keyframes`, 16 ocorrências de `:root` e 799 `!important`.
+- Balanceamento de chaves fechou em zero, sem profundidade negativa; comentários e strings CSS também terminaram fechados.
+- O levantamento encontrou seletores repetidos em contextos diferentes, inclusive dentro de media queries e keyframes. Isso não comprova duplicação inútil: nenhuma regra foi apagada ou reordenada sem análise de cascata e estados.
+- Próxima etapa de CSS: classificar regras por contexto, comparar declarações equivalentes e executar validação visual/regressiva antes de consolidar tokens e componentes.
 
 ## 6. Ordem segura de continuidade
 
