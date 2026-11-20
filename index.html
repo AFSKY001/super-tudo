@@ -1738,32 +1738,73 @@ function regMenuIcon(_0x206eed){const _0x39f289=REG_MENU_ICON_PATHS[_0x206eed];r
 <script>
 const _0x1b945d=_0x54e1;(function(_0x3005eb,_0x419ab5){const _0x372205=_0x54e1,_0x2c1b2d=_0x3005eb();while(!![]){try{const _0x126aba=parseInt(_0x372205(0x1d5))/0x1*(-parseInt(_0x372205(0x1cc))/0x2)+-parseInt(_0x372205(0x1d4))/0x3+-parseInt(_0x372205(0x1d1))/0x4*(-parseInt(_0x372205(0x1d6))/0x5)+parseInt(_0x372205(0x1cb))/0x6*(-parseInt(_0x372205(0x1ce))/0x7)+-parseInt(_0x372205(0x1d2))/0x8+-parseInt(_0x372205(0x1c9))/0x9*(-parseInt(_0x372205(0x1cf))/0xa)+parseInt(_0x372205(0x1d0))/0xb;if(_0x126aba===_0x419ab5)break;else _0x2c1b2d['push'](_0x2c1b2d['shift']());}catch(_0x486cb9){_0x2c1b2d['push'](_0x2c1b2d['shift']());}}}(_0x2900,0xe87a3));function _0x54e1(_0x4686e5,_0x434db5){_0x4686e5=_0x4686e5-0x1c9;const _0x2900ba=_0x2900();let _0x54e102=_0x2900ba[_0x4686e5];if(_0x54e1['dxQkUx']===undefined){var _0xeaa741=function(_0x13bb37){const _0x4dad10='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/=';let _0x239cf7='',_0x2ca70f='';for(let _0x25b066=0x0,_0x5a4e44,_0x1ffd8a,_0x12431b=0x0;_0x1ffd8a=_0x13bb37['charAt'](_0x12431b++);~_0x1ffd8a&&(_0x5a4e44=_0x25b066%0x4?_0x5a4e44*0x40+_0x1ffd8a:_0x1ffd8a,_0x25b066++%0x4)?_0x239cf7+=String['fromCharCode'](0xff&_0x5a4e44>>(-0x2*_0x25b066&0x6)):0x0){_0x1ffd8a=_0x4dad10['indexOf'](_0x1ffd8a);}for(let _0x46bf37=0x0,_0xde4a08=_0x239cf7['length'];_0x46bf37<_0xde4a08;_0x46bf37++){_0x2ca70f+='%'+('00'+_0x239cf7['charCodeAt'](_0x46bf37)['toString'](0x10))['slice'](-0x2);}return decodeURIComponent(_0x2ca70f);};_0x54e1['ehHMLw']=_0xeaa741,_0x54e1['BKmVSm']={},_0x54e1['dxQkUx']=!![];}const _0x4f761f=_0x2900ba[0x0];_0x54e1['ZJgAAC']!==_0x4f761f&&(_0x54e1['BKmVSm']={},_0x54e1['ZJgAAC']=_0x4f761f);const _0x54057b=_0x54e1['BKmVSm'][_0x4686e5];return _0x54057b===undefined?(_0x54e102=_0x54e1['ehHMLw'](_0x54e102),_0x54e1['BKmVSm'][_0x4686e5]=_0x54e102):_0x54e102=_0x54057b,_0x54e102;}if('serviceWorker'in navigator){let e=!0x1;const o=!!navigator['serviceWorker']['controller'];navigator[_0x1b945d(0x1d3)]['addEventListener']('controllerchange',()=>{const _0x2a564e=_0x1b945d;o&&!e&&(e=!0x0,window[_0x2a564e(0x1ca)]['reload']());}),window[_0x1b945d(0x1cd)]('load',async()=>{const _0x2c54b0=_0x1b945d;try{const _0x2ca70f=await navigator[_0x2c54b0(0x1d3)]['register']('/sw.js',{'scope':'/'});await _0x2ca70f['update']();}catch(_0x25b066){console['warn']('Não\x20foi\x20possível\x20verificar\x20atualização\x20do\x20aplicativo\x20offline:',_0x25b066);}});}function _0x2900(){const _0x17d5e3=['ngzcA3jzBq','otG0mZyXnMLmDNnUvG','C2vYDMLJzvDVCMTLCG','mZuYnJe1nxDUDvferG','mtKWmdfdr0nrDgS','ndyWnte1nw56C3PRyW','mtGXntnAq1DMDLm','Bg9JyxrPB24','nJbLBvPTu3m','nJz5wwDbC3y','ywrKrxzLBNrmAxn0zw5LCG','otq0otmWANPlD1bN','mty0mez2EfLfvq','ndq5mtq5ntHszNjSuKG'];_0x2900=function(){return _0x17d5e3;};return _0x2900();}
 
-/* Resolução explícita de conflitos: nunca sobrescreve sem escolha do usuário. */
+/* Resolução explícita de conflitos com diálogo nativo do próprio aplicativo. */
+function syncConflictDialog(key,server,notice){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.className='ov dim';
+    Object.assign(overlay.style,{zIndex:'99999',display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'});
+    const panel=document.createElement('section');
+    panel.className='c';
+    Object.assign(panel.style,{width:'min(100%,520px)',maxHeight:'90vh',overflowY:'auto',padding:'20px',margin:'0',boxShadow:'0 18px 60px rgba(0,0,0,.28)'});
+    const title=document.createElement('h3');
+    title.textContent=notice?'Sincronização precisa de atenção':'Conflito de sincronização';
+    const description=document.createElement('p');
+    description.className='mu';
+    description.textContent=notice||('O registro '+key+' foi alterado em outro aparelho. A versão da nuvem está na revisão '+server.revision+'. Escolha qual versão deve prevalecer.');
+    panel.append(title,description);
+    const actions=document.createElement('div');
+    actions.className='row';
+    actions.style.justifyContent='flex-end';
+    actions.style.marginTop='18px';
+    const finish=value=>{overlay.remove();resolve(value);};
+    if(server&&!notice){
+      const keep=document.createElement('button');
+      keep.type='button';keep.className='bt';keep.textContent='Manter minha alteração';
+      keep.addEventListener('click',()=>finish('local'));
+      const useCloud=document.createElement('button');
+      useCloud.type='button';useCloud.className='bt g';useCloud.textContent='Usar versão da nuvem';
+      useCloud.addEventListener('click',()=>finish('cloud'));
+      actions.append(keep,useCloud);
+    }
+    const later=document.createElement('button');
+    later.type='button';later.className='bt g';later.textContent=server&&!notice?'Decidir depois':'Fechar';
+    later.addEventListener('click',()=>finish('later'));
+    actions.append(later);
+    panel.append(actions);
+    overlay.addEventListener('click',event=>{if(event.target===overlay)finish('later');});
+    const onKey=event=>{if(event.key==='Escape'){document.removeEventListener('keydown',onKey);finish('later');}};
+    document.addEventListener('keydown',onKey,{once:true});
+    overlay.append(panel);
+    document.body.append(overlay);
+    (server&&!notice?actions.firstElementChild:later).focus();
+  });
+}
 async function syncResolveConflictsUI(){
   const keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
-  if(!keys.length){alert('Não há conflitos aguardando revisão.');return;}
-  if(typeof navigator!=='undefined'&&!navigator.onLine){alert('Conecte este aparelho à internet para consultar a versão atual da nuvem. Suas alterações locais continuam salvas.');return;}
+  if(!keys.length)return;
+  if(typeof navigator!=='undefined'&&!navigator.onLine){
+    await syncConflictDialog('',null,'Conecte este aparelho à internet para consultar a versão atual da nuvem. Suas alterações locais continuam salvas.');
+    return;
+  }
   for(const key of keys){
     const conflict=syncMeta.conflicts[key];
     const server=conflict?.server_record;
     const pending=(syncMeta.queue||[]).find(op=>op.key===key&&op.status==='conflict');
     if(!server||!Number(server.revision)||!pending){
-      alert('O conflito '+key+' ainda não tem uma cópia completa da versão da nuvem. Atualize a sincronização quando estiver conectado; nenhuma alteração foi descartada.');
+      await syncConflictDialog(key,null,'O conflito '+key+' ainda não tem uma cópia completa da versão da nuvem. Atualize a sincronização quando estiver conectado. Nenhuma alteração foi descartada.');
       continue;
     }
-    const choice=prompt(
-      'CONFLITO DE SINCRONIZAÇÃO\n\nRegistro: '+key+'\nVersão da nuvem: '+server.revision+'\n\nDigite 1 para MANTER a alteração deste aparelho e reenviá-la sobre a revisão atual.\nDigite 2 para USAR a versão da nuvem e descartar a alteração local pendente.\nDigite 0 para deixar para depois.',
-      '0'
-    );
-    if(choice===null||choice.trim()==='0')break;
-    if(choice.trim()==='1'){
+    const choice=await syncConflictDialog(key,server,'');
+    if(choice==='later')break;
+    if(choice==='local'){
       pending.client_id=syncUuid();
       pending.status='';
       syncMeta.revisions[key]=Number(server.revision);
       delete syncMeta.conflicts[key];
       syncPersist();
       await syncFlush();
-    }else if(choice.trim()==='2'){
+    }else if(choice==='cloud'){
       syncApplying=true;
       try{
         syncApplyRecord(server);
@@ -1775,9 +1816,6 @@ async function syncResolveConflictsUI(){
       }finally{syncApplying=false;}
       syncPersist();
       if(V.me)R();
-    }else{
-      alert('Opção inválida. O conflito continua aguardando revisão.');
-      break;
     }
   }
   syncStatusUpdate();
