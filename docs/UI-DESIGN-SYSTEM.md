@@ -434,3 +434,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidas duas funções de migração sem implementação (`migJunior` e `migAdm`) e suas chamadas no ciclo de renderização.
 - Mantidas todas as migrações com implementação e seus pontos de execução.
 - A alteração elimina chamadas sem efeito sem modificar dados, permissões, autenticação ou sincronização.
+
+
+## Remoção de regra CSS exatamente duplicada — versão 3.73.39
+
+- Removida uma ocorrência redundante da regra `button:active, .c[onclick]:active, .c.tap:active, .reg-menu-tile:active`.
+- A regra restante mantém o mesmo `transform:none!important`, preservando o comportamento de interação.
+- Nenhum seletor, componente, módulo ou regra de negócio foi alterado.
