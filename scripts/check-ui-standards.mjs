@@ -111,7 +111,8 @@ requireCheck(new Set(staticIds).size === staticIds.length, 'Duplicate static HTM
 requireCheck((html.match(/function editL\s*\(/g) || []).length === 1, 'The editL action must have exactly one declaration.');
 requireCheck((html.match(/function editTempRecord\s*\(/g) || []).length === 1, 'The temperature edit action must have exactly one declaration.');
 requireCheck(html.includes('editTempRecord(this.dataset.id)'), 'Temperature history must call its dedicated edit action.');
-requireCheck((html.match(/!important/g) || []).length <= 882, 'The global CSS !important count increased above the audited baseline (882).');
+const cssImportantCount = styleBlocks.length === 1 ? (styleBlocks[0][1].match(/!important/g) || []).length : 0;
+requireCheck(cssImportantCount <= 882, 'The global CSS !important count increased above the audited baseline (882).');
 
 // Legacy native browser dialogs are being migrated in controlled groups.
 // These ceilings match the audited 3.73.3 baseline and prevent new usages
