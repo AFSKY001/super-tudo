@@ -1,0 +1,1 @@
+Trigger de publicação Cloudflare em 2026-11-20. Este arquivo não faz parte da distribuição do aplicativo.
