@@ -8,7 +8,7 @@ A versão preparada nesta correção é **3.73.33**. O build protegido e o `wran
 
 ## 1. Interface e CSS
 
-- O arquivo principal contém um único bloco `<style>`, com aproximadamente 87,25 mil caracteres e cerca de 894 blocos de regras na contagem estrutural por expressões regulares. A contagem é aproximada e não substitui um parser CSS.
+- O arquivo principal contém um único bloco `<style>` com 87.126 caracteres na versão 3.73.33. A contagem estrutural recursiva anterior identificou 993 instâncias de regras, incluindo regras aninhadas; a contagem por expressões regulares de blocos simples não substitui um parser CSS.
 - Não foram encontrados blocos de regra completos exatamente duplicados no mesmo contexto.
 - Há 169 contextos com seletores repetidos. Isso não significa duplicação automática: muitos pertencem a camadas de tema, estados, breakpoints e contratos globais; não devem ser removidos em lote sem análise da cascata.
 - As versões 3.73.26, 3.73.27 e 3.73.28 removeram, respectivamente, 46, 11 e 7 declarações CSS verificadas como redundantes.
@@ -27,7 +27,7 @@ Verificações estáticas realizadas no HTML principal:
 
 ## 3. Build e dependências
 
-- O pacote e o lockfile estão alinhados na versão **3.73.32** (conferidos diretamente em `package.json` e no campo raiz de `package-lock.json`).
+- O pacote, o lockfile, o HTML principal e o Service Worker estão alinhados na versão **3.73.33**.
 - O lockfile fixa 252 pacotes de desenvolvimento/transitivos; não há dependências de runtime declaradas no pacote raiz.
 - O Wrangler está fixado exatamente em `4.165.0` no `package.json` e no lockfile.
 - `npm audit` foi executado no pipeline com zero vulnerabilidades. Os quatro alertas altos relatados anteriormente não foram reproduzidos no lockfile atual.
@@ -124,7 +124,7 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 
 ### Auditoria estática de CSS e JavaScript
 
-- Na leitura atual de `index.html`, o bloco principal de CSS tem aproximadamente 87.250 caracteres e 894 regras na contagem estrutural aproximada.
+- Na leitura atual de `index.html` 3.73.33, o bloco principal de CSS tem 87.126 caracteres; o scanner estrutural recursivo anterior contou 993 instâncias de regras.
 - Foram encontradas 16 ocorrências de `:root`/seletores de raiz e 799 ocorrências de `!important`. A contagem de `!important` está abaixo do limite de 872 imposto pelo verificador global.
 - A busca estática identificou 10 IDs HTML estáticos, sem duplicação, e 516 declarações `function`, sem nomes duplicados nessa busca textual. Esses números são indicadores de auditoria estática, não uma prova de que todos os elementos ou funções dinâmicas estejam cobertos.
 - O JavaScript principal continua ofuscado no próprio `index.html`; não há uma pasta de fontes JavaScript legíveis identificada. Os scripts inline e o Service Worker passam nas verificações de sintaxe do pipeline.
@@ -189,3 +189,11 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 - As 29 verificações do contrato de sincronização passaram, os padrões globais de UI passaram, o build protegido gerou a versão `3.73.33`, `wrangler deploy --dry-run` encerrou normalmente e `npm audit` encontrou zero vulnerabilidades.
 - O artefato `super-tudo-protegido` foi finalizado (ID `14660584170`, 295.548 bytes; SHA-256 `2ac867118cb2ad3c0158771ed147b7999121b41baca5987b1607f8d85452826d`). O commit automatizado `a9e5448716defd4caf61fff4a61d6c2825e91b6e` atualizou `dist/index.html` e `dist/sw.js`; o cache do Service Worker está em `super-tudo-v3.73.33`.
 - O `dry-run` não equivale a deploy. Não há confirmação de publicação real no Cloudflare nesta etapa.
+
+### Continuação da auditoria — correção de consistência documental
+
+- A conferência direta do main confirmou APP_VERSION, package.json, package-lock.json e o nome do cache do Service Worker em 3.73.33. Uma linha antiga desta auditoria ainda dizia 3.73.32; foi corrigida para não contradizer o estado atual.
+- Contagem atual do bloco CSS: 87.126 caracteres, 799 ocorrências de !important, 16 ocorrências de :root; 10 IDs estáticos e 516 declarações de função pela busca textual. Os limites de diálogos nativos permanecem em 96 alert, 31 confirm e 1 prompt.
+- O build de documentação executado em 44802262189 terminou com sucesso no commit 5ec06d6c97f7a8918458eaa84bfd568b9ec30736. O job completou as 14 etapas principais, incluindo contrato de sincronização, padrões globais de UI, build protegido, validação wrangler deploy --dry-run, auditoria de dependências e conferência/upload da distribuição.
+- Artefato mais recente: super-tudo-protegido, ID 14661033601, 295.428 bytes, SHA-256 5567cd3942dcd0bb31b1ba1b1db2d28ba08b5d5a5d191afbc2a75137b2e2564d. O run de origem é 44802262189; continua sendo uma validação de pacote, não publicação real.
+- Investigação da rolagem: a função de renderização R() salva as posições dos contêineres roláveis, chama R0() e compara a chave de tela anterior com a nova. Quando a chave muda, zera a rolagem da nova tela; quando não muda, tenta restaurar as posições. A folha de estilos também possui uma regra global de transição lateral para #app.an>*, que sobrepõe a animação vertical legada .an>*. A inspeção estática confirma esses contratos, mas não reproduz o comportamento visual em aparelho; não foi feita alteração no JavaScript ofuscado sem teste de execução.
