@@ -126,7 +126,7 @@ requireCheck(html.includes('editTempRecord(this.dataset.id)'), 'Temperature hist
 const globalReducedMotionBlocks = (styleBlocks.length === 1 ? (styleBlocks[0][1].match(/@media\s*\(?prefers-reduced-motion:reduce\)?\s*\{\*\{animation:none!important;transition:none!important\}\}/g) || []).length : 0);
 requireCheck(globalReducedMotionBlocks === 1, 'Expected exactly one global reduced-motion fallback; duplicate or missing fallback detected.');
 const cssImportantCount = styleBlocks.length === 1 ? (styleBlocks[0][1].match(/!important/g) || []).length : 0;
-requireCheck(cssImportantCount <= 872, 'The global CSS !important count increased above the audited baseline (872).');
+requireCheck(cssImportantCount <= 799, 'The global CSS !important count increased above the audited 3.73.33 baseline (799).');
 
 // Legacy native browser dialogs are being migrated in controlled groups.
 // These ceilings match the audited 3.73.3 baseline and prevent new usages
