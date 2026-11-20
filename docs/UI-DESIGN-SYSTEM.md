@@ -302,3 +302,8 @@ Usar desenho vetorial de engrenagem com dentes e eixo central, mantendo traço e
 - O baseline de `!important` foi reduzido de 879 para 872; o verificador impede aumento acima desse valor.
 - Não classificar regras repetidas em breakpoints diferentes como inúteis automaticamente: a consolidação de navegação, cabeçalho e componentes exige validar cascata, tema e tamanhos de tela.
 - CSS sem uso só pode ser removido após verificar também classes e seletores montados dinamicamente pelo JavaScript.
+
+
+## Correção 3.73.13 — rolagem na troca de telas
+
+A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) para que chamadas existentes a `scrollTo(0, 0)` não animem a subida da tela anterior ao trocar de menu. Não alterar a lógica de navegação, estado, autenticação ou sincronização para resolver esse efeito. Movimentos de entrada das telas continuam sendo tratados separadamente pelo sistema global de transições.
