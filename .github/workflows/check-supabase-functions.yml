@@ -1,0 +1,39 @@
+name: Validate Supabase Edge Functions
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/config.toml"
+      - ".github/workflows/check-supabase-functions.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/config.toml"
+      - ".github/workflows/check-supabase-functions.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-functions-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.8
+      - name: Type-check deployed Edge Functions
+        run: |
+          deno check supabase/functions/login-usuario/index.ts
+          deno check supabase/functions/criar-usuario/index.ts
+          deno check supabase/functions/config-history/index.ts
+          deno check supabase/functions/push-notifications/index.ts
