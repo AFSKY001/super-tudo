@@ -1819,7 +1819,7 @@ textarea{min-height:96px;resize:vertical}
     transform:translate3d(-50%,0,0)!important;
     border:1px solid color-mix(in srgb,var(--pr) 13%,var(--bd))!important;
     border-radius:22px!important;
-    background:rgba(255,255,255,.94)!important;
+    background:var(--pr)!important;
     box-shadow:0 10px 30px rgba(25,42,86,.14),0 2px 8px rgba(25,42,86,.06)!important;
     backdrop-filter:blur(18px) saturate(1.25);
     -webkit-backdrop-filter:blur(18px) saturate(1.25);
@@ -1942,6 +1942,14 @@ input[type="checkbox"]:focus-visible,input[type="radio"]:focus-visible{
 }
 
 
+
+/* Restaura a cor original da marca na barra inferior mobile */
+@media(max-width:1023px){
+  nav{background:var(--pr)!important;border-color:color-mix(in srgb,var(--pr) 85%,#fff)!important;}
+  nav button{color:rgba(255,255,255,.82)!important;}
+  nav button.on{background:rgba(255,255,255,.16)!important;color:#fff!important;}
+  nav button.on .ni{color:#fff!important;background:transparent!important;box-shadow:none!important;}
+}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
