@@ -53,6 +53,7 @@ const obfuscationOptions = {
 function migrateNativeDialogs(source) {
   const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'script', allowAwaitOutsideFunction: false });
   const edits = [];
+  const asyncOwners = new Set();
   const calls = { confirm: 0, prompt: 0 };
   function walk(node, ancestors = []) {
     if (!node || typeof node !== 'object') return;
@@ -64,7 +65,7 @@ function migrateNativeDialogs(source) {
       if (!owner) throw new Error('Native ' + kind + ' call has no enclosing function; migration aborted.');
       calls[kind]++;
       edits.push({ at: node.start, value: 'await st' + (kind === 'confirm' ? 'Confirm' : 'Prompt') });
-      if (!owner.async) edits.push({ at: owner.start, value: 'async ' });
+      if (!owner.async && !asyncOwners.has(owner.start)) { asyncOwners.add(owner.start); edits.push({ at: owner.start, value: 'async ' }); }
     }
     for (const key of Object.keys(node)) {
       if (key === 'start' || key === 'end' || key === 'loc') continue;

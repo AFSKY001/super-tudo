@@ -476,3 +476,9 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Confirmações usam ações explícitas de confirmar/cancelar; entrada de texto permite confirmar, cancelar e devolver o valor digitado.
 - A etapa de build transforma as chamadas legadas `confirm()` e `prompt()` em chamadas assíncronas ao diálogo interno e torna assíncronas as funções que as contêm. A transformação usa AST e falha o build se encontrar chamada sem função compatível.
 - O diálogo mantém fila, foco acessível, fechamento por Escape, fundo desfocado e respeito a movimento reduzido.
+
+
+## Ajuste de segurança do diálogo assíncrono — versão 3.73.45
+
+- Corrigida a transformação AST para adicionar o modificador `async` uma única vez por função, mesmo quando ela contém várias confirmações.
+- Enter no botão Cancelar respeita o cancelamento; Enter no botão principal confirma. Escape cancela a confirmação ou entrada.
