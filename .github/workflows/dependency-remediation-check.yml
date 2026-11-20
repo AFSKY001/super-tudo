@@ -1,6 +1,12 @@
 name: Test dependency security remediation
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/dependency-remediation-check.yml"
   pull_request:
     paths:
       - "package.json"
