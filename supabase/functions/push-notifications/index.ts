@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import webpush from "npm:web-push@4.0.0";
+import { generateVAPIDKeys, setVapidDetails, sendNotification } from "npm:web-push@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,7 +59,7 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
       if (error) throw error;
       if (!config) {
-        const keys = webpush.generateVAPIDKeys();
+        const keys = generateVAPIDKeys();
         const created = await admin.from("app_push_config").insert({
           org_id: orgId,
           public_key: keys.publicKey,
@@ -75,7 +75,7 @@ Deno.serve(async (req: Request) => {
         if (loaded.error) throw loaded.error;
         config = loaded.data;
       }
-      webpush.setVapidDetails(config.subject, config.public_key, config.private_key);
+      setVapidDetails(config.subject, config.public_key, config.private_key);
       return config;
     }
 
@@ -103,7 +103,7 @@ Deno.serve(async (req: Request) => {
           data: { url: "/", notificationId: notice.id, ref: notice.ref || null },
         });
         try {
-          await webpush.sendNotification(item.subscription, payload, { TTL: 3600 });
+          await sendNotification(item.subscription, payload, { TTL: 3600 });
           sent++;
         } catch (err) {
           const status = Number((err as any)?.statusCode || 0);
@@ -308,6 +308,6 @@ Deno.serve(async (req: Request) => {
     return json({ error: "Ação desconhecida." }, 400);
   } catch (err) {
     console.error("push-notifications:", err);
-    return json({ error: String((err as any)?.message || err || "Erro interno.") }, 500);
+    return json({ error: "Falha interna ao processar a solicitação. Tente novamente." }, 500);
   }
 });

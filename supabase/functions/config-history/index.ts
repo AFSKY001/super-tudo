@@ -23,7 +23,8 @@ Deno.serve(async (req: Request) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: authData, error: authError } = await userClient.auth.getUser();
+    const token = authorization.slice("Bearer ".length).trim();
+    const { data: authData, error: authError } = await userClient.auth.getUser(token);
     if (authError || !authData.user) return json({ error: "Sessão inválida ou expirada." }, 401);
     const user = authData.user;
     const { data: orgId, error: orgError } = await userClient.rpc("current_org_id");
@@ -112,6 +113,6 @@ Deno.serve(async (req: Request) => {
     return json({ error: "Ação desconhecida." }, 400);
   } catch (error) {
     console.error("config-history:", error);
-    return json({ error: error instanceof Error ? error.message : "Erro interno." }, 500);
+    return json({ error: "Falha interna ao processar a solicitação. Tente novamente." }, 500);
   }
 });
