@@ -92,6 +92,18 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 
 A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` do projeto e não deve ser tratada como vulnerabilidade confirmada.
 
+### Revisão de sincronização online/offline — 20/11/2026
+
+- A aplicação salva o estado local em `localStorage`, mantém fila separada por identidade, usa `sync_push` com `client_id` idempotente e `base_revision`, consulta `sync_pull`, assina Realtime para `app_records`, retoma ao evento `online` e tem polling de segurança de 30 segundos.
+- Consulta somente leitura do banco: 67 registros em `app_records`, 18 tombstones; 1.443 operações em `sync_ops`, sendo 1.422 aplicadas e 21 conflitos. Todos os conflitos históricos são de checklist (`r:ck`); nenhum resultado `forbidden` ou `invalid` foi encontrado nessa amostra.
+- O cliente sempre chama `sync_pull` com `p_since: null`, buscando o snapshot completo. O índice de atualização existe, mas a sincronização incremental não está ativada. Para implementá-la com segurança, o cursor deve vir do relógio do servidor; não se deve confiar no relógio local dos aparelhos.
+- O código preserva a alteração local quando detecta conflito e bloqueia o reenvio automático do item conflitado. Não foi localizado fluxo explícito de resolução manual que compare os dois lados e crie uma nova operação com novo `client_id` e revisão base atualizada. Não automatizar a resolução: isso poderia sobrescrever alterações de outro funcionário.
+- O callback de Realtime não trata explicitamente o estado de inscrição; o polling de 30 segundos atua como recuperação, mas falhas de inscrição podem ficar pouco visíveis.
+- Foi criado `docs/SYNC-RELIABILITY-TEST-PLAN.md` com nove testes funcionais para dois aparelhos, incluindo operação offline, exclusão, conflito, resposta perdida, troca de conta, sessão expirada e permissão revogada.
+- Foi criado `npm run check:sync`, com 13 verificações estáticas da estrutura de sincronização, e ele foi incorporado ao workflow principal antes da preparação do pacote protegido. O teste passou no GitHub Actions. Ele é uma proteção estática, não um teste E2E real.
+
+**Limite desta etapa:** a inspeção do banco foi somente leitura. Nenhum dado, função, tabela, política ou permissão de produção foi alterado.
+
 ### Auditoria estática de CSS e JavaScript
 
 - O CSS principal tem 87.250 caracteres e 894 regras identificadas. Foram encontrados 157 seletores repetidos, mas os blocos têm declarações diferentes; não há grupos de regras integralmente idênticas. Isso indica camadas de sobrescrita, não duplicação simples que possa ser apagada sem análise de cascata.
@@ -108,9 +120,9 @@ O workflow principal agora confirma que a versão instalada do Wrangler correspo
 1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
 2. Reconciliar as 13 migrações aplicadas com fontes versionadas — concluído; nenhuma foi executada novamente.
 3. Executar `npm audit` e fixar o Wrangler em versão exata — concluído; zero vulnerabilidades e `wrangler deploy --dry-run` aprovado.
-5. Avaliar a ativação da proteção contra senhas vazadas e testar os fluxos de Auth.
-6. Revisar as funções auxiliares `SECURITY DEFINER` com testes de autorização.
-7. Otimizar políticas e índices apenas após comparar planos de consulta.
+5. Implementar uma resolução manual segura para conflitos de sincronização e testar em dois aparelhos; não reprocessar conflitos automaticamente.
+6. Instrumentar o estado da inscrição Realtime e planejar cursor incremental gerado no servidor.
+7. Avaliar a proteção contra senhas vazadas e revisar funções `SECURITY DEFINER` com testes de autorização.
 8. Recuperar a fonte legível do JavaScript e planejar a consolidação do CSS com testes visuais antes de remover camadas.
 
 **Regra:** nenhuma correção de segurança deve reduzir permissões por tentativa, e nenhuma alteração de sincronização deve ser publicada sem testes de leitura, gravação, conflito e operação offline.
