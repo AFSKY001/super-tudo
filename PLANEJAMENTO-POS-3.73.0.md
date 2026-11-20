@@ -106,3 +106,81 @@ O usuário pediu para explorar o Mobbin como referência de padrões visuais rea
 ---
 
 **Estado deste memorial:** requisitos organizados para retomada. Nenhum dos itens acima foi implementado por este documento.
+
+
+## 7. Padronização dos pop-ups e mensagens internas (nova demanda — fila)
+
+**Prioridade sugerida:** alta, por aparecer em várias rotinas e afetar a experiência de uso no dia a dia.
+
+### Auditoria inicial da versão 3.73.3
+
+Foi feita uma varredura no `index.html` da branch principal após a confirmação do usuário de que a versão 3.73.3 está funcionando. Foram encontradas ocorrências diretas das APIs nativas do navegador:
+
+- **96 chamadas a `alert(...)`** — avisos, validações e erros que hoje podem abrir a caixa padrão do Chrome.
+- **31 chamadas a `confirm(...)`** — confirmações, incluindo exclusões e decisões de fluxo.
+- **1 chamada a `prompt(...)`** — solicitação de nome para uma conferência.
+- Não foi encontrado um componente global baseado em `<dialog>` / `showModal()` no arquivo principal.
+- Existe um mecanismo interno pontual de confirmação em duas etapas (`V.cf` / `ask`) usado em alguns botões de exclusão, mas ele não substitui as chamadas nativas espalhadas pelo sistema.
+
+Esses números são contagens de chamadas no bundle atual, não uma contagem de telas distintas. Antes de implementar, fazer uma nova busca em todos os arquivos efetivamente incluídos na distribuição.
+
+### Objetivo
+
+Substituir as caixas nativas do Chrome por uma experiência visual consistente dentro do Super Tudo, sem alterar as regras de negócio nem perder nenhuma confirmação de segurança.
+
+### Direção visual e de interação
+
+- Criar uma camada central de diálogos do próprio aplicativo, alinhada à identidade visual atual (azul/índigo, superfícies claras/escuras, cantos arredondados e tipografia existente).
+- Para diálogos modais, usar preferencialmente o elemento HTML `<dialog>` aberto por `showModal()`, com conteúdo e aparência totalmente personalizados pelo Super Tudo. Isso mantém semântica, gerenciamento de foco, camada superior e comportamento de teclado/plataforma sem reproduzir manualmente essas partes.
+- Ao abrir, fazer o painel surgir com leve aumento de escala (aprox. 96% para 100%) e fade-in, em cerca de 180–240 ms; ao fechar, fazer o movimento inverso quando suportado.
+- Aplicar fundo escurecido e desfoque sutil no conteúdo atrás (backdrop), sem prejudicar legibilidade, contraste ou desempenho em celulares.
+- Em telas pequenas, limitar largura/altura à área visível, respeitar áreas seguras, permitir rolagem interna e manter botões fáceis de tocar.
+- Respeitar `prefers-reduced-motion`: remover deslocamentos/escala e usar apenas uma transição curta ou nenhuma.
+- Ter foco inicial adequado, navegação por teclado, fechamento por Escape quando seguro, retorno do foco ao controle que abriu a janela e rótulos acessíveis.
+- Em confirmações destrutivas, destacar claramente o que será excluído e a consequência; botão de cancelar como ação segura/padrão e ação destrutiva visualmente distinta. Não permitir fechar acidentalmente uma operação com alterações não salvas.
+- Não abrir uma janela modal para todo aviso: usar toast discreto para sucesso e mensagens não bloqueantes; usar mensagem junto ao campo para validações específicas; reservar modal para decisões que realmente exigem atenção.
+- Para mensagens de erro importantes, mostrar explicação útil e persistente o suficiente, sem empilhar vários pop-ups.
+
+### Tipos de componentes a construir
+
+1. **Toast / feedback:** sucesso, aviso e erro não bloqueantes, com ícone, texto curto e duração adequada; erros importantes podem ser dispensados manualmente.
+2. **Confirmação:** modal com título, contexto, ação segura e ação principal/destrutiva.
+3. **Entrada de texto:** modal com campo, valor inicial, validação e botões Cancelar/Salvar, substituindo o único `prompt()` identificado.
+4. **Aviso/erro informativo:** preferir toast ou mensagem inline; usar modal informativo apenas quando a pessoa realmente precisar parar e reconhecer a mensagem.
+
+### Plano técnico seguro — implementação por etapas
+
+1. Mapear cada chamada nativa e classificar por finalidade: validação, sucesso, erro, confirmação destrutiva, confirmação de fluxo ou entrada de texto.
+2. Construir e testar os componentes centrais sem ainda substituir todas as chamadas.
+3. Migrar primeiro avisos simples de `alert()` para feedback não bloqueante, começando por um grupo pequeno de fluxos.
+4. Migrar confirmações de `confirm()` para uma API assíncrona própria. **Não basta sobrescrever `window.confirm`:** o código atual espera uma resposta booleana síncrona, enquanto uma janela personalizada precisa aguardar a ação da pessoa. Cada ponto de chamada deverá ser adaptado cuidadosamente (incluindo funções e eventos que precisarão ser assíncronos), preservando a ordem e o cancelamento das operações.
+5. Substituir o `prompt()` por um diálogo de entrada de texto assíncrono, validando Cancelar, vazio e valor informado.
+6. Repetir a busca estática para garantir que não restaram chamadas nativas acidentais e revisar todos os caminhos de exclusão/importação.
+7. Testar em Android/Chrome e desktop: abrir/fechar, Escape/voltar, foco, rolagem, telas pequenas, tema claro/escuro, offline, falhas e ações canceladas.
+
+### Critérios de aceite
+
+- Nenhuma mensagem de rotina do sistema abre a caixa padrão do Chrome nos fluxos migrados.
+- Cancelar uma confirmação nunca executa a ação.
+- Confirmar executa a ação uma única vez, sem duplicar exclusão/importação.
+- O diálogo exibe o nome/descrição do item quando isso for possível e explica consequências de ações destrutivas.
+- Não há perda de dados, alteração de permissões, autenticação, sessão, sincronização ou estrutura do banco.
+- Não há modais em cascata nem excesso de interrupções; avisos simples são não bloqueantes.
+- Aparência consistente com Super Tudo, acessível por toque/teclado e responsiva.
+
+### Referências de UX e implementação
+
+- Chrome for Developers — Dialog: recomenda `<dialog>` modal para confirmações e tarefas que interrompem o fluxo; separa diálogos de menus e toasts e descreve foco, Escape e backdrop.
+- Chrome for Developers — Animate Elements To and From Top Layer: referência para animação de entrada/saída usando `@starting-style`, `transition-behavior` e `overlay`, respeitando movimento reduzido.
+- MDN — `window.alert()`, `window.confirm()` e `window.prompt()`: documenta as APIs nativas atuais e suas limitações.
+- U.S. Web Design System — Modal: recomenda uso moderado, títulos objetivos e conteúdo simples.
+
+Links consultados:
+- https://developer.chrome.com/docs/modern-web-guidance/guides/ui-components/dialog
+- https://developer.chrome.com/docs/modern-web-guidance/guides/ui-behaviors/animate-to-from-top-layer
+- https://developer.mozilla.org/en-US/docs/Web/API/Window/alert
+- https://developer.mozilla.org/en-US/docs/Web/API/Window/confirm
+- https://developer.mozilla.org/en-US/docs/Web/API/Window/prompt
+- https://designsystem.digital.gov/components/modal/
+
+**Status:** demanda auditada e registrada na fila. Ainda não implementada na branch de produção.
