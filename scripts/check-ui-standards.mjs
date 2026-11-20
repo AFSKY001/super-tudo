@@ -45,7 +45,14 @@ const requiredPatterns = [
   ['global motion enter token', /--ui-motion-enter\s*:\s*250ms/i],
   ['global navigation active indicator', /nav button\.on::after\s*\{[^}]*width:\s*18px/s],
   ['global field focus feedback', /input\[type="checkbox"\]:focus-visible[\s\S]*box-shadow:/s],
-  ['global reduced-motion contract', /prefers-reduced-motion\s*:\s*reduce[\s\S]*nav button::after\{display:none!important\}/s]
+  ['global reduced-motion contract', /prefers-reduced-motion\s*:\s*reduce[\s\S]*nav button::after\{display:none!important\}/s],
+  ['navigation compact labels', /'Painel'.*'Rotina'.*'Avaliar'.*'Progresso'.*'Equipe'.*'Registro'.*'Ajustes'/s],
+  ['navigation selected pill', /nav button\\.on\\s*\\{[^}]*background:var\\(--prs\\)!important/s],
+  ['navigation current page semantics', /aria-current=/],
+  ['gear icon with center', /'config':'<path d="M10 2\\.8h4[\\s\\S]*<circle cx="12" cy="11\\.7" r="3\\.1"\\/>/],
+  ['route-aware scroll reset', /_0x5a8d2f=V\\['sg'\\][\\s\\S]*_0x5a8d2f!==V\\['sg'\\][\\s\\S]*scrollTop.*=0x0/s],
+  ['horizontal screen transition', /st-screen-enter-forward[\\s\\S]*translate3d\\(12px,0,0\\)/]
+
 ];
 
 for (const [label, pattern] of requiredPatterns) {
