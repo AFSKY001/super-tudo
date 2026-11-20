@@ -372,3 +372,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidas as declarações repetidas de `font-size`, `margin` e `color` do bloco `h4`; os mesmos valores já eram definidos no bloco base, sem sobrescrita intermediária.
 - Preservados cursor, list-style, padding e todas as regras posteriores que alteram tipografia e espaçamento dos títulos e resumos.
 - Nenhuma estrutura HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
+
+
+## Limpeza agrupada de CSS — versão 3.73.23
+
+- Removidas 15 declarações redundantes de regras base de `body`, títulos, cartões/indicadores, listas, barras, botões de avaliação, tabelas e cabeçalho.
+- Cada declaração removida já era repetida mais adiante por regra do mesmo seletor e contexto global, com o mesmo valor; foram preservadas as declarações posteriores e todas as sobrescritas responsivas/temáticas.
+- Não foram removidos seletores, componentes, breakpoints, animações ou regras de tema.
+- Nenhuma alteração em HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização.
