@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: protected-build-${{ github.ref }}
@@ -33,14 +33,31 @@ jobs:
           node -e "const p=require('./package.json'); const v=require('./node_modules/wrangler/package.json').version; if(v!==p.devDependencies.wrangler) throw new Error('Wrangler version mismatch'); console.log('Wrangler '+v)"
       - name: Check offline and cloud sync contract
         run: npm run check:sync
-      - name: Prepare existing protected bundle (no re-obfuscation)
-        run: npm run build:deploy
+      - name: Verify global UI standards
+        run: npm run check:ui
+      - name: Build protected Cloudflare distribution
+        run: npm run build:protected
       - name: Validate Cloudflare deployment configuration without publishing
         run: npx wrangler deploy --dry-run
       - name: Block builds on high or critical dependency vulnerabilities
         run: npm audit --audit-level=high
-      - name: Verify committed dist matches generated deployment
-        run: git diff --exit-code -- dist/
+      - name: Commit refreshed protected distribution
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git add dist/
+          if ! git diff --cached --quiet; then
+            git fetch origin main
+            if [ "$(git rev-parse origin/main)" != "$GITHUB_SHA" ]; then
+              echo "main avançou durante o build; não vou publicar um pacote baseado em código desatualizado."
+              exit 1
+            fi
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "build(deploy): refresh protected distribution [skip ci]"
+            git push origin HEAD:main
+          else
+            echo "A distribuição protegida já está atualizada."
+          fi
       - name: Verify protected distribution
         run: |
           test -s dist/index.html
