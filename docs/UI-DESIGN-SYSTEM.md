@@ -322,3 +322,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Nenhum seletor, valor visual final, breakpoint, estrutura HTML, ID ou comportamento JavaScript foi alterado.
 - A contagem de `!important` no CSS passou de 872 para 868; o bloco de estilos permanece único.
 - Esta etapa não consolida regras históricas diferentes; elas continuam sujeitas a auditoria de cascata antes de qualquer remoção.
+
+
+## Limpeza incremental de CSS — versão 3.73.16
+
+- Removidos dois blocos responsivos antigos do menu inferior (largura total e breakpoint de até 360px), cujas propriedades de navegação são substituídas pelas camadas posteriores da versão atual.
+- Mantidos os tokens de identidade azul e as regras atuais de navegação, incluindo o layout móvel flutuante e o layout desktop.
+- Nenhum HTML funcional, JavaScript, autenticação, dados, permissões ou sincronização foi alterado.
