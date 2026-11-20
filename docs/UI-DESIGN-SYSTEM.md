@@ -118,7 +118,7 @@ Se um componente compartilhado não atender a uma necessidade real, primeiro evo
 
 ### Janelas e mensagens
 - Não introduzir `alert()`, `confirm()` ou `prompt()` nativos em novas funcionalidades.
-- A migração global das chamadas legadas para toasts, mensagens inline e diálogos internos está registrada como uma etapa própria no planejamento. Até a implementação e validação do serviço central, não inventar uma API alternativa por módulo.
+- A migração global das chamadas legadas para toasts, mensagens inline e diálogos internos está registrada como uma etapa própria no planejamento. O serviço central de avisos foi iniciado na versão 3.73.43; confirmações e entrada de texto permanecem pendentes. Não inventar uma API alternativa por módulo.
 - Mensagens rápidas não bloqueantes devem ser toasts; decisões críticas/destrutivas podem usar diálogo central; validação específica deve ficar junto ao campo.
 - Não empilhar diálogos nem perder o foco/contexto da tela.
 
@@ -460,3 +460,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 ## Limpeza incremental — 3.73.42
 
 - Removida a função `delCk`, que não possuía nenhuma chamada no aplicativo e mantinha uma confirmação nativa de exclusão inacessível. A remoção elimina código morto sem alterar o fluxo atual de checklists, permissões ou dados.
+
+
+## Serviço global de avisos internos — versão 3.73.43
+
+- Criado um diálogo interno compartilhado para substituir as chamadas legadas a `alert()`, com fila para mensagens consecutivas, foco acessível, botão de fechamento, animação discreta e fundo desfocado.
+- O diálogo usa os tokens visuais existentes e respeita a preferência por movimento reduzido.
+- As chamadas de confirmação `confirm()` e entrada `prompt()` não foram interceptadas: exigem migração assíncrona dos fluxos para preservar corretamente confirmar/cancelar e os valores digitados.
+- O aviso interno não bloqueia a execução JavaScript como o alerta nativo; a migração das confirmações e entradas será feita em etapa própria.
