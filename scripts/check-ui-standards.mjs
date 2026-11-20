@@ -17,6 +17,10 @@ const requireCheck = (condition, message) => {
 
 requireCheck(agent.includes('padrão global, nunca solução isolada'), 'AGENTS.md is missing the repository-wide UI rule.');
 requireCheck(rules.includes('Design system global'), 'The global design system document is missing or invalid.');
+requireCheck(html.includes('class="ch dashboard-edit-icon"'), 'Dashboard edit action must remain icon-only.');
+requireCheck(html.includes("'rot':'<rect"), 'Registro routine menu must have its own icon.');
+requireCheck(html.includes('M12 2.8 14 4'), 'Configuration icon must remain a recognizable gear.');
+
 
 const requiredPatterns = [
   ['primary color token', /--pr\s*:\s*#2457e6/i],
