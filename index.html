@@ -1502,6 +1502,58 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
   .dashboard-home .c{border-radius:14px;padding:14px!important}
 }
 @media(prefers-reduced-motion:reduce){.dashboard-home .c{transition:none!important}}
+
+/* Acabamento visual dos componentes — etapa isolada */
+.page-content .c{
+  border:1px solid var(--bd);
+  box-shadow:0 3px 12px rgba(24,38,61,.045);
+  transition:box-shadow .16s ease,border-color .16s ease;
+}
+.page-content button.bt,
+.page-content button.ch{
+  min-height:42px;
+  transition:transform .14s ease,filter .14s ease,box-shadow .14s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.page-content button.bt:active,
+.page-content button.ch:active{transform:scale(.98)}
+.page-content button.bt:focus-visible,
+.page-content button.ch:focus-visible,
+.page-content input:focus-visible,
+.page-content select:focus-visible,
+.page-content textarea:focus-visible{
+  outline:2px solid var(--pr);
+  outline-offset:2px;
+}
+.page-content input,
+.page-content select,
+.page-content textarea{
+  border-radius:10px;
+  transition:border-color .16s ease,box-shadow .16s ease;
+}
+.page-content input:focus,
+.page-content select:focus,
+.page-content textarea:focus{
+  border-color:var(--pr);
+  box-shadow:0 0 0 3px rgba(70,100,255,.10);
+}
+@media(hover:hover){
+  .page-content .c:hover{box-shadow:0 5px 16px rgba(24,38,61,.065)}
+  .page-content button.bt:hover,
+  .page-content button.ch:hover{filter:brightness(1.035)}
+}
+@media(max-width:520px){
+  .page-content .c{padding:13px;border-radius:15px}
+  .page-content button.bt{padding:10px 13px}
+}
+@media(prefers-reduced-motion:reduce){
+  .page-content .c,
+  .page-content button.bt,
+  .page-content button.ch,
+  .page-content input,
+  .page-content select,
+  .page-content textarea{transition:none!important}
+}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
