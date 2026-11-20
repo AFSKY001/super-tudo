@@ -513,3 +513,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Também rejeita declarações exatamente repetidas dentro do mesmo bloco de regra. Declarações diferentes da mesma propriedade continuam permitidas quando podem representar fallback ou precedência intencional.
 - A verificação não remove seletores repetidos entre contextos nem tenta classificar CSS dinâmico como sem uso. Essa análise exige rastrear a cascata e as classes construídas pelo JavaScript.
 - Na base 3.73.49, a leitura estrutural encontrou 1.003 blocos de regra, sem blocos completos idênticos no mesmo contexto e sem declarações exatamente duplicadas dentro de um mesmo bloco. A nova proteção impede que esse tipo de redundância volte a entrar silenciosamente.
+
+
+## Organização dos estilos do cabeçalho e diálogos — versão 3.73.50
+
+- Removidos os quatro atributos `style` estáticos do HTML principal: botão de notificações, contador, indicador de sincronização e campo do diálogo interno.
+- Os estilos equivalentes agora pertencem a classes CSS nomeadas e reutilizáveis, preservando dimensões, cores, espaçamentos e estados iniciais.
+- O campo do diálogo mantém a exibição controlada pelo serviço global; o CSS define apenas seu estado inicial e sua aparência.
+- O verificador de qualidade passa a impedir a reintrodução de atributos de estilo estáticos no HTML. Estilos dinâmicos aplicados pelo JavaScript não são afetados.
+- Nenhuma regra de negócio, autenticação, permissão, sincronização ou estrutura de dados foi alterada.
