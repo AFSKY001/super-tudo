@@ -215,3 +215,38 @@ O contrato global aplica essas dimensões aos cartões comuns, aos cartões da �
 - O ícone da área **Rotina** em Registro usa o mesmo traço vetorial e dimensões das demais áreas.
 - O ícone de **Configuração** usa uma engrenagem reconhecível, mantendo o padrão SVG de traço e a cor herdada do tema.
 - Os três ajustes são visuais; ações, permissões, navegação e dados permanecem inalterados.
+
+
+## 11. Contrato global de movimento — versão 3.73.8
+
+O movimento reforça a compreensão da interface, responde a ações e indica mudanças de estado. Não deve ser usado como decoração contínua nem atrasar tarefas frequentes.
+
+### Tokens globais
+
+| Token | Valor | Aplicação |
+|---|---:|---|
+| `--ui-motion-feedback` | 120ms | Resposta ao toque |
+| `--ui-motion-state` | 190ms | Mudança de estado, foco e seleção |
+| `--ui-motion-enter` | 250ms | Entrada de elementos |
+| `--ui-motion-panel` | 300ms | Painéis e indicadores de progresso |
+| `--ui-motion-standard` | `cubic-bezier(.2,.8,.2,1)` | Curva padrão |
+| `--ui-motion-emphasis` | `cubic-bezier(.22,1,.36,1)` | Resposta tátil e destaque |
+
+### Regras obrigatórias
+
+- Usar os mesmos tokens em todos os módulos; não criar tempos e curvas particulares sem necessidade documentada.
+- Movimentos devem ser curtos, interrompíveis e associados a uma ação ou mudança de estado.
+- Preferir `transform` e `opacity`; evitar animar propriedades que provoquem recálculo de layout ou pintura extensa.
+- Não animar continuamente cartões, tabelas ou indicadores sem representar uma operação real.
+- Efeitos de hover só se aplicam a dispositivos que oferecem ponteiro; telas de toque recebem feedback por pressão e estado selecionado.
+- O foco de teclado precisa continuar claramente visível.
+- `prefers-reduced-motion: reduce` remove movimentos não essenciais sem esconder informações ou estados.
+- Não usar `will-change` em massa; reservar para problemas de desempenho comprovados.
+
+### Escopo aplicado nesta etapa
+
+A versão 3.73.8 aplica o contrato aos botões, filtros, navegação inferior, cartões interativos, campos e setas de expansão. A identidade de cores, medidas, conteúdo, permissões e ações do aplicativo são preservadas.
+
+### Próximas aplicações por módulo
+
+Aplicar o mesmo contrato em etapas específicas a: conclusão de rotinas e checklists, feedback de gravação e validação de formulários, carregamentos e sincronização, importações e conferências. Estados de sucesso ou erro só devem animar quando houver uma confirmação real da operação.
