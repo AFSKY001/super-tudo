@@ -111,7 +111,7 @@ requireCheck(new Set(staticIds).size === staticIds.length, 'Duplicate static HTM
 requireCheck((html.match(/function editL\s*\(/g) || []).length === 1, 'The editL action must have exactly one declaration.');
 requireCheck((html.match(/function editTempRecord\s*\(/g) || []).length === 1, 'The temperature edit action must have exactly one declaration.');
 requireCheck(html.includes('editTempRecord(this.dataset.id)'), 'Temperature history must call its dedicated edit action.');
-const globalReducedMotionBlocks = (styleBlocks.length === 1 ? (styleBlocks[0][1].match(/@media\\s*\\(?prefers-reduced-motion:reduce\\)?\\s*\\{\\*\\{animation:none!important;transition:none!important\\}\\}/g) || []).length : 0);
+const globalReducedMotionBlocks = (styleBlocks.length === 1 ? (styleBlocks[0][1].match(/@media\s*\(?prefers-reduced-motion:reduce\)?\s*\{\*\{animation:none!important;transition:none!important\}\}/g) || []).length : 0);
 requireCheck(globalReducedMotionBlocks === 1, 'Expected exactly one global reduced-motion fallback; duplicate or missing fallback detected.');
 const cssImportantCount = styleBlocks.length === 1 ? (styleBlocks[0][1].match(/!important/g) || []).length : 0;
 requireCheck(cssImportantCount <= 872, 'The global CSS !important count increased above the audited baseline (872).');
