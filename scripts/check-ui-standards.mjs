@@ -19,7 +19,7 @@ requireCheck(agent.includes('padrão global, nunca solução isolada'), 'AGENTS.
 requireCheck(rules.includes('Design system global'), 'The global design system document is missing or invalid.');
 requireCheck(html.includes('class="ch dashboard-edit-icon"'), 'Dashboard edit action must remain icon-only.');
 requireCheck(html.includes("'rot':'<rect"), 'Registro routine menu must have its own icon.');
-requireCheck(html.includes('M12 2.8 14 4'), 'Configuration icon must remain a recognizable gear.');
+requireCheck(html.includes('M10 2.8h4') && html.includes('cy="11.7" r="3.1"'), 'Configuration icon must remain a recognizable gear.');
 
 
 const requiredPatterns = [
