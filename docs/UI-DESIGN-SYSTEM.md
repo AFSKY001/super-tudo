@@ -336,3 +336,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removida a camada legada de navegação móvel identificada como etapa 3.73.3: ajustes de rótulos/ícones para até 700px e até 360px, além de uma regra reduzida de transição.
 - A navegação móvel atual e seu contrato de acessibilidade/redução de movimento permanecem definidos pelas regras globais posteriores.
 - Nenhum HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterado.
+
+
+## Limpeza incremental de CSS — versão 3.73.18
+
+- Removidas cinco regras antigas de botões e filtros (.bt, .bt.g, .bt.d, .ch e .ch.on) do bloco visual intermediário: suas propriedades já eram integralmente definidas pela camada global posterior.
+- Preservados os estilos atuais de hover, foco, estados, dimensões, movimento e redução de movimento.
+- Nenhuma estrutura HTML, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
