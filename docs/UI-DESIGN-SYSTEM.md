@@ -448,3 +448,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removida uma regra repetida de `:focus-visible` para botões, campos e seletores.
 - A regra posterior idêntica foi preservada, mantendo o mesmo contorno e deslocamento de foco.
 - Mantidos os estilos de foco específicos e as regras globais de acessibilidade com prioridade maior.
+
+
+## Remoção de regra CSS redundante — versão 3.73.41
+
+- Removida a segunda ocorrência global de `.g2{gap:12px}` em `index.html`.
+- A regra de grade já é definida pelo contrato global posterior com `gap:12px!important`, com ajuste responsivo de `8px!important` em telas estreitas.
+- Nenhuma estrutura, classe, lógica de tela, dado ou módulo funcional foi alterado.
