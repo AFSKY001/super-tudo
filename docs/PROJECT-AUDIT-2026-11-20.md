@@ -165,6 +165,9 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 - Balanceamento de chaves fechou em zero, sem profundidade negativa; comentários e strings CSS também terminaram fechados.
 - Foram removidas três redundâncias comprovadas sem retirar estilos exclusivos: cursor repetido em cartão clicável, declaração repetida do estado `.month-cell.on` e transformação hover duplicada no segundo bloco de hover. Nova comparação encontrou zero grupos de regras exatamente duplicadas no mesmo contexto.
 - A versão do aplicativo foi alinhada para `3.73.32` em `index.html`, `package.json`, `package-lock.json` e `sw.js`; o histórico de atualizações também recebeu a entrada da versão. A restauração de sessão aceita explicitamente o estado anterior `3.73.31`, evitando logout forçado por esta atualização visual.
+- Build protegido concluído com sucesso no workflow `44800162740`, commit de distribuição `8b7c5251baeef73f6805aa65b01947e1d2cb8883`; `dist/index.html` e `dist/sw.js` confirmados na versão `3.73.32`.
+- O build executou `npm audit --audit-level=high` e retornou `found 0 vulnerabilities`. O lockfile resolve `zod` em `4.6.7`; o teste independente da árvore de dependências também passou com zero vulnerabilidades altas/críticas, contrato de sincronização aprovado e padrões de UI aprovados.
+- Artefato `super-tudo-protegido` enviado pelo workflow: ID `14659902099`, SHA-256 `e08aa3ebc3c3834927602df2efd2b3f95657b5c225aad57b28e88007b75f36d2`. O workflow valida `wrangler deploy --dry-run`; não executa publicação real.
 - As 16 ocorrências de `:root` representam camadas históricas e contextos de tema diferentes; não foram consolidadas porque há tokens distintos e precedência por cascata. Os 799 `!important` também foram mantidos até classificar os componentes e estados dependentes.
 - Próxima etapa de CSS: classificar regras por contexto, comparar declarações equivalentes e executar validação visual/regressiva antes de consolidar tokens e componentes.
 
@@ -173,6 +176,7 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
 2. Reconciliar as 13 migrações aplicadas com fontes versionadas — concluído; nenhuma foi executada novamente.
 3. Executar `npm audit` e fixar o Wrangler em versão exata — concluído; zero vulnerabilidades e `wrangler deploy --dry-run` aprovado.
+4. Validar versão, cache offline e conteúdo da distribuição protegida — concluído na 3.73.32.
 5. Testar a resolução manual de conflitos em dois aparelhos; não reprocessar conflitos automaticamente.
 6. Projetar cursor incremental com garantia de ordenação/commit no servidor antes de ativá-lo.
 7. Avaliar a proteção contra senhas vazadas e revisar funções `SECURITY DEFINER` com testes de autorização.
