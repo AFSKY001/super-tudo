@@ -48,7 +48,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:5px 4px;text-align:left}
 @keyframes up{from{opacity:0;transform:translateY(12px)}}@keyframes gr{from{width:0}}@keyframes gh{from{transform:scaleY(0)}}@keyframes rg{from{stroke-dasharray:0 100}}@keyframes pop{from{opacity:0;transform:scale(.92) translateY(-6px)}}@keyframes sl{from{transform:translateY(100%)}}@keyframes fd{from{opacity:0}}
 .an>*{animation:up .4s cubic-bezier(.2,.8,.2,1) both}.an>*:nth-child(2){animation-delay:.05s}.an>*:nth-child(3){animation-delay:.1s}.an>*:nth-child(4){animation-delay:.15s}.an>*:nth-child(5){animation-delay:.2s}.an>*:nth-child(n+6){animation-delay:.25s}
 .an .bar i{animation:gr .9s cubic-bezier(.2,.8,.2,1) both}.an .cols i{transform-origin:bottom;animation:gh .7s cubic-bezier(.2,.8,.2,1) both}.an .rg{animation:rg 1s .1s cubic-bezier(.2,.8,.2,1) both}
-button,.c,.ch,.day{transition:transform .12s,background .2s,color .2s}button:active{transform:scale(.95)}.c[onclick]{cursor:pointer}.c[onclick]:active{transform:scale(.985)}
+button,.c,.day{transition:transform .12s,background .2s,color .2s}button:active{transform:scale(.95)}.c[onclick]{cursor:pointer}.c[onclick]:active{transform:scale(.985)}
 .dd{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));right:max(12px,calc(50% - 368px));z-index:21;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:pop .18s ease both;transform-origin:top right}.sheet{max-width:760px;margin:0 auto;max-height:88vh;overflow:auto;animation:sl .25s cubic-bezier(.2,.8,.2,1) both}.dim{animation:fd .2s both}
 .cols{display:flex;gap:6px;align-items:flex-end;height:112px}.cols>div{flex:1;min-width:18px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;font-size:11px}.cols i{width:100%;display:block;border-radius:6px 6px 2px 2px}.cols span{color:var(--mu)}
 .stk{display:flex;height:26px;border-radius:9px;overflow:hidden;gap:2px}.stk i{display:flex;align-items:center;justify-content:center;color:#fff;font:700 12px system-ui;font-style:normal}
@@ -126,7 +126,7 @@ details{padding:10px 12px}
 summary{cursor:pointer;list-style:none;padding:2px 0}
 summary::-webkit-details-marker{display:none}
 details[open]>:not(summary){animation:entra var(--dur) var(--ease) both}
-button,.c,.ch,.day{transition:transform var(--dur-f),background var(--dur),color var(--dur),box-shadow var(--dur),filter var(--dur)}
+button,.c,.day{transition:transform var(--dur-f),background var(--dur),color var(--dur),box-shadow var(--dur),filter var(--dur)}
 button:active{transform:scale(.96)}
 
 /* ---- utilitários de espaçamento (padrão) ---- */
