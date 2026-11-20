@@ -350,3 +350,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removida uma regra intermediária redundante para `.c`, `details` e `.page-content .c`, já integralmente substituída pelo contrato global de cartões posterior.
 - Preservadas as regras específicas de cartões internos, grade, painel inicial e espaçamentos por módulo.
 - Nenhuma alteração em HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização.
+
+
+## Limpeza incremental de CSS — versão 3.73.20
+
+- Removidas quatro declarações repetidas do bloco global `.sheet` (largura máxima, margem, altura máxima e rolagem), já definidas anteriormente no mesmo contexto.
+- Preservadas as regras de animação, bordas, raio, fundo, sombra e posicionamento responsivo das janelas.
+- Nenhuma estrutura HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
