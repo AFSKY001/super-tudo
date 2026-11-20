@@ -39,7 +39,13 @@ const requiredPatterns = [
   ['global card margin token', /--ui-card-margin\s*:\s*9px/i],
   ['global card shadow token', /--ui-card-shadow\s*:\s*var\(--sh1\)/i],
   ['global card surface token', /--ui-card-background\s*:\s*var\(--cd\)/i],
-  ['global card sizing contract', /\.c,\s*\.page-content \.c,\s*\.dashboard-home \.c\s*\{[^}]*padding:\s*var\(--ui-card-padding\)!important/s]
+  ['global card sizing contract', /\.c,\s*\.page-content \.c,\s*\.dashboard-home \.c\s*\{[^}]*padding:\s*var\(--ui-card-padding\)!important/s],
+['global motion feedback token', /--ui-motion-feedback\\s*:\\s*120ms/i],
+  ['global motion state token', /--ui-motion-state\\s*:\\s*190ms/i],
+  ['global motion enter token', /--ui-motion-enter\\s*:\\s*250ms/i],
+  ['global navigation active indicator', /nav button\\.on::after\\s*\\{[^}]*width:\\s*18px/s],
+  ['global field focus feedback', /input\\[type="checkbox"\\]:focus-visible[\\s\\S]*box-shadow:/s],
+  ['global reduced-motion contract', /prefers-reduced-motion\\s*:\\s*reduce[\\s\\S]*nav button::after\\{display:none!important\\}/s]
 ];
 
 for (const [label, pattern] of requiredPatterns) {
