@@ -4,7 +4,7 @@
 
 Auditoria somente de leitura do repositório `main`, do build de produção Cloudflare e do projeto Supabase conectado. Nenhuma tabela, política, função, credencial, usuário ou dado de produção foi alterado nesta auditoria.
 
-A versão preparada nesta correção é **3.73.31**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; a confirmação do deploy real deve ser feita no painel do Cloudflare.
+A versão preparada nesta correção é **3.73.32**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; a confirmação do deploy real deve ser feita no painel do Cloudflare.
 
 ## 1. Interface e CSS
 
@@ -27,7 +27,7 @@ Verificações estáticas realizadas no HTML principal:
 
 ## 3. Build e dependências
 
-- O pacote e o lockfile estão alinhados na versão **3.73.31** (conferidos diretamente em `package.json` e no campo raiz de `package-lock.json`).
+- O pacote e o lockfile estão alinhados na versão **3.73.32** (conferidos diretamente em `package.json` e no campo raiz de `package-lock.json`).
 - O lockfile fixa 252 pacotes de desenvolvimento/transitivos; não há dependências de runtime declaradas no pacote raiz.
 - O Wrangler está fixado exatamente em `4.165.0` no `package.json` e no lockfile.
 - `npm audit` foi executado no pipeline com zero vulnerabilidades. Os quatro alertas altos relatados anteriormente não foram reproduzidos no lockfile atual.
@@ -106,7 +106,7 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 - O teste também executou `npm ci` a partir do lockfile candidato, `npm run build:deploy` e `git diff --exit-code -- dist/`; todas as etapas passaram e os arquivos protegidos em `dist/` permaneceram idênticos.
 - O `npm audit` após incluir Wrangler também retornou **zero vulnerabilidades**. O lockfile final contém 252 pacotes, todos gerados pelo npm e fixados no arquivo de lock.
 - `wrangler@4.165.0` foi adicionado como dependência de desenvolvimento exata, com integridade e árvore de dependências registradas em `package-lock.json`. Assim, o CLI local não depende mais do fallback variável de `npx`.
-- A versão atual do aplicativo, pacote e lockfile é `3.73.31`; o Service Worker também usa `super-tudo-v3.73.31`. A configuração atual mantém Wrangler `4.165.0` fixado.
+- A versão atual do aplicativo, pacote e lockfile é `3.73.32`; o Service Worker também usa `super-tudo-v3.73.32`. A configuração atual mantém Wrangler `4.165.0` fixado.
 
 A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` do projeto e não deve ser tratada como vulnerabilidade confirmada.
 
@@ -117,7 +117,7 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 - O cliente sempre chama `sync_pull` com `p_since: null`, buscando o snapshot completo. O índice de atualização existe, mas a sincronização incremental não está ativada. Para implementá-la com segurança, o cursor deve vir do relógio do servidor; não se deve confiar no relógio local dos aparelhos.
 - O código preserva a alteração local quando detecta conflito e bloqueia o reenvio automático do item conflitado. **Corrigido em 3.73.29:** o cliente guarda o snapshot remoto e oferece uma resolução manual no indicador de sincronização: manter local (novo `client_id` e rebase sobre a revisão do servidor) ou usar nuvem (aplicar o registro remoto e remover a fila local). O snapshot é atualizado antes da escolha; se indisponível, nenhuma alteração é descartada.
 - **Corrigido em 3.73.29:** a inscrição Realtime trata os estados `SUBSCRIBED`, `CHANNEL_ERROR`, `TIMED_OUT` e `CLOSED`, com informação no indicador e polling de 30 segundos como fallback.
-- **Corrigido em 3.73.31:** operações recusadas por `forbidden`/`invalid` ou outros estados bloqueados agora são separadas dos conflitos reais. O indicador informa `Revisar envio`, mostra o motivo e evita sugerir que a fila está enviando quando o servidor a recusou. Nenhuma operação bloqueada é reenviada automaticamente.
+- **Corrigido em 3.73.32:** operações recusadas por `forbidden`/`invalid` ou outros estados bloqueados agora são separadas dos conflitos reais. O indicador informa `Revisar envio`, mostra o motivo e evita sugerir que a fila está enviando quando o servidor a recusou. Nenhuma operação bloqueada é reenviada automaticamente.
 - A leitura continua usando `p_since: null` e baixa o snapshot completo. Cursor incremental continua pendente; não foi implementado porque o cursor timestamp atual não oferece garantia suficiente contra transações longas que confirmam fora de ordem.
 - Foi criado `docs/SYNC-RELIABILITY-TEST-PLAN.md` com nove testes funcionais para dois aparelhos, incluindo operação offline, exclusão, conflito, resposta perdida, troca de conta, sessão expirada e permissão revogada.
 - O comando `npm run check:sync` agora executa 29 verificações estruturais e valida a sintaxe dos scripts inline. Ele passou no GitHub Actions; é uma proteção estática, não um teste E2E real.
@@ -139,7 +139,7 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 ## 5.1. Snapshot atualizado do repositório — 20/11/2026
 
 - Commit `main` verificado antes desta atualização: `6d26aff42155ba6f644db9486271b560c963a0a7` (inclui a distribuição protegida gerada pelo workflow).
-- `package.json`, `package-lock.json` e `sw.js` estão alinhados à versão `3.73.31`; o Wrangler está fixado em `4.165.0`.
+- `package.json`, `package-lock.json` e `sw.js` estão alinhados à versão `3.73.32`; o Wrangler está fixado em `4.165.0`.
 - Os workflows `Prepare deployment distribution` e `Test dependency security remediation` concluíram com sucesso no commit de preparação `851df077a30f2a27fbc6e0278ce0b7f789f48807`.
 - O workflow de distribuição executou compilação protegida, verificação do contrato de sincronização, verificação dos padrões globais de UI, validação `wrangler deploy --dry-run`, auditoria de vulnerabilidades, atualização e conferência da distribuição protegida.
 - O sucesso do `dry-run` não comprova que houve publicação real no Cloudflare. A confirmação da implantação ativa continua pendente no painel/endpoint de produção.
@@ -160,10 +160,11 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 
 ### Auditoria estrutural CSS — 20/11/2026
 
-- Leitura integral do `index.html`: 844.712 caracteres; um bloco `<style>` com 87.250 caracteres.
-- Scanner estrutural preliminar encontrou 894 blocos de regra, 50 `@media`, 21 `@keyframes`, 16 ocorrências de `:root` e 799 `!important`.
+- Leitura integral do `index.html` antes da limpeza: 844.712 caracteres; um bloco `<style>` com 87.250 caracteres. Após a limpeza, o CSS ficou com 87.141 caracteres.
+- Scanner estrutural recursivo encontrou 993 instâncias de regras CSS, 50 `@media`, 21 `@keyframes`, 16 ocorrências de `:root` (incluindo variantes de tema) e 799 `!important`.
 - Balanceamento de chaves fechou em zero, sem profundidade negativa; comentários e strings CSS também terminaram fechados.
-- O levantamento encontrou seletores repetidos em contextos diferentes, inclusive dentro de media queries e keyframes. Isso não comprova duplicação inútil: nenhuma regra foi apagada ou reordenada sem análise de cascata e estados.
+- Foram removidas três redundâncias comprovadas sem retirar estilos exclusivos: cursor repetido em cartão clicável, declaração repetida do estado `.month-cell.on` e transformação hover duplicada no segundo bloco de hover. Nova comparação encontrou zero grupos de regras exatamente duplicadas no mesmo contexto.
+- As 16 ocorrências de `:root` representam camadas históricas e contextos de tema diferentes; não foram consolidadas porque há tokens distintos e precedência por cascata. Os 799 `!important` também foram mantidos até classificar os componentes e estados dependentes.
 - Próxima etapa de CSS: classificar regras por contexto, comparar declarações equivalentes e executar validação visual/regressiva antes de consolidar tokens e componentes.
 
 ## 6. Ordem segura de continuidade
@@ -174,6 +175,6 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 5. Testar a resolução manual de conflitos em dois aparelhos; não reprocessar conflitos automaticamente.
 6. Projetar cursor incremental com garantia de ordenação/commit no servidor antes de ativá-lo.
 7. Avaliar a proteção contra senhas vazadas e revisar funções `SECURITY DEFINER` com testes de autorização.
-8. Recuperar a fonte legível do JavaScript e planejar a consolidação do CSS com testes visuais antes de remover camadas.
+8. Recuperar a fonte legível do JavaScript e consolidar tokens CSS históricos com testes visuais antes de remover camadas.
 
 **Regra:** nenhuma correção de segurança deve reduzir permissões por tentativa, e nenhuma alteração de sincronização deve ser publicada sem testes de leitura, gravação, conflito e operação offline.
