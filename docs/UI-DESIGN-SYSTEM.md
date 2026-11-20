@@ -184,3 +184,19 @@ A camada global de componentes agora expõe tokens CSS únicos para dimensões r
 A aplicação usa esses tokens em seletores globais `.bt` e `.ch`, não apenas em uma tela. O build verifica a presença dos tokens e dos contratos de altura para impedir que sejam removidos acidentalmente.
 
 Não redefinir essas dimensões dentro de um módulo. Se surgir uma necessidade real de acessibilidade ou densidade, evoluir o token ou criar uma variante semântica documentada e reutilizável.
+
+
+## 10. Contrato global de cartões e painéis
+
+Cartões e painéis baseados em `.c` devem compartilhar os tokens globais abaixo em todos os módulos e telas futuras:
+
+| Token | Valor | Uso |
+|---|---:|---|
+| `--ui-card-padding` | 16px | Espaçamento interno padrão |
+| `--ui-card-nested-padding` | 12px | Cartões internos/agrupados |
+| `--ui-card-radius` | 16px | Arredondamento uniforme |
+| `--ui-card-margin` | 9px | Separação vertical padrão |
+| `--ui-card-shadow` | `var(--sh1)` | Sombra compartilhada |
+| `--ui-card-background` | `var(--cd)` | Superfície compatível com os temas |
+
+O contrato global aplica essas dimensões aos cartões comuns, aos cartões da área de conteúdo e ao dashboard. Estados de interação, cartões informativos com destaque e cartões internos preservam suas funções; o espaçamento interno dos cartões aninhados usa o token específico. Não criar valores locais concorrentes sem uma variante reutilizável documentada.
