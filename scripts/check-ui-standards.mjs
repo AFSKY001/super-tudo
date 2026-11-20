@@ -137,6 +137,7 @@ const legacyDialogs = {
   prompt: (html.match(/\bprompt\s*\(/g) || []).length
 };
 const ceilings = { alert: 96, confirm: 31, prompt: 1 };
+requireCheck(html.includes('window.stAlert=value=>enqueue'), 'Internal alert service must expose the explicit stAlert API.');
 
 for (const name of Object.keys(ceilings)) {
   requireCheck(

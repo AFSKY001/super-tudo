@@ -54,18 +54,21 @@ function migrateNativeDialogs(source) {
   const ast = parse(source, { ecmaVersion: 'latest', sourceType: 'script', allowAwaitOutsideFunction: false });
   const edits = [];
   const asyncOwners = new Set();
-  const calls = { confirm: 0, prompt: 0 };
+  const calls = { alert: 0, confirm: 0, prompt: 0 };
   function walk(node, ancestors = []) {
     if (!node || typeof node !== 'object') return;
     const isFunction = ['FunctionDeclaration','FunctionExpression','ArrowFunctionExpression'].includes(node.type);
     const stack = isFunction ? [...ancestors, node] : ancestors;
-    if (node.type === 'CallExpression' && node.callee?.type === 'Identifier' && ['confirm','prompt'].includes(node.callee.name)) {
+    if (node.type === 'CallExpression' && node.callee?.type === 'Identifier' && ['alert','confirm','prompt'].includes(node.callee.name)) {
       const kind = node.callee.name;
       const owner = stack[stack.length - 1];
       if (!owner) throw new Error('Native ' + kind + ' call has no enclosing function; migration aborted.');
       calls[kind]++;
-      edits.push({ at: node.start, value: 'await st' + (kind === 'confirm' ? 'Confirm' : 'Prompt') });
-      if (!owner.async && !asyncOwners.has(owner.start)) { asyncOwners.add(owner.start); edits.push({ at: owner.start, value: 'async ' }); }
+      if (kind === 'alert') edits.push({ at: node.start, value: 'stAlert' });
+      else {
+        edits.push({ at: node.start, value: 'await st' + (kind === 'confirm' ? 'Confirm' : 'Prompt') });
+        if (!owner.async && !asyncOwners.has(owner.start)) { asyncOwners.add(owner.start); edits.push({ at: owner.start, value: 'async ' }); }
+      }
     }
     for (const key of Object.keys(node)) {
       if (key === 'start' || key === 'end' || key === 'loc') continue;
@@ -117,7 +120,7 @@ html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
   const code = protectJavaScript(minified.code, 'index.html inline script');
   if (type !== 'module') new Function(code);
   transformed++;
-  if (migrated.calls.confirm || migrated.calls.prompt) console.log('Migrated internal dialogs:', JSON.stringify(migrated.calls));
+  if (migrated.calls.alert || migrated.calls.confirm || migrated.calls.prompt) console.log('Migrated internal dialogs:', JSON.stringify(migrated.calls));
   return '<script' + attrs + '>\n' + code + '\n</script>';
 });
 

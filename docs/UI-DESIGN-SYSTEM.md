@@ -482,3 +482,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 
 - Corrigida a transformação AST para adicionar o modificador `async` uma única vez por função, mesmo quando ela contém várias confirmações.
 - Enter no botão Cancelar respeita o cancelamento; Enter no botão principal confirma. Escape cancela a confirmação ou entrada.
+
+
+## Correção de exibição dos diálogos internos — versão 3.73.46
+
+- Chamadas diretas legadas de `alert()` passam a ser convertidas explicitamente para `stAlert()` durante o build, sem depender da substituição do método global do navegador.
+- A camada do diálogo aplica também os estados de visibilidade diretamente ao elemento ao abrir e fechar, mantendo os estilos e a animação existentes.
+- O serviço continua centralizado e compartilhado; nenhuma regra de negócio, módulo protegido, autenticação, permissão ou sincronização foi alterada.
