@@ -419,3 +419,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidas 7 declarações redundantes de propriedades repetidas na navegação móvel, mantendo a definição anterior idêntica no mesmo seletor e breakpoint.
 - Preservadas as regras específicas de estado ativo, ícones, rótulos e tamanhos de tela.
 - Atualizados APP_VERSION, package.json, package-lock.json e cache do service worker para 3.73.28.
+
+
+## Correção de rolagem após renderização — versão 3.73.37
+
+- O reset de rolagem ao trocar de rota agora é repetido após dois quadros de renderização, além do reset imediato.
+- A segunda aplicação alcança contêineres roláveis que só passam a existir ou recebem dimensões após a atualização do DOM e do layout.
+- Atualizações dentro da mesma rota continuam preservando a posição de rolagem.
+- Nenhuma regra de negócio, autenticação, permissões, dados ou sincronização foi alterada.
