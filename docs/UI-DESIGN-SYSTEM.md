@@ -397,3 +397,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Preservados temas, breakpoints, dimensões, animações e comportamento dos componentes.
 - Alinhadas as duas referências de versão do `package-lock.json` com `package.json`.
 - Nenhuma alteração em HTML funcional, JavaScript, autenticação, permissões, sessão, banco de dados ou sincronização.
+
+
+## Consolidação ampla de CSS — versão 3.73.26
+
+- Removidas 46 declarações repetidas em regras com o mesmo seletor e contexto, incluindo propriedades de navegação, botões, filtros, tema, cartões, painéis e tipografia.
+- Cada remoção preserva uma declaração anterior com o mesmo valor e prioridade; a análise também verificou propriedades shorthand e longhand para evitar remover declarações necessárias.
+- Mantidos os temas, breakpoints, estados, animações, dimensões e regras específicas de componentes.
+- Nenhuma alteração em HTML funcional, JavaScript, autenticação, permissões, sessão, banco de dados ou sincronização.
