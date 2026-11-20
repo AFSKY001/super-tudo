@@ -343,3 +343,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidas cinco regras antigas de botões e filtros (.bt, .bt.g, .bt.d, .ch e .ch.on) do bloco visual intermediário: suas propriedades já eram integralmente definidas pela camada global posterior.
 - Preservados os estilos atuais de hover, foco, estados, dimensões, movimento e redução de movimento.
 - Nenhuma estrutura HTML, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
+
+
+## Limpeza incremental de CSS — versão 3.73.19
+
+- Removida uma regra intermediária redundante para `.c`, `details` e `.page-content .c`, já integralmente substituída pelo contrato global de cartões posterior.
+- Preservadas as regras específicas de cartões internos, grade, painel inicial e espaçamentos por módulo.
+- Nenhuma alteração em HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização.
