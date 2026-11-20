@@ -6,7 +6,8 @@
   "scripts": {
     "build:protected": "node scripts/build-protected.mjs",
     "check:ui": "node scripts/check-ui-standards.mjs",
-    "build:deploy": "npm run check:ui && node scripts/prepare-deploy.mjs"
+    "build:deploy": "npm run check:ui && node scripts/prepare-deploy.mjs",
+    "check:sync": "node scripts/check-sync-contract.mjs"
   },
   "devDependencies": {
     "javascript-obfuscator": "5.10.1",
