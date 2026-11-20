@@ -522,3 +522,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O campo do diálogo mantém a exibição controlada pelo serviço global; o CSS define apenas seu estado inicial e sua aparência.
 - O verificador de qualidade passa a impedir a reintrodução de atributos de estilo estáticos no HTML. Estilos dinâmicos aplicados pelo JavaScript não são afetados.
 - Nenhuma regra de negócio, autenticação, permissão, sincronização ou estrutura de dados foi alterada.
+
+
+## Limpeza segura de animação de navegação — versão 3.73.51
+
+- Removida a regra redundante `#app.an.dr>*`: o seletor geral `#app.an>*` já aplica a mesma animação e duração a telas com a classe `dr`.
+- A regra específica de retorno `#app.an.dl>*` foi preservada, pois usa direção oposta e não é equivalente.
+- O verificador de interface agora impede que essa duplicação exata volte a ser introduzida.
+- Nenhuma regra de navegação, estado de tela, rolagem, negócio ou persistência foi alterada.
