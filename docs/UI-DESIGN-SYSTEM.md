@@ -441,3 +441,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removida uma ocorrência redundante da regra `button:active, .c[onclick]:active, .c.tap:active, .reg-menu-tile:active`.
 - A regra restante mantém o mesmo `transform:none!important`, preservando o comportamento de interação.
 - Nenhum seletor, componente, módulo ou regra de negócio foi alterado.
+
+
+## Consolidação de foco acessível — versão 3.73.40
+
+- Removida uma regra repetida de `:focus-visible` para botões, campos e seletores.
+- A regra posterior idêntica foi preservada, mantendo o mesmo contorno e deslocamento de foco.
+- Mantidos os estilos de foco específicos e as regras globais de acessibilidade com prioridade maior.
