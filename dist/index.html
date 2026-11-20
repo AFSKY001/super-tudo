@@ -18,7 +18,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef2f5;--cd:#fff;--tx:#12263a;--mu:#5d6b78;--pr:#0f4c5c;--on:#fff;--ac:#f2a900;--bd:#d8e0e6;--ok:#1b8a5a;--no:#c43d2f;--wa:#a86d00;--sf:#e4edf1;color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e161d;--cd:#16222c;--tx:#e8eef3;--mu:#93a3b0;--pr:#5fc4d9;--on:#06222a;--ac:#f2b72e;--bd:#2a3a47;--ok:#4fd197;--no:#ff7b6b;--wa:#f2b72e;--sf:#1d2d39;color-scheme:dark}}
+
 
 *{box-sizing:border-box}body{margin:0;color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding-bottom:96px}
 header{padding:14px 12px 4px;max-width:760px;margin:0 auto}header h1{margin:0;font-size:20px;letter-spacing:-.3px}header p{margin:2px 0 0;font-size:13px}
@@ -159,7 +159,7 @@ button:active{transform:scale(.96)}
 --fn:"Inter","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
 --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--r-s:8px;--r-m:10px;--r-l:14px;--rad:10px;--rad-sheet:16px;
 --sh1:0 1px 2px rgba(16,24,40,.05);--sh2:0 8px 24px rgba(16,24,40,.10);--sb:240px}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pr:#6b93ff;--on:#0b1020;--vi:#9b8cff;--prs:#1a2542;--ac:#9b8cff;--bg:#0b0f19;--cd:#121826;--tx:#e6e9f2;--mu:#98a2b3;--bd:#232b3d;--sf:#1a2234;--ok:#4fd197;--no:#ff7b6b;--wa:#f2b72e;--oks:#12281f;--nos:#321a19;--was:#2e2412;--sh2:0 8px 24px rgba(0,0,0,.45)}}
+
 
 
 /* base */
@@ -272,7 +272,7 @@ header h1,header p::before{display:none}header p{margin:0;font-size:22px;font-we
    ===================================================================== */
 :root{--pr:#3b63f2;--vi:#6a4bff;--prs:#e8eeff;--grad:linear-gradient(135deg,#3f80ff 0%,#5a3df0 100%);--bg:#e9eef8;--cd:#fff;--tx:#141b34;--mu:#6b7490;--bd:#e3e8f4;--sf:#eef2fa;--r-s:12px;--r-m:16px;--r-l:22px;--rad:22px;--sb:256px;
 --sh1:0 2px 6px rgba(52,72,140,.06),0 8px 22px rgba(52,72,140,.08);--sh2:0 4px 10px rgba(52,72,140,.08),0 18px 40px rgba(52,72,140,.16);--glow:0 6px 16px rgba(70,80,240,.35)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pr:#6f95ff;--vi:#9a86ff;--prs:#1b2547;--grad:linear-gradient(135deg,#4a86ff,#6a4bff);--bg:#0a0f24;--cd:#131a36;--tx:#e8ecff;--mu:#97a0c4;--bd:#222b50;--sf:#1a2244;--sh1:0 2px 6px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.3);--sh2:0 4px 10px rgba(0,0,0,.4),0 18px 40px rgba(0,0,0,.5);--glow:0 6px 18px rgba(90,80,255,.4)}}
+
 
 body{padding-bottom:112px}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(700px 420px at 90% -8%,rgba(106,75,255,.14),transparent 65%),radial-gradient(640px 420px at -10% 2%,rgba(63,128,255,.16),transparent 65%)}
@@ -504,14 +504,7 @@ nav button.on .ni{transform:scale(1.06)}
   --glow:none;--fn:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
   color-scheme:light;
 }
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]){
-  --pr:#65b6c8;--on:#10242b;--vi:#58b8a9;--ac:#e2b65e;--prs:#1b343d;
-  --grad:#65b6c8;--bg:#101a20;--cd:#17252d;--tx:#e6eef1;--mu:#9aabb3;
-  --bd:#2b3d46;--sf:#20323b;--ok:#66c69b;--no:#ff8379;--wa:#e4bd68;
-  --oks:#18352c;--nos:#3b2425;--was:#3a3020;--sh1:0 1px 2px rgba(0,0,0,.2);--sh2:0 6px 18px rgba(0,0,0,.28);color-scheme:dark;
- }
-}
+
 
 body{color:var(--tx);font-family:var(--fn);font-size:14px;line-height:1.45;padding-bottom:92px;}
 body::before{display:none}
@@ -615,12 +608,7 @@ nav button.on .ni{transform:none}
  --pr:#2457e6;--on:#fff;--vi:#6655e8;--ac:#f2a900;--prs:#edf2ff;
  --grad:#2457e6;--sf:#f1f4fa;
 }
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]){
-  --pr:#80a5ff;--on:#101a32;--vi:#a99bff;--ac:#f2c15c;--prs:#1b2b4e;
-  --grad:#80a5ff;--sf:#1a2740;
- }
-}
+
 
 /* Correção visual solicitada: azul em toda a identidade e menu inferior flutuante */
 :root{
@@ -628,13 +616,7 @@ nav button.on .ni{transform:none}
  --prs:#eaf0ff!important;--grad:linear-gradient(135deg,#2457e6 0%,#4169f5 100%)!important;
  --glow:0 5px 14px rgba(36,87,230,.22)!important;
 }
-@media(prefers-color-scheme:dark){
- :root:not([data-theme="light"]){
-  --pr:#80a5ff!important;--vi:#9bb5ff!important;--ac:#80a5ff!important;
-  --prs:#1b2b4e!important;--grad:linear-gradient(135deg,#416fe8 0%,#638cff 100%)!important;
-  --glow:0 5px 14px rgba(80,125,245,.25)!important;
- }
-}
+
 
 @media(max-width:1023px){
  body{padding-bottom:104px!important}
