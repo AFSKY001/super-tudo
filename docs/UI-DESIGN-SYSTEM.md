@@ -294,3 +294,11 @@ Usar desenho vetorial de engrenagem com dentes e eixo central, mantendo traço e
 - Ações com nomes globais devem ser únicas. Fluxos distintos precisam de funções com nomes distintos.
 - A pasta `dist` é gerada por `npm run build:deploy`; nunca publicar o conteúdo versionado de `dist` sem regenerá-lo a partir dos arquivos da raiz.
 - O verificador de qualidade confere equilíbrio estrutural do CSS, sintaxe dos scripts inline e do service worker, IDs estáticos, ações de edição e limite de `!important`.
+
+
+## 14. Limpeza estrutural incremental — versão 3.73.12
+
+- Foram removidas 10 regras CSS exatamente duplicadas no mesmo contexto, sem alterar o resultado visual esperado.
+- O baseline de `!important` foi reduzido de 879 para 872; o verificador impede aumento acima desse valor.
+- Não classificar regras repetidas em breakpoints diferentes como inúteis automaticamente: a consolidação de navegação, cabeçalho e componentes exige validar cascata, tema e tamanhos de tela.
+- CSS sem uso só pode ser removido após verificar também classes e seletores montados dinamicamente pelo JavaScript.
