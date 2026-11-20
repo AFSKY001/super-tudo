@@ -314,3 +314,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removido o modificador `!important` desnecessário da regra global `html{scroll-behavior:auto}`. A declaração normal já prevalece sobre a regra global anterior e mantém a rolagem instantânea.
 - Mantida a regra `!important` no contexto de movimento reduzido, sem alterar seu comportamento.
 - A contagem de `!important` retorna ao baseline auditado de 872; nenhuma regra visual, autenticação, dados ou sincronização foi alterada.
+
+
+## Limpeza incremental de CSS — versão 3.73.15
+
+- Removidas duas declarações CSS integralmente idênticas que estavam repetidas dentro dos mesmos contextos responsivos (`nav button.on` e `header h1`).
+- Nenhum seletor, valor visual final, breakpoint, estrutura HTML, ID ou comportamento JavaScript foi alterado.
+- A contagem de `!important` no CSS passou de 872 para 868; o bloco de estilos permanece único.
+- Esta etapa não consolida regras históricas diferentes; elas continuam sujeitas a auditoria de cascata antes de qualquer remoção.
