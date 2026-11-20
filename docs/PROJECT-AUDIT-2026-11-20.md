@@ -4,7 +4,7 @@
 
 Auditoria do repositório `main`, da distribuição protegida e do projeto Supabase conectado. A inspeção inicial foi somente leitura; em etapa posterior foram aplicadas duas migrações aditivas: uma para índices de chaves estrangeiras e outra para otimizar três políticas RLS. Nenhum usuário, credencial ou dado de negócio foi alterado.
 
-A versão preparada nesta correção é **3.73.32**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; a confirmação do deploy real deve ser feita no painel do Cloudflare.
+A versão preparada nesta correção é **3.73.33**. O build protegido e o `wrangler deploy --dry-run` foram aprovados no GitHub Actions; isso valida o pacote, mas não confirma publicação real no Cloudflare.
 
 ## 1. Interface e CSS
 
@@ -104,7 +104,7 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 - O teste também executou `npm ci` a partir do lockfile candidato, `npm run build:deploy` e `git diff --exit-code -- dist/`; todas as etapas passaram e os arquivos protegidos em `dist/` permaneceram idênticos.
 - O `npm audit` após incluir Wrangler também retornou **zero vulnerabilidades**. O lockfile final contém 252 pacotes, todos gerados pelo npm e fixados no arquivo de lock.
 - `wrangler@4.165.0` foi adicionado como dependência de desenvolvimento exata, com integridade e árvore de dependências registradas em `package-lock.json`. Assim, o CLI local não depende mais do fallback variável de `npx`.
-- A versão atual do aplicativo, pacote e lockfile é `3.73.32`; o Service Worker também usa `super-tudo-v3.73.32`. A configuração atual mantém Wrangler `4.165.0` fixado.
+- A versão atual do aplicativo, pacote e lockfile é `3.73.33`; o Service Worker também usa `super-tudo-v3.73.33`. A configuração atual mantém Wrangler `4.165.0` fixado.
 
 A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` do projeto e não deve ser tratada como vulnerabilidade confirmada.
 
@@ -136,9 +136,9 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 
 ## 5.1. Snapshot atualizado do repositório — 20/11/2026
 
-- A distribuição protegida da versão `3.73.32` foi gerada no workflow `44800162740` e posteriormente regenerada no workflow `44800642591`, ambos com conclusão `success`.
-- O commit automatizado mais recente de distribuição verificado nesta auditoria foi `0894daa1fc12d198dcc91fdbee528e715de1c92d`; `dist/index.html` e `dist/sw.js` foram conferidos na versão `3.73.32`.
-- `package.json`, `package-lock.json`, `index.html` e `sw.js` estão alinhados na versão `3.73.32`; Wrangler permanece fixado em `4.165.0`.
+- A distribuição protegida da versão `3.73.33` foi gerada no workflow `44801230596`, com conclusão `success` no commit de origem `d4594bdfa0d285562d15adbd3aa2457e5cef8fc5`.
+- O commit automatizado de distribuição mais recente é `a9e5448716defd4caf61fff4a61d6c2825e91b6e`; `dist/index.html` e `dist/sw.js` foram conferidos na versão `3.73.33`.
+- `package.json`, `package-lock.json`, `index.html` e `sw.js` estão alinhados na versão `3.73.33`; Wrangler permanece fixado em `4.165.0`.
 - O pipeline passou pelo contrato de sincronização, padrões globais de UI, build protegido, `wrangler deploy --dry-run` e `npm audit --audit-level=high` com zero vulnerabilidades.
 - O `dry-run` não publica no Cloudflare. A implantação ativa continua pendente de confirmação no painel/endpoint de produção.
 
@@ -162,10 +162,10 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 - Scanner estrutural recursivo encontrou 993 instâncias de regras CSS, 50 `@media`, 21 `@keyframes`, 16 ocorrências de `:root` (incluindo variantes de tema) e 799 `!important`.
 - Balanceamento de chaves fechou em zero, sem profundidade negativa; comentários e strings CSS também terminaram fechados.
 - Foram removidas três redundâncias comprovadas sem retirar estilos exclusivos: cursor repetido em cartão clicável, declaração repetida do estado `.month-cell.on` e transformação hover duplicada no segundo bloco de hover. Nova comparação encontrou zero grupos de regras exatamente duplicadas no mesmo contexto.
-- A versão do aplicativo foi alinhada para `3.73.32` em `index.html`, `package.json`, `package-lock.json` e `sw.js`; o histórico de atualizações também recebeu a entrada da versão. A restauração de sessão aceita explicitamente o estado anterior `3.73.31`, evitando logout forçado por esta atualização visual.
-- Build protegido concluído com sucesso no workflow `44800162740`, commit de distribuição `8b7c5251baeef73f6805aa65b01947e1d2cb8883`; `dist/index.html` e `dist/sw.js` confirmados na versão `3.73.32`.
+- A versão `3.73.32` foi alinhada em `index.html`, `package.json`, `package-lock.json` e `sw.js`; o histórico de atualizações recebeu a entrada da versão. A versão seguinte `3.73.33` removeu o token legado `--motion-enter` e padronizou a entrada de elementos e painéis em `--ui-motion-enter:250ms`, preservando a transição específica de rota. A restauração de sessão aceita explicitamente o estado anterior `3.73.31`, evitando logout forçado por esta atualização visual.
+- Build protegido da versão `3.73.32` concluído com sucesso no workflow `44800162740`, commit de distribuição `8b7c5251baeef73f6805aa65b01947e1d2cb8883`; `dist/index.html` e `dist/sw.js` confirmados na versão `3.73.32`. A atualização posterior `3.73.33` foi validada no workflow `44801230596`.
 - O build executou `npm audit --audit-level=high` e retornou `found 0 vulnerabilities`. O lockfile resolve `zod` em `4.6.7`; o teste independente da árvore de dependências também passou com zero vulnerabilidades altas/críticas, contrato de sincronização aprovado e padrões de UI aprovados.
-- Artefato `super-tudo-protegido` enviado pelo workflow: ID `14659902099`, SHA-256 `e08aa3ebc3c3834927602df2efd2b3f95657b5c225aad57b28e88007b75f36d2`. O workflow valida `wrangler deploy --dry-run`; não executa publicação real.
+- Artefato da versão `3.73.33`, `super-tudo-protegido`: ID `14660584170`, SHA-256 `2ac867118cb2ad3c0158771ed147b7999121b41baca5987b1607f8d85452826d`. O workflow valida `wrangler deploy --dry-run`; não executa publicação real.
 - As 16 ocorrências de `:root` representam camadas históricas e contextos de tema diferentes; não foram consolidadas porque há tokens distintos e precedência por cascata. Os 799 `!important` também foram mantidos até classificar os componentes e estados dependentes.
 - Próxima etapa de CSS: classificar regras por contexto, comparar declarações equivalentes e executar validação visual/regressiva antes de consolidar tokens e componentes.
 
@@ -174,10 +174,18 @@ O workflow principal verifica o contrato de sincronização e a sintaxe dos scri
 1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
 2. Reconciliar as migrações aplicadas com fontes versionadas — 13 na reconciliação inicial; 2 migrações adicionais aplicadas posteriormente, total atual 15.
 3. Executar `npm audit` e fixar o Wrangler em versão exata — concluído; zero vulnerabilidades e `wrangler deploy --dry-run` aprovado.
-4. Validar versão, cache offline e conteúdo da distribuição protegida — concluído na 3.73.32.
+4. Validar versão, cache offline e conteúdo da distribuição protegida — concluído na 3.73.33.
 5. Testar a resolução manual de conflitos em dois aparelhos; não reprocessar conflitos automaticamente.
 6. Projetar cursor incremental com garantia de ordenação/commit no servidor antes de ativá-lo.
 7. Avaliar a proteção contra senhas vazadas e revisar funções `SECURITY DEFINER` com testes de autorização.
 8. Recuperar a fonte legível do JavaScript e consolidar tokens CSS históricos com testes visuais antes de remover camadas.
 
 **Regra:** nenhuma correção de segurança deve reduzir permissões por tentativa, e nenhuma alteração de sincronização deve ser publicada sem testes de leitura, gravação, conflito e operação offline.
+
+### Atualização final do build — 20/11/2026
+
+- O workflow `44801230596` concluiu com `success`; o job `build` também concluiu com `success`.
+- O run anterior `44801223090`, que estava preso na fila, terminou como `cancelled`; a fila deixou de bloquear a versão atual.
+- As 29 verificações do contrato de sincronização passaram, os padrões globais de UI passaram, o build protegido gerou a versão `3.73.33`, `wrangler deploy --dry-run` encerrou normalmente e `npm audit` encontrou zero vulnerabilidades.
+- O artefato `super-tudo-protegido` foi finalizado (ID `14660584170`, 295.548 bytes; SHA-256 `2ac867118cb2ad3c0158771ed147b7999121b41baca5987b1607f8d85452826d`). O commit automatizado `a9e5448716defd4caf61fff4a61d6c2825e91b6e` atualizou `dist/index.html` e `dist/sw.js`; o cache do Service Worker está em `super-tudo-v3.73.33`.
+- O `dry-run` não equivale a deploy. Não há confirmação de publicação real no Cloudflare nesta etapa.
