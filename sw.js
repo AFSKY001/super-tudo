@@ -1,4 +1,4 @@
-const CACHE_NAME = 'super-tudo-v3.73.3';
+const CACHE_NAME = 'super-tudo-v3.73.0';
 const APP_CACHE_PREFIX = 'super-tudo-';
 self.addEventListener('install', event => {
   self.skipWaiting();
@@ -53,7 +53,6 @@ self.addEventListener('fetch', event => {
         if (response && response.ok) {
           const cache = await caches.open(CACHE_NAME);
           await cache.put('/', response.clone());
-          await cache.put('/index.html', response.clone());
         }
         return response;
       } catch (error) {
