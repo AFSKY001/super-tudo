@@ -282,3 +282,15 @@ Usar desenho vetorial de engrenagem com dentes e eixo central, mantendo traço e
 - Isso neutraliza a animação vertical legada `.an>*` em todas as telas principais e sub-telas, mantendo o sentido horizontal de avanço/retorno.
 - A rolagem deve começar no topo ao mudar de rota; atualizações dentro da mesma rota continuam preservando a posição.
 - Nenhuma regra de autenticação, dados, permissões ou sincronização foi alterada.
+
+
+## 13. Auditoria e consolidação de código — versão 3.73.11
+
+- O CSS principal permanece em um único bloco; novas regras devem ser incorporadas ao padrão existente, não adicionadas como camadas concorrentes.
+- A linha de base identificada na auditoria 3.73.10 foi de aproximadamente 98 KB de CSS, 965 blocos de regras e 882 ocorrências de `!important`. A contagem é estrutural e não classifica, por si só, cada regra como inútil.
+- Não remover sobrescritas em massa: primeiro mapear seletor, breakpoint, tema e componente afetado; depois consolidar e comparar o comportamento.
+- Regras exatas repetidas devem ser eliminadas quando não houver diferença de contexto.
+- Toda transição de rota deve respeitar `prefers-reduced-motion`, inclusive quando a rota não usa `.page-shell`.
+- Ações com nomes globais devem ser únicas. Fluxos distintos precisam de funções com nomes distintos.
+- A pasta `dist` é gerada por `npm run build:deploy`; nunca publicar o conteúdo versionado de `dist` sem regenerá-lo a partir dos arquivos da raiz.
+- O verificador de qualidade confere equilíbrio estrutural do CSS, sintaxe dos scripts inline e do service worker, IDs estáticos, ações de edição e limite de `!important`.
