@@ -64,20 +64,20 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 
 **Limite desta etapa:** nenhuma Edge Function foi implantada ou substituída. A recuperação foi somente de versionamento; as versões ativas e suas opções JWT foram preservadas.
 
-### Migrações
+### Migrações — reconciliação concluída
 
-- O banco registra 13 versões de migração.
-- A pasta `supabase/migrations` contém 9 arquivos SQL.
-- Há cinco versões registradas no banco sem arquivo-fonte correspondente no repositório.
-- Vários arquivos existentes têm timestamps diferentes dos registros aplicados no banco.
-- O arquivo `20261117180000_purchases_conference_lead_access.sql` está no GitHub, mas não aparece como versão na lista de migrações do banco; a lógica correspondente aparece na função de autorização atualmente instalada.
+- O banco registra 13 versões e a pasta `supabase/migrations` agora contém os 13 arquivos com o mesmo par `version_name`.
+- As cinco fontes que faltavam foram recuperadas diretamente do campo `statements` de `supabase_migrations.schema_migrations`, sem reconstruir SQL por inferência.
+- As fontes foram comparadas com o histórico aplicado; as 13 passaram na comparação normalizada de SQL.
+- Os nomes de arquivo que tinham timestamps diferentes foram alinhados às versões realmente registradas no banco.
+- O arquivo `20261117180000_purchases_conference_lead_access.sql` não aparece no histórico de migrações. Ele foi preservado em `supabase/archive/`, fora da pasta que o Supabase CLI trata como migrações pendentes. As definições ativas de `can_read_kind` e `can_write_kind` foram comparadas com esse arquivo e correspondem exatamente; ambas permitem execução por `authenticated` e negam execução por `anon`.
 
-**Ação recomendada:** reconciliar cada versão com o SQL realmente aplicado, preservar o estado atual e criar um inventário de migrações. Não executar reset, reaplicar arquivos ou renomear migrações existentes para tentar alinhar os números.
+**Limite desta etapa:** nenhum SQL foi executado no banco, nenhuma migração foi reaplicada e nenhuma tabela, função, política, permissão ou dado de produção foi alterado. A reconciliação foi somente de versionamento e documentação.
 
 ## 6. Ordem segura de continuidade
 
-1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica.
-2. Reconciliar as migrações do banco com os arquivos SQL do repositório.
+1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
+2. Reconciliar as 13 migrações aplicadas com fontes versionadas — concluído; nenhuma foi executada novamente.
 3. Identificar as quatro vulnerabilidades altas da cadeia de build e fixar o Wrangler.
 4. Revisar as funções auxiliares `SECURITY DEFINER` e os pontos de Auth com testes de autorização.
 5. Otimizar políticas e índices apenas após comparar planos de consulta.
