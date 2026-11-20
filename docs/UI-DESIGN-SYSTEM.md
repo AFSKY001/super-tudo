@@ -207,3 +207,11 @@ O contrato global aplica essas dimensões aos cartões comuns, aos cartões da �
 - Os filtros **Hoje** e **Mês** e a ação **Editar painel** compartilham a mesma linha de controles.
 - O botão de edição não ocupa mais uma linha exclusiva entre os filtros e os cartões.
 - O espaçamento vertical do painel deve ser compacto e consistente, sem reduzir a área útil dos cartões nem causar rolagem horizontal em telas estreitas.
+
+
+## Ajustes de ícones e controles do painel — versão 3.73.7
+
+- A ação **Editar painel** usa somente um ícone, alinhado à direita da linha dos filtros, com rótulo acessível e dica contextual.
+- O ícone da área **Rotina** em Registro usa o mesmo traço vetorial e dimensões das demais áreas.
+- O ícone de **Configuração** usa uma engrenagem reconhecível, mantendo o padrão SVG de traço e a cor herdada do tema.
+- Os três ajustes são visuais; ações, permissões, navegação e dados permanecem inalterados.
