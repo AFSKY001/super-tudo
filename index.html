@@ -1787,6 +1787,16 @@ async function syncResolveConflictsUI(){
     await syncConflictDialog('',null,'Conecte este aparelho à internet para consultar a versão atual da nuvem. Suas alterações locais continuam salvas.');
     return;
   }
+  if(syncBusy||syncPullBusy){
+    await syncConflictDialog('',null,'A sincronização está ocupada neste momento. Aguarde alguns segundos e tente revisar novamente.');
+    return;
+  }
+  try{await pullCloudTeam();}
+  catch(error){
+    console.warn('Não foi possível atualizar os conflitos antes da revisão:',error);
+    await syncConflictDialog('',null,'Não consegui consultar a versão mais recente da nuvem. Suas alterações locais continuam salvas. Tente novamente quando a conexão estiver estável.');
+    return;
+  }
   for(const key of keys){
     const conflict=syncMeta.conflicts[key];
     const server=conflict?.server_record;
