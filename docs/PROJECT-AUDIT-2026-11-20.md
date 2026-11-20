@@ -81,19 +81,22 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 - Seis tabelas com RLS e sem políticas (`app_config_history`, `app_config_schedules`, `app_notification_settings`, `app_push_config`, `app_push_subscriptions`, `team_lead_members`) concedem acesso de tabela somente a `service_role` e ao proprietário. O padrão é coerente com acesso via Edge Functions e funções internas; não foram adicionadas políticas genéricas.
 - O advisor do Supabase continua apontando proteção contra senhas vazadas desativada. É uma pendência de configuração de Auth; não foi alterada nesta auditoria.
 
-### Dependências e Wrangler — situação inicial
+### Dependências e Wrangler — validação concluída
 
-- O lockfile tem 133 pacotes, todos alcançáveis a partir das duas dependências diretas (`javascript-obfuscator` e `terser`); não há pacotes órfãos no grafo.
-- Versões observadas: `undici@6.29.1`, `zod@4.6.7`, `minimatch@11.0.4`. As três estão acima das versões de correção identificadas nas consultas de advisories.
-- Isso não substitui `npm audit`: a contagem anterior de quatro alertas altos ainda precisa ser reproduzida no ambiente de instalação do Cloudflare e associada aos pacotes exatos.
-- O Cloudflare ainda usa `npx wrangler deploy` sem versão fixa no `package.json`; a versão do CLI pode variar. Não foi adicionado Wrangler ao lockfile nesta etapa porque não houve execução de instalação e teste da versão candidata.
+- O `npm audit` foi executado no GitHub Actions com o lockfile original: 133 dependências, **zero vulnerabilidades** (zero críticas, altas, moderadas ou baixas).
+- A versão candidata `wrangler@4.165.0` foi instalada com versão exata e validada em pipeline isolado. O `wrangler deploy --dry-run` validou a configuração `wrangler.jsonc` sem publicar.
+- O teste também executou `npm ci` a partir do lockfile candidato, `npm run build:deploy` e `git diff --exit-code -- dist/`; todas as etapas passaram e os arquivos protegidos em `dist/` permaneceram idênticos.
+- O `npm audit` após incluir Wrangler também retornou **zero vulnerabilidades**. O lockfile final contém 252 pacotes, todos gerados pelo npm e fixados no arquivo de lock.
+- `wrangler@4.165.0` foi adicionado como dependência de desenvolvimento exata, com integridade e árvore de dependências registradas em `package-lock.json`. Assim, o CLI local não depende mais do fallback variável de `npx`.
+- A referência da versão do aplicativo permanece `3.73.28`; esta mudança altera somente ferramentas de build/deploy, não o código funcional do supermercado.
+
+A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` do projeto e não deve ser tratada como vulnerabilidade confirmada.
 
 ## 6. Ordem segura de continuidade
 
 1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
 2. Reconciliar as 13 migrações aplicadas com fontes versionadas — concluído; nenhuma foi executada novamente.
-3. Identificar as quatro vulnerabilidades altas da cadeia de build e fixar o Wrangler.
-4. Reproduzir o `npm audit`, identificar os quatro alertas altos e fixar uma versão testada do Wrangler.
+3. Executar `npm audit` e fixar o Wrangler em versão exata — concluído; zero vulnerabilidades e `wrangler deploy --dry-run` aprovado.
 5. Avaliar a ativação da proteção contra senhas vazadas e testar os fluxos de Auth.
 6. Revisar as funções auxiliares `SECURITY DEFINER` com testes de autorização.
 7. Otimizar políticas e índices apenas após comparar planos de consulta.
