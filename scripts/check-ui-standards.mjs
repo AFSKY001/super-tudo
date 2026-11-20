@@ -112,7 +112,7 @@ requireCheck((html.match(/function editL\s*\(/g) || []).length === 1, 'The editL
 requireCheck((html.match(/function editTempRecord\s*\(/g) || []).length === 1, 'The temperature edit action must have exactly one declaration.');
 requireCheck(html.includes('editTempRecord(this.dataset.id)'), 'Temperature history must call its dedicated edit action.');
 const cssImportantCount = styleBlocks.length === 1 ? (styleBlocks[0][1].match(/!important/g) || []).length : 0;
-requireCheck(cssImportantCount <= 882, 'The global CSS !important count increased above the audited baseline (882).');
+requireCheck(cssImportantCount <= 872, 'The global CSS !important count increased above the audited baseline (872).');
 
 // Legacy native browser dialogs are being migrated in controlled groups.
 // These ceilings match the audited 3.73.3 baseline and prevent new usages
