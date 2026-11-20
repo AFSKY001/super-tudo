@@ -92,6 +92,13 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 - Dois índices aparecem como não utilizados (`app_records_updated_at_idx` e `app_config_schedules_due_idx`). Não foram removidos: métricas de uso podem estar incompletas em banco com baixo volume/recém-criado e o índice de atualização pode ser importante para sincronização incremental futura.
 - O advisor de saúde não retornou alertas. Nenhuma alteração de DDL, índice, política ou dado foi executada nesta etapa; as consultas foram somente leitura.
 
+### Índices para chaves estrangeiras — migração preparada
+
+- O advisor confirmou exatamente 10 chaves estrangeiras sem índice de cobertura. Foi criada a migração `20261120180000_add_missing_foreign_key_indexes.sql`, com um índice simples por coluna FK indicada pelo advisor.
+- A migração é aditiva e usa `CREATE INDEX IF NOT EXISTS`; não remove índices, não altera políticas RLS e não modifica dados da aplicação.
+- **A migração ainda não foi aplicada ao banco de produção.** O histórico Supabase consultado continua com 13 migrações aplicadas. A aplicação deve ocorrer em janela controlada, seguida de nova leitura do advisor para confirmar a redução dos 10 alertas.
+- Nenhuma alteração de banco foi executada nesta rodada; foi versionado apenas o arquivo SQL no GitHub.
+
 ### Dependências e Wrangler — validação concluída
 
 - O `npm audit` foi executado no GitHub Actions com o lockfile original: 133 dependências, **zero vulnerabilidades** (zero críticas, altas, moderadas ou baixas).
