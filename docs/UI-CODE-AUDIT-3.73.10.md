@@ -71,3 +71,12 @@ A pasta versionada `dist` estava em 3.73.0, enquanto os arquivos-fonte estavam e
 Esta etapa corrige colisão de nome de função, duplicações CSS comprovadas e precedência de acessibilidade. Não tenta eliminar as 882 ocorrências de `!important` nem apagar camadas inteiras de redesign sem rastrear seus efeitos. Fazer isso de uma vez poderia quebrar telas que dependem dessas regras.
 
 Nenhuma alteração foi feita em autenticação, sessão, permissões, regras de negócio, banco, migrações ou sincronização.
+
+
+## Atualização da limpeza — versão 3.73.12
+
+- Nova varredura estrutural identificou 10 grupos de regras CSS exatamente repetidas no mesmo contexto de mídia/tema.
+- Removida uma ocorrência redundante de cada grupo, sem alterar seletores, declarações efetivas, breakpoints ou lógica JavaScript.
+- O total de regras CSS passou de 969 para 959; `!important` passou de 879 para 872.
+- A verificação de build agora fixa 872 como teto para impedir que novas sobrescritas importantes sejam adicionadas sem revisão.
+- Permanecem pendentes a consolidação de camadas visuais sucessivas e a identificação de CSS realmente sem uso; seletores dinâmicos exigem análise de execução antes de remoção.
