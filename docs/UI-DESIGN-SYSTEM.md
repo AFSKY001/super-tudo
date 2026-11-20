@@ -357,3 +357,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidas quatro declarações repetidas do bloco global `.sheet` (largura máxima, margem, altura máxima e rolagem), já definidas anteriormente no mesmo contexto.
 - Preservadas as regras de animação, bordas, raio, fundo, sombra e posicionamento responsivo das janelas.
 - Nenhuma estrutura HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
+
+
+## Limpeza incremental de CSS — versão 3.73.21
+
+- Removida a declaração repetida `box-shadow:var(--sh2)` do segundo bloco global `.balloon`; a mesma sombra já é aplicada anteriormente e não há sobrescrita intermediária dessa propriedade.
+- Preservadas a borda, o raio e a sombra específica de temas e camadas posteriores.
+- Nenhuma estrutura HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
