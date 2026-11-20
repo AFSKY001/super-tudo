@@ -22,6 +22,8 @@ const checks = [
   ['conflito vindo do envio guarda snapshot da nuvem', /'server_record':_0x1134c5&&null!=_0x1134c5\['server_revision'\]/],
   ['conflito vindo do recebimento guarda snapshot da nuvem', /'server_record':_0x3e9d29/],
   ['existe resolução manual de conflitos', /async function syncResolveConflictsUI\(\)/],
+  ['atualiza snapshot remoto antes de apresentar escolha', /try\{await pullCloudTeam\(\);\}/],
+  ['diálogo de conflito usa interface do aplicativo', /function syncConflictDialog\(/],
   ['manter local gera novo identificador idempotente', /pending\.client_id=syncUuid\(\)/],
   ['usar nuvem aplica a versão remota', /syncApplyRecord\(server\)/],
   ['Realtime informa o estado da inscrição', /\['subscribe'\]\(function\(status\)/],
