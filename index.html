@@ -1475,6 +1475,29 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
 }
 @media(prefers-reduced-motion:reduce){.config-menu-card{transition:none!important}}
 
+
+/* Notificações: retorno visual discreto, sem alterar eventos ou estado */
+@keyframes st-notification-pop{
+  0%{transform:scale(.72);opacity:.55}
+  65%{transform:scale(1.16);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes st-bell-ring{
+  0%,100%{transform:rotate(0)}
+  12%,36%,60%{transform:rotate(11deg)}
+  24%,48%,72%{transform:rotate(-11deg)}
+  84%{transform:rotate(4deg)}
+  92%{transform:rotate(-3deg)}
+}
+#bn[style*="display: block"]{animation:st-notification-pop .36s cubic-bezier(.2,.8,.2,1) both}
+#bl:has(#bn[style*="display: block"]) .ic{
+  transform-origin:50% 12%;
+  animation:st-bell-ring .85s ease-in-out 1 both;
+}
+@media(prefers-reduced-motion:reduce){
+  #bn[style*="display: block"],#bl:has(#bn[style*="display: block"]) .ic{animation:none!important}
+}
+
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button class="dots" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações" style="display:none;position:relative"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" style="position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#e5484d;color:#fff;font:700 10px/16px system-ui;text-align:center;display:none"></b></button><span id="syncStatus" title="Status da sincronização" style="font:600 10px system-ui;white-space:nowrap;margin:0 5px"></span><button class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
