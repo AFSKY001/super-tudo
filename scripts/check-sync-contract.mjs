@@ -28,14 +28,14 @@ const checks = [
   ['controle de sincronização é acessível por teclado', /syncStatusControl\.addEventListener\('keydown'/],
 ];
 
-const inlineScripts = [...source.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)]
-  .filter(([, attrs, body]) => !/\\bsrc\\s*=/.test(attrs) && body.trim());
-for (const [index, [, , body]] of inlineScripts.entries()) {
+const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
+  .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
+for (let index = 0; index < inlineScripts.length; index++) {
   try {
-    new Function(body);
-    console.log(`PASS - sintaxe JavaScript do script inline ${index + 1}`);
+    new Function(inlineScripts[index][2]);
+    console.log('PASS - sintaxe JavaScript do script inline ' + (index + 1));
   } catch (error) {
-    console.error(`FAIL - sintaxe JavaScript do script inline ${index + 1}: ${error.message}`);
+    console.error('FAIL - sintaxe JavaScript do script inline ' + (index + 1) + ': ' + error.message);
     process.exitCode = 1;
   }
 }
@@ -43,7 +43,7 @@ for (const [index, [, , body]] of inlineScripts.entries()) {
 const failed = [];
 for (const [label, pattern] of checks) {
   const passed = pattern.test(source);
-  console.log(`${passed ? 'PASS' : 'FAIL'} - ${label}`);
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
   if (!passed) failed.push(label);
 }
 
@@ -52,8 +52,8 @@ if (/sync_pull',\{'p_since':null\}/.test(source)) {
 }
 
 if (failed.length) {
-  console.error(`Falhas no contrato de sincronização: ${failed.join('; ')}`);
+  console.error('Falhas no contrato de sincronização: ' + failed.join('; '));
   process.exitCode = 1;
 } else {
-  console.log(`Contrato estático de sincronização aprovado: ${checks.length} verificações, além da sintaxe dos scripts inline.`);
+  console.log('Contrato estático de sincronização aprovado: ' + checks.length + ' verificações, além da sintaxe dos scripts inline.');
 }
