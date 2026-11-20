@@ -49,18 +49,20 @@ Verificações estáticas realizadas no HTML principal:
 
 Este é o principal ponto de reprodutibilidade encontrado.
 
-### Edge Functions
+### Edge Functions — reconciliação posterior
 
-O projeto Supabase tem quatro funções ativas:
+O projeto Supabase tem quatro funções ativas. Em uma nova comparação direta entre o conteúdo implantado e os arquivos de `main`, as quatro fontes `index.ts` foram encontradas **idênticas byte a byte**:
 
-- `login-usuario` — não existe na pasta `supabase/functions` do GitHub.
-- `criar-usuario` — não existe na pasta `supabase/functions` do GitHub.
-- `config-history` — existe no GitHub, mas o código ativo diverge do arquivo versionado (por exemplo, validação explícita do token e resposta de erro).
-- `push-notifications` — existe no GitHub, mas a forma de importar e chamar `web-push` diverge do código ativo.
+- `login-usuario` — versão ativa 3; `verify_jwt=false`; fonte igual à do GitHub.
+- `criar-usuario` — versão ativa 3; `verify_jwt=true`; fonte igual à do GitHub.
+- `config-history` — versão ativa 5; `verify_jwt=true`; fonte igual à do GitHub.
+- `push-notifications` — versão ativa 5; `verify_jwt=true`; fonte igual à do GitHub.
 
-A função ativa `criar-usuario` também contém uma linha de diagnóstico temporário (`DIAGNOSTICO_PERMISSIONS`) e um arquivo-fonte anormalmente grande, com cerca de 895 KB, em grande parte por espaçamento/indentação. O diagnóstico registra metadados de validação, não a lista de permissões em si. Mesmo assim, deve ser removido numa revisão controlada, depois de preservar uma cópia e testar o fluxo de criação de usuários.
+A diferença documental foi resolvida: a pasta do GitHub já continha as quatro fontes correspondentes. O arquivo adicional `supabase/functions/criar-usuario/deno.json`, recuperado da configuração ativa (`{"nodeModulesDir":"auto"}`), foi adicionado ao repositório no commit `1ac7f25344634d5bf3b6ba432aa88be888ff02a0` e conferido após a gravação.
 
-**Ação recomendada:** recuperar e versionar as quatro fontes ativas, comparar cada uma com a produção e só então estabelecer um processo de deploy. Não publicar uma cópia do GitHub sobre a função ativa até a divergência ser revisada.
+A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres em 500 linhas), com indentação excessiva. A busca textual atual não encontrou `DIAGNOSTICO_PERMISSIONS` na fonte ativa nem na versionada. Não foi feita limpeza de formatação: antes disso é necessário validar a sintaxe e o comportamento com um formatador compatível com Deno, preservar o hash original e testar criação, alteração e desativação de usuário.
+
+**Limite desta etapa:** nenhuma Edge Function foi implantada ou substituída. A recuperação foi somente de versionamento; as versões ativas e suas opções JWT foram preservadas.
 
 ### Migrações
 
