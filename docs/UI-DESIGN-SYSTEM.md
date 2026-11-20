@@ -505,3 +505,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O diálogo identifica o último botão acionado e posiciona a janela na faixa vertical correspondente: superior, central ou inferior. O posicionamento respeita as áreas seguras do celular e usa o centro como fallback para ações sem botão de origem.
 - A exclusão de registros do módulo Temperaturas usa explicitamente `window.stConfirm()`; a função compartilhada `delL()` atende os registros desse módulo e os demais registros lançados.
 - A posição e o alinhamento pertencem ao serviço global. Não criar confirmações isoladas por módulo nem usar diálogos nativos do navegador.
+
+
+## Proteção incremental contra CSS duplicado
+
+- O verificador de qualidade agora percorre regras CSS considerando o contexto de mídia/tema e rejeita blocos integralmente idênticos no mesmo contexto.
+- Também rejeita declarações exatamente repetidas dentro do mesmo bloco de regra. Declarações diferentes da mesma propriedade continuam permitidas quando podem representar fallback ou precedência intencional.
+- A verificação não remove seletores repetidos entre contextos nem tenta classificar CSS dinâmico como sem uso. Essa análise exige rastrear a cascata e as classes construídas pelo JavaScript.
+- Na base 3.73.49, a leitura estrutural encontrou 1.003 blocos de regra, sem blocos completos idênticos no mesmo contexto e sem declarações exatamente duplicadas dentro de um mesmo bloco. A nova proteção impede que esse tipo de redundância volte a entrar silenciosamente.

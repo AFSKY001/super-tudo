@@ -81,6 +81,116 @@ for (const [label, pattern] of requiredPatterns) {
 }
 
 
+// Detect CSS duplication only when it is provably identical in the same cascade context.
+function splitCssTopLevel(source, delimiter) {
+  const parts = [];
+  let start = 0, quote = '', escaped = false, comment = false, parens = 0, brackets = 0;
+  for (let i = 0; i < source.length; i++) {
+    const ch = source[i], next = source[i + 1];
+    if (comment) {
+      if (ch === '*' && next === '/') { comment = false; i++; }
+      continue;
+    }
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === quote) quote = '';
+      continue;
+    }
+    if (ch === '/' && next === '*') { comment = true; i++; continue; }
+    if (ch === '"' || ch === "'") { quote = ch; continue; }
+    if (ch === '(') parens++;
+    else if (ch === ')') parens--;
+    else if (ch === '[') brackets++;
+    else if (ch === ']') brackets--;
+    else if (ch === delimiter && parens === 0 && brackets === 0) {
+      parts.push(source.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(source.slice(start));
+  return parts;
+}
+
+function collectCssQuality(source, context = 'global', output = [], duplicateDeclarations = []) {
+  let i = 0;
+  while (i < source.length) {
+    while (i < source.length && /\s/.test(source[i])) i++;
+    if (i >= source.length) break;
+    if (source.startsWith('/*', i)) {
+      const end = source.indexOf('*/', i + 2);
+      i = end < 0 ? source.length : end + 2;
+      continue;
+    }
+    const start = i;
+    let quote = '', escaped = false, parens = 0, brackets = 0;
+    while (i < source.length) {
+      const ch = source[i], next = source[i + 1];
+      if (quote) {
+        if (escaped) escaped = false;
+        else if (ch === '\\') escaped = true;
+        else if (ch === quote) quote = '';
+        i++;
+        continue;
+      }
+      if (ch === '/' && next === '*') {
+        const end = source.indexOf('*/', i + 2);
+        i = end < 0 ? source.length : end + 2;
+        continue;
+      }
+      if (ch === '"' || ch === "'") quote = ch;
+      else if (ch === '(') parens++;
+      else if (ch === ')') parens--;
+      else if (ch === '[') brackets++;
+      else if (ch === ']') brackets--;
+      if (parens === 0 && brackets === 0 && (ch === '{' || ch === ';')) break;
+      i++;
+    }
+    const header = source.slice(start, i).trim();
+    if (source[i] !== '{') { i++; continue; }
+    const bodyStart = ++i;
+    let depth = 1, innerQuote = '', innerEscaped = false, innerComment = false;
+    while (i < source.length && depth > 0) {
+      const ch = source[i], next = source[i + 1];
+      if (innerComment) {
+        if (ch === '*' && next === '/') { innerComment = false; i += 2; continue; }
+        i++; continue;
+      }
+      if (innerQuote) {
+        if (innerEscaped) innerEscaped = false;
+        else if (ch === '\\') innerEscaped = true;
+        else if (ch === innerQuote) innerQuote = '';
+        i++; continue;
+      }
+      if (ch === '/' && next === '*') { innerComment = true; i += 2; continue; }
+      if (ch === '"' || ch === "'") innerQuote = ch;
+      else if (ch === '{') depth++;
+      else if (ch === '}') depth--;
+      i++;
+    }
+    const body = source.slice(bodyStart, i - 1);
+    if (header.startsWith('@')) {
+      collectCssQuality(body, context + ' > ' + header.replace(/\s+/g, ' '), output, duplicateDeclarations);
+    } else if (header) {
+      const selector = header.replace(/\s+/g, ' ');
+      const normalizedBody = body.trim().replace(/\s+/g, ' ');
+      output.push({ context, selector, body: normalizedBody });
+      const seen = new Set();
+      for (const declaration of splitCssTopLevel(body, ';')) {
+        const colon = splitCssTopLevel(declaration, ':');
+        if (colon.length < 2) continue;
+        const property = colon.shift().trim().toLowerCase();
+        const value = colon.join(':').trim().replace(/\s+/g, ' ');
+        if (!property || !value) continue;
+        const key = property + ':' + value;
+        if (seen.has(key)) duplicateDeclarations.push(context + ' :: ' + selector + ' :: ' + key);
+        seen.add(key);
+      }
+    }
+  }
+  return { rules: output, duplicateDeclarations };
+}
+
 // Structural checks: catch malformed CSS and JavaScript before packaging.
 function balancedCss(source) {
   let braces = 0, parentheses = 0, brackets = 0;
@@ -112,6 +222,16 @@ const styleBlocks = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi)]
 requireCheck(styleBlocks.length === 1, 'Expected exactly one primary application style block.');
 if (styleBlocks.length === 1) {
   requireCheck(balancedCss(styleBlocks[0][1]), 'Application CSS has unbalanced braces, brackets, parentheses, strings, or comments.');
+  const cssQuality = collectCssQuality(styleBlocks[0][1]);
+  const ruleKeys = new Set();
+  let duplicateRules = 0;
+  for (const rule of cssQuality.rules) {
+    const key = rule.context + '|' + rule.selector + '|' + rule.body;
+    if (ruleKeys.has(key)) duplicateRules++;
+    ruleKeys.add(key);
+  }
+  requireCheck(duplicateRules === 0, 'Exact duplicate CSS rules detected in the same media/theme context: ' + duplicateRules + '.');
+  requireCheck(cssQuality.duplicateDeclarations.length === 0, 'Exact duplicate declarations detected inside a CSS rule: ' + cssQuality.duplicateDeclarations.slice(0, 5).join('; ') + '.');
 }
 const inlineScripts = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, source]) => !/\bsrc\s*=/.test(attrs) && source.trim());
