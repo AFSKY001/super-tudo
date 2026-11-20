@@ -168,3 +168,19 @@ Uma futura reorganização do CSS deve ser uma etapa isolada, com comparação v
 - Auditar componentes equivalentes que ainda tenham aparência ou comportamento divergente entre módulos.
 
 **Regra final:** o padrão pertence ao sistema, não à tela em que foi criado. Toda evolução deve fortalecer o mesmo design system e continuar válida nas próximas versões.
+
+
+## 9. Contrato global de dimensões dos controles
+
+A camada global de componentes agora expõe tokens CSS únicos para dimensões recorrentes. Eles devem ser reutilizados em todos os módulos e em telas futuras:
+
+| Token | Valor de referência | Aplicação |
+|---|---:|---|
+| `--ui-control-height` | 42px | Altura mínima de botões e controles de ação; chips dentro de `.page-content` acompanham esse padrão |
+| `--ui-chip-height` | 36px | Altura mínima padrão de filtros/chips fora de contextos de ação principal |
+| `--ui-field-height` | 44px | Altura mínima de campos de entrada e seleção |
+| `--ui-control-radius` | `var(--r-s, 8px)` | Referência de raio para novos controles compartilhados |
+
+A aplicação usa esses tokens em seletores globais `.bt` e `.ch`, não apenas em uma tela. O build verifica a presença dos tokens e dos contratos de altura para impedir que sejam removidos acidentalmente.
+
+Não redefinir essas dimensões dentro de um módulo. Se surgir uma necessidade real de acessibilidade ou densidade, evoluir o token ou criar uma variante semântica documentada e reutilizável.
