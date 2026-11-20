@@ -364,3 +364,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removida a declaração repetida `box-shadow:var(--sh2)` do segundo bloco global `.balloon`; a mesma sombra já é aplicada anteriormente e não há sobrescrita intermediária dessa propriedade.
 - Preservadas a borda, o raio e a sombra específica de temas e camadas posteriores.
 - Nenhuma estrutura HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
+
+
+## Limpeza incremental de CSS — versão 3.73.22
+
+- Removida a declaração repetida `font-weight:700` do segundo bloco `summary`; o mesmo valor já era definido no bloco base, sem alteração intermediária dessa propriedade.
+- Removidas as declarações repetidas de `font-size`, `margin` e `color` do bloco `h4`; os mesmos valores já eram definidos no bloco base, sem sobrescrita intermediária.
+- Preservados cursor, list-style, padding e todas as regras posteriores que alteram tipografia e espaçamento dos títulos e resumos.
+- Nenhuma estrutura HTML funcional, JavaScript, autenticação, permissões, sessão, banco ou sincronização foi alterada.
