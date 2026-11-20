@@ -23,7 +23,12 @@ const requiredPatterns = [
   ['background token', /--bg\s*:\s*#f5f6f9/i],
   ['dark theme tokens', /:root\[data-theme=["']dark["']\]/i],
   ['reduced-motion support', /prefers-reduced-motion\s*:\s*reduce/i],
-  ['visible keyboard focus', /:focus-visible/i]
+  ['visible keyboard focus', /:focus-visible/i],
+  ['global control height token', /--ui-control-height\\s*:\\s*42px/i],
+  ['global chip height token', /--ui-chip-height\\s*:\\s*36px/i],
+  ['global field height token', /--ui-field-height\\s*:\\s*44px/i],
+  ['global button sizing contract', /\\.bt\\s*\\{[^}]*min-height:\\s*var\\(--ui-control-height\\)/s],
+  ['global chip sizing contract', /\\.ch\\s*\\{[^}]*min-height:\\s*var\\(--ui-chip-height\\)/s]
 ];
 
 for (const [label, pattern] of requiredPatterns) {
