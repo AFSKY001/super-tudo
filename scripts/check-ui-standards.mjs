@@ -137,7 +137,8 @@ const legacyDialogs = {
   prompt: (html.match(/\bprompt\s*\(/g) || []).length
 };
 const ceilings = { alert: 96, confirm: 31, prompt: 1 };
-requireCheck(html.includes('window.stAlert=value=>enqueue'), 'Internal alert service must expose the explicit stAlert API.');
+requireCheck(html.includes('id="stDialogLayer"') && html.includes('data-no-protect'), 'The permanent internal dialog element and runtime bootstrap must be present.');
+requireCheck(html.includes('window.stAlert=value=>enqueue') && html.includes('window.stConfirm=') && html.includes('window.stPrompt='), 'Internal dialog API must expose alert, confirm and prompt.');
 
 for (const name of Object.keys(ceilings)) {
   requireCheck(

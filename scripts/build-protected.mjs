@@ -64,9 +64,9 @@ function migrateNativeDialogs(source) {
       const owner = stack[stack.length - 1];
       if (!owner) throw new Error('Native ' + kind + ' call has no enclosing function; migration aborted.');
       calls[kind]++;
-      if (kind === 'alert') edits.push({ at: node.start, value: 'stAlert' });
+      if (kind === 'alert') edits.push({ at: node.start, value: 'window.stAlert' });
       else {
-        edits.push({ at: node.start, value: 'await st' + (kind === 'confirm' ? 'Confirm' : 'Prompt') });
+        edits.push({ at: node.start, value: 'await window.st' + (kind === 'confirm' ? 'Confirm' : 'Prompt') });
         if (!owner.async && !asyncOwners.has(owner.start)) { asyncOwners.add(owner.start); edits.push({ at: owner.start, value: 'async ' }); }
       }
     }
@@ -100,7 +100,7 @@ html = html.replace(versionPattern, "const APP_VERSION='" + version + "'");
 let transformed = 0;
 const scriptTag = /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi;
 html = await replaceAsync(html, scriptTag, async (whole, attrs, source) => {
-  if (/\bsrc\s*=/.test(attrs)) return whole;
+  if (/\bsrc\s*=/.test(attrs) || /\bdata-no-protect\b/.test(attrs)) return whole;
   const type = attrs.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
   if (type && !['text/javascript', 'application/javascript', 'module'].includes(type)) return whole;
   if (!source.trim()) return whole;

@@ -489,3 +489,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Chamadas diretas legadas de `alert()` passam a ser convertidas explicitamente para `stAlert()` durante o build, sem depender da substituição do método global do navegador.
 - A camada do diálogo aplica também os estados de visibilidade diretamente ao elemento ao abrir e fechar, mantendo os estilos e a animação existentes.
 - O serviço continua centralizado e compartilhado; nenhuma regra de negócio, módulo protegido, autenticação, permissão ou sincronização foi alterada.
+
+
+## Estrutura permanente dos diálogos internos — versão 3.73.47
+
+- O diálogo agora existe como elemento HTML permanente na página, em vez de depender da criação dinâmica do contêiner no primeiro aviso.
+- O bootstrap do serviço é mantido sem ofuscação para evitar que a proteção de scripts interfira na inicialização da interface global.
+- As chamadas migradas usam referências explícitas a `window.stAlert`, `window.stConfirm` e `window.stPrompt`.
+- A camada utiliza estado `hidden` explícito, prioridade de sobreposição elevada, fila única e foco acessível.
