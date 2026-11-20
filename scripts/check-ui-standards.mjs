@@ -30,6 +30,10 @@ requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match 
 
 const deleteAllMatch = html.match(/async function ntDeleteAll\(\)\{[\s\S]*?\}\s*function buy\(/);
 requireCheck(!!deleteAllMatch && /await window\.stConfirm\(/.test(deleteAllMatch?.[0] || '') && !/\bconfirm\s*\(/.test(deleteAllMatch?.[0] || ''), 'Notification delete-all must use the internal Super Tudo confirmation dialog.');
+const temperatureDeleteMatch = html.match(/async function delL\([^)]*\)\{[\s\S]*?\}const ckRuns=/);
+requireCheck(!!temperatureDeleteMatch && /await window\.stConfirm\(/.test(temperatureDeleteMatch?.[0] || '') && !/\bconfirm\s*\(/.test(temperatureDeleteMatch?.[0] || ''), 'Temperature and shared record deletion must use the internal Super Tudo confirmation dialog.');
+requireCheck(html.includes('lastTrigger=target') && html.includes('layer.dataset.position=position'), 'Internal dialogs must anchor vertically to the initiating button.');
+requireCheck(html.includes('align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;width:100%'), 'Internal dialog action buttons must remain centered and aligned.');
 
 requireCheck(agent.includes('padrão global, nunca solução isolada'), 'AGENTS.md is missing the repository-wide UI rule.');
 requireCheck(rules.includes('Design system global'), 'The global design system document is missing or invalid.');

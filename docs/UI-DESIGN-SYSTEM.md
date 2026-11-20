@@ -497,3 +497,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O bootstrap do serviço é mantido sem ofuscação para evitar que a proteção de scripts interfira na inicialização da interface global.
 - As chamadas migradas usam referências explícitas a `window.stAlert`, `window.stConfirm` e `window.stPrompt`.
 - A camada utiliza estado `hidden` explícito, prioridade de sobreposição elevada, fila única e foco acessível.
+
+
+## Diálogos internos — versão 3.73.49
+
+- Os botões **Cancelar** e **Confirmar** usam alinhamento flexível centralizado, com altura e largura mínima iguais e texto alinhado verticalmente.
+- O diálogo identifica o último botão acionado e posiciona a janela na faixa vertical correspondente: superior, central ou inferior. O posicionamento respeita as áreas seguras do celular e usa o centro como fallback para ações sem botão de origem.
+- A exclusão de registros do módulo Temperaturas usa explicitamente `window.stConfirm()`; a função compartilhada `delL()` atende os registros desse módulo e os demais registros lançados.
+- A posição e o alinhamento pertencem ao serviço global. Não criar confirmações isoladas por módulo nem usar diálogos nativos do navegador.
