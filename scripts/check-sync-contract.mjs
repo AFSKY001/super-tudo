@@ -19,7 +19,26 @@ const checks = [
   ['Realtime observa alterações em app_records', /postgres_changes/],
   ['polling de segurança está presente', /setInterval\(function[\s\S]{0,700}0x7530/],
   ['fila é impedida de enviar sem conexão', /navigator\['onLine'\]/],
+  ['conflito vindo do envio guarda snapshot da nuvem', /'server_record':_0x1134c5&&null!=_0x1134c5\['server_revision'\]/],
+  ['conflito vindo do recebimento guarda snapshot da nuvem', /'server_record':_0x3e9d29/],
+  ['existe resolução manual de conflitos', /async function syncResolveConflictsUI\(\)/],
+  ['manter local gera novo identificador idempotente', /pending\.client_id=syncUuid\(\)/],
+  ['usar nuvem aplica a versão remota', /syncApplyRecord\(server\)/],
+  ['Realtime informa o estado da inscrição', /\['subscribe'\]\(function\(status\)/],
+  ['controle de sincronização é acessível por teclado', /syncStatusControl\.addEventListener\('keydown'/],
 ];
+
+const inlineScripts = [...source.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script\\s*>/gi)]
+  .filter(([, attrs, body]) => !/\\bsrc\\s*=/.test(attrs) && body.trim());
+for (const [index, [, , body]] of inlineScripts.entries()) {
+  try {
+    new Function(body);
+    console.log(`PASS - sintaxe JavaScript do script inline ${index + 1}`);
+  } catch (error) {
+    console.error(`FAIL - sintaxe JavaScript do script inline ${index + 1}: ${error.message}`);
+    process.exitCode = 1;
+  }
+}
 
 const failed = [];
 for (const [label, pattern] of checks) {
@@ -36,5 +55,5 @@ if (failed.length) {
   console.error(`Falhas no contrato de sincronização: ${failed.join('; ')}`);
   process.exitCode = 1;
 } else {
-  console.log(`Contrato estático de sincronização aprovado: ${checks.length} verificações.`);
+  console.log(`Contrato estático de sincronização aprovado: ${checks.length} verificações, além da sintaxe dos scripts inline.`);
 }
