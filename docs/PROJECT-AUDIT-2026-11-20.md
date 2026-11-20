@@ -92,6 +92,17 @@ A fonte de `criar-usuario` continua excepcionalmente grande (882.438 caracteres 
 
 A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` do projeto e não deve ser tratada como vulnerabilidade confirmada.
 
+### Auditoria estática de CSS e JavaScript
+
+- O CSS principal tem 87.250 caracteres e 894 regras identificadas. Foram encontrados 157 seletores repetidos, mas os blocos têm declarações diferentes; não há grupos de regras integralmente idênticas. Isso indica camadas de sobrescrita, não duplicação simples que possa ser apagada sem análise de cascata.
+- As 13 declarações globais `:root` e as regras de tema, responsividade e movimento estão distribuídas ao longo da folha. Não foram reordenadas nem fundidas porque isso pode alterar valores herdados em telas, temas e breakpoints.
+- O JavaScript principal está ofuscado no próprio `index.html`; não há uma pasta de fontes JavaScript legíveis no repositório. Foram encontrados 512 nomes de funções, sem declarações duplicadas, e os scripts passam na validação sintática. A análise textual simples não é suficiente para declarar funções sem uso, pois os nomes de ações aparecem em templates e strings codificadas.
+- Não foram removidas funções nem blocos CSS por tentativa. Para uma limpeza real do JavaScript, é necessário recuperar a fonte legível original ou reconstruir o processo de build com testes funcionais dos módulos.
+
+### Proteções incorporadas ao CI
+
+O workflow principal agora confirma que a versão instalada do Wrangler corresponde à versão exata do `package.json`, executa `wrangler deploy --dry-run` sem publicar, bloqueia builds diante de vulnerabilidades npm altas/críticas e continua validando que o conteúdo protegido de `dist/` não foi alterado.
+
 ## 6. Ordem segura de continuidade
 
 1. Recuperar e versionar as Edge Functions ativas sem alterar sua lógica — concluído e comparado com produção.
@@ -100,6 +111,6 @@ A suspeita anterior de quatro alertas altos não foi reproduzida no `npm audit` 
 5. Avaliar a ativação da proteção contra senhas vazadas e testar os fluxos de Auth.
 6. Revisar as funções auxiliares `SECURITY DEFINER` com testes de autorização.
 7. Otimizar políticas e índices apenas após comparar planos de consulta.
-8. Continuar a limpeza visual e estrutural usando fonte legível, testes e lotes revisáveis.
+8. Recuperar a fonte legível do JavaScript e planejar a consolidação do CSS com testes visuais antes de remover camadas.
 
 **Regra:** nenhuma correção de segurança deve reduzir permissões por tentativa, e nenhuma alteração de sincronização deve ser publicada sem testes de leitura, gravação, conflito e operação offline.
