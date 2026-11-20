@@ -307,3 +307,10 @@ Usar desenho vetorial de engrenagem com dentes e eixo central, mantendo traço e
 ## Correção 3.73.13 — rolagem na troca de telas
 
 A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) para que chamadas existentes a `scrollTo(0, 0)` não animem a subida da tela anterior ao trocar de menu. Não alterar a lógica de navegação, estado, autenticação ou sincronização para resolver esse efeito. Movimentos de entrada das telas continuam sendo tratados separadamente pelo sistema global de transições.
+
+
+## Correção 3.73.14 — verificador de CSS
+
+- Removido o modificador `!important` desnecessário da regra global `html{scroll-behavior:auto}`. A declaração normal já prevalece sobre a regra global anterior e mantém a rolagem instantânea.
+- Mantida a regra `!important` no contexto de movimento reduzido, sem alterar seu comportamento.
+- A contagem de `!important` retorna ao baseline auditado de 872; nenhuma regra visual, autenticação, dados ou sincronização foi alterada.
