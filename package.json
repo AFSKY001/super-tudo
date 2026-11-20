@@ -5,7 +5,8 @@
   "description": "Protected build tooling for the proprietary Super Tudo application",
   "scripts": {
     "build:protected": "node scripts/build-protected.mjs",
-    "build:deploy": "node scripts/prepare-deploy.mjs"
+    "check:ui": "node scripts/check-ui-standards.mjs",
+    "build:deploy": "npm run check:ui && node scripts/prepare-deploy.mjs"
   },
   "devDependencies": {
     "javascript-obfuscator": "5.10.1",

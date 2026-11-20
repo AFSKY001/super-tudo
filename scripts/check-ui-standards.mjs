@@ -1,0 +1,57 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
+const root = process.cwd();
+const read = file => fs.readFile(path.join(root, file), 'utf8');
+const failures = [];
+
+const [html, rules, agent] = await Promise.all([
+  read('index.html'),
+  read('docs/UI-DESIGN-SYSTEM.md'),
+  read('AGENTS.md')
+]);
+
+const requireCheck = (condition, message) => {
+  if (!condition) failures.push(message);
+};
+
+requireCheck(agent.includes('padrão global, nunca solução isolada'), 'AGENTS.md is missing the repository-wide UI rule.');
+requireCheck(rules.includes('Design system global'), 'The global design system document is missing or invalid.');
+
+const requiredPatterns = [
+  ['primary color token', /--pr\s*:\s*#2457e6/i],
+  ['background token', /--bg\s*:\s*#f5f6f9/i],
+  ['dark theme tokens', /:root\[data-theme=["']dark["']\]/i],
+  ['reduced-motion support', /prefers-reduced-motion\s*:\s*reduce/i],
+  ['visible keyboard focus', /:focus-visible/i]
+];
+
+for (const [label, pattern] of requiredPatterns) {
+  requireCheck(pattern.test(html), 'Global UI requirement missing: ' + label + '.');
+}
+
+// Legacy native browser dialogs are being migrated in controlled groups.
+// These ceilings match the audited 3.73.3 baseline and prevent new usages
+// from silently spreading while preserving existing flows until migration.
+const legacyDialogs = {
+  alert: (html.match(/\balert\s*\(/g) || []).length,
+  confirm: (html.match(/\bconfirm\s*\(/g) || []).length,
+  prompt: (html.match(/\bprompt\s*\(/g) || []).length
+};
+const ceilings = { alert: 96, confirm: 31, prompt: 1 };
+
+for (const name of Object.keys(ceilings)) {
+  requireCheck(
+    legacyDialogs[name] <= ceilings[name],
+    'New native ' + name + '() usage detected: ' + legacyDialogs[name] + ' exceeds audited baseline ' + ceilings[name] + '.'
+  );
+}
+
+if (failures.length) {
+  console.error('Super Tudo UI standards check failed:');
+  for (const failure of failures) console.error('- ' + failure);
+  process.exitCode = 1;
+} else {
+  console.log('Super Tudo UI standards check passed.');
+  console.log('Legacy native dialogs (must not increase): ' + JSON.stringify(legacyDialogs));
+}
