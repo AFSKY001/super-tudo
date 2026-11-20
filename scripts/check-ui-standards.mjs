@@ -145,7 +145,7 @@ const legacyDialogs = {
 };
 const ceilings = { alert: 96, confirm: 31, prompt: 1 };
 requireCheck(html.includes('id="stDialogLayer"') && html.includes('data-no-protect'), 'The permanent internal dialog element and runtime bootstrap must be present.');
-requireCheck(html.includes('window.stAlert=value=>enqueue') && html.includes('window.stConfirm=') && html.includes('window.stPrompt='), 'Internal dialog API must expose alert, confirm and prompt.');
+requireCheck(html.includes('window.stAlert=(value,options={})=>enqueue') && html.includes('window.stConfirm=') && html.includes('window.stPrompt='), 'Internal dialog API must expose alert, confirm and prompt.');
 
 for (const name of Object.keys(ceilings)) {
   requireCheck(
