@@ -36,6 +36,8 @@ requireCheck(/popup-delete-action\{min-width:88px;min-height:44px;/.test(html), 
 requireCheck(!/'✕'/.test(html.slice(html.indexOf('const dw='), html.indexOf('function pdcStatusSymbol'))), 'Inline delete controls must use Excluir instead of the X glyph.');
 const temperatureDeleteMatch = html.match(/async function delL\([^)]*\)\{[\s\S]*?\}const ckRuns=/);
 requireCheck(!!temperatureDeleteMatch && /await window\.stConfirm\(/.test(temperatureDeleteMatch?.[0] || '') && !/\bconfirm\s*\(/.test(temperatureDeleteMatch?.[0] || ''), 'Temperature and shared record deletion must use the internal Super Tudo confirmation dialog.');
+requireCheck(html.includes("document.addEventListener('click',event=>{if(!V.cf)return;const target=event.target instanceof Element?event.target:null;if(target?.closest('button.bt.d'))return;V.cf=null;R();})"), 'Inline delete confirmations must close when clicking outside the delete control.');
+requireCheck(html.includes("if(_0x5a8d2f!==V['sg'])V['cf']=null"), 'Inline delete confirmation state must reset whenever the active screen changes.');
 requireCheck(html.includes('lastTrigger=target') && html.includes('layer.dataset.position=position'), 'Internal dialogs must anchor vertically to the initiating button.');
 requireCheck(html.includes('aria-label="Resposta"') && html.includes("input.setAttribute('aria-label',isInput?'Resposta':'')"), 'Prompt input must expose an accessible name.');
 requireCheck(html.includes("document.body.classList.add('st-dialog-open')") && html.includes("document.body.classList.remove('st-dialog-open')") && html.includes('body.st-dialog-open{overflow:hidden;overscroll-behavior:none}'), 'Open dialogs must lock background scrolling and release it on close.');
