@@ -266,12 +266,12 @@ const legacyDialogs = {
   confirm: (html.match(/\bconfirm\s*\(/g) || []).length,
   prompt: (html.match(/\bprompt\s*\(/g) || []).length
 };
-const ceilings = { alert: 96, confirm: 0, prompt: 0 };
+const ceilings = { alert: 0, confirm: 0, prompt: 0 };
 requireCheck(html.includes('id="stDialogLayer"') && html.includes('data-no-protect'), 'The permanent internal dialog element and runtime bootstrap must be present.');
 const inlineStyleAttributes = [...html.matchAll(/\sstyle=["'][\s\S]*?["']/g)].length;
 requireCheck(inlineStyleAttributes === 0, 'Static HTML must not introduce inline style attributes; use shared CSS classes.');
 requireCheck(html.includes('window.stAlert=(value,options={})=>enqueue') && html.includes('window.stConfirm=') && html.includes('window.stPrompt='), 'Internal dialog API must expose alert, confirm and prompt.');
-requireCheck(html.includes('window.alert=window.stAlert'), 'All legacy alert call sites must be routed through the shared Super Tudo dialog.');
+requireCheck(html.includes('window.stAlert(') && !html.includes('window.alert=window.stAlert'), 'Application notices must call the shared dialog API directly without overriding the browser alert function.');
 requireCheck(html.includes("if(e.key==='Tab'){const focusable=[...card.querySelectorAll(") && html.includes("!card.contains(document.activeElement)") && html.includes("last.focus();"), 'Internal dialogs must trap keyboard focus and keep Tab navigation inside the active window.');
 requireCheck(html.includes('.st-alert-ok:focus-visible,.st-alert-cancel:focus-visible,.st-alert-input:focus-visible{outline:3px solid var(--ac,#f2a900);outline-offset:3px}'), 'All shared dialog actions and inputs must expose the same visible keyboard focus treatment.');
 requireCheck(!html.includes('#app.an.dr>*{animation:st-screen-enter-forward 220ms var(--ui-motion-ease) both}'), 'Redundant duplicate screen-enter animation rule was reintroduced.');
