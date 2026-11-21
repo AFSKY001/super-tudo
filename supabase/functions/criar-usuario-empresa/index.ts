@@ -54,10 +54,14 @@ export default {
       if (!String(body.team_member_id ?? "").trim()) return fail("O identificador do funcionário não foi enviado.");
       if (!validPermissions(permissions)) return fail("Permissões inválidas.");
 
+      const accountRole = String(body.account_role ?? "employee").trim().toLowerCase();
+      if (!["admin", "employee"].includes(accountRole)) return fail("Nível de acesso inválido.");
+      const isCompanyAdmin = accountRole === "admin";
       const isManager = ["gerente de loja", "subgerente", "supervisor"].includes(jobTitle);
       const isLeader = jobTitle === "encarregado";
-      if (!isManager && !isLeader) return fail("Somente gerentes, subgerentes, supervisores e encarregados podem ter login.");
-      const role = isLeader ? "encarregado" : "gerente";
+      if (!isCompanyAdmin && !isManager && !isLeader)
+        return fail("Somente administradores da empresa e funcionários em funções de liderança podem ter login.");
+      const role = isCompanyAdmin ? "admin" : isLeader ? "encarregado" : "gerente";
 
       const { data: org, error: orgError } = await ctx.supabaseAdmin
         .from("organizations")
@@ -100,6 +104,11 @@ export default {
           .eq("org_id", org.id).eq("user_id", targetUserId).maybeSingle();
         if (memberError) { console.error("Falha ao consultar vínculo:", memberError); return fail("Não foi possível localizar o acesso.", 500); }
         if (!member) return fail("Acesso não encontrado nesta empresa.", 404);
+        const { data: protectedMaster, error: protectedMasterError } = await ctx.supabaseAdmin
+          .from("platform_admins").select("user_id")
+          .eq("user_id", targetUserId).eq("active", true).maybeSingle();
+        if (protectedMasterError) return fail("Não foi possível validar o acesso protegido.", 500);
+        if (protectedMaster) return fail("O acesso Master da plataforma não pode ser alterado por uma empresa.", 403);
         if (action === "revoke") {
           const { error } = await ctx.supabaseAdmin.from("org_members").update({ active: false }).eq("id", member.id);
           if (error) { console.error("Falha ao desativar vínculo:", error); return fail("Não foi possível desativar o acesso.", 500); }
@@ -122,7 +131,9 @@ export default {
         const newPassword = String(body.password ?? "");
         const newDisplayName = String(body.display_name ?? "").trim().slice(0, 120);
         const newJobTitle = String(body.job_title ?? "").trim().toLowerCase();
-        if (!validUsername(newUsername) || !newDisplayName || !["gerente de loja", "subgerente", "supervisor", "encarregado"].includes(newJobTitle))
+        const newAccountRole = String(body.account_role ?? "employee").trim().toLowerCase();
+        if (!["admin", "employee"].includes(newAccountRole) || !validUsername(newUsername) || !newDisplayName ||
+          (newAccountRole !== "admin" && !["gerente de loja", "subgerente", "supervisor", "encarregado"].includes(newJobTitle)))
           return fail("Dados do acesso inválidos.");
         if (newPassword && (newPassword.length < 8 || newPassword.length > 128)) return fail("A senha precisa ter de 8 a 128 caracteres.");
         if (member.username && member.username.toLowerCase() !== newUsername)
@@ -135,7 +146,7 @@ export default {
           .update({ display_name: newDisplayName, full_name: newDisplayName, active: true }).eq("id", targetUserId);
         if (profileError) return fail("Não foi possível atualizar o perfil.", 500);
         const { error: updateError } = await ctx.supabaseAdmin.from("org_members")
-          .update({ role: newJobTitle === "encarregado" ? "encarregado" : "gerente", permissions,
+          .update({ role: newAccountRole === "admin" ? "admin" : newJobTitle === "encarregado" ? "encarregado" : "gerente", permissions,
             team_member_id: teamMemberId, active: true }).eq("id", member.id);
         if (updateError) return fail("Não foi possível atualizar o vínculo do funcionário.", 500);
         return respond({ ok: true, user_id: targetUserId, username: newUsername, updated: true });
