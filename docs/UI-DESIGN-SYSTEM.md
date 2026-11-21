@@ -660,3 +660,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 ## Correção do contrato visual dos resumos contextuais — versão 3.73.87
 
 - Corrigido o fechamento da regra responsiva no CSS e alinhada a verificação automatizada ao componente contextual `launch-insight`.
+
+
+## Ações destrutivas em diálogos e controles compactos — versão 3.73.88
+
+- Quando uma confirmação representar exclusão de um registro, produto, lista, avaliação, perfil, pedido ou outro dado, o botão principal deve dizer **Excluir**, mesmo que a mensagem use os verbos “remover”, “apagar” ou “deletar”.
+- Ações destrutivas com finalidade diferente mantêm o verbo específico: **Desativar**, **Revogar**, **Limpar** ou **Descartar**. Não trocar essas ações por “Excluir”.
+- O botão **Cancelar** permanece como ação secundária; o botão destrutivo usa o estilo semântico vermelho global.
+- O ícone **X** continua adequado em linhas compactas, chips e itens removíveis quando o contexto deixa a ação evidente. Esses controles devem ter atributos title e aria-label que expliquem o que será removido; não substituir todos por botões largos com texto.
