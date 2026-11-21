@@ -2,3 +2,6 @@
 # login-usuario is the public sign-in entry point and validates credentials itself.
 [functions.login-usuario]
 verify_jwt = false
+
+[functions.bug-reports]
+verify_jwt = true

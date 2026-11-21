@@ -808,3 +808,12 @@ O movimento da interface é centralizado em uma única camada global no final do
 - O contador de notificações permanece ancorado no canto superior direito do sino. O feedback do contador usa brilho, sem escala ou transformação que altere sua posição.
 - A expansão de origem do painel de notificações foi desativada somente para esse painel; o painel abre no próprio local, sem arrastar visualmente o contador. A leitura, exclusão, filtros, navegação e demais ações de notificação permanecem intactos.
 - Nenhuma regra de negócio, autenticação, permissão, dado, armazenamento, sincronização ou operação offline foi alterada.
+
+## Relatórios de falhas
+
+O fluxo de diagnóstico reutiliza o diálogo global do aplicativo, respeita os tokens do design system, oferece envio manual em Configuração e não envia relatórios sem confirmação explícita. A fila offline fica isolada em IndexedDB próprio e não toca no armazenamento de trabalho.
+
+
+## Relatórios de falhas
+
+O fluxo de diagnóstico reutiliza o diálogo global do aplicativo, respeita os tokens do design system, oferece envio manual em Configuração e não envia relatórios sem confirmação explícita. A fila offline fica isolada em IndexedDB próprio e não toca no armazenamento de trabalho.
