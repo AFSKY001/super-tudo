@@ -266,7 +266,7 @@ const legacyDialogs = {
   confirm: (html.match(/\bconfirm\s*\(/g) || []).length,
   prompt: (html.match(/\bprompt\s*\(/g) || []).length
 };
-const ceilings = { alert: 96, confirm: 7, prompt: 1 };
+const ceilings = { alert: 96, confirm: 0, prompt: 1 };
 requireCheck(html.includes('id="stDialogLayer"') && html.includes('data-no-protect'), 'The permanent internal dialog element and runtime bootstrap must be present.');
 const inlineStyleAttributes = [...html.matchAll(/\sstyle=["'][\s\S]*?["']/g)].length;
 requireCheck(inlineStyleAttributes === 0, 'Static HTML must not introduce inline style attributes; use shared CSS classes.');
