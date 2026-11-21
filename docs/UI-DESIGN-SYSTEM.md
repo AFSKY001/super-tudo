@@ -676,3 +676,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O botão principal passa a ter contrato CSS isolado no escopo do diálogo: largura mínima, altura, tipografia, alinhamento e espaçamento não podem ser reduzidos por estilos compactos de outros controles.
 - A intenção destrutiva mantém fundo vermelho e texto branco, sem alterar os comportamentos de confirmação, cancelamento ou exclusão.
 - O verificador de interface protege a restauração de classe e as dimensões mínimas do botão.
+
+
+## Rótulo textual obrigatório em confirmações destrutivas — versão 3.73.90
+
+- O serviço global de diálogos normaliza rótulos de ações antes de renderizar o botão principal. Valores simbólicos como `X`, `✕` ou `×` não podem substituir o nome da ação.
+- Quando a confirmação for destrutiva, o botão sempre usa o rótulo semântico identificado (`Excluir`, `Desativar`, `Revogar`, `Limpar` ou `Descartar`) e mantém o estado visual correspondente.
+- A regra é aplicada no componente central, para todos os módulos e em todas as aberturas do pop-up.
