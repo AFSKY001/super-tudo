@@ -44,6 +44,7 @@ jobs:
       - name: Verify protected distribution
         run: |
           test -s dist/index.html
+          test -s dist/avaliacao.html
           test -s dist/sw.js
           test -s dist/manifest.webmanifest
           test -s dist/logo.webp
@@ -54,7 +55,7 @@ jobs:
           test ! -d dist/scripts
           test ! -f dist/package.json
           test ! -f dist/package-lock.json
-          test "$(find dist -type f | wc -l | tr -d ' ')" = "6"
+          test "$(find dist -type f | wc -l | tr -d ' ')" = "7"
           ! find dist -type f -name '*.map' | grep .
           ! grep -R -E 'sourceMappingURL=|SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+' dist
       - name: Deploy protected distribution to Cloudflare Workers
