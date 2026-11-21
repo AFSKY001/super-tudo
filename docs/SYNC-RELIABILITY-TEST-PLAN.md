@@ -202,7 +202,7 @@ A comparação entre o helper legado `can_access_team_member(text)` e o helper m
 
 ### Correção aplicada
 
-- Nova migration: `20261121180000_require_team_leader_permission_for_team_reads.sql`.
+- Nova migration: `20261121192522_require_team_leader_permission_for_team_reads.sql`.
 - A regra de leitura vinculada agora exige `om.role = 'encarregado'` e `has_perm_for_org('r:eqp', p_org_id)`, além de associação e perfil ativos.
 - Administradores e gerentes continuam com o caminho de leitura próprio.
 - A migration foi aplicada no Supabase de produção e registrada como versão `20261121192522`.
