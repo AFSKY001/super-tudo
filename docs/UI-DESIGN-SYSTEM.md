@@ -563,3 +563,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 
 - Duas declarações compartilhadas (padding de details e flex de ícones) foram mantidas na regra base e removidas das regras isoladas posteriores, eliminando a duplicação sem depender de herança acidental.
 - A checagem automática que apontou os dois casos foi mantida; agora as regras isoladas realmente não existem.
+
+
+## Continuação da remoção de declarações equivalentes — versão 3.73.56
+
+- Removidas outras 25 declarações repetidas em regras globais com o mesmo seletor, contexto e valor.
+- A rodada abrangeu texto base, campos, dias selecionados, chips, botões de status, ícones de ação, cartões, calendário e botões de seleção.
+- As declarações finais de cada propriedade foram preservadas; não foram alterados valores de tema, breakpoints, estados distintos ou regras de negócio.
+- O verificador de interface recebeu proteções adicionais para os estados de dia selecionado e chips.

@@ -282,6 +282,9 @@ requireCheck(!html.includes('.chs{scrollbar-width:none}'), 'Duplicate filter scr
 requireCheck(!html.includes('details{padding:10px 12px}'), 'Duplicate details padding rule was reintroduced.');
 requireCheck(!html.includes('.ic{flex:0 0 auto}'), 'Duplicate icon flex rule was reintroduced.');
 requireCheck(!html.includes('.mu{color:var(--mu);font-size:13px}'), 'Duplicate muted text color declaration was reintroduced.');
+requireCheck(!html.includes('.day.on{background:var(--pr);color:var(--on)}'), 'Duplicate selected-day state rule was reintroduced.');
+requireCheck(!html.includes('.ch{border:1px solid var(--bd);background:var(--cd);color:var(--tx);border-radius:99px;padding:6px 12px;font:13px system-ui;white-space:nowrap}'), 'Duplicate chip background rule was reintroduced.');
+
 
 
 
