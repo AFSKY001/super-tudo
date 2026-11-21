@@ -141,3 +141,19 @@ A tabela acima confirma que o papel `authenticated` não pode ler ou gravar dire
 ## Publicação desta atualização documental
 
 O commit `284c5e30` passou pelas etapas de contrato de sincronização, padrões globais de interface, build protegido, validação Wrangler, auditoria de dependências e verificação da distribuição. O Cloudflare registrou deployment ativo em `2026-11-21T19:08:53Z`, com 100% do tráfego na versão `2f116f50-5ef7-44c2-b679-f2c2f761ea27`. O conteúdo publicado continua sendo documentação; nenhuma mudança funcional de sincronização foi feita.
+
+
+## Recuperação da base legível do cliente — 21/11/2026
+
+A busca no histórico Git encontrou uma base-fonte anterior à distribuição protegida:
+
+- Commit `bb461e61888ad3093814c1eaedbd6281b335e80a` (versão 3.71.0): `index.html` legível, com o núcleo de sincronização completo da época (`syncRows`, fila local, revisões, conflitos, push/pull, Realtime e polling). O arquivo tem aproximadamente 538 KB e não contém identificadores `_0x...` do ofuscador.
+- Commit `016c5eb50b46dd120fc8a74555fc020ef5d7924c` (3.56.0): também legível, mas anterior a parte das melhorias do fluxo de sincronização.
+- Branch `dev/sync-clean-start` contém uma implementação legível mais antiga, porém seu `pullCloudTeam` só importa `cfg:team`; não representa a sincronização multi-módulo atual.
+- O `index.html` atual da `main` contém aproximadamente 915 KB e o núcleo de sincronização está dentro do script ofuscado. O build protegido ofusca a distribuição, mas a perda de legibilidade da fonte já está no arquivo versionado da `main` desde a linha de releases protegidas.
+
+### Estratégia segura recuperada
+
+Não substituir o `index.html` atual pela versão 3.71.0: isso descartaria muitas alterações posteriores de interface, módulos e regras operacionais. Usar o núcleo legível 3.71.0 como referência histórica para reconstrução, comparar cada contrato de sincronização com a implementação atual e portar o núcleo para um módulo-fonte isolado, preservando as funções públicas e o formato de persistência existentes. Integrar somente após testes de equivalência para mapeamento de módulos, fila/idempotência, revisões, tombstones, conflitos, troca de organização e permissões explícitas por organização.
+
+**Decisão:** a recuperação da fonte de referência foi bem-sucedida, mas nenhuma substituição ou extração foi feita nesta etapa. O código histórico não deve ser tratado como equivalente à versão atual sem uma comparação funcional completa.
