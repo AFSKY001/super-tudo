@@ -184,3 +184,12 @@ A divergência não abre acesso indevido: a restrição do banco impede a atribu
 Também foi confirmado que `org_members` tem `UNIQUE (org_id,user_id)`, não `UNIQUE(user_id)`: a estrutura permite que uma conta pertença a mais de uma organização. As RPCs atuais com `p_org_id` validam a associação na organização indicada; o helper legado `current_org_id()` usa `LIMIT 1` sem ordenação, portanto não deve ser usado como autoridade para selecionar organização em fluxos multiempresa. A sincronização atual já usa `p_org_id` explícito nas RPCs novas.
 
 **Escopo da verificação:** catálogo, constraints e definições SQL somente leitura; sem JWT de teste, sem alteração de schema ou dados.
+
+
+## Helpers legados dependentes de `current_org_id()` — 21/11/2026
+
+O rastreamento das funções auxiliares confirmou que `can_access_team_member`, `has_perm`, `is_admin`, `can_read_kind` e `can_write_kind` consultam `current_org_id()`. Esse helper escolhe uma associação ativa com `LIMIT 1` sem receber o identificador da organização e sem ordenação explícita. Como `org_members` permite mais de uma associação por usuário (`UNIQUE(org_id,user_id)`), esses helpers legados não são seguros como fonte de contexto organizacional em uma conta multiempresa.
+
+As RPCs novas `sync_pull(timestamptz,uuid)` e `sync_push(jsonb,uuid)` usam o contexto explícito `p_org_id` e suas variantes `can_read_kind_for_org` / `can_write_kind_for_org`; elas validam a associação ativa do usuário na organização informada. Manter esse caminho explícito como contrato obrigatório para toda nova operação multiempresa. Antes de reutilizar qualquer helper legado em RPC nova, migrá-lo para receber `p_org_id` e validar a associação no mesmo escopo.
+
+Não foi demonstrado vazamento entre empresas: esta é uma limitação estrutural dos helpers legados, não evidência de exploração. As tabelas sensíveis `app_records`, `sync_ops` e `team_lead_members` não concedem acesso direto a `authenticated`; os fluxos atuais de sincronização usam RPCs. Não foram feitas chamadas com JWT de múltiplas organizações nem mudanças no banco.
