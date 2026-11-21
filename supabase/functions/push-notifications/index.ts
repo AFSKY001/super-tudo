@@ -35,9 +35,13 @@ Deno.serve(async (req: Request) => {
     const { data: authData, error: authError } = await userClient.auth.getUser();
     if (authError || !authData.user) return json({ error: "Sessão inválida ou expirada." }, 401);
     const user = authData.user;
-
-    const { data: orgId, error: orgError } = await userClient.rpc("current_org_id");
-    if (orgError || !orgId) return json({ error: "Organização ativa não encontrada." }, 403);
+    const body = await req.json().catch(() => ({}));
+    const company = String(body.company ?? "").trim().toLowerCase();
+    if (!/^[a-z0-9-]{2,80}$/.test(company)) return json({ error: "Empresa ativa inválida." }, 400);
+    const { data: org, error: orgError } = await admin.from("organizations")
+      .select("id").eq("slug", company).maybeSingle();
+    if (orgError || !org) return json({ error: "Empresa não encontrada." }, 403);
+    const orgId = org.id;
 
     const { data: membership, error: memberError } = await admin
       .from("org_members")
@@ -46,9 +50,7 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", user.id)
       .eq("active", true)
       .maybeSingle();
-    if (memberError || !membership) return json({ error: "Usuário não pertence à organização ativa." }, 403);
-
-    const body = await req.json().catch(() => ({}));
+    if (memberError || !membership) return json({ error: "Usuário não pertence à empresa selecionada." }, 403);
     const action = String(body.action || "");
 
     async function getVapidConfig() {
