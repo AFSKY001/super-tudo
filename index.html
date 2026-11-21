@@ -2365,6 +2365,7 @@ if(syncStatusControl&&!syncStatusControl.dataset.conflictAction){
       event.preventDefault();
       const form=event.currentTarget,fd=new FormData(form),body={action:'create'};
       fd.forEach(function(value,key){body[key]=String(value).trim();});
+      if(!body.brand_name)body.brand_name=body.name;
       const button=form.querySelector('button[type=submit]');button.disabled=true;button.textContent='Criando…';
       try{const result=await api(body);setStatus('Empresa '+result.organization.name+' criada. Administrador: '+result.admin.username+'.','ok');form.reset();await load();}
       catch(error){setStatus(String(error&&error.message||error),'error');}
@@ -2375,6 +2376,7 @@ if(syncStatusControl&&!syncStatusControl.dataset.conflictAction){
         event.preventDefault();
         const fd=new FormData(form),body={action:'update'},orgId=String(fd.get('org_id')||'');
         fd.forEach(function(value,key){if(key!=='org_id')body[key]=String(value).trim();});
+        if(!body.brand_name)body.brand_name=body.name;
         try{
           await api(Object.assign({},body,{org_id:orgId}));
           const status=String(fd.get('status')||'active');
