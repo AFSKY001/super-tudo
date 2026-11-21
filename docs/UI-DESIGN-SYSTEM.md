@@ -2,7 +2,7 @@
 
 **Status:** padrão de referência para todas as telas e atualizações futuras.  
 **Escopo:** aplicação inteira, não apenas Dashboard ou uma área específica.  
-**Base visual observada:** versão 3.73.77 da branch `main`.
+**Base visual observada:** versão 3.73.78 da branch `main`.
 
 Este documento formaliza a direção visual que já existe no aplicativo e estabelece como evoluí-la sem criar padrões paralelos. As regras de contribuição obrigatórias também estão em `/AGENTS.md`.
 
@@ -578,3 +578,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Removidas seis regras CSS vazias (`.b.ok`, `.b.no`, `.b.wa`, `.day.on`, `.chs` e `.month-cell`) que não declaravam propriedades nem produziam efeito visual.
 - O verificador de interface agora identifica regras CSS vazias para impedir que seletores sem conteúdo permaneçam no arquivo.
 - Nenhum seletor funcional, estado visual, estrutura, dado, permissão, autenticação, sincronização ou módulo de negócio foi alterado.
+
+
+## Estados globais de formulário — versão 3.73.78
+
+- Campos inválidos devem receber `aria-invalid="true"`; o estado visual global destaca a borda e o foco sem depender de classes locais.
+- Mensagens auxiliares usam `.field-hint`; mensagens de erro usam `.field-error` e devem ser associadas ao campo por `aria-describedby`.
+- O texto do erro deve explicar como corrigir o valor, não apenas indicar que existe um problema.
+- Campos desabilitados continuam usando os estados globais existentes; não criar regras específicas por módulo.
+- O verificador automático protege os estilos compartilhados contra remoção ou divergência.
