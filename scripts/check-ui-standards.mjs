@@ -272,6 +272,7 @@ const inlineStyleAttributes = [...html.matchAll(/\sstyle=["'][\s\S]*?["']/g)].le
 requireCheck(inlineStyleAttributes === 0, 'Static HTML must not introduce inline style attributes; use shared CSS classes.');
 requireCheck(html.includes('window.stAlert=(value,options={})=>enqueue') && html.includes('window.stConfirm=') && html.includes('window.stPrompt='), 'Internal dialog API must expose alert, confirm and prompt.');
 requireCheck(html.includes("if(e.key==='Tab'){const focusable=[...card.querySelectorAll(") && html.includes("!card.contains(document.activeElement)") && html.includes("last.focus();"), 'Internal dialogs must trap keyboard focus and keep Tab navigation inside the active window.');
+requireCheck(html.includes('.st-alert-ok:focus-visible,.st-alert-cancel:focus-visible,.st-alert-input:focus-visible{outline:3px solid var(--ac,#f2a900);outline-offset:3px}'), 'All shared dialog actions and inputs must expose the same visible keyboard focus treatment.');
 requireCheck(!html.includes('#app.an.dr>*{animation:st-screen-enter-forward 220ms var(--ui-motion-ease) both}'), 'Redundant duplicate screen-enter animation rule was reintroduced.');
 requireCheck(!html.includes('.c.tap{cursor:pointer}'), 'Redundant standalone .c.tap cursor rule was reintroduced.');
 requireCheck(!html.includes('.g2>.c{margin:0!important}') && !html.includes('.g2>.c{margin:0}'), 'Redundant standalone .g2 card margin overrides were reintroduced.');
