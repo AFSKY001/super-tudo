@@ -744,3 +744,8 @@ A camada de motion v6/v7 foi substituída por um sistema único v8, removendo as
 - O anel de progresso usa uma propriedade CSS animável para interpolar o percentual; a celebração continua vinculada à conclusão real.
 - Toggles reconhecem mais rótulos de preferências, sem converter checkboxes de checklist ou listas em switches.
 - A preferência do sistema por movimento reduzido continua respeitada.
+
+
+## Correção da resposta de toque (3.74.5)
+
+Removido o mecanismo legado de press-and-hold dos botões comuns: ele expandia uma bolha visual e interceptava o clique após 180 ms, fazendo ações parecerem travadas em toques mais longos. Removidos também os ripples dinâmicos globais e as transformações de escala/elevação concorrentes. O feedback de toque agora é apenas uma alteração discreta de brilho, sem alterar dimensões ou posição dos controles. Ações inline e handlers originais permanecem intactos.
