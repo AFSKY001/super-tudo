@@ -786,3 +786,10 @@ O movimento da interface é centralizado em uma única camada global no final do
 - O indicador de navegação também recalcula posição quando a classe ativa muda, não apenas quando a lista é recriada.
 - A contagem numérica distingue separadores de milhar e decimais no padrão brasileiro.
 - O modo de movimento reduzido mantém cartões visíveis também dentro dos painéis inferiores.
+
+
+### Compatibilidade com padrões globais 3.74.9
+
+- Preservados os contratos de foco, movimento reduzido e transição horizontal exigidos pela auditoria de interface.
+- Indicador deslizante mobile substitui visualmente o marcador estático sem duplicar regras CSS.
+- Contagem animada interpreta corretamente separadores de milhar e decimais no formato brasileiro.
