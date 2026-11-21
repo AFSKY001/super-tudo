@@ -37,3 +37,8 @@ jobs:
           deno check --config supabase/functions/deno.json supabase/functions/criar-usuario/index.ts
           deno check --config supabase/functions/deno.json supabase/functions/config-history/index.ts
           deno check --config supabase/functions/deno.json supabase/functions/push-notifications/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/login-empresa/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/criar-usuario-empresa/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/evaluation-links/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/evaluation-public/index.ts
+          deno check --config supabase/functions/deno.json supabase/functions/master-organizations/index.ts
