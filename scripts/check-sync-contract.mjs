@@ -13,6 +13,10 @@ const tenantSyncMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261121134333_explicit_org_scoped_sync_rpcs.sql'),
   'utf8',
 );
+const teamReadMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261121180000_require_team_leader_permission_for_team_reads.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -61,6 +65,7 @@ const permissionChecks = [
   ['RPC multiempresa valida associação ativa na organização indicada', /om\.user_id=v_uid and om\.org_id=v_org_id and om\.active=true and pr\.active=true/i],
   ['RPC multiempresa usa autorização de escrita escopada por organização', /public\.can_write_kind_for_org\(v_kind, v_org_id\)/i],
   ['RPC multiempresa troca verificação legada de r:eqp por verificação escopada', /public\.has_perm_for_org\(''r:eqp'', v_org_id\)/i],
+  ['migração de leitura exige papel encarregado e permissão r:eqp', /om\.role=''encarregado''[\s\S]{0,100}has_perm_for_org\(''r:eqp'',p_org_id\)/i],
 ];
 
 const failedPermissions = [];
