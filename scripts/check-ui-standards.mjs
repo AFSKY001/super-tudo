@@ -36,6 +36,7 @@ requireCheck(html.includes('lastTrigger=target') && html.includes('layer.dataset
 requireCheck(html.includes('aria-label="Resposta"') && html.includes("input.setAttribute('aria-label',isInput?'Resposta':'')"), 'Prompt input must expose an accessible name.');
 requireCheck(html.includes("document.body.classList.add('st-dialog-open')") && html.includes("document.body.classList.remove('st-dialog-open')") && html.includes('body.st-dialog-open{overflow:hidden;overscroll-behavior:none}'), 'Open dialogs must lock background scrolling and release it on close.');
 requireCheck(html.includes(':where(input,select,textarea)[aria-invalid="true"]{') && html.includes('.field-hint{color:var(--mu)}') && html.includes('.field-error{color:var(--no);font-weight:600}'), 'Form validation must use the shared accessible invalid-field, hint and error-message styles.');
+requireCheck(html.includes("document.addEventListener('invalid',event=>updateFieldError(event.target),true)") && html.includes("document.addEventListener('input',revalidate,true)") && html.includes("field.setAttribute('aria-describedby',[...described,errorId].join(' '))"), 'Native form validation must expose accessible inline errors and clear them when corrected.');
 requireCheck(html.includes('align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;width:100%'), 'Internal dialog action buttons must remain centered and aligned.');
 
 requireCheck(agent.includes('padrão global, nunca solução isolada'), 'AGENTS.md is missing the repository-wide UI rule.');
