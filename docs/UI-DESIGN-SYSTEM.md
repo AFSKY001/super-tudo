@@ -655,3 +655,8 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Temperaturas apresentam resumo próprio, respeitando os filtros ativos de data, equipamento e pesquisa.
 - Os valores são calculados a partir dos dados efetivamente salvos. Quando não há registros, a tela informa isso sem criar números artificiais.
 - O painel genérico anterior foi removido; o componente contextual é inserido diretamente no fluxo de renderização de cada função para garantir sua posição correta.
+
+
+## Correção do contrato visual dos resumos contextuais — versão 3.73.87
+
+- Corrigido o fechamento da regra responsiva no CSS e alinhada a verificação automatizada ao componente contextual `launch-insight`.
