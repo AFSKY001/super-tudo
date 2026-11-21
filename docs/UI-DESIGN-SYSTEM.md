@@ -678,7 +678,7 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O verificador de interface protege a restauração de classe e as dimensões mínimas do botão.
 
 
-## Rótulo textual obrigatório em confirmações destrutivas — versão 3.73.90
+## Rótulo textual obrigatório em confirmações destrutivas — versão 3.73.91
 
 - O serviço global de diálogos normaliza rótulos de ações antes de renderizar o botão principal. Valores simbólicos como `X`, `✕` ou `×` não podem substituir o nome da ação.
 - Quando a confirmação for destrutiva, o botão sempre usa o rótulo semântico identificado (`Excluir`, `Desativar`, `Revogar`, `Limpar` ou `Descartar`) e mantém o estado visual correspondente.

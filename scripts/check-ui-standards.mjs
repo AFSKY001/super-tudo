@@ -30,6 +30,9 @@ requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match 
 
 const deleteAllMatch = html.match(/async function ntDeleteAll\(\)\{[\s\S]*?\}\s*function buy\(/);
 requireCheck(!!deleteAllMatch && /await window\.stConfirm\(/.test(deleteAllMatch?.[0] || '') && !/\bconfirm\s*\(/.test(deleteAllMatch?.[0] || ''), 'Notification delete-all must use the internal Super Tudo confirmation dialog.');
+requireCheck(/confirmText:'Excluir',cancelText:'Cancelar'/.test(deleteAllMatch?.[0] || ''), 'Notification deletion must show explicit Excluir and Cancelar labels.');
+requireCheck(!/>✕<\/button>/.test(html.replace(/cfSet\([\s\S]{0,180}?\/>✕<\/button>/g, '').replace(/pdcPurchaseSet\([\s\S]{0,180}?\/>✕<\/button>/g, '')), 'Destructive action buttons must not render an X glyph as their label.');
+requireCheck(/popup-delete-action\{min-width:88px;min-height:44px;/.test(html), 'Compact destructive actions must share the global popup delete sizing.');
 const temperatureDeleteMatch = html.match(/async function delL\([^)]*\)\{[\s\S]*?\}const ckRuns=/);
 requireCheck(!!temperatureDeleteMatch && /await window\.stConfirm\(/.test(temperatureDeleteMatch?.[0] || '') && !/\bconfirm\s*\(/.test(temperatureDeleteMatch?.[0] || ''), 'Temperature and shared record deletion must use the internal Super Tudo confirmation dialog.');
 requireCheck(html.includes('lastTrigger=target') && html.includes('layer.dataset.position=position'), 'Internal dialogs must anchor vertically to the initiating button.');
