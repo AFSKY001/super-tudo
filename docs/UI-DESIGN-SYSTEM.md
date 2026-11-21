@@ -683,3 +683,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O serviço global de diálogos normaliza rótulos de ações antes de renderizar o botão principal. Valores simbólicos como `X`, `✕` ou `×` não podem substituir o nome da ação.
 - Quando a confirmação for destrutiva, o botão sempre usa o rótulo semântico identificado (`Excluir`, `Desativar`, `Revogar`, `Limpar` ou `Descartar`) e mantém o estado visual correspondente.
 - A regra é aplicada no componente central, para todos os módulos e em todas as aberturas do pop-up.
+
+
+## Prioridade do rótulo explícito nas confirmações — versão 3.73.94
+
+- O componente global respeita primeiro `confirmText` quando o chamador informa um rótulo textual válido, inclusive em ações destrutivas.
+- A classificação semântica continua definindo a intenção visual e o estado de perigo; ela não pode sobrescrever o texto explicitamente solicitado pela tela.
+- A confirmação de exclusão de notificações exibe **Cancelar** e **Excluir** como ações textuais separadas. Símbolos isolados nunca substituem esses rótulos.
