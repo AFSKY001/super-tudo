@@ -630,3 +630,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Estados hover, pressionado, desabilitado e foco usam tokens globais e comportamento consistente. Botões desabilitados não recebem clique nem efeito de movimento.
 - Controles com semântica própria (navegação, chips, seleção segmentada, botões de ícone e controles de quantidade) permanecem com seus padrões específicos; não são convertidos em botões de ação `.bt`.
 - O contrato final é aplicado depois das regras históricas do CSS para evitar que cascatas antigas mudem novamente a aparência de Salvar, Cancelar, Excluir e ações equivalentes. Não remover em massa estilos contextuais antes de validar cada tela.
+
+
+## 18. Resumo operacional em todas as telas de Lançamentos — versão 3.73.84
+
+- Todas as telas dentro do destino Registro/Lançamentos recebem um pequeno painel contextual no topo, sem depender de cada módulo implementar seu próprio cartão.
+- O painel apresenta a quantidade de registros visíveis e identifica registros pendentes e concluídos quando o conteúdo da própria linha contém um status reconhecível.
+- Os números são derivados do conteúdo atualmente renderizado na tela; não são estimativas, dados fictícios nem substituem os indicadores consolidados dos menus principais.
+- A atualização acompanha mudanças de tela, filtros, inclusão/remoção de linhas e alterações de status. O painel não grava dados nem interfere em formulários, permissões ou sincronização.
+- O componente usa uma única estrutura responsiva e tokens globais de cartão, com cores semânticas para pendências e conclusões.
