@@ -33,6 +33,8 @@ requireCheck(!!deleteAllMatch && /await window\.stConfirm\(/.test(deleteAllMatch
 const temperatureDeleteMatch = html.match(/async function delL\([^)]*\)\{[\s\S]*?\}const ckRuns=/);
 requireCheck(!!temperatureDeleteMatch && /await window\.stConfirm\(/.test(temperatureDeleteMatch?.[0] || '') && !/\bconfirm\s*\(/.test(temperatureDeleteMatch?.[0] || ''), 'Temperature and shared record deletion must use the internal Super Tudo confirmation dialog.');
 requireCheck(html.includes('lastTrigger=target') && html.includes('layer.dataset.position=position'), 'Internal dialogs must anchor vertically to the initiating button.');
+requireCheck(html.includes('aria-label="Resposta"') && html.includes("input.setAttribute('aria-label',isInput?'Resposta':'')"), 'Prompt input must expose an accessible name.');
+requireCheck(html.includes("document.body.classList.add('st-dialog-open')") && html.includes("document.body.classList.remove('st-dialog-open')") && html.includes('body.st-dialog-open{overflow:hidden;overscroll-behavior:none}'), 'Open dialogs must lock background scrolling and release it on close.');
 requireCheck(html.includes('align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;width:100%'), 'Internal dialog action buttons must remain centered and aligned.');
 
 requireCheck(agent.includes('padrão global, nunca solução isolada'), 'AGENTS.md is missing the repository-wide UI rule.');
