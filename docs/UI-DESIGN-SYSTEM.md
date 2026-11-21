@@ -668,3 +668,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Ações destrutivas com finalidade diferente mantêm o verbo específico: **Desativar**, **Revogar**, **Limpar** ou **Descartar**. Não trocar essas ações por “Excluir”.
 - O botão **Cancelar** permanece como ação secundária; o botão destrutivo usa o estilo semântico vermelho global.
 - O ícone **X** continua adequado em linhas compactas, chips e itens removíveis quando o contexto deixa a ação evidente. Esses controles devem ter atributos title e aria-label que expliquem o que será removido; não substituir todos por botões largos com texto.
+
+
+## Correção de estabilidade do botão principal dos diálogos — versão 3.73.89
+
+- A cada abertura, o botão principal do diálogo restaura explicitamente sua classe-base antes de receber a intenção visual correspondente, evitando acúmulo de classes entre confirmações sucessivas.
+- O botão principal passa a ter contrato CSS isolado no escopo do diálogo: largura mínima, altura, tipografia, alinhamento e espaçamento não podem ser reduzidos por estilos compactos de outros controles.
+- A intenção destrutiva mantém fundo vermelho e texto branco, sem alterar os comportamentos de confirmação, cancelamento ou exclusão.
+- O verificador de interface protege a restauração de classe e as dimensões mínimas do botão.
