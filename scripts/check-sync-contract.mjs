@@ -56,11 +56,11 @@ const permissionChecks = [
   ['criação bloqueia elevação de administrador e líder', /coalesce\(\(v_data->>'adm'\)::boolean,\s*false\)[\s\S]{0,180}coalesce\(\(v_data->>'l'\)::boolean,\s*false\)/i],
   ['criação bloqueia permissões, liderança e vínculo de login', /v_data->'perm'[\s\S]{0,240}v_data->>'sb_uid'/i],
   ['atualização exige vínculo do encarregado com o membro', /NOT v_linked[\s\S]{0,180}owner_team_member_id/i],
-  ['atualização exige autoria do encarregado e bloqueia exclusão', /v_existing\.data->>'created_by' IS DISTINCT FROM v_uid::text[\s\S]{0,220}v_deleted/i],
+  ['atualização exige autoria do encarregado e bloqueia exclusão', /NOT v_linked[\s\S]{0,260}v_deleted[\s\S]{0,260}v_existing\.data->>'created_by' IS DISTINCT FROM v_uid::text/i],
   ['RPC multiempresa recebe p_org_id explícito', /CREATE OR REPLACE FUNCTION public\.sync_push\(p_ops jsonb, p_org_id uuid\)/i],
   ['RPC multiempresa valida associação ativa na organização indicada', /om\.user_id=v_uid and om\.org_id=v_org_id and om\.active=true and pr\.active=true/i],
   ['RPC multiempresa usa autorização de escrita escopada por organização', /public\.can_write_kind_for_org\(v_kind, v_org_id\)/i],
-  ['RPC multiempresa troca verificação legada de r:eqp por verificação escopada', /public\.has_perm_for_org\('r:eqp', v_org_id\)/i],
+  ['RPC multiempresa troca verificação legada de r:eqp por verificação escopada', /public\.has_perm_for_org\(''r:eqp'', v_org_id\)/i],
 ];
 
 const failedPermissions = [];
