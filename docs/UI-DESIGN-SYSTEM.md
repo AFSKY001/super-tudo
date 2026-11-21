@@ -713,3 +713,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Checkboxes com rótulos de configuração que representam opções liga/desliga recebem apresentação de toggle, mantendo o próprio input e seu estado nativo.
 - Botões de ação recebem ripple discreto no ponto do toque. A camada não altera dados, validações, persistência, permissões, autenticação ou sincronização.
 - Todas as animações respeitam `prefers-reduced-motion`; a interface mantém leitura e operação completas sem movimento.
+
+
+## 20. Checklist operacional — progresso e conclusão — versão 3.74.2
+
+- A execução usa a estrutura real de itens .it e respostas .sn (s, n ou a), sem depender de checkboxes HTML inexistentes nesse fluxo.
+- O anel calcula o percentual a partir dos itens respondidos e atualiza após cada resposta, sem gravar ou alterar dados.
+- A comemoração só ocorre na transição real de menos de 100% para 100%, uma vez por checklist/data; nunca no carregamento inicial.
+- O componente fica junto ao título da execução e respeita prefers-reduced-motion.
+- Salvar, validar, pontuar e sincronizar permanecem intactos.
