@@ -758,3 +758,23 @@ Removido o mecanismo legado de press-and-hold dos botões comuns: ele expandia u
 - O botão **Voltar às rotinas** retorna à tela de planejamento sem alterar os modelos, vínculos ou registros existentes.
 - Os checklists continuam vinculados às atividades e à execução das rotinas; não foi criada uma área independente de execução de checklist.
 - A alteração é de organização e navegação visual. Dados, permissões, regras de execução e sincronização permanecem preservados.
+
+
+## 5. Sistema global de movimento — versão 3.74.7
+
+O movimento da interface é centralizado em uma única camada global no final do CSS. Não adicionar versões paralelas de regras de animação.
+
+- Tokens `--st-motion-*` definem durações e curvas.
+- Transições de tela são acionadas quando os filhos diretos de `#app` são substituídos.
+- Cartões usam `IntersectionObserver`, com fallback sem observador.
+- O progresso do checklist é calculado pelos controles reais; confetes somente na transição para 100%.
+- Barras e caminhos/áreas SVG do dashboard recebem animação quando podem ser medidos.
+- Painéis inferiores usam Pointer Events e retorno suave; arraste não altera ações dos botões.
+- Ripple é visual, não intercepta eventos e não aplica escala aos botões.
+- Inclinação 3D é limitada a cartões do dashboard em dispositivos com ponteiro fino.
+- Shimmer, balanço de validação, pulsação de notificações e indicador deslizante da navegação são efeitos reutilizáveis.
+- Contagem animada limita-se a números em destaque no dashboard e preserva o texto final.
+- Preferências identificadas nas configurações podem usar toggle iOS.
+- `prefers-reduced-motion` desativa movimento e confete, preservando conteúdo e estados.
+
+**Regra de segurança:** efeitos visuais nunca interceptam cliques, alteram dimensões dos botões, mudam dados, disparam salvamentos ou modificam sincronização.
