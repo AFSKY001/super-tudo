@@ -732,3 +732,15 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Ripple é discreto, curto e recortado dentro do botão.
 - Navegação inferior e alça de arraste mantêm seus comportamentos próprios.
 - Respeita a preferência do sistema por movimento reduzido.
+
+
+## Sistema de animações integrado (3.74.4)
+
+A camada de motion v6/v7 foi substituída por um sistema único v8, removendo as redefinições duplicadas adicionadas anteriormente. Os componentes reais recebem os efeitos sem alterar regras de negócio, dados, armazenamento ou sincronização.
+
+- Botões de ação em conteúdo, folhas e diálogos compartilham a mesma resposta tátil; ripple discreto, limitado à altura do botão e também alcança botões de ícone como +.
+- Cards recebem entrada suave uma vez por montagem; telas, menus, folhas e diálogos têm transições próprias.
+- Barras existentes do painel animam valores reais; linhas SVG existentes recebem desenho progressivo.
+- O anel de progresso usa uma propriedade CSS animável para interpolar o percentual; a celebração continua vinculada à conclusão real.
+- Toggles reconhecem mais rótulos de preferências, sem converter checkboxes de checklist ou listas em switches.
+- A preferência do sistema por movimento reduzido continua respeitada.
