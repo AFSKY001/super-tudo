@@ -793,3 +793,8 @@ O movimento da interface é centralizado em uma única camada global no final do
 - Preservados os contratos de foco, movimento reduzido e transição horizontal exigidos pela auditoria de interface.
 - Indicador deslizante mobile substitui visualmente o marcador estático sem duplicar regras CSS.
 - Contagem animada interpreta corretamente separadores de milhar e decimais no formato brasileiro.
+
+
+### Gráficos de colunas 3.74.10
+
+- Gráficos verticais que usam `.dashboard-home .cols i` agora animam a altura a partir da base, com opacidade discreta e respeito a movimento reduzido.
