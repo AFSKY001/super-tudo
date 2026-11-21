@@ -2,6 +2,35 @@
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2457e6"><title>Avaliação · Super Tudo</title>
 <style>
 :root{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:#101828;background:#f5f6f9}*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:24px 14px;display:flex;justify-content:center;align-items:flex-start}main{width:min(100%,720px);margin:24px auto;background:#fff;border:1px solid #e4e7ec;border-radius:18px;padding:clamp(18px,4vw,32px);box-shadow:0 8px 28px rgba(16,24,40,.07)}.brand{display:flex;align-items:center;gap:12px;margin-bottom:24px}.mark{width:42px;height:42px;border-radius:12px;background:#eaf0ff;color:#2457e6;display:grid;place-items:center;font-weight:800;font-size:20px}h1{font-size:clamp(22px,4vw,28px);margin:0 0 8px}h2{font-size:17px;margin:0 0 8px}p{line-height:1.55;color:#475467}.muted{font-size:13px;color:#667085}.notice{background:#eef4ff;border:1px solid #d6e4ff;color:#24438c;border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.5;margin:18px 0}.question{border:1px solid #e4e7ec;border-radius:13px;padding:16px;margin:14px 0}.criterion{font-size:13px;color:#667085;margin:8px 0 12px;white-space:pre-wrap}.scale{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.scale label{border:1px solid #d0d5dd;border-radius:10px;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-weight:600}.scale input{accent-color:#2457e6}.scale label:has(input:checked){background:#eaf0ff;border-color:#2457e6;color:#173ea5}textarea{width:100%;min-height:92px;border:1px solid #d0d5dd;border-radius:10px;padding:12px;font:inherit;resize:vertical}button{width:100%;min-height:46px;border:0;border-radius:10px;background:#2457e6;color:#fff;font:600 15px system-ui;cursor:pointer;margin-top:14px}button:disabled{opacity:.6;cursor:wait}.error{color:#b42318;background:#fef3f2;border:1px solid #fecdca;padding:12px;border-radius:10px}.success{color:#067647;background:#ecfdf3;border:1px solid #abefc6;padding:16px;border-radius:12px}[hidden]{display:none!important}@media(max-width:420px){body{padding:8px}main{margin:8px auto;padding:16px;border-radius:14px}.scale{gap:5px}.scale label{font-size:13px}}
+
+/* Camada de movimento acessível do formulário público */
+:root{
+  --eval-motion:220ms;
+  --eval-spring:cubic-bezier(.2,.9,.25,1);
+  --eval-surface:rgba(255,255,255,.88);
+}
+main{animation:eval-enter 260ms var(--eval-spring) both}
+.question{
+  transition:transform 150ms var(--eval-spring),opacity 180ms ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.question:focus-within{border-color:#9bb5ff}
+.scale label{transition:transform 120ms var(--eval-spring),opacity 120ms ease}
+.scale label:active{transform:scale(.97)}
+.scale label:has(input:checked){border-color:#2457e6}
+button:not(:disabled){transition:transform 120ms var(--eval-spring),opacity 160ms ease}
+button:not(:disabled):active{transform:scale(.985)}
+button:focus-visible,textarea:focus-visible,.scale label:has(input:focus-visible){
+  outline:3px solid rgba(36,87,230,.28);outline-offset:2px
+}
+@keyframes eval-enter{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(prefers-reduced-motion:reduce){
+  main,.question,.scale label,button{animation:none!important;transition:none!important;transform:none!important}
+}
+
 </style></head><body><main><div class="brand"><div class="mark">ST</div><div><b>Super Tudo</b><div class="muted">Formulário externo de avaliação</div></div></div><section id="loading"><p>Carregando avaliação…</p></section><section id="content" hidden><h1 id="title">Avaliação</h1><p id="target" class="muted"></p><div class="notice">Esta resposta é anônima. Não solicitamos nome, usuário ou e-mail. Responda com sinceridade; os resultados serão apresentados de forma agrupada.</div><form id="form"><div id="questions"></div><label for="observation"><b>Observações (opcional)</b></label><textarea id="observation" maxlength="1500" placeholder="Deixe um comentário sem informar seus dados pessoais."></textarea><div id="error" hidden></div><button id="submit" type="submit">Enviar avaliação</button></form></section><section id="failure" hidden><div class="error" id="failureText"></div></section><section id="done" hidden><div class="success"><h2>Resposta enviada!</h2><p>Obrigado por participar. Sua resposta foi registrada sem identificação pessoal.</p></div></section></main>
 <script>
 (()=>{const URL="https://xsvcjfsgkropzdfcehsh.supabase.co/functions/v1/evaluation-public",KEY="sb_publishable_vPVY9K6TLJjX1gHDjJN5MQ_lCxOvDWk",token=new URLSearchParams(location.search).get("token")||"",el=id=>document.getElementById(id);let evaluation=null;
