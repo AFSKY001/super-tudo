@@ -621,3 +621,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Campos do portal usam a mesma altura mínima, raio, tipografia, borda e foco visível dos controles globais.
 - Botões primários, secundários e destrutivos do portal compartilham altura, raio, tipografia, alinhamento, movimento, foco e estado desabilitado do design system; suas intenções continuam visualmente distintas.
 - A alteração é restrita ao escopo `#masterPortalRoot`; não altera formulários, permissões, autenticação, API, dados ou regras dos módulos operacionais.
+
+
+## 17. Contrato global de botões de ação — versão 3.73.83
+
+- A classe `.bt` é o padrão para ações de formulário e ações de tela: altura mínima de 42 px, alinhamento central, tipografia de ação e foco de teclado visível.
+- `.bt` representa ação principal; `.bt.g` representa ação secundária; `.bt.d` representa ação destrutiva. Não criar variações locais de cor, raio, sombra ou altura para essas mesmas funções.
+- Estados hover, pressionado, desabilitado e foco usam tokens globais e comportamento consistente. Botões desabilitados não recebem clique nem efeito de movimento.
+- Controles com semântica própria (navegação, chips, seleção segmentada, botões de ícone e controles de quantidade) permanecem com seus padrões específicos; não são convertidos em botões de ação `.bt`.
+- O contrato final é aplicado depois das regras históricas do CSS para evitar que cascatas antigas mudem novamente a aparência de Salvar, Cancelar, Excluir e ações equivalentes. Não remover em massa estilos contextuais antes de validar cada tela.
