@@ -11,6 +11,8 @@ const checks = [
   ['fila contém identificador idempotente por operação', /'client_id':syncUuid\(\)/],
   ['envio usa RPC sync_push', /supa\['rpc'\]\('sync_push'/],
   ['recebimento usa RPC sync_pull', /supa\['rpc'\]\('sync_pull'/],
+  ['sync_push usa a empresa ativa da sessão', /supa\['rpc'\]\('sync_push',\{'p_ops':\[_0x14313\],'p_org_id':V\['cloudIdentity'\]\['org_id'\]\}\)/],
+  ['sync_pull usa a empresa ativa da sessão', /supa\['rpc'\]\('sync_pull',\{'p_since':null,'p_org_id':V\['cloudIdentity'\]\['org_id'\]\}\)/],
   ['controle de revisão base', /base_revision/],
   ['estado de conflito é persistido', /syncMeta\['conflicts'\]/],
   ['conflitos preservam aviso local', /syncLocalNotice\(/],
