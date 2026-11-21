@@ -16,7 +16,7 @@ begin
   );
 
   if v_def = v_old
-     or position('om.role = ''encarregado''' in v_def) = 0
+     or position('om.role=''encarregado''' in v_def) = 0
      or position('has_perm_for_org(''r:eqp'',p_org_id)' in v_def) = 0 then
     raise exception 'Não foi possível alinhar a leitura da equipe à permissão do encarregado.';
   end if;
