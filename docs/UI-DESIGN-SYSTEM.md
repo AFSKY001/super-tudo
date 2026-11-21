@@ -690,3 +690,15 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O componente global respeita primeiro `confirmText` quando o chamador informa um rótulo textual válido, inclusive em ações destrutivas.
 - A classificação semântica continua definindo a intenção visual e o estado de perigo; ela não pode sobrescrever o texto explicitamente solicitado pela tela.
 - A confirmação de exclusão de notificações exibe **Cancelar** e **Excluir** como ações textuais separadas. Símbolos isolados nunca substituem esses rótulos.
+
+
+## 19. Movimento e materiais — versão 3.73.98
+
+- A camada global de navegação móvel usa material translúcido com desfoque, preservando contraste e separação entre controles e conteúdo.
+- Menus e painéis flutuantes reutilizam o mesmo material; cartões de conteúdo permanecem sólidos para preservar legibilidade e hierarquia.
+- Toque, navegação e entrada de telas usam transições breves de transformação e opacidade, com curvas suaves inspiradas em movimento de mola.
+- A folha inferior entra pela mesma direção em que é apresentada e mantém a rolagem e a área segura do dispositivo.
+- O dashboard reforça a leitura de números com algarismos tabulares e mantém os dados e cálculos já existentes.
+- A preferência `prefers-reduced-motion` desativa os movimentos adicionais sem ocultar estados ou informações.
+- A alteração é exclusivamente visual: não cria indicadores, não altera dados, armazenamento, permissões, sincronização ou regras de negócio.
+- O formulário externo de avaliação mantém seu próprio escopo e não é alterado por esta camada global.
