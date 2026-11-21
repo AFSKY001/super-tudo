@@ -2301,6 +2301,41 @@ label.st-ios-toggle:has(input:focus-visible){outline:2px solid color-mix(in srgb
 .st-check-label{flex:1;min-width:0;font-size:12px;color:var(--mu)}
 .st-check-value{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
 .st-check-progress.is-complete{border-color:color-mix(in srgb,var(--ok) 40%,var(--bd));background:color-mix(in srgb,var(--ok) 7%,var(--cd))}
+
+/* Contrato único de resposta ao toque — evita transformações conflitantes */
+:root{--ui-press-duration:120ms;--ui-press-ease:cubic-bezier(.2,.7,.25,1)}
+#app button:not(:disabled),#sh button:not(:disabled),#stDialogLayer button:not(:disabled){
+  transform-origin:center;
+  transition:transform var(--ui-press-duration) var(--ui-press-ease),
+    background-color var(--ui-press-duration) ease,
+    border-color var(--ui-press-duration) ease,
+    color var(--ui-press-duration) ease,
+    box-shadow var(--ui-press-duration) ease,
+    filter var(--ui-press-duration) ease;
+  -webkit-tap-highlight-color:transparent;
+}
+#app button:not(:disabled):active,#sh button:not(:disabled):active,
+#stDialogLayer button:not(:disabled):active{
+  transform:scale(.985)!important;
+  filter:brightness(.98);
+  box-shadow:none;
+}
+#app button.ibtn:not(:disabled):active,#app button.dots:not(:disabled):active{
+  transform:scale(.97)!important;
+}
+#app button:disabled,#sh button:disabled,#stDialogLayer button:disabled{
+  cursor:not-allowed;
+}
+#app button .st-ripple-wave{
+  opacity:.10;
+  animation-duration:320ms;
+}
+#app button.st-ripple-host{overflow:hidden;isolation:isolate}
+nav button:active,.sheet .st-sheet-handle:active{transform:none!important}
+@media(prefers-reduced-motion:reduce){
+  #app button,#sh button,#stDialogLayer button{transition:none!important}
+  #app button:active,#sh button:active,#stDialogLayer button:active{transform:none!important}
+}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button type="button" class="dots notification-trigger" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" class="notification-count"></b></button><span id="syncStatus" class="sync-status-label" title="Status da sincronização"></span><button type="button" class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>

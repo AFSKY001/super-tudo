@@ -722,3 +722,13 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - A comemoração só ocorre na transição real de menos de 100% para 100%, uma vez por checklist/data; nunca no carregamento inicial.
 - O componente fica junto ao título da execução e respeita prefers-reduced-motion.
 - Salvar, validar, pontuar e sincronizar permanecem intactos.
+
+
+## Resposta visual padronizada dos botões (3.74.3)
+
+- Todos os botões de conteúdo, folhas e diálogos usam uma única duração curta de resposta ao toque.
+- O estado pressionado usa redução mínima (0,985); botões compactos de ícone usam 0,97.
+- Removida a sensação de salto causada por regras concorrentes de escala e deslocamento; o toque não altera dimensões nem fluxo do layout.
+- Ripple é discreto, curto e recortado dentro do botão.
+- Navegação inferior e alça de arraste mantêm seus comportamentos próprios.
+- Respeita a preferência do sistema por movimento reduzido.
