@@ -701,4 +701,4 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O dashboard reforça a leitura de números com algarismos tabulares e mantém os dados e cálculos já existentes.
 - A preferência `prefers-reduced-motion` desativa os movimentos adicionais sem ocultar estados ou informações.
 - A alteração é exclusivamente visual: não cria indicadores, não altera dados, armazenamento, permissões, sincronização ou regras de negócio.
-- O formulário externo de avaliação mantém seu próprio escopo e não é alterado por esta camada global.
+- O formulário externo de avaliação recebe uma camada visual própria e compatível, sem alterar o envio, a validação ou o anonimato das respostas.
