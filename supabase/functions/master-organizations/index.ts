@@ -49,6 +49,15 @@ export default {fetch:withSupabase({auth:"user"},async(req,ctx)=>{
     const logo=body.logo_url??null;
     if(!name||!slugOk(slug)||!brandName)return fail("Nome, marca ou identificador da empresa inválido.");
     if(!usernameOk(username)||password.length<8||password.length>128||!displayName)return fail("Dados do administrador inicial inválidos.");
+    const {data:activeMasters,error:masterLookupError}=await ctx.supabaseAdmin.from("platform_admins").select("user_id").eq("active",true);
+    if(masterLookupError)return fail("Não foi possível validar os logins reservados.",500);
+    const masterIds=(activeMasters??[]).map((item)=>item.user_id);
+    if(masterIds.length){
+      const {data:masterProfiles,error:profileLookupError}=await ctx.supabaseAdmin.from("profiles").select("username").in("id",masterIds);
+      if(profileLookupError)return fail("Não foi possível validar os logins reservados.",500);
+      if((masterProfiles??[]).some((item)=>String(item.username??"").trim().toLowerCase()===username))
+        return fail("Este nome de usuário é reservado ao administrador Master da plataforma.",409);
+    }
     if(!colorOk(primary)||!colorOk(secondary)||!colorOk(accent)||!safeLogo(logo))return fail("Personalização inválida. Use cores hexadecimais e uma URL HTTPS para a logo.");
     const {data:existing,error:existsError}=await ctx.supabaseAdmin.from("organizations").select("id").eq("slug",slug).maybeSingle();
     if(existsError)return fail("Não foi possível validar o identificador.",500);
