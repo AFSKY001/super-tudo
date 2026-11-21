@@ -222,6 +222,8 @@ const styleBlocks = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style\s*>/gi)]
 requireCheck(styleBlocks.length === 1, 'Expected exactly one primary application style block.');
 if (styleBlocks.length === 1) {
   requireCheck(balancedCss(styleBlocks[0][1]), 'Application CSS has unbalanced braces, brackets, parentheses, strings, or comments.');
+  const emptyCssRules = styleBlocks[0][1].match(/(?:^|})\s*([^{}@][^{}]*)\{\s*\}/g) || [];
+  requireCheck(emptyCssRules.length === 0, 'Empty CSS rules detected: ' + emptyCssRules.slice(0, 5).join('; ') + '.');
   const cssQuality = collectCssQuality(styleBlocks[0][1]);
   const ruleKeys = new Set();
   let duplicateRules = 0;

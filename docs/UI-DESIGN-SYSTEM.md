@@ -571,3 +571,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - A rodada abrangeu texto base, campos, dias selecionados, chips, botões de status, ícones de ação, cartões, calendário e botões de seleção.
 - As declarações finais de cada propriedade foram preservadas; não foram alterados valores de tema, breakpoints, estados distintos ou regras de negócio.
 - O verificador de interface recebeu proteções adicionais para os estados de dia selecionado e chips.
+
+
+## Remoção de regras CSS vazias — versão 3.73.57
+
+- Removidas cinco regras CSS vazias (`.b.ok`, `.b.wa`, `.day.on`, `.chs` e `.month-cell`) que não declaravam propriedades nem produziam efeito visual.
+- O verificador de interface agora identifica regras CSS vazias para impedir que seletores sem conteúdo permaneçam no arquivo.
+- Nenhum seletor funcional, estado visual, estrutura, dado, permissão, autenticação, sincronização ou módulo de negócio foi alterado.
