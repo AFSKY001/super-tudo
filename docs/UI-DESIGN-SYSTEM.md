@@ -749,3 +749,12 @@ A camada de motion v6/v7 foi substituída por um sistema único v8, removendo as
 ## Correção da resposta de toque (3.74.5)
 
 Removido o mecanismo legado de press-and-hold dos botões comuns: ele expandia uma bolha visual e interceptava o clique após 180 ms, fazendo ações parecerem travadas em toques mais longos. Removidos também os ripples dinâmicos globais e as transformações de escala/elevação concorrentes. O feedback de toque agora é apenas uma alteração discreta de brilho, sem alterar dimensões ou posição dos controles. Ações inline e handlers originais permanecem intactos.
+
+
+## Organização da área Rotinas — versão 3.74.6
+
+- A área de planejamento apresenta um único botão **Checklists** no topo, com ícone de checklist.
+- Os modelos de checklist ficam reunidos em uma tela própria acessada por esse botão; a lista não fica misturada aos modelos de rotinas.
+- O botão **Voltar às rotinas** retorna à tela de planejamento sem alterar os modelos, vínculos ou registros existentes.
+- Os checklists continuam vinculados às atividades e à execução das rotinas; não foi criada uma área independente de execução de checklist.
+- A alteração é de organização e navegação visual. Dados, permissões, regras de execução e sincronização permanecem preservados.
