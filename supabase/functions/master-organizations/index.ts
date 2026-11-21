@@ -18,11 +18,17 @@ export default {fetch:withSupabase({auth:"user"},async(req,ctx)=>{
   let body:Record<string,unknown>;
   try{body=await req.json()}catch{return fail("Solicitação inválida.")}
   const action=String(body.action??"");
-  if(!["list","create","update","status"].includes(action))return fail("Ação inválida.");
+  if(!["list","audit","create","update","status"].includes(action))return fail("Ação inválida.");
   const {data:master,error:masterError}=await ctx.supabaseAdmin.from("platform_admins")
     .select("user_id").eq("user_id",actorId).eq("active",true).maybeSingle();
   if(masterError){console.error("Falha ao validar Master:",masterError);return fail("Não foi possível validar o acesso.",500)}
   if(!master)return fail("Acesso restrito ao administrador da plataforma.",403);
+
+  if(action==="audit"){
+    const {data,error}=await ctx.supabaseAdmin.from("platform_admin_audit").select("id,action,target_org_id,details,request_id,created_at").order("created_at",{ascending:false}).limit(100);
+    if(error){console.error("Falha ao consultar auditoria Master:",error);return fail("Não foi possível consultar o histórico.",500)}
+    return reply({ok:true,events:data??[]});
+  }
 
   if(action==="list"){
     const {data,error}=await ctx.supabaseAdmin.from("organizations")
