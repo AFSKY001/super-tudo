@@ -646,3 +646,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O painel só é redesenhado quando a contagem de registros ou os status mudam; atualizações sem alteração preservam o DOM e a posição de leitura.
 - A atualização é orientada por mudanças reais na tela, sem temporizador periódico, evitando trabalho em segundo plano desnecessário.
 - O resumo anuncia mudanças de forma acessível com região aria-live="polite".
+
+
+## Resumos específicos em cada função de Lançamentos — versão 3.73.86
+
+- Os indicadores são renderizados diretamente pelo módulo da função, logo abaixo do primeiro cartão de ação (novo lançamento/importação), não por detecção genérica do menu.
+- Cada tipo de registro apresenta métricas coerentes com seus campos: perdas e desperdício em quantidade/valor; vencidos e avariados em unidades/custo; ruptura e etiquetas em produtos/ocorrências; caixa em vendas/cupons/ticket médio; requisições em pendentes/atendidas/parciais; transformação em quantidades de origem e resultante; lotes em identificação; clima e avaliações em volume de registros e cobertura.
+- Temperaturas apresentam resumo próprio, respeitando os filtros ativos de data, equipamento e pesquisa.
+- Os valores são calculados a partir dos dados efetivamente salvos. Quando não há registros, a tela informa isso sem criar números artificiais.
+- O painel genérico anterior foi removido; o componente contextual é inserido diretamente no fluxo de renderização de cada função para garantir sua posição correta.

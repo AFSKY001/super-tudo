@@ -285,7 +285,6 @@ requireCheck(html.includes('#masterPortalRoot input:focus-visible,#masterPortalR
 requireCheck(html.includes('#masterPortalRoot .mp-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}'), 'Master Portal disabled actions must use a consistent non-interactive state.');
 requireCheck(html.includes("active.confirmText||action.label") && html.includes("ok.dataset.intent") && html.includes("ok.classList.toggle('is-danger',actionIntent==='danger')"), 'Shared confirmations must support semantic action labels and a destructive visual state.');
 requireCheck(html.includes('.st-alert-ok.is-danger{background:var(--no,#d92d20);color:#fff;box-shadow:none}'), 'Destructive confirmation actions must use the shared destructive color token.');
-requireCheck(html.includes('data-launch-summary') && html.includes('Resumo desta tela') && html.includes('Registros exibidos') && html.includes('Pendentes') && html.includes('Concluídos'), 'All Registro/Lançamentos screens must share the compact operational summary.');
 requireCheck(html.includes('.launch-summary{') && html.includes('.launch-summary-item.is-pending') && html.includes('.launch-summary-item.is-done'), 'Launch summaries must use the shared responsive dashboard card and semantic status colors.');
 requireCheck(html.includes('/* Contrato global de botões de ação — fonte única de aparência para .bt */'), 'The global action-button contract must remain present as the final .bt style authority.');
 requireCheck(html.includes('button.bt.g,.bt.g{') && html.includes('button.bt.d,.bt.d{') && html.includes('button.bt:disabled,.bt:disabled') && html.includes('button.bt:focus-visible,.bt:focus-visible'), 'Primary, secondary, destructive, disabled and keyboard-focus button states must share the global contract.');
@@ -315,6 +314,9 @@ requireCheck(!html.includes('.ch{border:1px solid var(--bd);background:var(--cd)
 
 
 
+requireCheck(html.includes('function launchFunctionSummary(key,rows)') && html.includes("launchFunctionSummary(V['reg'],_0x99ff35)"), 'Each launch function must render its own data-driven summary below its primary action card.');
+requireCheck(html.includes('Resumo das temperaturas') && html.includes('Medições encontradas') && html.includes('Equipamentos medidos'), 'Temperature launch must expose its own filtered summary.');
+requireCheck(!html.includes('Painel compacto e contextual para cada tela do menu Registro/Lançamentos') && !html.includes('setInterval(schedule,1800)'), 'The ineffective generic launch summary observer must not be present.');
 for (const name of Object.keys(ceilings)) {
   requireCheck(
     legacyDialogs[name] <= ceilings[name],
