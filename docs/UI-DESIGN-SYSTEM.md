@@ -530,3 +530,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - A regra específica de retorno `#app.an.dl>*` foi preservada, pois usa direção oposta e não é equivalente.
 - O verificador de interface agora impede que essa duplicação exata volte a ser introduzida.
 - Nenhuma regra de navegação, estado de tela, rolagem, negócio ou persistência foi alterada.
+
+
+## Limpeza incremental de CSS compartilhado — versão 3.73.52
+
+- Removidas regras isoladas que repetiam o cursor dos cartões interativos e a margem dos cartões de grade, já cobertos pelas regras compartilhadas existentes.
+- Removida a declaração de cor de checkbox/radio que repetia o contrato definido na regra base.
+- A regra final de textarea mantém a altura mínima de 96px e deixa o redimensionamento vertical na regra base, sem declarar o mesmo comportamento duas vezes.
+- O verificador de interface agora protege essas limpezas contra reintrodução.
+- As alterações são restritas à cascata CSS global; estrutura, ações, dados, permissões, autenticação, sincronização e módulos funcionais permanecem inalterados.

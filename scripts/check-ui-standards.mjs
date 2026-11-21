@@ -269,6 +269,11 @@ const inlineStyleAttributes = [...html.matchAll(/\sstyle=["'][\s\S]*?["']/g)].le
 requireCheck(inlineStyleAttributes === 0, 'Static HTML must not introduce inline style attributes; use shared CSS classes.');
 requireCheck(html.includes('window.stAlert=(value,options={})=>enqueue') && html.includes('window.stConfirm=') && html.includes('window.stPrompt='), 'Internal dialog API must expose alert, confirm and prompt.');
 requireCheck(!html.includes('#app.an.dr>*{animation:st-screen-enter-forward 220ms var(--ui-motion-ease) both}'), 'Redundant duplicate screen-enter animation rule was reintroduced.');
+requireCheck(!html.includes('.c.tap{cursor:pointer}'), 'Redundant standalone .c.tap cursor rule was reintroduced.');
+requireCheck(!html.includes('.g2>.c{margin:0!important}') && !html.includes('.g2>.c{margin:0}'), 'Redundant standalone .g2 card margin overrides were reintroduced.');
+requireCheck(!html.includes('input[type="checkbox"],input[type="radio"]{accent-color:var(--pr)}'), 'Redundant standalone checkbox/radio accent rule was reintroduced.');
+requireCheck(html.includes('textarea{min-height:96px}') && !html.includes('textarea{min-height:96px;resize:vertical}'), 'Textarea resize behavior must remain inherited from its shared base rule.');
+
 
 for (const name of Object.keys(ceilings)) {
   requireCheck(
