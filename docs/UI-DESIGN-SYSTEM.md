@@ -639,3 +639,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Os números são derivados do conteúdo atualmente renderizado na tela; não são estimativas, dados fictícios nem substituem os indicadores consolidados dos menus principais.
 - A atualização acompanha mudanças de tela, filtros, inclusão/remoção de linhas e alterações de status. O painel não grava dados nem interfere em formulários, permissões ou sincronização.
 - O componente usa uma única estrutura responsiva e tokens globais de cartão, com cores semânticas para pendências e conclusões.
+
+
+## Ajuste de eficiência do resumo de Lançamentos — versão 3.73.85
+
+- O painel só é redesenhado quando a contagem de registros ou os status mudam; atualizações sem alteração preservam o DOM e a posição de leitura.
+- A atualização é orientada por mudanças reais na tela, sem temporizador periódico, evitando trabalho em segundo plano desnecessário.
+- O resumo anuncia mudanças de forma acessível com região aria-live="polite".
