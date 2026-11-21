@@ -613,3 +613,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - A confirmação de cancelamento de uma mudança programada apresenta `Cancelar mudança`; o agendamento apresenta `Agendar`; a confirmação de importação apresenta `Importar`.
 - Os botões fixos de notificações e menu no cabeçalho declaram `type="button"`, evitando submissão acidental caso a estrutura do cabeçalho seja reutilizada dentro de um formulário.
 - A inferência automática de rótulos é uma conveniência compatível com chamadas existentes. Fluxos novos ou ambíguos devem informar explicitamente `intent`, `confirmText` e `cancelText` para não depender de interpretação textual.
+
+
+## 17. Master Portal alinhado aos componentes globais — versão 3.73.82
+
+- Cartões do portal administrativo reutilizam os tokens globais de cartão (`--ui-card-background`, `--ui-card-radius`, `--ui-card-padding`, `--ui-card-margin` e `--ui-card-shadow`), com fallback para manter o portal independente.
+- Campos do portal usam a mesma altura mínima, raio, tipografia, borda e foco visível dos controles globais.
+- Botões primários, secundários e destrutivos do portal compartilham altura, raio, tipografia, alinhamento, movimento, foco e estado desabilitado do design system; suas intenções continuam visualmente distintas.
+- A alteração é restrita ao escopo `#masterPortalRoot`; não altera formulários, permissões, autenticação, API, dados ou regras dos módulos operacionais.
