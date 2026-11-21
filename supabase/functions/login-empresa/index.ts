@@ -39,10 +39,10 @@ export default {
         .maybeSingle();
 
       if (orgError) {
-        console.error("Falha ao consultar organização:", orgError);
+        console.error("Falha ao consultar empresa:", orgError);
         return Response.json({ error: "Erro interno." }, { status: 500 });
       }
-      if (!org || !["active", "trial"].includes(org.status)) return invalid();
+      if (!org) return invalid();
 
       const { data: membership, error: memberError } = await ctx.supabaseAdmin
         .from("org_members")
@@ -58,9 +58,23 @@ export default {
       }
       if (!membership) return invalid();
 
-      // O banco atual resolve a organização ativa pelo vínculo do usuário.
-      // Até a seleção de organização estar incorporada ao JWT, bloqueamos
-      // identidades com mais de um vínculo ativo para impedir troca de tenant.
+      const { data: platformAdmin, error: platformAdminError } = await ctx.supabaseAdmin
+        .from("platform_admins")
+        .select("user_id")
+        .eq("user_id", membership.user_id)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (platformAdminError) {
+        console.error("Falha ao validar administrador Master:", platformAdminError);
+        return Response.json({ error: "Erro interno." }, { status: 500 });
+      }
+
+      const isPlatformAdmin = !!platformAdmin;
+      if (!isPlatformAdmin && !["active", "trial"].includes(org.status)) {
+        return invalid();
+      }
+
       const { data: activeMemberships, error: activeError } = await ctx.supabaseAdmin
         .from("org_members")
         .select("org_id")
@@ -71,13 +85,15 @@ export default {
         console.error("Falha ao validar vínculos ativos:", activeError);
         return Response.json({ error: "Erro interno." }, { status: 500 });
       }
+
       if (
-        !activeMemberships ||
-        activeMemberships.length !== 1 ||
-        activeMemberships[0].org_id !== org.id
+        !isPlatformAdmin &&
+        (!activeMemberships ||
+          activeMemberships.length !== 1 ||
+          activeMemberships[0].org_id !== org.id)
       ) {
         return Response.json(
-          { error: "Esta conta precisa ter um acesso separado por empresa." },
+          { error: "Esta conta possui vínculos em mais de uma empresa sem autorização Master." },
           { status: 409 }
         );
       }
@@ -104,6 +120,7 @@ export default {
         session: data.session,
         company: { slug: org.slug },
         username,
+        platform_admin: isPlatformAdmin,
         profile: {
           id: profile.id,
           username: profile.username,
