@@ -227,8 +227,8 @@ O movimento reforça a compreensão da interface, responde a ações e indica mu
 |---|---:|---|
 | `--ui-motion-feedback` | 120ms | Resposta ao toque |
 | `--ui-motion-state` | 190ms | Mudança de estado, foco e seleção |
-| `--ui-motion-enter` | 250ms | Entrada de elementos |
-| `--ui-motion-panel` | 300ms | Painéis e indicadores de progresso |
+| `--ui-motion-enter` | 170ms | Entrada de elementos, sem atrasar a interação |
+| `--ui-motion-panel` | 200ms | Entrada de painéis e folhas inferiores |
 | `--ui-motion-standard` | `cubic-bezier(.2,.8,.2,1)` | Curva padrão |
 | `--ui-motion-emphasis` | `cubic-bezier(.22,1,.36,1)` | Resposta tátil e destaque |
 
@@ -817,3 +817,12 @@ O fluxo de diagnóstico reutiliza o diálogo global do aplicativo, respeita os t
 ## Relatórios de falhas
 
 O fluxo de diagnóstico reutiliza o diálogo global do aplicativo, respeita os tokens do design system, oferece envio manual em Configuração e não envia relatórios sem confirmação explícita. A fila offline fica isolada em IndexedDB próprio e não toca no armazenamento de trabalho.
+
+
+## 13. Otimização global das janelas — versão 3.74.13
+
+- Diálogos centrais usam transições curtas de aproximadamente 140ms, com deslocamento discreto e sem escala perceptível que cause sensação de lentidão.
+- A camada de fundo dos diálogos não usa `backdrop-filter`; o escurecimento translúcido preserva a separação visual com menor custo de pintura em celulares.
+- Menus, seções expansíveis, painéis e transições entre telas usam tempos menores e consistentes.
+- A animação não deve bloquear foco, clique, rolagem ou leitura. `prefers-reduced-motion` continua removendo os movimentos não essenciais.
+- Não alterar a lógica de abertura/fechamento, filas de diálogo, conteúdo, permissões ou dados ao ajustar o movimento.
