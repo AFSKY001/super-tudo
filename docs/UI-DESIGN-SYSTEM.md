@@ -702,3 +702,14 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - A preferência `prefers-reduced-motion` desativa os movimentos adicionais sem ocultar estados ou informações.
 - A alteração é exclusivamente visual: não cria indicadores, não altera dados, armazenamento, permissões, sincronização ou regras de negócio.
 - O formulário externo de avaliação recebe uma camada visual própria e compatível, sem alterar o envio, a validação ou o anonimato das respostas.
+
+
+## Interações contextuais e acessíveis — versão 3.73.99
+
+- Checklists identificados pelo título ou marcação semântica mostram um anel de progresso calculado apenas a partir das caixas visíveis e habilitadas daquele checklist.
+- A conclusão em 100% gera uma comemoração breve uma única vez na transição para concluído; não é disparada no carregamento inicial nem em tarefas comuns.
+- Gráficos de linha SVG reais no dashboard recebem animação de traçado; ícones e gráficos preenchidos não são tratados como séries de linha.
+- Bottom sheets recebem uma alça acessível para arrastar para baixo. O gesto começa somente na alça, preservando a rolagem do conteúdo e usando o mecanismo de fechamento já existente.
+- Checkboxes com rótulos de configuração que representam opções liga/desliga recebem apresentação de toggle, mantendo o próprio input e seu estado nativo.
+- Botões de ação recebem ripple discreto no ponto do toque. A camada não altera dados, validações, persistência, permissões, autenticação ou sincronização.
+- Todas as animações respeitam `prefers-reduced-motion`; a interface mantém leitura e operação completas sem movimento.
