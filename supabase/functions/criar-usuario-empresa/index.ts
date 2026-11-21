@@ -92,7 +92,8 @@ export default {
       if (action === "update" || action === "revoke") {
         const targetUserId = String(body.target_user_id ?? "").trim();
         const teamMemberId = String(body.team_member_id ?? "").trim();
-        if (!targetUserId || !teamMemberId) return fail("Funcionário ou usuário não identificado.");
+        if (!targetUserId) return fail("Usuário não identificado.");
+        if (action === "update" && !teamMemberId) return fail("Funcionário não identificado.");
         const { data: member, error: memberError } = await ctx.supabaseAdmin
           .from("org_members").select("id, user_id, username")
           .eq("org_id", org.id).eq("user_id", targetUserId).maybeSingle();
