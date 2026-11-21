@@ -1,4 +1,4 @@
-const CACHE_NAME='super-tudo-v3.73.63';
+const CACHE_NAME='super-tudo-v3.73.64';
 const APP_CACHE_PREFIX = 'super-tudo-';
 self.addEventListener('install', event => {
   self.skipWaiting();
