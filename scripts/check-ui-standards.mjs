@@ -33,6 +33,7 @@ requireCheck(!!deleteAllMatch && /await window\.stConfirm\(/.test(deleteAllMatch
 requireCheck(/confirmText:'Excluir',cancelText:'Cancelar'/.test(deleteAllMatch?.[0] || ''), 'Notification deletion must show explicit Excluir and Cancelar labels.');
 requireCheck([...html.matchAll(/>✕<\/button>/g)].length === 2 && html.includes('cfSet(') && html.includes('pdcPurchaseSet(') && html.includes('Não\\x20comprado'), 'Only the two functional X state controls may retain an X glyph; destructive actions must use text.');
 requireCheck(/popup-delete-action\{min-width:88px;min-height:44px;/.test(html), 'Compact destructive actions must share the global popup delete sizing.');
+requireCheck(!/'✕'/.test(html.slice(html.indexOf('const dw='), html.indexOf('function pdcStatusSymbol'))), 'Inline delete controls must use Excluir instead of the X glyph.');
 const temperatureDeleteMatch = html.match(/async function delL\([^)]*\)\{[\s\S]*?\}const ckRuns=/);
 requireCheck(!!temperatureDeleteMatch && /await window\.stConfirm\(/.test(temperatureDeleteMatch?.[0] || '') && !/\bconfirm\s*\(/.test(temperatureDeleteMatch?.[0] || ''), 'Temperature and shared record deletion must use the internal Super Tudo confirmation dialog.');
 requireCheck(html.includes('lastTrigger=target') && html.includes('layer.dataset.position=position'), 'Internal dialogs must anchor vertically to the initiating button.');
