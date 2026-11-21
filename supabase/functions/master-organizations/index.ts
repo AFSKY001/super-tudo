@@ -84,7 +84,16 @@ export default {fetch:withSupabase({auth:"user"},async(req,ctx)=>{
       actor_user_id:actorId,action:"organization.created",target_org_id:org.id,
       details:{name,slug,admin_username:username}
     });
-    if(auditError)console.error("Falha ao registrar auditoria de criação:",auditError);
+    if(auditError){
+      console.error("Falha ao registrar auditoria de criação; iniciando rollback:",auditError);
+      const memberCleanup=await ctx.supabaseAdmin.from("org_members").delete().eq("org_id",org.id);
+      const profileCleanup=await ctx.supabaseAdmin.from("profiles").delete().eq("id",uid);
+      const authCleanup=await ctx.supabaseAdmin.auth.admin.deleteUser(uid);
+      const orgCleanup=await ctx.supabaseAdmin.from("organizations").delete().eq("id",org.id);
+      if(memberCleanup.error||profileCleanup.error||authCleanup.error||orgCleanup.error)
+        console.error("Rollback incompleto após falha de auditoria:",memberCleanup.error,profileCleanup.error,authCleanup.error,orgCleanup.error);
+      return fail("A criação foi revertida porque não foi possível registrar a auditoria.",500);
+    }
     return reply({ok:true,organization:org,admin:{user_id:uid,username}});
   }
 
@@ -102,10 +111,20 @@ export default {fetch:withSupabase({auth:"user"},async(req,ctx)=>{
       actor_user_id:actorId,action:"organization.status_changed",target_org_id:orgId,
       details:{from:before.status,to:status}
     });
-    if(auditError)console.error("Falha ao registrar auditoria de situação:",auditError);
+    if(auditError){
+      console.error("Falha ao registrar auditoria de situação; revertendo status:",auditError);
+      const rollback=await ctx.supabaseAdmin.from("organizations")
+        .update({status:before.status,updated_at:new Date().toISOString()}).eq("id",orgId);
+      if(rollback.error)console.error("Falha ao reverter status após erro de auditoria:",rollback.error);
+      return fail("A alteração não foi confirmada porque a auditoria falhou.",500);
+    }
     return reply({ok:true,organization:updated});
   }
 
+  const {data:beforeUpdate,error:beforeUpdateError}=await ctx.supabaseAdmin.from("organizations")
+    .select("name,slug,brand_name,logo_url,primary_color,secondary_color,accent_color,updated_at")
+    .eq("id",orgId).maybeSingle();
+  if(beforeUpdateError||!beforeUpdate)return fail("Empresa não encontrada para atualização.",404);
   const patch:Record<string,unknown>={updated_at:new Date().toISOString()};
   const allowed=["name","brand_name","logo_url","primary_color","secondary_color","accent_color","slug"];
   for(const key of allowed)if(Object.prototype.hasOwnProperty.call(body,key)){
@@ -123,6 +142,16 @@ export default {fetch:withSupabase({auth:"user"},async(req,ctx)=>{
     actor_user_id:actorId,action:"organization.updated",target_org_id:orgId,
     details:{fields:Object.keys(patch).filter(k=>k!=="updated_at")}
   });
-  if(auditError)console.error("Falha ao registrar auditoria de atualização:",auditError);
+  if(auditError){
+    console.error("Falha ao registrar auditoria de atualização; revertendo dados:",auditError);
+    const rollback=await ctx.supabaseAdmin.from("organizations").update({
+      name:beforeUpdate.name,slug:beforeUpdate.slug,brand_name:beforeUpdate.brand_name,
+      logo_url:beforeUpdate.logo_url,primary_color:beforeUpdate.primary_color,
+      secondary_color:beforeUpdate.secondary_color,accent_color:beforeUpdate.accent_color,
+      updated_at:beforeUpdate.updated_at
+    }).eq("id",orgId);
+    if(rollback.error)console.error("Falha ao reverter empresa após erro de auditoria:",rollback.error);
+    return fail("A alteração não foi confirmada porque a auditoria falhou.",500);
+  }
   return reply({ok:true,organization:updated});
 })};
