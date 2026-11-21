@@ -277,6 +277,12 @@ requireCheck(!html.includes('.bt.g{color:var(--tx);box-shadow:var(--sh1)}'), 'Re
 requireCheck(!html.includes('.bt.d{color:var(--no);box-shadow:none}'), 'Redundant destructive-button text color override was reintroduced.');
 requireCheck(!html.includes('font:14px var(--fn);color:var(--tx);box-shadow:none'), 'Redundant form-field text color override was reintroduced.');
 requireCheck(!html.includes('.chs{\\n  display:flex;\\n  align-items:center;'), 'Redundant filter-row display declaration was reintroduced.');
+requireCheck(!html.includes('.b.ok{color:var(--ok)}') && !html.includes('.b.no{color:var(--no)}') && !html.includes('.b.wa{color:var(--wa)}'), 'Duplicate badge status colors were reintroduced.');
+requireCheck(!html.includes('.chs{scrollbar-width:none}'), 'Duplicate filter scrollbar declaration was reintroduced.');
+requireCheck(!html.includes('details{padding:10px 12px}'), 'Duplicate details padding rule was reintroduced.');
+requireCheck(!html.includes('.ic{flex:0 0 auto}'), 'Duplicate icon flex rule was reintroduced.');
+requireCheck(!html.includes('.mu{color:var(--mu);font-size:13px}'), 'Duplicate muted text color declaration was reintroduced.');
+
 
 
 
