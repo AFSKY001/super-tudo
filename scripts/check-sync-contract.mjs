@@ -14,7 +14,7 @@ const tenantSyncMigration = fs.readFileSync(
   'utf8',
 );
 const teamReadMigration = fs.readFileSync(
-  path.join(root, 'supabase/migrations/20261121180000_require_team_leader_permission_for_team_reads.sql'),
+  path.join(root, 'supabase/migrations/20261121192522_require_team_leader_permission_for_team_reads.sql'),
   'utf8',
 );
 
