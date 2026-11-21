@@ -70,7 +70,8 @@ const permissionChecks = [
 
 const failedPermissions = [];
 for (const [label, pattern] of permissionChecks) {
-  const passed = pattern.test(label.includes('RPC multiempresa') ? tenantSyncMigration : syncPushMigration);
+  const target = label.includes('migração de leitura') ? teamReadMigration : label.includes('RPC multiempresa') ? tenantSyncMigration : syncPushMigration;
+  const passed = pattern.test(target);
   console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
   if (!passed) failedPermissions.push(label);
 }
