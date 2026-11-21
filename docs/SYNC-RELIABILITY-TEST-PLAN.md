@@ -169,3 +169,18 @@ A comparação da função `syncCanWrite` no cliente com a RPC `can_write_kind_f
 O servidor continua sendo a autoridade final: a divergência não permite contornar as permissões do banco, mas pode produzir gravações pendentes/recusadas ou impedir que uma alteração local seja enviada. Não alterei a função do cliente nem as permissões do banco, pois isso mudaria regras de acesso. A correção precisa primeiro definir se encarregados podem editar registros de equipe e se o papel subgerente será usado; depois, cliente e servidor devem compartilhar uma única matriz de permissões e ter testes por perfil.
 
 **Evidência de produção somente leitura:** há 1 membro ativo `admin`, 1 `encarregado` e 2 `gerente`; o encarregado ativo possui `r:eqp`. Não foram consultados nomes, e nenhuma linha foi modificada.
+
+
+## Consistência entre papéis aceitos pelo banco e regras das RPCs — 21/11/2026
+
+A inspeção dos `CHECK constraints` e das funções ativas encontrou uma segunda divergência de autorização/configuração:
+
+- `org_members.role` aceita somente `admin`, `gerente`, `encarregado` e `funcionario`.
+- As funções `can_read_kind_for_org` e `can_write_kind_for_org` também contêm regras explícitas para `subgerente` e `supervisor` em `r:pdc`/`r:conf`.
+- Como esses dois valores são rejeitados pelo `CHECK` atual de `org_members`, tais ramificações não podem ser usadas por membros dessa tabela enquanto a restrição permanecer assim. Não foi encontrado membro ativo com esses papéis.
+
+A divergência não abre acesso indevido: a restrição do banco impede a atribuição desses papéis. Porém, indica regras órfãs que podem confundir manutenção e testes. Antes de adicionar novos papéis, decidir formalmente se `subgerente` e `supervisor` serão papéis reais ou se as ramificações devem ser removidas/ajustadas. Não alterei a constraint nem as funções.
+
+Também foi confirmado que `org_members` tem `UNIQUE (org_id,user_id)`, não `UNIQUE(user_id)`: a estrutura permite que uma conta pertença a mais de uma organização. As RPCs atuais com `p_org_id` validam a associação na organização indicada; o helper legado `current_org_id()` usa `LIMIT 1` sem ordenação, portanto não deve ser usado como autoridade para selecionar organização em fluxos multiempresa. A sincronização atual já usa `p_org_id` explícito nas RPCs novas.
+
+**Escopo da verificação:** catálogo, constraints e definições SQL somente leitura; sem JWT de teste, sem alteração de schema ou dados.
