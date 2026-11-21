@@ -94,3 +94,30 @@ A definição efetiva de `public.sync_pull(timestamptz, uuid)` foi lida diretame
 Não alterar o cliente de produção nesta etapa. O JavaScript de sincronização no `index.html` está ofuscado diretamente no arquivo versionado, e não há fonte original equivalente separada no repositório. Fazer substituições pontuais nesse código não oferece segurança suficiente para mexer em cursor, identidade, permissões e persistência.
 
 Próximo passo seguro: recuperar a fonte original de sincronização ou reconstruir esse módulo em fonte legível e testável; depois adicionar testes automatizados para cursor, permissões, troca de organização, tombstones, falha parcial e timestamps empatados. Só então integrar ao fluxo existente e publicar.
+
+
+## Auditoria complementar de permissões no Supabase — 21/11/2026
+
+Consulta realizada diretamente ao catálogo do PostgreSQL, somente leitura, após a migração de escopo explícito por organização.
+
+### RPCs e permissões efetivas
+
+- As versões ativas `sync_pull(timestamptz, uuid)` e `sync_push(jsonb, uuid)` são `SECURITY DEFINER`, usam `search_path` vazio e têm `EXECUTE` concedido a `authenticated` e `service_role`.
+- As funções auxiliares `has_perm_for_org`, `can_read_kind_for_org` e `can_write_kind_for_org` não concedem `EXECUTE` a `authenticated`, `anon` ou `public`; permanecem executáveis por `postgres` e `service_role`. As RPCs ativas chamam essas auxiliares sob o contexto do proprietário.
+- As assinaturas legadas `sync_pull(timestamptz)` e `sync_push(jsonb)` ainda existem no catálogo, mas não concedem `EXECUTE` a `authenticated`, `anon` ou `public`; o catálogo mostra somente `postgres` e `service_role`. O cliente atual usa explicitamente as assinaturas com `p_org_id`.
+- A leitura e gravação das RPCs ativas validam associação ativa do usuário à organização enviada. A leitura também aplica `can_read_kind_for_org`; a gravação aplica `can_write_kind_for_org`.
+
+### Tabelas e RLS
+
+- `app_records`, `sync_ops`, `org_members` e `team_lead_members` estão com RLS habilitado.
+- `app_records` e `sync_ops` não apresentam grants diretos para `authenticated`; os grants observados são de `postgres` e `service_role`. Portanto, o cliente autenticado depende das RPCs para sincronização.
+- `org_members` concede `SELECT` a `authenticated` e a política observada limita a leitura a `org_id = current_org_id()`.
+- `team_lead_members` não apresenta grants diretos para `authenticated` nem políticas RLS listadas no catálogo consultado; seu uso pela sincronização ocorre dentro das RPCs `SECURITY DEFINER`.
+
+### Limites desta verificação
+
+Esta foi uma inspeção de catálogo e definições efetivas, não um teste de ataque com tokens de duas empresas/usuários distintos. Não prova isolamento ponta a ponta nem substitui testes com sessões reais. Nenhuma tabela, política, função, grant ou dado foi alterado nesta etapa.
+
+### Próximo teste de segurança
+
+Executar em ambiente de teste com dois usuários e duas organizações: tentar chamar as RPCs com organização diferente da associação ativa, consultar registros de outro tenant, ler diretamente `app_records`/`sync_ops`, e verificar que um encarregado só recebe os membros vinculados. Validar também as duas assinaturas legadas com papel `authenticated` e confirmar que são recusadas.
