@@ -257,15 +257,16 @@ requireCheck(globalReducedMotionBlocks === 1, 'Expected exactly one global reduc
 const cssImportantCount = styleBlocks.length === 1 ? (styleBlocks[0][1].match(/!important/g) || []).length : 0;
 requireCheck(cssImportantCount <= 799, 'The global CSS !important count increased above the audited 3.73.33 baseline (799).');
 
-// Legacy native browser dialogs are being migrated in controlled groups.
-// These ceilings match the audited 3.73.3 baseline and prevent new usages
-// from silently spreading while preserving existing flows until migration.
+// Legacy native browser dialogs are technical debt, not an approved UI pattern.
+// Keep the current audited counts as hard ceilings: new code must use the
+// centralized Super Tudo dialog API (stAlert, stConfirm and stPrompt).
+// Lower these ceilings only after a migration removes legacy calls safely.
 const legacyDialogs = {
   alert: (html.match(/\balert\s*\(/g) || []).length,
   confirm: (html.match(/\bconfirm\s*\(/g) || []).length,
   prompt: (html.match(/\bprompt\s*\(/g) || []).length
 };
-const ceilings = { alert: 96, confirm: 31, prompt: 1 };
+const ceilings = { alert: 96, confirm: 18, prompt: 1 };
 requireCheck(html.includes('id="stDialogLayer"') && html.includes('data-no-protect'), 'The permanent internal dialog element and runtime bootstrap must be present.');
 const inlineStyleAttributes = [...html.matchAll(/\sstyle=["'][\s\S]*?["']/g)].length;
 requireCheck(inlineStyleAttributes === 0, 'Static HTML must not introduce inline style attributes; use shared CSS classes.');
