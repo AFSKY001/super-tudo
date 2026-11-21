@@ -11,7 +11,7 @@
 
 ## Verificações estáticas no CI
 
-O comando `npm run check:sync` confirma a presença de 25 contratos estruturais e valida a sintaxe dos scripts inline: persistência local, acionamento da fila, idempotência, RPCs de envio/leitura, revisão base, registro de conflitos, aviso local, eventos online/offline, Realtime, polling de segurança e bloqueio de envio sem conexão.
+O comando `npm run check:sync` confirma a presença de 30 contratos estruturais e valida a sintaxe dos scripts inline: persistência local, acionamento da fila, idempotência, RPCs de envio/leitura, revisão base, registro de conflitos, aviso local, eventos online/offline, Realtime, polling de segurança e bloqueio de envio sem conexão.
 
 **Limitação:** esse teste é estático. Ele não simula navegadores, aparelhos, queda real de rede, expiração de sessão ou concorrência entre duas contas. Não deve ser interpretado como teste E2E de sincronização.
 
@@ -38,12 +38,12 @@ O comando `npm run check:sync` confirma a presença de 25 contratos estruturais 
 - A resolução manual ainda precisa ser testada com dois aparelhos reais; os testes estáticos não provam o fluxo de ponta a ponta.
 
 
-## Estado observado no banco (consulta somente leitura)
+## Snapshot histórico observado no banco (consulta somente leitura; auditoria anterior)
 
-- 67 registros em `app_records`, dos quais 18 são tombstones de exclusão.
-- 1.443 operações registradas em `sync_ops`: 1.422 aplicadas e 21 conflitos.
-- Os 21 conflitos são do tipo `r:ck` e todos incluem `server_revision`, confirmando conflito por revisão base desatualizada. Não foram encontrados resultados `forbidden` ou `invalid` no conjunto consultado.
-- Nenhuma linha, política, função ou permissão foi alterada durante essa inspeção.
+- Na consulta daquela etapa: 67 registros em `app_records`, dos quais 18 eram tombstones de exclusão.
+- Na mesma consulta: 1.443 operações em `sync_ops` (1.422 aplicadas e 21 conflitos).
+- Os 21 conflitos eram do tipo `r:ck` e incluíam `server_revision`, indicando divergência de revisão base.
+- Esses números são históricos e foram substituídos pelas medições atualizadas na seção de 21/11/2026 abaixo. Nenhuma linha, política, função ou permissão foi alterada naquela inspeção.
 
 ## Critério de conclusão
 
