@@ -40,6 +40,7 @@ export default {
       }
 
       const slug = String(body.company ?? "").trim().toLowerCase();
+      const action = String(body.action ?? "create");
       const username = String(body.username ?? "").trim().toLowerCase();
       const password = String(body.password ?? "");
       const displayName = String(body.display_name ?? "").trim().slice(0, 120);
@@ -87,6 +88,57 @@ export default {
       }
       if (!admin) return fail("Você não tem permissão para cadastrar usuários nesta empresa.", 403);
 
+      if (!["create", "update", "revoke"].includes(action)) return fail("Ação inválida.");
+      if (action === "update" || action === "revoke") {
+        const targetUserId = String(body.target_user_id ?? "").trim();
+        const teamMemberId = String(body.team_member_id ?? "").trim();
+        if (!targetUserId || !teamMemberId) return fail("Funcionário ou usuário não identificado.");
+        const { data: member, error: memberError } = await ctx.supabaseAdmin
+          .from("org_members").select("id, user_id, username")
+          .eq("org_id", org.id).eq("user_id", targetUserId).maybeSingle();
+        if (memberError) { console.error("Falha ao consultar vínculo:", memberError); return fail("Não foi possível localizar o acesso.", 500); }
+        if (!member) return fail("Acesso não encontrado nesta empresa.", 404);
+        if (action === "revoke") {
+          const { error } = await ctx.supabaseAdmin.from("org_members").update({ active: false }).eq("id", member.id);
+          if (error) { console.error("Falha ao desativar vínculo:", error); return fail("Não foi possível desativar o acesso.", 500); }
+          const { count, error: countError } = await ctx.supabaseAdmin.from("org_members")
+            .select("id", { count: "exact", head: true }).eq("user_id", targetUserId).eq("active", true);
+          if (countError) {
+            await ctx.supabaseAdmin.from("org_members").update({ active: true }).eq("id", member.id);
+            return fail("Não foi possível concluir a desativação com segurança.", 500);
+          }
+          if (!count) {
+            const { error: profileError } = await ctx.supabaseAdmin.from("profiles").update({ active: false }).eq("id", targetUserId);
+            if (profileError) {
+              await ctx.supabaseAdmin.from("org_members").update({ active: true }).eq("id", member.id);
+              return fail("Não foi possível concluir a desativação.", 500);
+            }
+          }
+          return respond({ ok: true, user_id: targetUserId, revoked: true });
+        }
+        const newUsername = String(body.username ?? "").trim().toLowerCase();
+        const newPassword = String(body.password ?? "");
+        const newDisplayName = String(body.display_name ?? "").trim().slice(0, 120);
+        const newJobTitle = String(body.job_title ?? "").trim().toLowerCase();
+        if (!validUsername(newUsername) || !newDisplayName || !["gerente de loja", "subgerente", "supervisor", "encarregado"].includes(newJobTitle))
+          return fail("Dados do acesso inválidos.");
+        if (newPassword && (newPassword.length < 8 || newPassword.length > 128)) return fail("A senha precisa ter de 8 a 128 caracteres.");
+        if (member.username && member.username.toLowerCase() !== newUsername)
+          return fail("Para preservar o vínculo, não altere o nome de usuário de um acesso existente.");
+        if (newPassword) {
+          const { error } = await ctx.supabaseAdmin.auth.admin.updateUserById(targetUserId, { password: newPassword });
+          if (error) { console.error("Falha ao atualizar senha:", error); return fail("Não foi possível atualizar a senha.", 400); }
+        }
+        const { error: profileError } = await ctx.supabaseAdmin.from("profiles")
+          .update({ display_name: newDisplayName, full_name: newDisplayName, active: true }).eq("id", targetUserId);
+        if (profileError) return fail("Não foi possível atualizar o perfil.", 500);
+        const { error: updateError } = await ctx.supabaseAdmin.from("org_members")
+          .update({ role: newJobTitle === "encarregado" ? "encarregado" : "gerente", permissions,
+            team_member_id: teamMemberId, active: true }).eq("id", member.id);
+        if (updateError) return fail("Não foi possível atualizar o vínculo do funcionário.", 500);
+        return respond({ ok: true, user_id: targetUserId, username: newUsername, updated: true });
+      }
+
       const { data: priorMember, error: priorMemberError } = await ctx.supabaseAdmin
         .from("org_members")
         .select("id, user_id, active")
@@ -128,7 +180,7 @@ export default {
 
         const { error: memberError } = await ctx.supabaseAdmin
           .from("org_members")
-          .update({ role, active: true, permissions })
+          .update({ role, active: true, permissions, team_member_id: String(body.team_member_id ?? "").trim() })
           .eq("id", priorMember.id);
         if (memberError) return fail("Não foi possível reativar o vínculo com a empresa.", 400);
 
@@ -175,6 +227,7 @@ export default {
         role,
         active: true,
         permissions,
+        team_member_id: String(body.team_member_id ?? "").trim(),
         created_at: new Date().toISOString()
       });
 
