@@ -5,8 +5,19 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 
+const syncPushMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261118164535_restrict_team_member_management_to_owner.sql'),
+  'utf8',
+);
+const tenantSyncMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261121134333_explicit_org_scoped_sync_rpcs.sql'),
+  'utf8',
+);
+
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
+  ['cliente reconhece o fluxo restrito de encarregado em cfg:team', /'encarregado'===_0xrole&&_0x3c2060\\['includes'\\]\\('r:eqp'\\)/],
+
   ['salvamento local aciona a fila', /syncApplying\|\|syncQueueChanges\(\)/],
   ['fila contém identificador idempotente por operação', /'client_id':syncUuid\(\)/],
   ['envio usa RPC sync_push', /supa\['rpc'\]\('sync_push'/],
@@ -38,6 +49,30 @@ const checks = [
   ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)syncResolveConflictsUI/],
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
 ];
+
+const permissionChecks = [
+  ['RPC base exige papel encarregado e permissão r:eqp', /v_member_role\\s*=\\s*'encarregado'[\\s\\S]{0,180}public\\.has_perm\\('r:eqp'\\)/i],
+  ['criação de equipe pelo encarregado é limitada a repositor', /lower\\(btrim\\(coalesce\\(v_data->>'f',''\\)\\)\\)\\s*<>\\s*'repositor'/i],
+  ['criação bloqueia elevação de administrador e líder', /coalesce\\(\\(v_data->>'adm'\\)::boolean,\\s*false\\)[\\s\\S]{0,180}coalesce\\(\\(v_data->>'l'\\)::boolean,\\s*false\\)/i],
+  ['criação bloqueia permissões, liderança e vínculo de login', /v_data->'perm'[\\s\\S]{0,240}v_data->>'sb_uid'/i],
+  ['atualização exige vínculo do encarregado com o membro', /NOT v_linked[\\s\\S]{0,180}owner_team_member_id/i],
+  ['atualização exige autoria do encarregado e bloqueia exclusão', /v_existing\\.data->>'created_by' IS DISTINCT FROM v_uid::text[\\s\\S]{0,220}v_deleted/i],
+  ['RPC multiempresa recebe p_org_id explícito', /CREATE OR REPLACE FUNCTION public\\.sync_push\\(p_ops jsonb, p_org_id uuid\\)/i],
+  ['RPC multiempresa valida associação ativa na organização indicada', /om\\.user_id=v_uid and om\\.org_id=v_org_id and om\\.active=true and pr\\.active=true/i],
+  ['RPC multiempresa usa autorização de escrita escopada por organização', /public\\.can_write_kind_for_org\\(v_kind, v_org_id\\)/i],
+  ['RPC multiempresa troca verificação legada de r:eqp por verificação escopada', /public\\.has_perm_for_org\\('r:eqp', v_org_id\\)/i],
+];
+
+const failedPermissions = [];
+for (const [label, pattern] of permissionChecks) {
+  const passed = pattern.test(label.includes('RPC multiempresa') ? tenantSyncMigration : syncPushMigration);
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedPermissions.push(label);
+}
+if (failedPermissions.length) {
+  console.error('Falhas nas proteções de permissão da sincronização: ' + failedPermissions.join('; '));
+  process.exitCode = 1;
+}
 
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
