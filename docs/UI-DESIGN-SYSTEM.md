@@ -2,7 +2,7 @@
 
 **Status:** padrão de referência para todas as telas e atualizações futuras.  
 **Escopo:** aplicação inteira, não apenas Dashboard ou uma área específica.  
-**Base visual observada:** versão 3.73.3 da branch `main`.
+**Base visual observada:** versão 3.73.77 da branch `main`.
 
 Este documento formaliza a direção visual que já existe no aplicativo e estabelece como evoluí-la sem criar padrões paralelos. As regras de contribuição obrigatórias também estão em `/AGENTS.md`.
 
@@ -118,7 +118,7 @@ Se um componente compartilhado não atender a uma necessidade real, primeiro evo
 
 ### Janelas e mensagens
 - Não introduzir `alert()`, `confirm()` ou `prompt()` nativos em novas funcionalidades. A exclusão de todas as notificações usa explicitamente `window.stConfirm()` e deve permanecer coberta pela verificação automatizada.
-- A migração global das chamadas legadas para toasts, mensagens inline e diálogos internos está registrada como uma etapa própria no planejamento. O serviço central foi iniciado na versão 3.73.43. Na versão 3.73.44, confirmações e entrada de texto passam a usar o mesmo diálogo interno, com migração assíncrona automática na etapa de build. Não inventar uma API alternativa por módulo.
+- A migração das chamadas nativas de `alert()`, `confirm()` e `prompt()` foi concluída na versão 3.73.77: os avisos usam `window.stAlert()`, as decisões usam `window.stConfirm()` e a entrada de texto usa `window.stPrompt()`. Não reintroduzir funções nativas nem criar APIs alternativas por módulo. Mensagens rápidas não bloqueantes devem ser avaliadas para uso de toast; não converter avisos em toasts sem preservar a compreensão e o contexto da operação.
 - Mensagens rápidas não bloqueantes devem ser toasts; decisões críticas/destrutivas podem usar diálogo central; validação específica deve ficar junto ao campo.
 - Não empilhar diálogos nem perder o foco/contexto da tela.
 
