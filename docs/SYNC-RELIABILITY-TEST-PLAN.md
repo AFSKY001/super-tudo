@@ -157,3 +157,15 @@ A busca no histórico Git encontrou uma base-fonte anterior à distribuição pr
 Não substituir o `index.html` atual pela versão 3.71.0: isso descartaria muitas alterações posteriores de interface, módulos e regras operacionais. Usar o núcleo legível 3.71.0 como referência histórica para reconstrução, comparar cada contrato de sincronização com a implementação atual e portar o núcleo para um módulo-fonte isolado, preservando as funções públicas e o formato de persistência existentes. Integrar somente após testes de equivalência para mapeamento de módulos, fila/idempotência, revisões, tombstones, conflitos, troca de organização e permissões explícitas por organização.
 
 **Decisão:** a recuperação da fonte de referência foi bem-sucedida, mas nenhuma substituição ou extração foi feita nesta etapa. O código histórico não deve ser tratado como equivalente à versão atual sem uma comparação funcional completa.
+
+
+## Divergência entre permissão local de envio e permissão efetiva do servidor — 21/11/2026
+
+A comparação da função `syncCanWrite` no cliente com a RPC `can_write_kind_for_org` ativa no Supabase identificou uma divergência que deve ser resolvida antes de ampliar os testes de sincronização por perfil:
+
+1. **`cfg:team` / encarregado:** o cliente permite enfileirar gravações quando o perfil é `encarregado` e possui `r:eqp`. A RPC do servidor só permite gravar `cfg:team` para `admin` e `gerente`. A consulta agregada de produção confirmou que existe atualmente um membro ativo `encarregado` com `r:eqp`. Portanto, uma edição de equipe feita por esse perfil pode entrar na fila local e ser recusada pelo servidor.
+2. **`r:pdc` e `r:conf` / subgerente:** a RPC do servidor inclui `subgerente` entre os perfis autorizados; a regra local `syncCanWrite` não inclui esse perfil. A consulta atual não encontrou membros ativos `subgerente`, então esta diferença não está sendo exercida pela composição atual da equipe.
+
+O servidor continua sendo a autoridade final: a divergência não permite contornar as permissões do banco, mas pode produzir gravações pendentes/recusadas ou impedir que uma alteração local seja enviada. Não alterei a função do cliente nem as permissões do banco, pois isso mudaria regras de acesso. A correção precisa primeiro definir se encarregados podem editar registros de equipe e se o papel subgerente será usado; depois, cliente e servidor devem compartilhar uma única matriz de permissões e ter testes por perfil.
+
+**Evidência de produção somente leitura:** há 1 membro ativo `admin`, 1 `encarregado` e 2 `gerente`; o encarregado ativo possui `r:eqp`. Não foram consultados nomes, e nenhuma linha foi modificada.
