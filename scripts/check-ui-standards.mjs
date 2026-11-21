@@ -273,6 +273,11 @@ requireCheck(!html.includes('.c.tap{cursor:pointer}'), 'Redundant standalone .c.
 requireCheck(!html.includes('.g2>.c{margin:0!important}') && !html.includes('.g2>.c{margin:0}'), 'Redundant standalone .g2 card margin overrides were reintroduced.');
 requireCheck(!html.includes('input[type="checkbox"],input[type="radio"]{accent-color:var(--pr)}'), 'Redundant standalone checkbox/radio accent rule was reintroduced.');
 requireCheck(html.includes('textarea{min-height:96px}') && !html.includes('textarea{min-height:96px;resize:vertical}'), 'Textarea resize behavior must remain inherited from its shared base rule.');
+requireCheck(!html.includes('.bt.g{color:var(--tx);box-shadow:var(--sh1)}'), 'Redundant secondary-button text color override was reintroduced.');
+requireCheck(!html.includes('.bt.d{color:var(--no);box-shadow:none}'), 'Redundant destructive-button text color override was reintroduced.');
+requireCheck(!html.includes('font:14px var(--fn);color:var(--tx);box-shadow:none'), 'Redundant form-field text color override was reintroduced.');
+requireCheck(!html.includes('.chs{\\n  display:flex;\\n  align-items:center;'), 'Redundant filter-row display declaration was reintroduced.');
+
 
 
 for (const name of Object.keys(ceilings)) {

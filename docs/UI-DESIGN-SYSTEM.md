@@ -539,3 +539,12 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - A regra final de textarea mantém a altura mínima de 96px e deixa o redimensionamento vertical na regra base, sem declarar o mesmo comportamento duas vezes.
 - O verificador de interface agora protege essas limpezas contra reintrodução.
 - As alterações são restritas à cascata CSS global; estrutura, ações, dados, permissões, autenticação, sincronização e módulos funcionais permanecem inalterados.
+
+
+## Continuação da limpeza da cascata compartilhada — versão 3.73.53
+
+- Removidas declarações de cor repetidas nos estilos intermediários de botões secundários e destrutivos; as cores continuam definidas pelas regras-base e pelos estados globais posteriores.
+- Removida a repetição de cor do texto nos campos de formulário, preservando o valor herdado da regra-base.
+- A linha global de filtros continua flexível pela regra inicial; a declaração duplicada foi retirada da camada posterior.
+- O verificador de interface protege as quatro limpezas para evitar regressões.
+- Nenhum fluxo, módulo funcional, estrutura, dado, permissão, autenticação ou sincronização foi modificado.
