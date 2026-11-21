@@ -606,3 +606,10 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Clique em `Cancelar`, tecla Escape e clique no fundo do diálogo sempre cancelam (`false`); somente a ação principal confirma (`true`). Nenhuma operação destrutiva pode continuar após cancelamento.
 - Auditoria da versão 3.73.79: não há chamadas nativas `alert()`, `confirm()` ou `prompt()` no HTML principal. A interface possui uma implementação central de diálogo, usada por 31 chamadas de confirmação, 99 avisos e 1 entrada de texto.
 - A auditoria estrutural encontrou definições históricas em cascata para `.sheet`, `.c` e `.bt`. Elas não devem ser removidas em massa: a próxima consolidação deve mapear cada contexto de tela, breakpoint e tema, mantendo a aparência e os contratos de JavaScript.
+
+
+## 16. Semântica contextual de ações e botões globais — versão 3.73.81
+
+- A confirmação de cancelamento de uma mudança programada apresenta `Cancelar mudança`; o agendamento apresenta `Agendar`; a confirmação de importação apresenta `Importar`.
+- Os botões fixos de notificações e menu no cabeçalho declaram `type="button"`, evitando submissão acidental caso a estrutura do cabeçalho seja reutilizada dentro de um formulário.
+- A inferência automática de rótulos é uma conveniência compatível com chamadas existentes. Fluxos novos ou ambíguos devem informar explicitamente `intent`, `confirmText` e `cancelText` para não depender de interpretação textual.
