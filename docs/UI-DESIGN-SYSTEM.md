@@ -798,3 +798,13 @@ O movimento da interface é centralizado em uma única camada global no final do
 ### Gráficos de colunas 3.74.10
 
 - Gráficos verticais que usam `.dashboard-home .cols i` agora animam a altura a partir da base, com opacidade discreta e respeito a movimento reduzido.
+
+
+## Correção das transições de tela e notificações — versão 3.74.11
+
+- A troca de menu deixa de apagar a tela durante a entrada: a transição usa deslocamento horizontal discreto, sem interpolar opacidade de zero para um e sem atrasos em cascata entre os elementos.
+- O observador da raiz compara o primeiro elemento de tela antes de reiniciar o movimento, ignora atualizações que não representam uma troca de tela e não força recálculo síncrono de layout.
+- A animação legada de rota mantém opacidade constante e não compete com a transição global; movimento reduzido continua respeitado.
+- O contador de notificações permanece ancorado no canto superior direito do sino. O feedback do contador usa brilho, sem escala ou transformação que altere sua posição.
+- A expansão de origem do painel de notificações foi desativada somente para esse painel; o painel abre no próprio local, sem arrastar visualmente o contador. A leitura, exclusão, filtros, navegação e demais ações de notificação permanecem intactos.
+- Nenhuma regra de negócio, autenticação, permissão, dado, armazenamento, sincronização ou operação offline foi alterada.
