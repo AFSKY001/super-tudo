@@ -121,3 +121,23 @@ Esta foi uma inspeção de catálogo e definições efetivas, não um teste de a
 ### Próximo teste de segurança
 
 Executar em ambiente de teste com dois usuários e duas organizações: tentar chamar as RPCs com organização diferente da associação ativa, consultar registros de outro tenant, ler diretamente `app_records`/`sync_ops`, e verificar que um encarregado só recebe os membros vinculados. Validar também as duas assinaturas legadas com papel `authenticated` e confirmar que são recusadas.
+
+
+## Verificação efetiva de privilégios por papel — 21/11/2026
+
+Consulta somente leitura com `has_table_privilege` e `has_function_privilege`, usando os papéis PostgreSQL reais:
+
+| Papel | SELECT/INSERT/UPDATE em `app_records` | SELECT/INSERT em `sync_ops` | RPCs atuais com organização | RPCs legadas |
+|---|---|---|---|---|
+| `anon` | Negado | Negado | EXECUTE negado | EXECUTE negado |
+| `authenticated` | Negado | Negado | EXECUTE permitido | EXECUTE negado |
+| `service_role` | Permitido | Permitido | EXECUTE permitido | EXECUTE permitido |
+| `postgres` | Permitido | Permitido | EXECUTE permitido | EXECUTE permitido |
+
+A tabela acima confirma que o papel `authenticated` não pode ler ou gravar diretamente nas tabelas de sincronização; seu caminho de sincronização é pelas RPCs com `p_org_id`. O papel `anon` não tem acesso às tabelas nem às RPCs verificadas. As assinaturas legadas permanecem inacessíveis a `authenticated` e `anon`.
+
+**Nota:** permissões efetivas foram conferidas no catálogo, não por tentativa de requisição com JWT. A validação ponta a ponta entre organizações e hierarquia de equipe continua pendente. Não foram alterados grants ou políticas.
+
+## Publicação desta atualização documental
+
+O commit `284c5e30` passou pelas etapas de contrato de sincronização, padrões globais de interface, build protegido, validação Wrangler, auditoria de dependências e verificação da distribuição. O Cloudflare registrou deployment ativo em `2026-11-21T19:08:53Z`, com 100% do tráfego na versão `2f116f50-5ef7-44c2-b679-f2c2f761ea27`. O conteúdo publicado continua sendo documentação; nenhuma mudança funcional de sincronização foi feita.
