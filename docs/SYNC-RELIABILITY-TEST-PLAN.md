@@ -194,3 +194,32 @@ O rastreamento das funções auxiliares confirmou que `can_access_team_member`, 
 As RPCs novas `sync_pull(timestamptz,uuid)` e `sync_push(jsonb,uuid)` usam o contexto explícito `p_org_id` e suas variantes `can_read_kind_for_org` / `can_write_kind_for_org`; elas validam a associação ativa do usuário na organização informada. Manter esse caminho explícito como contrato obrigatório para toda nova operação multiempresa. Antes de reutilizar qualquer helper legado em RPC nova, migrá-lo para receber `p_org_id` e validar a associação no mesmo escopo.
 
 Não foi demonstrado vazamento entre empresas: esta é uma limitação estrutural dos helpers legados, não evidência de exploração. As tabelas sensíveis `app_records`, `sync_ops` e `team_lead_members` não concedem acesso direto a `authenticated`; os fluxos atuais de sincronização usam RPCs. Não foram feitas chamadas com JWT de múltiplas organizações nem mudanças no banco.
+
+
+## Alinhamento da leitura de equipe vinculada — 21/11/2026
+
+A comparação entre o helper legado `can_access_team_member(text)` e o helper multiempresa `can_read_kind_for_org(text,text,uuid)` revelou que a regra legada exigia simultaneamente papel `encarregado`, permissão `r:eqp` e associação ativa; a nova regra verificava a associação e o vínculo em `team_lead_members`, mas não repetia explicitamente o papel nem a permissão. Se um membro fosse rebaixado ou perdesse `r:eqp` mantendo vínculo antigo, a leitura de registros vinculados poderia continuar autorizada.
+
+### Correção aplicada
+
+- Nova migration: `20261121180000_require_team_leader_permission_for_team_reads.sql`.
+- A regra de leitura vinculada agora exige `om.role = 'encarregado'` e `has_perm_for_org('r:eqp', p_org_id)`, além de associação e perfil ativos.
+- Administradores e gerentes continuam com o caminho de leitura próprio.
+- A migration foi aplicada no Supabase de produção e registrada como versão `20261121192522`.
+- A definição ativa de `can_read_kind_for_org` foi consultada após a aplicação e confirmou as duas condições novas.
+
+### Impacto observado na base atual
+
+A consulta agregada encontrou zero linhas em `team_lead_members` e zero atribuições de liderança nos registros atuais de equipe. Portanto, a alteração não removeu acesso de nenhum vínculo existente; ela fecha a possibilidade de leitura futura por vínculo residual após revogação de papel/permissão. Nenhum registro de equipe foi alterado.
+
+### Proteção automatizada e publicação
+
+O verificador `npm run check:sync` agora inclui testes estáticos para:
+- fluxo especial de escrita do encarregado;
+- limites de criação e atualização de repositores;
+- escopo explícito de organização nas RPCs;
+- exigência de papel e permissão na migration de leitura vinculada.
+
+Commit `cd3b55b8` passou por contrato de sincronização, padrões globais de interface, build protegido, auditoria de dependências e implantação Cloudflare. Deployment `8d1e26a6-cb0c-4b0d-8665-95c0dfa3fbbc`, versão `3446bc25-32ca-485a-bca6-ee6c2afe32b1`, com 100% do tráfego.
+
+**Limite:** ainda falta teste ponta a ponta com JWT de encarregado, gerente e dois tenants distintos. A verificação atual combina leitura de definições SQL, agregados da base e contrato estático no CI; não simula sessões reais.
