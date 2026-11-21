@@ -48,3 +48,12 @@ O comando `npm run check:sync` confirma a presença de 25 contratos estruturais 
 ## Critério de conclusão
 
 A sincronização só deve ser considerada validada depois dos nove testes funcionais acima, com pelo menos dois usuários e dois aparelhos/navegadores. O teste estático do CI é uma proteção contra regressões estruturais, não substitui esses testes.
+
+
+## Atualização da auditoria — 21/11/2026
+
+- A função ativa `sync_pull(timestamptz, uuid)` aceita cursor temporal `p_since` e filtra por `updated_at >= p_since`; também mantém tombstones no retorno, com `data: null` e `deleted_at` preenchido. O cliente ainda envia `p_since: null`, portanto o recurso incremental existe no banco, mas não é utilizado pelo navegador.
+- Consulta somente leitura após a publicação mais recente: 69 registros em `app_records`, 18 tombstones, última atualização registrada em `2026-11-21 18:55:13.365907+00`.
+- Histórico de `sync_ops`: 2.176 operações aplicadas e 21 conflitos. Não há operação com status diferente de `applied` ou `conflict` no agrupamento atual.
+- Não foi alterado banco, fila, política RLS ou função de produção nesta auditoria.
+- Próxima implementação recomendada: cursor incremental persistido por identidade/organização, atualizado somente depois de um pull bem-sucedido; usar limite inclusivo `updated_at >= cursor` para não perder registros com timestamps iguais; preservar tombstones; resetar cursor ao trocar empresa/conta; manter mecanismo de snapshot completo para primeira carga e recuperação. Antes de ativar, cobrir com testes a paginação/limite, empate de timestamp, exclusão, troca de conta e falha no meio do pull.
