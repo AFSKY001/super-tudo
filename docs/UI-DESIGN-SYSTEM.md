@@ -778,3 +778,11 @@ O movimento da interface é centralizado em uma única camada global no final do
 - `prefers-reduced-motion` desativa movimento e confete, preservando conteúdo e estados.
 
 **Regra de segurança:** efeitos visuais nunca interceptam cliques, alteram dimensões dos botões, mudam dados, disparam salvamentos ou modificam sincronização.
+
+
+### Ajustes de robustez 3.74.8
+
+- O observador do contador de notificações monitora somente alterações de conteúdo, evitando ciclo de mutações ao aplicar a própria classe de animação.
+- O indicador de navegação também recalcula posição quando a classe ativa muda, não apenas quando a lista é recriada.
+- A contagem numérica distingue separadores de milhar e decimais no padrão brasileiro.
+- O modo de movimento reduzido mantém cartões visíveis também dentro dos painéis inferiores.
