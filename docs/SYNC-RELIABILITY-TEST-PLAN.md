@@ -57,3 +57,40 @@ A sincronização só deve ser considerada validada depois dos nove testes funci
 - Histórico de `sync_ops`: 2.176 operações aplicadas e 21 conflitos. Não há operação com status diferente de `applied` ou `conflict` no agrupamento atual.
 - Não foi alterado banco, fila, política RLS ou função de produção nesta auditoria.
 - Próxima implementação recomendada: cursor incremental persistido por identidade/organização, atualizado somente depois de um pull bem-sucedido; usar limite inclusivo `updated_at >= cursor` para não perder registros com timestamps iguais; preservar tombstones; resetar cursor ao trocar empresa/conta; manter mecanismo de snapshot completo para primeira carga e recuperação. Antes de ativar, cobrir com testes a paginação/limite, empate de timestamp, exclusão, troca de conta e falha no meio do pull.
+
+
+## Complemento da auditoria — 21/11/2026 (escopo do cursor e volume)
+
+### Medição atual (consulta somente leitura)
+
+A tabela `app_records` contém 69 registros e 18 tombstones. A soma do tamanho armazenado em `data` por módulo fica em aproximadamente 37 KB. Os maiores grupos observados são `conf` (14 registros; aproximadamente 20 KB), `equip` (18; aproximadamente 2,3 KB) e `ck` (11; aproximadamente 8,2 KB).
+
+**Conclusão operacional:** o snapshot completo ainda é pequeno no estado atual. O cursor incremental é uma melhoria de escalabilidade e redução de consultas, mas não deve ser ativado às pressas como correção emergencial. A prioridade imediata é preservar consistência e validar isolamento entre organizações.
+
+### Contrato da RPC ativa
+
+A definição efetiva de `public.sync_pull(timestamptz, uuid)` foi lida diretamente do banco. Ela:
+- exige usuário autenticado;
+- valida associação ativa entre usuário e organização informada;
+- filtra por organização e por `can_read_kind_for_org`;
+- usa `updated_at >= p_since` quando o cursor é informado;
+- devolve `updated_at`, revisão e tombstone de cada registro;
+- não define paginação nem limite explícito no SQL atual.
+
+### Requisitos adicionais obrigatórios antes de habilitar cursor no cliente
+
+1. **Cursor não pode vir do relógio do aparelho.** Deve derivar de `updated_at` retornado pelo banco.
+2. **Inclusividade:** manter `>=` e reprocessar empates de timestamp; a revisão por registro deve neutralizar duplicatas.
+3. **Avanço atômico:** persistir o cursor somente depois de processar integralmente todos os registros recebidos e salvar o estado local. Se o processamento falhar, manter o cursor anterior.
+4. **Escopo:** chavear cursor por identidade e organização ativas. Troca de usuário ou empresa deve carregar outro cursor; nunca reaproveitar cursor de outra organização.
+5. **Mudança de permissões:** como a RPC filtra registros por permissão, um cursor avançado pode deixar de buscar registros antigos caso a pessoa receba acesso a um tipo de registro posteriormente. Alterações de associação/permissão precisam invalidar o cursor ou disparar reconciliação completa.
+6. **Tombstones:** exclusões devem continuar sendo recebidas e aplicadas; não filtrar `deleted_at` no pull incremental.
+7. **Primeira carga e recuperação:** manter snapshot completo para cursor inexistente, cursor inválido e fluxo explícito de reconciliação.
+8. **Concorrência:** uma alteração gravada durante um pull deve ser capturada no próximo pull; o cursor inclusivo e o Realtime/polling devem continuar ativos.
+9. **Volume:** a RPC atual agrega todos os registros elegíveis em um único JSON e não tem paginação. Se o volume crescer, projetar paginação estável (por `updated_at,id`) ou lotes com watermark do servidor antes de depender exclusivamente do cursor temporal.
+
+### Decisão de implementação
+
+Não alterar o cliente de produção nesta etapa. O JavaScript de sincronização no `index.html` está ofuscado diretamente no arquivo versionado, e não há fonte original equivalente separada no repositório. Fazer substituições pontuais nesse código não oferece segurança suficiente para mexer em cursor, identidade, permissões e persistência.
+
+Próximo passo seguro: recuperar a fonte original de sincronização ou reconstruir esse módulo em fonte legível e testável; depois adicionar testes automatizados para cursor, permissões, troca de organização, tombstones, falha parcial e timestamps empatados. Só então integrar ao fluxo existente e publicar.
