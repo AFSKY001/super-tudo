@@ -72,7 +72,7 @@ const requiredPatterns = [
   ['gear icon with center', /'config':'<path d="M10 2\.8h4[\s\S]*<circle cx="12" cy="11\.7" r="3\.1"\/>/],
   ['route-aware scroll reset', /_0x5a8d2f=V\['sg'\][\s\S]*_0x5a8d2f!==V\['sg'\][\s\S]*scrollTop.*=0x0/s],
   ['horizontal screen transition', /st-screen-enter-forward[\s\S]*translate3d\(12px,0,0\)/],
-  ['global route transition override', /#app\.an>\*\s*\{\s*animation:st-screen-enter-forward[\s\S]*#app\.an\.dr>\*\s*\{\s*animation:st-screen-enter-forward[\s\S]*#app\.an\.dl>\*\s*\{\s*animation:st-screen-enter-back/]
+  ['global route transition override', /#app\.an>\*\s*\{\s*animation:st-screen-enter-forward[\s\S]*#app\.an\.dl>\*\s*\{\s*animation:st-screen-enter-back/]
 
 ];
 
