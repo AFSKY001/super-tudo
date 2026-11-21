@@ -2,7 +2,7 @@
 
 **Status:** padrão de referência para todas as telas e atualizações futuras.  
 **Escopo:** aplicação inteira, não apenas Dashboard ou uma área específica.  
-**Base visual observada:** versão 3.73.78 da branch `main`.
+**Base visual observada:** versão 3.73.79 da branch `main`.
 
 Este documento formaliza a direção visual que já existe no aplicativo e estabelece como evoluí-la sem criar padrões paralelos. As regras de contribuição obrigatórias também estão em `/AGENTS.md`.
 
@@ -587,3 +587,11 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - O texto do erro deve explicar como corrigir o valor, não apenas indicar que existe um problema.
 - Campos desabilitados continuam usando os estados globais existentes; não criar regras específicas por módulo.
 - O verificador automático protege os estilos compartilhados contra remoção ou divergência.
+
+
+## Validação nativa acessível — versão 3.73.79
+
+- Formulários nativos e formulários renderizados dinamicamente usam a mesma validação acessível por delegação de eventos.
+- Campos inválidos recebem `aria-invalid="true"`, mensagem contextual com `role="alert"` e vínculo por `aria-describedby`.
+- Ao corrigir o valor, a mensagem gerada é removida e os atributos de erro são limpos sem apagar descrições preexistentes.
+- A validação nativa continua responsável pelas regras de obrigatoriedade e formato; o padrão global acrescenta feedback inline consistente.
