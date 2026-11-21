@@ -595,3 +595,14 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Campos inválidos recebem `aria-invalid="true"`, mensagem contextual com `role="alert"` e vínculo por `aria-describedby`.
 - Ao corrigir o valor, a mensagem gerada é removida e os atributos de erro são limpos sem apagar descrições preexistentes.
 - A validação nativa continua responsável pelas regras de obrigatoriedade e formato; o padrão global acrescenta feedback inline consistente.
+
+
+## 15. Contrato semântico das ações em diálogos — versão 3.73.80
+
+- `stAlert`, `stConfirm` e `stPrompt` continuam sendo as únicas APIs globais para mensagens bloqueantes; não criar janelas paralelas por módulo.
+- Confirmações usam `Cancelar` como ação secundária consistente. O botão principal recebe rótulo semântico: `Excluir`, `Apagar`, `Remover`, `Desativar`, `Revogar`, `Limpar`, `Descartar`, `Salvar` ou `Guardar` quando a intenção é identificável; nos demais casos permanece `Confirmar`.
+- Ações destrutivas usam o token semântico global `--no`, sem alterar a lógica da operação. Ações de salvar/guardar mantêm a aparência primária.
+- Novos fluxos podem declarar `intent`, `confirmText` e `cancelText` em `window.stConfirm(mensagem, opções)` para explicitar o significado; os parâmetros são opcionais e preservam compatibilidade com chamadas existentes.
+- Clique em `Cancelar`, tecla Escape e clique no fundo do diálogo sempre cancelam (`false`); somente a ação principal confirma (`true`). Nenhuma operação destrutiva pode continuar após cancelamento.
+- Auditoria da versão 3.73.79: não há chamadas nativas `alert()`, `confirm()` ou `prompt()` no HTML principal. A interface possui uma implementação central de diálogo, usada por 31 chamadas de confirmação, 99 avisos e 1 entrada de texto.
+- A auditoria estrutural encontrou definições históricas em cascata para `.sheet`, `.c` e `.bt`. Elas não devem ser removidas em massa: a próxima consolidação deve mapear cada contexto de tela, breakpoint e tema, mantendo a aparência e os contratos de JavaScript.
