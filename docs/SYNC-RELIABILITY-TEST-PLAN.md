@@ -159,14 +159,15 @@ Não substituir o `index.html` atual pela versão 3.71.0: isso descartaria muita
 **Decisão:** a recuperação da fonte de referência foi bem-sucedida, mas nenhuma substituição ou extração foi feita nesta etapa. O código histórico não deve ser tratado como equivalente à versão atual sem uma comparação funcional completa.
 
 
-## Divergência entre permissão local de envio e permissão efetiva do servidor — 21/11/2026
+## Auditoria de permissões locais e efetivas da sincronização — 21/11/2026
 
-A comparação da função `syncCanWrite` no cliente com a RPC `can_write_kind_for_org` ativa no Supabase identificou uma divergência que deve ser resolvida antes de ampliar os testes de sincronização por perfil:
+A primeira comparação entre `syncCanWrite` e a função auxiliar `can_write_kind_for_org` apontou uma divergência aparente em `cfg:team`. A leitura integral da RPC efetivamente chamada pelo cliente (`sync_push(jsonb,uuid)`) refinou a conclusão:
 
-1. **`cfg:team` / encarregado:** o cliente permite enfileirar gravações quando o perfil é `encarregado` e possui `r:eqp`. A RPC do servidor só permite gravar `cfg:team` para `admin` e `gerente`. A consulta agregada de produção confirmou que existe atualmente um membro ativo `encarregado` com `r:eqp`. Portanto, uma edição de equipe feita por esse perfil pode entrar na fila local e ser recusada pelo servidor.
-2. **`r:pdc` e `r:conf` / subgerente:** a RPC do servidor inclui `subgerente` entre os perfis autorizados; a regra local `syncCanWrite` não inclui esse perfil. A consulta atual não encontrou membros ativos `subgerente`, então esta diferença não está sendo exercida pela composição atual da equipe.
+1. **`cfg:team` / encarregado:** o cliente permite enfileirar alterações quando o perfil é `encarregado` e possui `r:eqp`. Embora `can_write_kind_for_org('cfg:team', ...)` retorne falso para esse perfil, a RPC `sync_push` possui um fluxo especial para encarregados. Na criação, permite somente cadastro de repositor, sem privilégios, liderança, permissões ou vínculo de login, e registra o vínculo do repositor ao encarregado. Na atualização, exige que o registro esteja vinculado ao encarregado, tenha sido criado por ele e mantenha os mesmos limites de conteúdo. Exclusão não é permitida nesse fluxo. Portanto, **não é correto concluir que toda alteração de equipe feita pelo encarregado será recusada**; o helper isolado não representa toda a autorização efetiva da RPC.
+2. **`r:pdc` e `r:conf` / subgerente:** a função auxiliar do servidor contempla o papel `subgerente`, mas a constraint de `org_members.role` não permite esse valor e a regra local também não o inclui. É uma regra órfã/inacessível no estado atual, não uma divergência exercida por um usuário ativo.
+3. **`supervisor`:** também aparece em regras auxiliares de leitura/gravação de `r:pdc` e `r:conf`, mas não é um valor aceito pela constraint atual de papéis.
 
-O servidor continua sendo a autoridade final: a divergência não permite contornar as permissões do banco, mas pode produzir gravações pendentes/recusadas ou impedir que uma alteração local seja enviada. Não alterei a função do cliente nem as permissões do banco, pois isso mudaria regras de acesso. A correção precisa primeiro definir se encarregados podem editar registros de equipe e se o papel subgerente será usado; depois, cliente e servidor devem compartilhar uma única matriz de permissões e ter testes por perfil.
+A conclusão correta é que o fluxo especial de encarregado está implementado na RPC, e precisa de testes de integração específicos para criação, atualização, tentativa de editar registro de outro encarregado, tentativa de elevar privilégios e exclusão. O teste estático atual não valida esses comportamentos nem executa a RPC com JWT real.
 
 **Evidência de produção somente leitura:** há 1 membro ativo `admin`, 1 `encarregado` e 2 `gerente`; o encarregado ativo possui `r:eqp`. Não foram consultados nomes, e nenhuma linha foi modificada.
 
