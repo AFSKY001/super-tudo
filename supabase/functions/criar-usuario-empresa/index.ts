@@ -51,6 +51,7 @@ export default {
       if (!validUsername(username)) return fail("Usuário inválido. Use de 3 a 40 caracteres: letras, números, ponto, hífen ou sublinhado.");
       if (password.length < 8 || password.length > 128) return fail("A senha precisa ter de 8 a 128 caracteres.");
       if (!displayName) return fail("Nome do funcionário não informado.");
+      if (!String(body.team_member_id ?? "").trim()) return fail("O identificador do funcionário não foi enviado.");
       if (!validPermissions(permissions)) return fail("Permissões inválidas.");
 
       const isManager = ["gerente de loja", "subgerente", "supervisor"].includes(jobTitle);
@@ -173,17 +174,21 @@ export default {
           return fail("Não foi possível reativar a conta.", 400);
         }
 
-        const { error: profileError } = await ctx.supabaseAdmin
-          .from("profiles")
-          .update({ active: true, display_name: displayName, full_name: displayName })
-          .eq("id", priorProfile.id);
-        if (profileError) return fail("Não foi possível reativar o perfil.", 400);
-
         const { error: memberError } = await ctx.supabaseAdmin
           .from("org_members")
           .update({ role, active: true, permissions, team_member_id: String(body.team_member_id ?? "").trim() })
           .eq("id", priorMember.id);
         if (memberError) return fail("Não foi possível reativar o vínculo com a empresa.", 400);
+
+        const { error: profileError } = await ctx.supabaseAdmin
+          .from("profiles")
+          .update({ active: true, display_name: displayName, full_name: displayName })
+          .eq("id", priorProfile.id);
+        if (profileError) {
+          await ctx.supabaseAdmin.from("org_members").update({ active: false }).eq("id", priorMember.id);
+          console.error("Falha ao reativar perfil:", profileError);
+          return fail("Não foi possível reativar o perfil.", 500);
+        }
 
         return respond({ ok: true, user_id: priorProfile.id, username, role, reactivated: true });
       }
