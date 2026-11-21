@@ -550,10 +550,16 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 - Nenhum fluxo, módulo funcional, estrutura, dado, permissão, autenticação ou sincronização foi modificado.
 
 
-## Limpeza de declarações repetidas na cascata global — versão 3.73.54
+## Limpeza de declarações repetidas na cascata global — versão 3.73.55
 
 - Removidas 20 declarações anteriores que eram repetidas, com o mesmo seletor, contexto e valor, por regras posteriores equivalentes.
 - A limpeza alcançou cores de badges, texto auxiliar, ícones, filtros, navegação, detalhes, calendário, barra de progresso, balões e dimensões do contêiner de página.
 - Foram preservadas as últimas declarações de cada propriedade, bem como todas as regras de tema, responsividade, estados e especificidade diferentes.
 - O verificador de interface ganhou proteções contra a reintrodução de regras redundantes selecionadas.
 - Nenhuma estrutura, lógica, dado, permissão, autenticação, sincronização ou fluxo de módulo foi alterado.
+
+
+### Ajuste da verificação — versão 3.73.55
+
+- Duas declarações compartilhadas (padding de details e flex de ícones) foram mantidas na regra base e removidas das regras isoladas posteriores, eliminando a duplicação sem depender de herança acidental.
+- A checagem automática que apontou os dois casos foi mantida; agora as regras isoladas realmente não existem.
