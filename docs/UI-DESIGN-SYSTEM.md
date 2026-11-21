@@ -575,6 +575,6 @@ A rolagem global do documento permanece instantânea (`scroll-behavior: auto`) p
 
 ## Remoção de regras CSS vazias — versão 3.73.57
 
-- Removidas cinco regras CSS vazias (`.b.ok`, `.b.wa`, `.day.on`, `.chs` e `.month-cell`) que não declaravam propriedades nem produziam efeito visual.
+- Removidas seis regras CSS vazias (`.b.ok`, `.b.no`, `.b.wa`, `.day.on`, `.chs` e `.month-cell`) que não declaravam propriedades nem produziam efeito visual.
 - O verificador de interface agora identifica regras CSS vazias para impedir que seletores sem conteúdo permaneçam no arquivo.
 - Nenhum seletor funcional, estado visual, estrutura, dado, permissão, autenticação, sincronização ou módulo de negócio foi alterado.
