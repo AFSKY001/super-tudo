@@ -19,7 +19,7 @@ root.SuperTudoRoutineCore=Core;if(typeof module!=='undefined'&&module.exports)mo
 const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
 const S=bridge.S,V=bridge.V,CK=bridge.CK,person=bridge.person,teamOf=bridge.teamOf,isFullAccess=bridge.isFullAccess,migFix=bridge.migFix,save=bridge.save,today=bridge.today,esc=bridge.esc,rConf=bridge.rConf,rMov=bridge.rMov,rPdc=bridge.rPdc,rAvaReg=bridge.rAvaReg,rRegLanc=bridge.rRegLanc;
 let R=bridge.R,rMenu=bridge.rMenu,rMenuCore=bridge.rMenuCore;
-const $=id=>root.document.getElementById(id),e=v=>typeof esc==='function'?esc(String(v??'')):String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]));
+const $=id=>root.document.getElementById(id),e=v=>esc(String(v??''));
 const uid=()=>root.crypto?.randomUUID?root.crypto.randomUUID():'rt-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
 const day=()=>typeof today==='function'?today():localDate(),touch=o=>(o.updatedAt=Date.now(),o);
 const db=()=>{S.routineModels=Array.isArray(S.routineModels)?S.routineModels:[];S.routineAssignments=Array.isArray(S.routineAssignments)?S.routineAssignments:[];S.routineOccurrences=S.routineOccurrences&&typeof S.routineOccurrences==='object'?S.routineOccurrences:{};S.migrations=Array.isArray(S.migrations)?S.migrations:[];return{models:S.routineModels,assignments:S.routineAssignments,occurrences:S.routineOccurrences};};
