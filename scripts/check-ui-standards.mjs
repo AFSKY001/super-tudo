@@ -62,8 +62,8 @@ requireCheck(html.includes('M10 2.8h4') && html.includes('cy="11.7" r="3.1"'), '
 
 
 const requiredPatterns = [
-  ['primary color token', /--pr\s*:\s*#2457e6/i],
-  ['background token', /--bg\s*:\s*#f5f6f9/i],
+  ['primary color token', /--cor-primaria\s*:\s*#0066cc/i],
+  ['background token', /--fundo\s*:\s*#f5f6f8/i],
   ['dark theme tokens', /:root\[data-theme=["']dark["']\]/i],
   ['reduced-motion support', /prefers-reduced-motion\s*:\s*reduce/i],
   ['visible keyboard focus', /:focus-visible/i],
@@ -296,12 +296,12 @@ requireCheck(html.includes("label:'Cancelar mudança'") && html.includes("label:
 requireCheck(html.includes("['remover','Excluir']") && html.includes("['deletar','Excluir']") && html.includes("['apagar','Excluir']"), 'Destructive delete confirmations must consistently label the primary action Excluir, including remover/apagar/deletar wording.');
 requireCheck(html.includes("ok.className='st-alert-ok';const requestedLabel=String(active.confirmText||'').trim()") && html.includes('ok.textContent=primaryLabel') && html.includes('#stDialogLayer .st-alert-actions > button.st-alert-ok{') && html.includes('flex:0 0 auto') && html.includes('font-size:14px'), 'The shared dialog primary action must reset its class, normalize icon-only labels and retain its full-size layout and typography on every opening.');
 requireCheck(html.includes('<button type="button" class="dots notification-trigger" id="bl"') && html.includes('<button type="button" class="dots" id="dt"'), 'Static header action buttons must declare type=button and never submit a form accidentally.');
-requireCheck(html.includes('#masterPortalRoot .mp-card{background:var(--ui-card-background,var(--cd,#fff))') && html.includes('border-radius:var(--ui-card-radius,16px)'), 'Master Portal cards must reuse the global card design tokens.');
+requireCheck(html.includes('#masterPortalRoot .mp-card{background:var(--ui-card-background,var(--superficie))') && html.includes('border-radius:var(--ui-card-radius,16px)'), 'Master Portal cards must reuse the global card design tokens.');
 requireCheck(html.includes('#masterPortalRoot .mp-btn{display:inline-flex') && html.includes('min-height:var(--ui-control-height,44px)') && html.includes('#masterPortalRoot .mp-btn:focus-visible'), 'Master Portal buttons must share global control sizing, alignment and keyboard focus states.');
 requireCheck(html.includes('#masterPortalRoot input:focus-visible,#masterPortalRoot select:focus-visible') && html.includes('border-radius:var(--ui-radius-control,10px)'), 'Master Portal fields must share global control radius and visible focus treatment.');
 requireCheck(html.includes('#masterPortalRoot .mp-btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}'), 'Master Portal disabled actions must use a consistent non-interactive state.');
 requireCheck(html.includes("const requestedLabel=String(active.confirmText||'').trim()") && html.includes("const isSymbolOnly=/^[×✕✖xX]+$/u.test(requestedLabel)") && html.includes("const primaryLabel=active.kind==='alert'?'Entendi'") && html.includes("ok.textContent=primaryLabel") && html.includes("action.intent==='danger'?'danger'"), 'Destructive confirmations must never render an X symbol as the primary action; use the contextual text label.');
-requireCheck(html.includes('.st-alert-ok.is-danger{background:var(--no,#d92d20);color:#fff;box-shadow:none}'), 'Destructive confirmation actions must use the shared destructive color token.');
+requireCheck(html.includes('.st-alert-ok.is-danger{background:var(--no,var(--cor-erro));color:var(--texto-inverso);box-shadow:none}'), 'Destructive confirmation actions must use the shared destructive color token.');
 requireCheck(html.includes('.launch-insight{') && html.includes('.launch-insight-grid{') && html.includes('.launch-insight-value{'), 'Contextual launch summaries must use the shared responsive insight component.');
 requireCheck(html.includes('/* Contrato global de botões de ação — fonte única de aparência para .bt */'), 'The global action-button contract must remain present as the final .bt style authority.');
 requireCheck(html.includes('button.bt.g,.bt.g{') && html.includes('button.bt.d,.bt.d{') && html.includes('button.bt:disabled,.bt:disabled') && html.includes('button.bt:focus-visible,.bt:focus-visible'), 'Primary, secondary, destructive, disabled and keyboard-focus button states must share the global contract.');
@@ -310,7 +310,7 @@ requireCheck(html.includes("const primaryLabel=active.kind==='alert'?'Entendi':(
 requireCheck(html.includes("if(e.key==='Escape'){e.preventDefault();close(false);return;}") && html.includes('if(e.target===layer)close(false)') && html.includes("cancel.addEventListener('click',()=>close(false))"), 'Escape, backdrop and Cancelar must all resolve a confirmation as cancelled.');
 requireCheck(html.includes("['danger','save','default'].includes(active.intent)") && html.includes('options.confirmText') && html.includes('options.cancelText'), 'The shared confirmation API must accept explicit intent and action labels without changing existing call sites.');
 requireCheck(html.includes("if(e.key==='Tab'){const focusable=[...card.querySelectorAll(") && html.includes("!card.contains(document.activeElement)") && html.includes("last.focus();"), 'Internal dialogs must trap keyboard focus and keep Tab navigation inside the active window.');
-requireCheck(html.includes('.st-alert-ok:focus-visible,.st-alert-cancel:focus-visible,.st-alert-input:focus-visible{outline:3px solid var(--ac,#f2a900);outline-offset:3px}'), 'All shared dialog actions and inputs must expose the same visible keyboard focus treatment.');
+requireCheck(html.includes('.st-alert-ok:focus-visible,.st-alert-cancel:focus-visible,.st-alert-input:focus-visible{outline:3px solid var(--ac,var(--cor-alerta));outline-offset:3px}'), 'All shared dialog actions and inputs must expose the same visible keyboard focus treatment.');
 requireCheck(!html.includes('#app.an.dr>*{animation:st-screen-enter-forward 220ms var(--ui-motion-ease) both}'), 'Redundant duplicate screen-enter animation rule was reintroduced.');
 requireCheck(!html.includes('.c.tap{cursor:pointer}'), 'Redundant standalone .c.tap cursor rule was reintroduced.');
 requireCheck(!html.includes('.g2>.c{margin:0!important}') && !html.includes('.g2>.c{margin:0}'), 'Redundant standalone .g2 card margin overrides were reintroduced.');
