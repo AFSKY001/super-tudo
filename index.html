@@ -2244,15 +2244,15 @@ const _0x2c2823=_0x754e;(function(_0x3e9400,_0x5d2996){const _0x485697=_0x754e,_
  }
  for(const model of models){
   if(!model||!model.id)continue;
-  const titles=[...new Set((Array.isArray(model.items)?model.items:[])
-   .map(item=>String(item?.t??'').trim()).filter(Boolean))];
+  const sourceItems=Array.isArray(model.items)?model.items:Array.isArray(model.activities)?model.activities:Array.isArray(model.tasks)?model.tasks:Array.isArray(model.atividades)?model.atividades:[];
+  const titles=[...new Set(sourceItems.map(item=>String(typeof item==='string'?item:(item?.t??item?.title??item?.name??item?.atividade??'')).trim()).filter(Boolean))];
   if(!titles.length)continue;
   const key='c-cronograma-model-'+safe(model.id);
   const existing=CK[key];
   if(existing&&existing.source==='cronograma-model-conversion'&&String(existing.legacyCronogramaId)===String(model.id)){
    const current=(Array.isArray(existing.l)?existing.l:String(existing.i||'').split('|')).filter(line=>line&&line[0]!=='#');
    if(JSON.stringify(current)!==JSON.stringify(titles)){existing.i=titles.join('|');existing.l=[...titles];changed=true;}
-   if(existing.n!==String(model.n||'Cronograma')){existing.n=String(model.n||'Cronograma');changed=true;}
+   if(existing.n!==String(model.n||model.name||model.title||'Cronograma')){existing.n=String(model.n||'Cronograma');changed=true;}
    continue;
   }
   const temporary=createChecklistFromSteps(String(model.n||'Cronograma'),'',
@@ -2689,40 +2689,21 @@ function syncConflictProgress(){
   return ()=>overlay.remove();
 }
 async function syncResolveConflictsUI(){
-  let keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
-  if(!keys.length)return;
-  if(typeof navigator!=='undefined'&&!navigator.onLine){
-    await syncConflictDialog('',null,'Conecte este aparelho à internet para consultar a versão atual da nuvem. Suas alterações locais continuam salvas.');
+  const keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
+  if(!keys.length){
+    await syncConflictDialog('',null,'Não há conflitos pendentes registrados neste aparelho. A atualização da nuvem será verificada agora.');
+    if(V.cloudIdentity&&navigator.onLine){
+      try{await pullCloudTeam();await syncFlush();syncStatusUpdate();}
+      catch(error){console.warn('Falha ao atualizar a nuvem:',error);await syncConflictDialog('',null,'Não foi possível atualizar a nuvem. Os dados locais continuam preservados. Tente novamente quando a conexão estiver estável.');}
+    }
     return;
   }
-  if(syncBusy||syncPullBusy){
-    await syncConflictDialog('',null,'A sincronização está ocupada neste momento. Aguarde alguns segundos e tente revisar novamente.');
-    return;
-  }
-  const closeProgress=syncConflictProgress();
-  let pullTimeout;
-  try{
-    await Promise.race([
-      pullCloudTeam(),
-      new Promise((_,reject)=>{pullTimeout=setTimeout(()=>reject(new Error('Tempo limite ao consultar a nuvem.')),15000);})
-    ]);
-  }catch(error){
-    console.warn('Não foi possível atualizar os conflitos antes da revisão:',error);
-    closeProgress();
-    await syncConflictDialog('',null,'A consulta à nuvem demorou mais que o esperado ou falhou. Suas alterações locais continuam salvas. Verifique a conexão e tente novamente.');
-    return;
-  }finally{
-    clearTimeout(pullTimeout);
-    closeProgress();
-  }
-  keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
-  if(!keys.length){syncStatusUpdate();await syncConflictDialog('',null,'Consulta concluída. Não há conflitos pendentes para revisar. As alterações locais e a versão da nuvem estão sincronizadas.');return;}
   for(const key of keys){
     const conflict=syncMeta.conflicts[key];
     const server=conflict?.server_record;
     const pending=(syncMeta.queue||[]).find(op=>op.key===key&&op.status==='conflict');
     if(!server||!Number(server.revision)||!pending){
-      await syncConflictDialog(key,null,'O conflito '+key+' ainda não tem uma cópia completa da versão da nuvem. Atualize a sincronização quando estiver conectado. Nenhuma alteração foi descartada.');
+      await syncConflictDialog(key,null,'O conflito '+key+' está sem a cópia necessária para comparação. Nenhuma alteração local foi descartada. Atualize a sincronização e tente novamente.');
       continue;
     }
     const local=syncRows(S).get(key)||null;
@@ -2761,36 +2742,36 @@ async function syncBlockedQueueUI(){
     await syncConflictDialog(op.key,null,message);
   }
 }
-function runSyncStatusAction(){
-  if(Object.values(syncMeta.conflicts||{}).some(item=>item&&item.status==='conflict')){
-    syncResolveConflictsUI().catch(error=>{
-      console.error('Falha ao abrir a revisão de conflitos:',error);
-      syncConflictDialog('',null,'Não foi possível abrir a revisão agora. Suas alterações locais continuam salvas. Tente novamente em alguns segundos.');
-    });
-    return;
-  }
-  if((syncMeta.queue||[]).some(op=>op.status&&op.status!=='conflict')){
-    syncBlockedQueueUI().catch(error=>console.error('Falha ao revisar envios pendentes:',error));
-    return;
-  }
-  if(V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine){
-    const closeProgress=syncConflictProgress();
-    pullCloudTeam().then(async()=>{
-      closeProgress();
-      await syncFlush();
-      if(Object.values(syncMeta.conflicts||{}).some(item=>item&&item.status==='conflict')){
-        await syncResolveConflictsUI();
-      }else{
-        await syncConflictDialog('',null,'Sincronização consultada e atualizada. Não há conflitos pendentes para revisar.');
+async function runSyncStatusAction(){
+  try{
+    if(Object.values(syncMeta.conflicts||{}).some(item=>item&&item.status==='conflict')){
+      await syncResolveConflictsUI();
+      return;
+    }
+    if((syncMeta.queue||[]).some(op=>op.status&&op.status!=='conflict')){
+      await syncBlockedQueueUI();
+      return;
+    }
+    if(V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine){
+      const closeProgress=syncConflictProgress();
+      try{
+        await pullCloudTeam();
+        await syncFlush();
+        closeProgress();
+        if(Object.values(syncMeta.conflicts||{}).some(item=>item&&item.status==='conflict'))await syncResolveConflictsUI();
+        else await syncConflictDialog('',null,'Sincronização consultada e atualizada. Não há conflitos pendentes para revisar.');
+      }catch(error){
+        closeProgress();
+        console.warn('Falha ao atualizar sincronização:',error);
+        await syncConflictDialog('',null,'Não consegui atualizar a nuvem: '+(error?.message||'falha de conexão')+'. Os dados locais continuam salvos.');
       }
-    }).catch(error=>{
-      closeProgress();
-      console.warn('Falha ao atualizar sincronização:',error);
-      syncConflictDialog('',null,'Não consegui consultar a nuvem. Confira sua conexão. Os dados locais continuam salvos.');
-    });
-    return;
+      return;
+    }
+    await syncConflictDialog('',null,'Não há conexão com a nuvem neste momento. Suas alterações locais continuam salvas.');
+  }catch(error){
+    console.error('Falha ao executar ação de sincronização:',error);
+    await syncConflictDialog('',null,'A revisão falhou: '+(error?.message||'erro inesperado')+'. Nenhuma alteração local foi descartada.');
   }
-  syncConflictDialog('',null,'Não há conexão com a nuvem neste momento. Suas alterações locais continuam salvas.');
 }
 window.runSyncStatusAction=runSyncStatusAction;
 
