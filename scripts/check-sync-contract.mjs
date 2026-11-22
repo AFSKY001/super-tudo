@@ -21,7 +21,7 @@ const teamReadMigration = fs.readFileSync(
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
   ['cada modelo antigo tmod é convertido em checklist com o nome e as atividades', /function migrateCronogramaModelsToChecklists\(\)[\s\S]*?model\.items[\s\S]*?createChecklistFromSteps\(modelName,'',titles/],
-  ['checklists automáticos antigos só são removidos quando há checklist consolidado substituto', /old\\?\.\?source|old\?\.source!=='cronograma-conversion'[\s\S]*?old\.legacyCronogramaItemId[\s\S]*?replacement\?\.source==='cronograma-model-conversion'[\s\S]*?delete CK\[oldKey\]/],
+  ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?filter\(\(\[_0x[0-9a-f]+,_0x[0-9a-f]+\]\)=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]\)/],
   ['modelo antigo só sai da lista depois de checklist consolidado criado e salvo', /if\(!checklist\)[\s\S]*?createChecklistFromSteps\(modelName,'',titles[\s\S]*?CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]*?if\(changed\)[\s\S]*?if\(!save\(\)\)/],
   ['migração recupera conversões mesmo quando tmod já sumiu do armazenamento local', /const confirmedIds=new Set\([\s\S]*?Object\.values\(CK\)\.filter\(model=>model&&model\.source==='cronograma-model-conversion'/],
   ['migração envia exclusão explícita dos cronogramas antigos à nuvem', /syncMeta\.queue\.push\(\{key,module:'tmod',record_id:modelId,kind:'r:cro',deleted:true/],
@@ -90,7 +90,7 @@ const checks = [
   ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*await syncResolveConflictsUI\(\)/],
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
   ['modelo convertido fornece a lista de itens exigida pelo renderizador', /CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]{0,180}l:\[\.\.\.titles\]/],
-  ['migração atualiza nome e itens dos modelos já convertidos', /existing\.n!==modelName[\s\S]*?existing\.i!==titles\.join\('\|'\)[\s\S]*?existing\.l\)/],
+  ['migração atualiza nome e itens dos modelos já convertidos', /checklist\.n!==modelName[\s\S]*?checklist\.i!==titles\.join\('\|'\)[\s\S]*?checklist\.l/],
 ];
 
 const permissionChecks = [
