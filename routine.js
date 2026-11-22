@@ -49,8 +49,12 @@ root.FUNCOES=FUNCOES;
 function openFunction(f){V.tab='reg';if(f.launch){V.rs='lanc';V.reg=f.launch;}else{V.rs=f.section||'home';V.reg=null;}V.rotTask=null;R();}
 function migrate(){
  const D=db();
- if(S.migrations.includes('routine-v1'))return;
  if(typeof migFix==='function'){try{migFix();}catch(err){console.warn('Migração dos modelos antigos de cronograma:',err);}}
+ if(typeof bridge.migrateCronogramaModelsToChecklists==='function'){
+  try{bridge.migrateCronogramaModelsToChecklists();}
+  catch(err){console.warn('Conversão dos modelos antigos para checklists:',err);}
+ }
+ if(S.migrations.includes('routine-v1'))return;
  S.routineMigrationWarnings=Array.isArray(S.routineMigrationWarnings)?S.routineMigrationWarnings:[];
  const modelMap=new Map(),assignmentIds=new Set(D.assignments.map(a=>a.id));
  const recurrenceFor=days=>{const mapped=Core.legacyWeekdays(days);return{type:'weekly',days:mapped.length?mapped:[0,1,2,3,4,5,6]};};
@@ -170,7 +174,11 @@ async function viewPhoto(id){const o=db().occurrences[id];if(!o?.photoId)return;
 function canManage(){return(typeof isFullAccess==='function'&&isFullAccess())||!!V.me&&(['master','admin','gerente','encarregado'].includes(V.me.role)||(V.me.perm||[]).includes('r:cro'));}
 function currentPerson(){return who(V.me?.id||V.cloudIdentity?.team_member_id||'');}
 function team(){const p=currentPerson();return p&&typeof teamOf==='function'?teamOf(p):[];}
-function modelPage(){if(!canManage())return'<div class="c mu">Sem permissão para administrar Rotinas.</div>';generateDay();syncFunctions();const warnings=S.routineMigrationWarnings||[];return'<div class="row sp"><div><h2 style="margin:0">Modelos de Rotina</h2><p class="mu">Modelos reutilizáveis e atribuições por pessoa.</p></div><button class="bt" onclick="rtNew()">+ Criar</button></div>'+(warnings.length?'<div class="c wa"><b>Revisar atribuições antigas</b><p class="mu">'+warnings.length+' registro(s) antigo(s) não puderam ser associados automaticamente a uma pessoa. Os dados originais foram preservados.</p></div>':'')+db().models.filter(m=>!m.archivedAt).map(m=>'<div class="c"><div class="row sp"><b>'+e(m.name)+'</b><span class="b ok">'+(m.activities||[]).length+' atividade(s)</span></div><div class="mu">'+e(m.profile||'Todos os perfis')+(m.sector?' · '+e(m.sector):'')+'</div><p class="mu">'+e(m.description||'Sem descrição')+'</p><div class="row"><button class="bt g" onclick="rtEdit(\''+e(m.id)+'\')">Editar</button><button class="bt g" onclick="rtCopy(\''+e(m.id)+'\')">Duplicar</button><button class="bt d" onclick="rtArchive(\''+e(m.id)+'\')">Arquivar</button></div></div>').join('')||'<div class="c mu">Nenhum modelo cadastrado.</div>';}
+function modelPage(){
+ if(V.rotChecklistHub&&typeof bridge.rRotChecklistHub==='function')return bridge.rRotChecklistHub();
+ if(!canManage())return'<div class="c mu">Sem permissão para administrar Rotinas.</div>';
+ generateDay();syncFunctions();const warnings=S.routineMigrationWarnings||[];
+ return'<div class="row sp"><div><h2 style="margin:0">Modelos de Rotina</h2><p class="mu">Modelos reutilizáveis e atribuições por pessoa.</p></div><div class="row"><button class="bt g" onclick="V.rotChecklistHub=true;R()">☑ Modelos de checklist</button><button class="bt" onclick="rtNew()">+ Criar</button></div></div>'+(warnings.length?'<div class="c wa"><b>Revisar atribuições antigas</b><p class="mu">'+warnings.length+' registro(s) antigo(s) não puderam ser associados automaticamente a uma pessoa. Os dados originais foram preservados.</p></div>':'')+db().models.filter(m=>!m.archivedAt).map(m=>'<div class="c"><div class="row sp"><b>'+e(m.name)+'</b><span class="b ok">'+(m.activities||[]).length+' atividade(s)</span></div><div class="mu">'+e(m.profile||'Todos os perfis')+(m.sector?' · '+e(m.sector):'')+'</div><p class="mu">'+e(m.description||'Sem descrição')+'</p><div class="row"><button class="bt g" onclick="rtEdit(\''+e(m.id)+'\')">Editar</button><button class="bt g" onclick="rtCopy(\''+e(m.id)+'\')">Duplicar</button><button class="bt d" onclick="rtArchive(\''+e(m.id)+'\')">Arquivar</button></div></div>').join('')||'<div class="c mu">Nenhum modelo cadastrado.</div>';}
 function defaults(){return{id:uid(),title:'',description:'',steps:[],checklistSnapshot:[],source:{type:'manual'},functionId:'',photo:'none',mandatory:true,recurrence:{type:'daily'},time:'08:00',tolerance:10};}
 function newModel(){V.rtDraft={id:'new',name:'',description:'',profile:'',sector:'',activities:[]};V.rtExtraTarget='';V.rtChecklist='';V.sh='routine-editor';rMenu();}
 function editModel(id){const m=db().models.find(x=>x.id===id);if(!m)return;V.rtDraft=clone(m);V.rtExtraTarget='';V.rtChecklist='';V.sh='routine-editor';rMenu();}
