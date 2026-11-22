@@ -2312,16 +2312,11 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
    const value=typeof item==='string'?item:(item?.t??item?.title??item?.name??item?.atividade??item?.titulo??item?.label??item?.text??item?.value??'');
    return String(value??'').trim().replace(/\|/g,'/');
   }).filter(Boolean);
-  if(!titles.length){
-   if(sourceItems.length){remaining.push(model);continue;}
-   convertedIds.add(modelId);
-   converted++;
-   changed=true;
-   continue;
-  }
+  if(!titles.length){remaining.push(model);continue;}
   const key='c-cronograma-model-'+safe(modelId);
   let checklist=CK[key];
-  if(checklist&&(checklist.source!=='cronograma-model-conversion'||String(checklist.legacyCronogramaId)!==modelId)){
+  const existing=checklist;
+  if(existing&&(existing.source!=='cronograma-model-conversion'||String(existing.legacyCronogramaId)!==modelId)){
    remaining.push(model);
    continue;
   }
@@ -2333,9 +2328,9 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
    delete CK[temporary];
    changed=true;
   }else{
-   if(checklist.n!==modelName){checklist.n=modelName;changed=true;}
-   if(checklist.i!==titles.join('|')){checklist.i=titles.join('|');changed=true;}
-   if(!Array.isArray(checklist.l)||JSON.stringify(checklist.l)!==JSON.stringify(titles)){checklist.l=[...titles];changed=true;}
+   if(existing.n!==modelName){existing.n=modelName;changed=true;}
+   if(existing.i!==titles.join('|')){existing.i=titles.join('|');changed=true;}
+   if(!Array.isArray(existing.l)||JSON.stringify(existing.l)!==JSON.stringify(titles)){existing.l=[...titles];changed=true;}
   }
   convertedIds.add(modelId);
   converted++;
