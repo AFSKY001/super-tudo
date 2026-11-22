@@ -20,6 +20,10 @@ const teamReadMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
+  ['RPC de sincronização exige sessão autenticada da mesma conta', /async function syncRequireSession\(\)[\s\S]{0,650}getSession\(\)[\s\S]{0,500}session\?\.user\?\.id/],
+  ['envio valida sessão antes de transmitir a fila', /async function syncFlushRun\(\)[\s\S]{0,600}await syncRequireSession\(\)/],
+  ['recebimento valida sessão antes de consultar a nuvem', /async function pullCloudTeamRun\(\)[\s\S]{0,350}await syncRequireSession\(\)/],
+  ['logout em outra aba interrompe o canal e o temporizador de sync', /onAuthStateChange\([\s\S]{0,600}SIGNED_OUT[\s\S]{0,400}stopCloudSync\(\)/],
   ['envio e recebimento usam fila serial única sem espera circular', /function enqueueSyncOperation\([\s\S]{0,900}syncOperationQueue=run\.catch\(\(\)=>\{\}\)[\s\S]{0,1200}async function pullCloudTeam\(\)[\s\S]{0,250}enqueueSyncOperation\(\(\)=>pullCloudTeamRun\(\)\)/],
   ['revisão aguarda promessas de sincronização já iniciadas', /while\(syncBusy\|\|syncPullBusy\|\|syncFlushPromise\|\|syncPullPromise\)/],
   ['erro de envio é preservado para não anunciar sucesso falso', /syncLastError=String\(_0x2f91dd&&_0x2f91dd\.message/],
