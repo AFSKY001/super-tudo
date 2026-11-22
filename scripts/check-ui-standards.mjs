@@ -99,6 +99,21 @@ for (const [label, pattern] of requiredPatterns) {
   requireCheck(pattern.test(html), 'Global UI requirement missing: ' + label + '.');
 }
 
+const styleContent = html.match(/<style\\b[^>]*>([\\s\\S]*?)<\\/style>/i)?.[1] || '';
+const paletteStart = styleContent.indexOf('/* PALETA GLOBAL');
+const scriptContent = html.slice(html.indexOf('</style>') + 8);
+const semanticColorTokens = [
+  '--cor-primaria:', '--cor-primaria-hover:', '--cor-primaria-suave:',
+  '--cor-sucesso:', '--cor-sucesso-suave:', '--cor-alerta:', '--cor-alerta-suave:',
+  '--cor-erro:', '--cor-erro-suave:', '--cor-info:', '--cor-info-suave:',
+  '--fundo:', '--superficie:', '--superficie-2:', '--borda:',
+  '--texto:', '--texto-suave:', '--texto-desabilitado:', '--sombra:', '--vidro:'
+];
+requireCheck(paletteStart >= 0 && semanticColorTokens.every(token => styleContent.slice(paletteStart).includes(token)), 'The complete semantic color-token palette must be defined centrally.');
+requireCheck(paletteStart >= 0 && !/#(?:[0-9a-f]{3,8})\\b/i.test(styleContent.slice(0, paletteStart)) && !/rgba?\\(/i.test(styleContent.slice(0, paletteStart)), 'Component CSS must not introduce hard-coded colors outside the central palette.');
+requireCheck(!/#(?:[0-9a-f]{3,8})\\b/i.test(scriptContent) && !/rgba?\\(/i.test(scriptContent), 'JavaScript must read interface colors from semantic CSS tokens instead of hard-coded color literals.');
+requireCheck(scriptContent.includes("getPropertyValue('--cor-alerta')") && scriptContent.includes("getPropertyValue('--cor-sucesso')"), 'Dynamic synchronization status colors must be read from the global semantic tokens.');
+
 
 // Detect CSS duplication only when it is provably identical in the same cascade context.
 function splitCssTopLevel(source, delimiter) {
