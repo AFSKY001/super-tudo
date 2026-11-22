@@ -391,6 +391,10 @@ requireCheck(sheetController.includes('EXTRA_SPACE:220') && sheetController.incl
 requireCheck(sheetController.includes("sheet.querySelector(':scope > .sheet-body')") && sheetController.includes("body.className='sheet-body'") && sheetController.includes("overlay.classList.add('dragging')"), 'The global controller must create one scroll body and synchronize overlay motion.');
 requireCheck(!html.includes('function handleSheet(s)') && !html.includes("handle.addEventListener('pointerdown'") && !html.includes('.st-sheet-underfill{'), 'Legacy per-handle drag listeners and obsolete underfill CSS must be removed.');
 
+const routinesRouteStart=html.indexOf('function rRotReg(){');
+const routinesRouteEnd=html.indexOf('function rCroReg()',routinesRouteStart);
+const routinesRoute=routinesRouteStart>=0&&routinesRouteEnd>routinesRouteStart?html.slice(routinesRouteStart,routinesRouteEnd):'';
+requireCheck(routinesRoute.includes('migrateCronogramaModelsToChecklists()')&&routinesRoute.includes('rRotChecklistHub()')&&routinesRoute.includes('Modelos de checklist')&&!routinesRoute.includes('tmList()')&&!routinesRoute.includes('tmEditor()'), 'Rotinas must expose checklist models only and stop rendering the old cronograma template editor/list.');
 const migrationStart=html.indexOf('function migrateCronogramaModelsToChecklists(){');
 const migrationEnd=html.indexOf('function rRotChecklistHub(){',migrationStart);
 const migrationSource=migrationStart>=0&&migrationEnd>migrationStart?html.slice(migrationStart,migrationEnd):'';
