@@ -19,6 +19,10 @@ const lock = JSON.parse(packageLock);
 const sourceVersion = html.match(/const APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
 const cacheVersion = sw.match(/const CACHE_NAME\s*=\s*['"]super-tudo-v([^'"]+)['"]/);
 
+const localDateStart = html.indexOf('iso=_0x2dac08=>String(_0x2dac08.getFullYear())');
+const localDateEnd = html.indexOf(',today=()=>iso(new Date())', localDateStart);
+const localDateHelper = localDateStart >= 0 && localDateEnd > localDateStart ? html.slice(localDateStart, localDateEnd) : '';
+
 const requireCheck = (condition, message) => {
   if (!condition) failures.push(message);
 };
@@ -27,6 +31,7 @@ requireCheck(/^\d+\.\d+\.\d+$/.test(String(pkg.version || '')), 'package.json mu
 requireCheck(lock.version === pkg.version && lock.packages?.['']?.version === pkg.version, 'package-lock.json root versions must match package.json.');
 requireCheck(sourceVersion?.[1] === pkg.version, 'index.html APP_VERSION must match package.json.');
 requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match package.json.');
+requireCheck(!!localDateHelper && localDateHelper.includes('getFullYear()') && localDateHelper.includes('getMonth()') && localDateHelper.includes('getDate()') && !localDateHelper.includes('toISOString'), 'Date-only calendar helper must use local date fields instead of UTC ISO conversion.');
 
 const deleteAllMatch = html.match(/async function ntDeleteAll\(\)\{[\s\S]*?\}\s*function buy\(/);
 requireCheck(!!deleteAllMatch && /await window\.stConfirm\(/.test(deleteAllMatch?.[0] || '') && !/\bconfirm\s*\(/.test(deleteAllMatch?.[0] || ''), 'Notification delete-all must use the internal Super Tudo confirmation dialog.');
