@@ -2716,7 +2716,7 @@ async function syncResolveConflictsUI(){
     closeProgress();
   }
   keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
-  if(!keys.length){syncStatusUpdate();return;}
+  if(!keys.length){syncStatusUpdate();await syncConflictDialog('',null,'Consulta concluída. Não há conflitos pendentes para revisar. As alterações locais e a versão da nuvem estão sincronizadas.');return;}
   for(const key of keys){
     const conflict=syncMeta.conflicts[key];
     const server=conflict?.server_record;
