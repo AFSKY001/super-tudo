@@ -20,6 +20,12 @@ const teamReadMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
+  ['cada modelo antigo tmod é convertido em checklist com o nome e as atividades', /function migrateCronogramaModelsToChecklists\(\)[\s\S]{0,1800}model\.items[\s\S]{0,900}createChecklistFromSteps\(modelName,'',titles/],
+  ['modelos antigos são removidos somente depois da conversão', /CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]{0,700}S\.tmod=remaining/],
+  ['migração usa somente os nomes das atividades', /const titles=sourceItems\.map[\s\S]{0,500}filter\(Boolean\)/],
+  ['gerador antigo não recria modelos de cronograma', /function migFix\(\)[\s\S]{0,300}fixmodels-2026[\s\S]{0,100}save\(\)/],
+  ['ficha da rotina não oferece adicionar modelo antigo', /^(?![\s\S]*function ptHTML\([\s\S]*?Adicionar\\x20modelo)/],
+  ['ficha da rotina mantém adicionar checklist completo', /function ptHTML\([\s\S]*Adicionar\\x20checklist\\x20completo/],
   ['revisão atualiza o snapshot da nuvem antes de oferecer escolhas', /async function syncResolveConflictsUI\(\)[\s\S]*?await pullCloudTeam\(\)[\s\S]*?keys=Object\.keys\(syncMeta\.conflicts/],
   ['falha ao atualizar a nuvem impede resolver com snapshot antigo', /A consulta à nuvem excedeu 15 segundos\.[\s\S]{0,700}nenhuma resolução foi aplicada/],
   ['RPC de sincronização exige sessão autenticada da mesma conta', /async function syncRequireSession\(\)[\s\S]{0,650}getSession\(\)[\s\S]{0,500}session\?\.user\?\.id/],
