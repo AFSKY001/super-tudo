@@ -2086,30 +2086,30 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 }
 
 /* Movimento único e global das janelas: sobe ao abrir e desce ao fechar, sem escala. */
-.sheet{animation:none!important;transition:none!important;transform:translate3d(0,0,0);transform-origin:bottom center}
-.sheet.st-window-entering{animation:st-window-enter 230ms cubic-bezier(.22,1,.36,1) both!important}
-.sheet.st-sheet-closing{animation:st-window-exit 210ms cubic-bezier(.4,0,1,1) both!important;pointer-events:none!important}
+.sheet{animation:none;transition:none;transform:translate3d(0,0,0);transform-origin:bottom center}
+.sheet.st-window-entering{animation:st-window-enter 230ms cubic-bezier(.22,1,.36,1) both}
+.sheet.st-sheet-closing{animation:st-window-exit 210ms cubic-bezier(.4,0,1,1) both;pointer-events:none}
 @keyframes st-window-enter{from{transform:translate3d(0,24px,0)}to{transform:translate3d(0,0,0)}}
 @keyframes st-window-exit{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,24px,0)}}
-.ov.dim.st-sheet-closing{animation:st-window-dim-out 190ms ease-in both!important;pointer-events:none!important}
+.ov.dim.st-sheet-closing{animation:st-window-dim-out 190ms ease-in both;pointer-events:none}
 @keyframes st-window-dim-out{from{opacity:1}to{opacity:0}}
 
 /* Diálogos, confirmações e alertas seguem o mesmo eixo vertical, sem zoom. */
-.st-alert-layer{transition:opacity 150ms ease,visibility 190ms ease!important}
-.st-alert-layer .st-alert-card{transform:translate3d(0,18px,0)!important;opacity:0!important;transition:transform 180ms cubic-bezier(.22,1,.36,1),opacity 150ms ease!important}
-.st-alert-layer.is-open .st-alert-card{transform:translate3d(0,0,0)!important;opacity:1!important}
-.st-alert-layer[data-position="top"] .st-alert-card,.st-alert-layer[data-position="bottom"] .st-alert-card{transform:translate3d(0,18px,0)!important}
-.st-alert-layer.is-open[data-position="top"] .st-alert-card,.st-alert-layer.is-open[data-position="bottom"] .st-alert-card{transform:translate3d(0,0,0)!important}
+.st-alert-layer{transition:opacity 150ms ease,visibility 190ms ease}
+.st-alert-layer .st-alert-card{transform:translate3d(0,18px,0);opacity:0;transition:transform 180ms cubic-bezier(.22,1,.36,1),opacity 150ms ease}
+.st-alert-layer.is-open .st-alert-card{transform:translate3d(0,0,0);opacity:1}
+.st-alert-layer[data-position="top"] .st-alert-card,.st-alert-layer[data-position="bottom"] .st-alert-card{transform:translate3d(0,18px,0)}
+.st-alert-layer.is-open[data-position="top"] .st-alert-card,.st-alert-layer.is-open[data-position="bottom"] .st-alert-card{transform:translate3d(0,0,0)}
 
 /* Menus e pop-ups também não usam escala; apenas deslocamento curto. */
-.dd,.nbx,.balloon,.dsel.open .dsel-p{animation:st-window-pop 150ms ease-out both!important}
+.dd,.nbx,.balloon,.dsel.open .dsel-p{animation:st-window-pop 150ms ease-out both}
 @keyframes st-window-pop{from{opacity:0;transform:translate3d(0,-8px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 
 @media(prefers-reduced-motion:reduce){
- .sheet.st-window-entering,.sheet.st-sheet-closing{animation:none!important;transition:none!important;transform:none!important}
- .st-alert-layer,.st-alert-layer .st-alert-card{transition:none!important}
- .st-alert-layer .st-alert-card{transform:none!important;opacity:1!important}
- .dd,.nbx,.balloon,.dsel.open .dsel-p{animation:none!important}
+ .sheet.st-window-entering,.sheet.st-sheet-closing{animation:none;transition:none;transform:none}
+ .st-alert-layer,.st-alert-layer .st-alert-card{transition:none}
+ .st-alert-layer .st-alert-card{transform:none;opacity:1}
+ .dd,.nbx,.balloon,.dsel.open .dsel-p{animation:none}
 }
 
 /* PALETA GLOBAL — tokens únicos Super Tudo */
