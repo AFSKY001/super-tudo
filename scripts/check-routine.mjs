@@ -41,4 +41,4 @@ assert.equal(Object.keys(next.occurrences).length,1,'Importação repetida não 
 
 assert.equal(Core.activeOn({...assignment,until:'2026-11-22'},'2026-11-23'),false,'Atribuição encerrada não gera no dia seguinte.');
 assert.equal(Core.activeOn(assignment,'2026-11-23'),true);
-console.log('PASS - 13 verificações do núcleo de Rotina.');
+console.log('PASS - 15 verificações do núcleo de Rotina.');
