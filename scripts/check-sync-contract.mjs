@@ -26,6 +26,7 @@ const checks = [
   ['migração usa somente os nomes das atividades', /const titles=sourceItems\.map[\s\S]{0,500}filter\(Boolean\)/],
   ['gerador antigo não recria modelos de cronograma', /function migFix\(\)[\s\S]{0,300}fixmodels-2026[\s\S]{0,100}save\(\)/],
   ['ficha da rotina não oferece adicionar modelo antigo e mantém adicionar checklist', /function ptHTML\([\s\S]*?Nenhuma\\x20atividade\\x20nesta\\x20Rotina[\s\S]*?Adicionar\\x20checklist\\x20completo/],
+  ['área de Rotinas informa que modelos antigos já foram convertidos e removidos', /modelos antigos de cronograma já foram convertidos em checklists e removidos desta área/],
   ['ficha da rotina mantém adicionar checklist completo', /function ptHTML\([\s\S]*Adicionar\\x20checklist\\x20completo/],
   ['revisão atualiza o snapshot da nuvem antes de oferecer escolhas', /async function syncResolveConflictsUI\(\)[\s\S]*?await pullCloudTeam\(\)[\s\S]*?keys=Object\.keys\(syncMeta\.conflicts/],
   ['falha ao atualizar a nuvem impede resolver com snapshot antigo', /A consulta à nuvem excedeu 15 segundos\.[\s\S]{0,700}nenhuma resolução foi aplicada/],
