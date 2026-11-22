@@ -2344,10 +2344,11 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
    checklist=CK[key]={...CK[temporary],n:name,p:'',i:titles.join('|'),l:[...titles],ph:false,legacyCronogramaId:modelId,legacyCronogramaModule:module,source:'cronograma-model-conversion'};
    delete CK[temporary];
   }else{
-   checklist.n=name;
-   checklist.i=titles.join('|');
-   checklist.l=[...titles];
-   checklist.legacyCronogramaModule=module;
+   const existing=checklist;
+   if(existing.n!==name)existing.n=name;
+   if(existing.i!==titles.join('|'))existing.i=titles.join('|');
+   if(!Array.isArray(existing.l)||JSON.stringify(existing.l)!==JSON.stringify(titles))existing.l=[...titles];
+   existing.legacyCronogramaModule=module;
   }
   completed.push({module,modelId});
   converted++;
