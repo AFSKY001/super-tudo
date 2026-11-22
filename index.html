@@ -3088,33 +3088,53 @@ host.querySelectorAll('.sheet').forEach(ensureSheet);host.querySelectorAll('.ov.
  if(!button)return;
  button.removeAttribute('onclick');
  [['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['min-width','108px'],['min-height','42px'],['flex-shrink','0'],['max-width','none'],['padding','8px 10px']].forEach(([key,value])=>button.style.setProperty(key,value,'important'));
- let touchStart=null,lastAction=0;
- function inside(x,y){
-  const r=button.getBoundingClientRect();
-  return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
+ let lastAction=0,toastTimer=0;
+ function feedback(message,isError){
+  let toast=document.getElementById('syncStatusFeedback');
+  if(!toast){
+   toast=document.createElement('div');
+   toast.id='syncStatusFeedback';
+   Object.assign(toast.style,{position:'fixed',left:'50%',top:'calc(env(safe-area-inset-top, 0px) + 76px)',transform:'translateX(-50%)',zIndex:'100001',maxWidth:'calc(100vw - 28px)',padding:'11px 15px',borderRadius:'12px',background:'var(--superficie, #fff)',color:'var(--texto, #222)',border:'1px solid var(--borda, #ccc)',boxShadow:'0 8px 28px rgba(0,0,0,.2)',font:'600 13px/1.4 system-ui',textAlign:'center',pointerEvents:'none'});
+   document.body.append(toast);
+  }
+  toast.textContent=message;
+  toast.style.display='block';
+  toast.style.borderColor=isError?'var(--cor-erro, #d33)':'var(--cor-primaria, #245BE8)';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{toast.style.display='none';},isError?6500:1800);
  }
  function invoke(event){
-  if(Date.now()-lastAction<650)return;
+  if(Date.now()-lastAction<850)return;
   lastAction=Date.now();
   if(event){event.preventDefault();event.stopPropagation();}
+  feedback('Toque recebido. Abrindo revisão da sincronização…',false);
   const action=window.runSyncStatusAction;
-  if(typeof action==='function')action();
-  else if(typeof window.stAlert==='function')window.stAlert('A ação de sincronização ainda não carregou. Atualize o aplicativo.');
+  if(typeof action!=='function'){
+   feedback('O toque chegou, mas a função de sincronização não foi carregada. Atualize o aplicativo.',true);
+   return;
+  }
+  try{
+   const result=action();
+   if(result&&typeof result.then==='function'){
+    result.catch(error=>{
+     console.error('Falha ao executar a revisão da sincronização:',error);
+     feedback('Erro ao revisar sincronização: '+(error&&error.message?error.message:'falha inesperada'),true);
+    });
+   }
+  }catch(error){
+   console.error('Falha ao executar a revisão da sincronização:',error);
+   feedback('Erro ao revisar sincronização: '+(error&&error.message?error.message:'falha inesperada'),true);
+  }
  }
- document.addEventListener('touchstart',event=>{
-  const t=event.changedTouches&&event.changedTouches[0];
-  touchStart=t&&inside(t.clientX,t.clientY)?{x:t.clientX,y:t.clientY}:null;
- },{capture:true,passive:true});
- document.addEventListener('touchend',event=>{
-  const t=event.changedTouches&&event.changedTouches[0];
-  if(!touchStart||!t)return;
-  const start=touchStart;touchStart=null;
-  const moved=Math.hypot(t.clientX-start.x,t.clientY-start.y);
-  if(moved<=18&&inside(t.clientX,t.clientY))invoke(event);
+ function inside(x,y){
+  const r=button.getBoundingClientRect();
+  return r.width>0&&r.height>0&&x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
+ }
+ document.addEventListener('pointerup',event=>{
+  if(inside(event.clientX,event.clientY))invoke(event);
  },{capture:true,passive:false});
- document.addEventListener('touchcancel',()=>{touchStart=null},true);
  button.addEventListener('click',event=>{
-  if(Date.now()-lastAction<900){event.preventDefault();event.stopPropagation();return;}
+  if(Date.now()-lastAction<850){event.preventDefault();event.stopPropagation();return;}
   invoke(event);
  },true);
 })();
