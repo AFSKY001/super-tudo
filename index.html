@@ -1254,9 +1254,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 @media(hover:hover){
   button.bt:hover{transform:translateY(-1px)}
 }
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
-
-
 /* Ajuste: logo da tela de login mais compacto */
 .login-logo{
   width:min(120px,38vw)!important;
@@ -2015,7 +2012,6 @@ input[type="checkbox"]:focus-visible,input[type="radio"]:focus-visible{box-shado
 @keyframes st-screen-enter-back{from{opacity:1;transform:translate3d(-12px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 #app.an>*{animation:st-screen-enter-forward 140ms var(--st-motion-ease) both;animation-delay:0s}
 #app.an.dl>*{animation:st-screen-enter-back 140ms var(--st-motion-ease) both;animation-delay:0s}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 /* SUPER TUDO — sistema global de movimento v9 */
 :root{--st-motion-fast:120ms;--st-motion-base:180ms;--st-motion-enter:170ms;--st-motion-sheet:200ms;--st-motion-ease:cubic-bezier(.2,.8,.25,1);--st-motion-spring:cubic-bezier(.2,.9,.25,1);--st-glass-bg:color-mix(in srgb,var(--cd) 88%,transparent);--st-glass-border:color-mix(in srgb,var(--bd) 78%,transparent)}
 @property --st-progress{syntax:"<percentage>";inherits:false;initial-value:0%}
