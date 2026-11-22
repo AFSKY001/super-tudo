@@ -17,7 +17,7 @@ const merge=(db,b)=>{const unique=(a,x)=>{const m=new Map((a||[]).map(v=>[String
 const Core={localDate,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,generate,merge};
 root.SuperTudoRoutineCore=Core;if(typeof module!=='undefined'&&module.exports)module.exports=Core;
 const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
-const S=bridge.S,V=bridge.V,CK=bridge.CK,person=bridge.person,teamOf=bridge.teamOf,isFullAccess=bridge.isFullAccess,migFix=bridge.migFix,save=bridge.save,today=bridge.today,esc=bridge.esc,rConf=bridge.rConf,rMov=bridge.rMov,rPdc=bridge.rPdc,rAvaReg=bridge.rAvaReg,rRegLanc=bridge.rRegLanc;
+const S=bridge.S,V=bridge.V,CK=bridge.CK,person=bridge.person,teamOf=bridge.teamOf,isFullAccess=bridge.isFullAccess,migFix=bridge.migFix,save=bridge.save,today=bridge.today,esc=bridge.esc,rConf=bridge.rConf,rMov=bridge.rMov,rPdc=bridge.rPdc,rAvaReg=bridge.rAvaReg,rRegLanc=bridge.rRegLanc,LANC_KEYS=bridge.LANC_KEYS,FS=bridge.FS,RSEC=bridge.RSEC;
 let R=bridge.R,rMenu=bridge.rMenu,rMenuCore=bridge.rMenuCore;
 const $=id=>root.document.getElementById(id),e=v=>esc(String(v??''));
 const uid=()=>root.crypto?.randomUUID?root.crypto.randomUUID():'rt-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
@@ -42,6 +42,7 @@ const defs=[
 {id:'avaliacao',label:'Avaliação',section:'ava',exists:()=>typeof rAvaReg==='function',feitoEm:(d,p)=>(S.ev||[]).some(r=>r.d===d&&String(r.p||'')===String(p))},
 {id:'entregas',label:'Entregas',launch:'ent',exists:()=>typeof rRegLanc==='function',feitoEm:(d,p)=>recordForPerson(S.log?.ent,d,p)}
 ];
+for(const key of LANC_KEYS||[]){if(!defs.some(f=>f.launch===key)&&FS[key])defs.push({id:'lanc_'+key,label:FS[key].n||key,launch:key,exists:()=>true});}for(const row of RSEC||[]){const key=row[0];if(key&&key!=='home'&&key!=='lanc'&&!defs.some(f=>f.section===key))defs.push({id:'sec_'+key,label:row[2]||key,section:key,exists:()=>true});}
 const FUNCOES=Object.fromEntries(defs.filter(f=>f.exists()).map(f=>[f.id,{label:f.label,abrir:()=>openFunction(f),...(f.feitoEm?{feitoEm:f.feitoEm}:{})}]));
 root.FUNCOES=FUNCOES;
 function openFunction(f){V.tab='reg';if(f.launch){V.rs='lanc';V.reg=f.launch;}else{V.rs=f.section||'home';V.reg=null;}V.rotTask=null;R();}
