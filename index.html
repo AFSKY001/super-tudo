@@ -2191,42 +2191,57 @@ const _0x2c2823=_0x754e;(function(_0x3e9400,_0x5d2996){const _0x485697=_0x754e,_
  S.migrations=Array.isArray(S.migrations)?S.migrations:[];
  if(S.migrations.includes(marker))return false;
  const models=Array.isArray(S.tmod)?S.tmod:[];
+ if(!models.length)return false;
  const dayNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
  let converted=0;
  models.forEach(model=>{
   if(!model||!model.id)return;
-  const key='c-cronograma-'+String(model.id).replace(/[^a-zA-Z0-9_-]/g,'_');
-  if(CK[key]&&CK[key].legacyCronogramaId===model.id)return;
-  const lines=[];
-  (Array.isArray(model.items)?model.items:[]).forEach(item=>{
+  (Array.isArray(model.items)?model.items:[]).forEach((item,index)=>{
    if(!item)return;
    const title=String(item.t||'').trim().replace(/\|/g,'/');
+   if(!title)return;
+   const itemId=String(item.id||index);
+   const key='c-cronograma-'+String(model.id).replace(/[^a-zA-Z0-9_-]/g,'_')+'-'+itemId.replace(/[^a-zA-Z0-9_-]/g,'_');
+   if(CK[key]&&CK[key].legacyCronogramaItemId===itemId)return;
+   const lines=[];
    const desc=String(item.desc||'').trim().replace(/\|/g,'/');
    const steps=(Array.isArray(item.steps)?item.steps:[]).map(step=>String(step||'').trim().replace(/\|/g,'/')).filter(Boolean);
-   if(!title&&!desc&&!steps.length)return;
-   if(title)lines.push(title);
+   if(steps.length){lines.push('# Etapas');lines.push(...steps);}
+   else lines.push(title);
    if(desc)lines.push('# Instruções: '+desc);
    const days=(Array.isArray(item.days)?item.days:[]).map(Number).filter(day=>Number.isInteger(day)&&day>=0&&day<7).sort((a,b)=>a-b);
    if(days.length)lines.push('# Frequência: '+days.map(day=>dayNames[day]).join(', '));
    if(item.time)lines.push('# Horário: '+String(item.time).trim());
-   if(steps.length){lines.push('# Etapas');lines.push(...steps);}
    if(item.ckid&&CK[item.ckid]){
     const linked=CK[item.ckid];
     const linkedItems=Array.isArray(linked.l)?linked.l:String(linked.i||'').split('|');
-    if(linkedItems.some(Boolean)){
+    const useful=linkedItems.map(value=>String(value||'').trim().replace(/\|/g,'/')).filter(Boolean);
+    if(useful.length){
      lines.push('# Checklist complementar: '+String(linked.n||'').replace(/\|/g,'/'));
-     lines.push(...linkedItems.map(value=>String(value||'').trim().replace(/\|/g,'/')).filter(Boolean));
+     lines.push(...useful);
     }
    }
    if(item.photoMode&&item.photoMode!=='none')lines.push('# Foto na conclusão: '+('required'===item.photoMode?'obrigatória':'opcional'));
+   CK[key]={
+    n:(String(model.n||'Cronograma').trim()+' — '+title).slice(0,160),
+    e:'☑️',
+    i:lines.join('|'),
+    l:lines,
+    k:'Rotina diária',
+    p:'',
+    m:'routine-inline',
+    ph:item.photoMode==='required',
+    legacyCronogramaId:model.id,
+    legacyCronogramaItemId:itemId,
+    source:'cronograma-conversion'
+   };
+   converted++;
   });
-  if(!lines.length)return;
-  CK[key]={n:String(model.n||'Modelo convertido').trim(),e:'☑️',i:lines.join('|'),l:lines,k:'Rotina diária',p:'',m:'routine-inline',legacyCronogramaId:model.id,source:'cronograma-conversion'};
-  converted++;
  });
+ if(!converted)return false;
  S.migrations.push(marker);
  save();
- return converted>0;
+ return true;
 }
 function rRotChecklistHub(){return '<button class="ch" type="button" onclick="V.rotChecklistHub=false;R()">‹ Voltar às rotinas</button><div class="c"><h3>Modelos de checklist</h3><p class="mu">Gerencie aqui os modelos que podem ser vinculados às atividades. O checklist continua integrado à execução da rotina.</p></div>'+rotChecklistModels();}function rRotReg(){
  const _0x458456=_0x2c2823;
