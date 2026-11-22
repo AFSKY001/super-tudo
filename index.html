@@ -3070,5 +3070,24 @@ document.addEventListener('lostpointercapture',lostCapture,true);
 document.addEventListener('keydown',handleKeydown,true);
 host.querySelectorAll('.sheet').forEach(ensureSheet);host.querySelectorAll('.ov.dim').forEach(ensureOverlay);
 })();</script>
+
+<style id="sync-status-mobile-fix">
+#syncStatus{position:relative!important;z-index:2147482000!important;pointer-events:auto!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;min-width:108px!important;min-height:42px!important;flex-shrink:0!important}
+@media(max-width:1023px){#syncStatus{max-width:none!important;width:auto!important;padding:8px 10px!important;font-size:10px!important}}
+</style>
+<script>
+(function(){
+ function activate(event){
+  const target=event.target&&event.target.nodeType===1?event.target:event.target&&event.target.parentElement;
+  const control=target&&target.closest?target.closest('#syncStatus'):null;
+  if(!control)return;
+  event.preventDefault();event.stopPropagation();
+  if(typeof window.runSyncStatusAction==='function')window.runSyncStatusAction();
+  else window.alert('A ação de sincronização ainda não carregou. Reabra o Super Tudo.');
+ }
+ document.addEventListener('pointerup',event=>{if(event.pointerType==='touch')activate(event)},true);
+ document.addEventListener('click',activate,true);
+})();
+</script>
 <script src="/routine.js"></script></body></html>
 
