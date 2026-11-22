@@ -351,6 +351,18 @@ requireCheck(!html.includes('.ch{border:1px solid var(--bd);background:var(--cd)
 requireCheck(html.includes('function launchFunctionSummary(key,rows)') && html.includes("launchFunctionSummary(V['reg'],_0x99ff35)"), 'Each launch function must render its own data-driven summary below its primary action card.');
 requireCheck(html.includes('Resumo das temperaturas') && html.includes('Medições encontradas') && html.includes('Equipamentos medidos'), 'Temperature launch must expose its own filtered summary.');
 requireCheck(!html.includes('Painel compacto e contextual para cada tela do menu Registro/Lançamentos') && !html.includes('setInterval(schedule,1800)'), 'The ineffective generic launch summary observer must not be present.');
+const sheetControllerStart = html.lastIndexOf('/* Controlador global de janelas: entrada/saída preservadas e arraste físico único. */');
+const sheetController = sheetControllerStart >= 0 ? html.slice(sheetControllerStart) : '';
+requireCheck((html.match(/Controlador global de janelas: entrada\/saída preservadas e arraste físico único/g) || []).length === 1, 'Exactly one global sheet controller must exist.');
+requireCheck(!sheetController.includes("handle.addEventListener('pointerdown'") && !sheetController.includes("handle.addEventListener('pointermove'"), 'Sheet handles must not own duplicated pointer listeners.');
+requireCheck(sheetController.includes("document.addEventListener('pointerdown',onPointerDown,true)") && sheetController.includes("document.addEventListener('pointermove',onPointerMove,{capture:true,passive:false})") && sheetController.includes("document.addEventListener('pointerup',event=>finishDrag(event,false),true)"), 'Sheet gestures must use delegated Pointer Events.');
+requireCheck(sheetController.includes('setPointerCapture(event.pointerId)') && sheetController.includes('requestAnimationFrame(tick)') && sheetController.includes('VELOCITY_WINDOW_MS:100'), 'Sheet drag must capture the pointer, sample recent velocity and animate with requestAnimationFrame.');
+requireCheck(sheetController.includes('RUBBER_MAX:140') && sheetController.includes('CLOSE_DIST:.30') && sheetController.includes('CLOSE_VEL:600') && sheetController.includes('SPRING_BOUNCE') && sheetController.includes('SPRING_CLOSE'), 'Sheet physics thresholds and spring presets must remain centralized.');
+requireCheck(sheetController.includes("setAttribute('data-sheet','')") && sheetController.includes("setAttribute('data-sheet-handle','')") && sheetController.includes("setAttribute('data-sheet-overlay','')"), 'Sheets, handles and overlays must expose shared data attributes.');
+requireCheck(html.includes('height:44px;min-height:44px;margin:-16px 0 -2px;') && html.includes('.st-sheet-underfill{position:fixed;'), 'Sheet handle must have a 44px target with unchanged net layout contribution, and upward drag must fill the bottom gap.');
+requireCheck(html.includes('var(--st-window-exit-from,translate3d(0,0,0))') && html.includes('var(--st-window-overlay-exit-from,1)'), 'Existing sheet exit animations must begin at the current visual position and opacity.');
+requireCheck(sheetController.includes("matchMedia('(prefers-reduced-motion: reduce)')") && sheetController.includes("document.addEventListener('pointercancel'"), 'Reduced-motion preference and pointer cancellation must be handled.');
+
 for (const name of Object.keys(ceilings)) {
   requireCheck(
     legacyDialogs[name] <= ceilings[name],
