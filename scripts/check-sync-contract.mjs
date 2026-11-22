@@ -45,6 +45,8 @@ const checks = [
   ['revisão usa o snapshot remoto já guardado sem bloquear a abertura', /const server=conflict\?\.server_record;[\s\S]{0,500}syncConflictDialog\(key,server/],
   ['revisão não espera a consulta da nuvem para mostrar as escolhas', /async function syncResolveConflictsUI\(\)[\s\S]*?syncConflictDialog\(key,server/],
   ['diálogo de conflito usa interface do aplicativo', /function syncConflictDialog\(/],
+  ['diálogo de conflito dinâmico nasce visível e interativo', /function syncConflictDialog\([\s\S]{0,300}overlay\.className='ov dim open'/],
+  ['progresso de sincronização dinâmico nasce visível', /function syncConflictProgress\([\s\S]{0,300}overlay\.className='ov dim open'/],
   ['comparação de versões locais e nuvem é exibida', /Comparação dos dados[\s\S]{0,1800}Neste aparelho[\s\S]{0,500}Na nuvem/],
   ['valores de conflito são renderizados como texto seguro', /textContent=syncConflictValue\(/],
   ['campos comparados são limitados para proteger a interface', /fields\.slice\(0,12\)/],
@@ -58,6 +60,8 @@ const checks = [
   ['há revisão específica de operações recusadas', /async function syncBlockedQueueUI\(\)/],
   ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*await syncResolveConflictsUI\(\)/],
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
+  ['modelo convertido fornece a lista de itens exigida pelo renderizador', /CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]{0,180}l:\[\.\.\.titles\]/],
+  ['migração atualiza nome e itens dos modelos já convertidos', /existing\.l=\[\.\.\.titles\][\s\S]{0,180}existing\.n=modelName/],
 ];
 
 const permissionChecks = [
