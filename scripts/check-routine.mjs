@@ -35,7 +35,15 @@ const immutable=Core.generate({models:[changed],assignments:[assignment],occurre
 assert.equal(immutable.updated.length,0,'Ocorrência concluída permanece imutável.');
 assert.equal(completed.snapshot.title,'Conferir setor');
 
+assert.equal(Core.activeOn({...assignment,until:'2026-11-22'},'2026-11-23'),false,'Atribuição encerrada não gera no dia seguinte.');
+assert.equal(Core.activeOn(assignment,'2026-11-23'),true);
+assert.equal(Core.dateValue('2026-11-23'),'2026-11-23','Data sem horário deve preservar o dia do calendário.');
+assert.equal(Core.dateValue('23/11/2026'),'2026-11-23','Data brasileira deve ser normalizada.');
+const instant='2026-11-23T01:30:00Z';
+assert.equal(Core.dateValue(instant),Core.localDate(new Date(instant)),'Timestamp ISO deve ser convertido para o dia local.');
+assert.equal(Core.dateValue('data-inválida'),'','Data inválida não pode gerar ocorrência.');
+
 assert.equal(Core.state(first.created[0],new Date(2026,10,24,0,1)),'overdue','Ocorrência do dia anterior fica atrasada após a virada local.');
 assert.equal(Core.state(first.created[0],new Date(2026,10,22,23,59)),'pending','Ocorrência futura não fica atrasada antes do dia.');
 
-console.log('PASS - verificações do núcleo de Rotina, datas locais, merge e imutabilidade.');
+console.log('PASS - verificações do núcleo de Rotina, datas locais, migração de dias e imutabilidade.');
