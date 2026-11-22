@@ -42,9 +42,8 @@ const checks = [
   ['conflito vindo do envio guarda snapshot da nuvem', /'server_record':_0x1134c5&&null!=_0x1134c5\['server_revision'\]/],
   ['conflito vindo do recebimento guarda snapshot da nuvem', /'server_record':_0x3e9d29/],
   ['existe resolução manual de conflitos', /async function syncResolveConflictsUI\(\)/],
-  ['atualiza snapshot remoto antes de apresentar escolha', /try\{await pullCloudTeam\(\);\}/],
-  ['revisão mostra progresso antes de consultar a nuvem', /function syncConflictProgress\([\s\S]{0,900}Consultando a nuvem para carregar os conflitos/],
-  ['consulta de conflitos tem limite de espera', /Promise\.race\([\s\S]{0,500}15000/],
+  ['revisão usa o snapshot remoto já guardado sem bloquear a abertura', /const server=conflict\?\.server_record;[\s\S]{0,500}syncConflictDialog\(key,server/],
+  ['revisão não espera a consulta da nuvem para mostrar as escolhas', /async function syncResolveConflictsUI\(\)[\s\S]{0,900}syncConflictDialog\(key,server/],
   ['diálogo de conflito usa interface do aplicativo', /function syncConflictDialog\(/],
   ['comparação de versões locais e nuvem é exibida', /Comparação dos dados[\s\S]{0,1800}Neste aparelho[\s\S]{0,500}Na nuvem/],
   ['valores de conflito são renderizados como texto seguro', /textContent=syncConflictValue\(/],
@@ -57,7 +56,7 @@ const checks = [
   ['indicador de sincronização aceita toque', /#syncStatus\{[\s\S]{0,500}touch-action:manipulation/],
   ['fila bloqueada não é apresentada como envio ativo', /_0xblocked=\(syncMeta\['queue'\]\|\|\[\]\)\.filter/],
   ['há revisão específica de operações recusadas', /async function syncBlockedQueueUI\(\)/],
-  ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*syncResolveConflictsUI\(\)/],
+  ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*await syncResolveConflictsUI\(\)/],
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
 ];
 
