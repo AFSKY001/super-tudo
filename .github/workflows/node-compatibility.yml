@@ -47,7 +47,17 @@ jobs:
       - name: Verify protected distribution
         run: |
           test -s dist/index.html
+          test -s dist/avaliacao.html
           test -s dist/sw.js
           test -s dist/manifest.webmanifest
-          test "$(find dist -type f | wc -l | tr -d ' ')" = "6"
+          test -s dist/logo.webp
+          test -s dist/icon.svg
+          test -s dist/routine.js
+          test -s dist/LICENSE
+          test ! -d dist/supabase
+          test ! -d dist/.github
+          test ! -d dist/scripts
+          test ! -f dist/package.json
+          test ! -f dist/package-lock.json
+          test "$(find dist -type f | wc -l | tr -d ' ')" = "8"
           ! find dist -type f -name '*.map' | grep .
