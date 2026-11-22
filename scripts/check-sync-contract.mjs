@@ -52,6 +52,7 @@ const checks = [
   ['Realtime informa o estado da inscrição', /\['subscribe'\]\(function\(status\)/],
   ['controle de sincronização é acessível por teclado', /document\.addEventListener\('keydown'/],
   ['toque no status é capturado antes de handlers que interrompem propagação', /document\.addEventListener\('click',event=>[\s\S]{0,700}\},true\);/],
+  ['ação direta do indicador de sincronização', /control\.onclick=event=>\s*\{\s*event\.preventDefault\(\);\s*runSyncStatusAction\(\);\s*\}/],
   ['atalho de teclado do status também usa captura', /document\.addEventListener\('keydown',event=>[\s\S]{0,700}\},true\);/],
   ['fila bloqueada não é apresentada como envio ativo', /_0xblocked=\(syncMeta\['queue'\]\|\|\[\]\)\.filter/],
   ['há revisão específica de operações recusadas', /async function syncBlockedQueueUI\(\)/],
