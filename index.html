@@ -2309,7 +2309,7 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
    if(title&&!title.startsWith('#')&&!seen.has(normalize(title))){seen.add(normalize(title));output.push(title);}
   };
   const itemText=item=>typeof item==='string'?item:(item&&typeof item==='object'?(item.t??item.title??item.name??item.atividade??item.atividades??item.titulo??item.label??item.text??item.value??item.descricao??item.description??item.nome??''):'');
-  const direct=[model.items,model.itens,model.activities,model.tasks,model.atividades,model.steps,model.l,model.a,model.acts,model.list,model.data?.items,model.data?.activities,model.data?.tasks,model.dias,model.days,model.semana,model.schedule,model.rotina];
+  const direct=[model.items,model.itens,model.activities,model.tasks,model.atividades,model.steps,model.l,model.a,model.acts,model.list,model.data,model.data?.items,model.data?.activities,model.data?.tasks,model.cronograma,model.agenda,model.programacao,model.programacaoSemanal,model.dias,model.days,model.semana,model.schedule,model.rotina];
   const walk=(value,depth=0)=>{
    if(depth>6||value==null)return;
    if(typeof value==='string'){add(value);return;}
@@ -2321,7 +2321,7 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
     }
    }
   };
-  for(const candidate of direct)if(Array.isArray(candidate)&&candidate.length)walk(candidate);
+  for(const candidate of direct)if(candidate&&(Array.isArray(candidate)||typeof candidate==='object'))walk(candidate);
   if(!output.length){
    for(const key of ['cronograma','agenda','programacao','programacaoSemanal','semana','schedule','dias','days'])walk(model[key]);
   }
