@@ -8,6 +8,7 @@ const root = process.cwd();
 const dist = path.join(root, 'dist');
 const runtimeFiles = [
   'index.html',
+  'routine.js',
   'avaliacao.html',
   'sw.js',
   'manifest.webmanifest',
