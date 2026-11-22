@@ -20,6 +20,8 @@ const teamReadMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
+  ['revisão atualiza o snapshot da nuvem antes de oferecer escolhas', /async function syncResolveConflictsUI\(\)[\s\S]*?await pullCloudTeam\(\)[\s\S]*?keys=Object\.keys\(syncMeta\.conflicts/],
+  ['falha ao atualizar a nuvem impede resolver com snapshot antigo', /A consulta à nuvem excedeu 15 segundos\.[\s\S]{0,700}nenhuma resolução foi aplicada/],
   ['RPC de sincronização exige sessão autenticada da mesma conta', /async function syncRequireSession\(\)[\s\S]{0,650}getSession\(\)[\s\S]{0,500}session\?\.user\?\.id/],
   ['envio valida sessão antes de transmitir a fila', /async function syncFlushRun\(\)[\s\S]{0,600}await syncRequireSession\(\)/],
   ['recebimento valida sessão antes de consultar a nuvem', /async function pullCloudTeamRun\(\)[\s\S]{0,350}await syncRequireSession\(\)/],
