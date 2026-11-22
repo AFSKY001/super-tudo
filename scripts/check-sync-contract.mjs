@@ -51,6 +51,8 @@ const checks = [
   ['usar nuvem aplica a versão remota', /syncApplyRecord\(server\)/],
   ['Realtime informa o estado da inscrição', /\['subscribe'\]\(function\(status\)/],
   ['controle de sincronização é acessível por teclado', /document\.addEventListener\('keydown'/],
+  ['toque no status é capturado antes de handlers que interrompem propagação', /document\\.addEventListener\\('click',[\\s\\S]{0,500}event\\.stopImmediatePropagation\\(\\)[\\s\\S]{0,80}\\},true\\)/],
+  ['atalho de teclado do status também usa captura', /document\\.addEventListener\\('keydown',[\\s\\S]{0,500}event\\.stopImmediatePropagation\\(\\)[\\s\\S]{0,80}\\},true\\)/],
   ['fila bloqueada não é apresentada como envio ativo', /_0xblocked=\(syncMeta\['queue'\]\|\|\[\]\)\.filter/],
   ['há revisão específica de operações recusadas', /async function syncBlockedQueueUI\(\)/],
   ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*syncResolveConflictsUI\(\)/],
