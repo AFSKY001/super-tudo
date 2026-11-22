@@ -2974,6 +2974,7 @@ window.addEventListener('online',flush);window.addEventListener('st-user-ready',
    const dt=Math.min(Math.max((now-last)/1000,1/240),1/30);last=now;
    v+=(-config.k*(x-to)-config.c*v)*dt;x+=v*dt;
    if(to>0&&x>to){x=to;v=0;}
+   if(to===0&&x< -PHYSICS.RUBBER_MAX){x= -PHYSICS.RUBBER_MAX;v=Math.max(0,v);}
    setPosition(sheet,x,overlay,baseOpacity,bottomAnchored);
    if(Math.abs(v)<8&&Math.abs(x-to)<.5){
     setPosition(sheet,to,overlay,baseOpacity,bottomAnchored);
