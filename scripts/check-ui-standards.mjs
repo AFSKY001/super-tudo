@@ -391,21 +391,23 @@ requireCheck(sheetController.includes('EXTRA_SPACE:220') && sheetController.incl
 requireCheck(sheetController.includes("sheet.querySelector(':scope > .sheet-body')") && sheetController.includes("body.className='sheet-body'") && sheetController.includes("overlay.classList.add('dragging')"), 'The global controller must create one scroll body and synchronize overlay motion.');
 requireCheck(!html.includes('function handleSheet(s)') && !html.includes("handle.addEventListener('pointerdown'") && !html.includes('.st-sheet-underfill{'), 'Legacy per-handle drag listeners and obsolete underfill CSS must be removed.');
 
-const routinesRouteStart=html.indexOf('function rRotReg(){');
-const routinesRouteEnd=html.indexOf('function rCroReg()',routinesRouteStart);
-const routinesRoute=routinesRouteStart>=0&&routinesRouteEnd>routinesRouteStart?html.slice(routinesRouteStart,routinesRouteEnd):'';
-requireCheck(routinesRoute.includes('migrateCronogramaModelsToChecklists()')&&routinesRoute.includes('rRotChecklistHub()')&&routinesRoute.includes('Modelos de checklist')&&!routinesRoute.includes('tmList()')&&!routinesRoute.includes('tmEditor()'), 'Rotinas must expose checklist models only and stop rendering the old cronograma template editor/list.');
 const migrationStart=html.indexOf('function migrateCronogramaModelsToChecklists(){');
 const migrationEnd=html.indexOf('function rRotChecklistHub(){',migrationStart);
 const migrationSource=migrationStart>=0&&migrationEnd>migrationStart?html.slice(migrationStart,migrationEnd):'';
 requireCheck(!!migrationSource, 'Cronograma-to-checklist migration must be present before the checklist hub.');
+const routinesRouteStart=html.indexOf('function rRotReg(){');
+const routinesRouteEnd=html.indexOf('function rCroReg()',routinesRouteStart);
+const routinesRoute=routinesRouteStart>=0&&routinesRouteEnd>routinesRouteStart?html.slice(routinesRouteStart,routinesRouteEnd):'';
+requireCheck(routinesRoute.includes('migrateCronogramaModelsToChecklists()')&&routinesRoute.includes('rRotChecklistHub()')&&routinesRoute.includes('Modelos de checklist')&&!routinesRoute.includes('tmList()')&&!routinesRoute.includes('tmEditor()'), 'Rotinas must expose checklist models and hide the old cronograma template editor/list.');
+requireCheck(html.includes('syncPersist(),migrateCronogramaModelsToChecklists(),_0x32cd9d;'), 'Cronograma migration must run again after cloud data is pulled.');
+requireCheck(!html.includes('function exportTempRecovery(){')&&!html.includes('Importar JSON')&&!html.includes('Exportar JSON'), 'Obsolete JSON recovery import/export controls must not be present.');
 try {
   const fixtureModels=[{id:'tm-test',n:'Abertura',items:[
     {id:'activity-1',t:'Conferir salão',desc:'Verificar limpeza',days:[1,2,3],time:'07:00',steps:['Ligar luzes','Conferir equipamentos'],ckid:'c-linked',photoMode:'required'},
     {id:'activity-2',t:'Conferir estoque',desc:'Contar produtos',days:[1,4],time:'08:00',steps:[],ckid:'',photoMode:'optional'}
   ]}];
   const fixtureCK={'c-linked':{n:'Complementar',i:'Conferir extintores|Conferir saídas',l:['Conferir extintores','Conferir saídas']}};
-  const fixtureState={tmod:fixtureModels,migrations:[]};
+  const fixtureState={tmod:fixtureModels,migrations:['cronogramas-para-checklists-v2']};
   let fixtureSaves=0;
   const fixtureLz=()=>Object.values(fixtureCK).forEach(model=>{if(typeof model.i==='string')model.l=model.i.split('|');});
   const fixtureSave=()=>{fixtureSaves++;return true;};
@@ -415,13 +417,23 @@ try {
   const secondRun=migrate();
   const firstChecklist=fixtureCK['c-cronograma-tm-test-activity-1'];
   const secondChecklist=fixtureCK['c-cronograma-tm-test-activity-2'];
-  requireCheck(firstRun===true&&secondRun===false&&fixtureSaves===1, 'Cronograma migration must run once and persist once without duplicating checklists.');
-  requireCheck(!!firstChecklist&&!!secondChecklist, 'Each cronograma activity must become its own checklist model.');
-  requireCheck(firstChecklist?.l?.includes('# Atividade: Conferir salão')&&firstChecklist?.l?.includes('Ligar luzes')&&firstChecklist?.l?.includes('Conferir equipamentos'), 'Converted checklist must preserve the activity title and its steps.');
+  requireCheck(firstRun===true&&secondRun===false&&fixtureSaves===1, 'Migration must convert once, persist once and avoid duplicate checklist models.');
+  requireCheck(!!firstChecklist&&!!secondChecklist, 'Every cronograma activity must become its own checklist model.');
+  requireCheck(firstChecklist?.m==='routine-inline'&&firstChecklist?.p===''&&firstChecklist?.k==='Rotina diária', 'Converted models must use the checklist model schema expected by the existing editor and list.');
+  requireCheck(firstChecklist?.l?.includes('# Atividade: Conferir salão')&&firstChecklist?.l?.includes('Ligar luzes')&&firstChecklist?.l?.includes('Conferir equipamentos'), 'Converted checklist must preserve activity title and steps.');
   requireCheck(firstChecklist?.l?.includes('# Instruções: Verificar limpeza')&&firstChecklist?.l?.includes('# Frequência: Seg, Ter, Qua')&&firstChecklist?.l?.includes('# Horário: 07:00'), 'Converted checklist must preserve instructions, weekdays and time.');
-  requireCheck(firstChecklist?.l?.includes('Conferir extintores')&&firstChecklist?.l?.includes('Conferir saídas'), 'Converted checklist must preserve a linked checklist.');
+  requireCheck(firstChecklist?.l?.includes('Conferir extintores')&&firstChecklist?.l?.includes('Conferir saídas'), 'Converted checklist must preserve linked checklist items.');
   requireCheck(firstChecklist?.ph===true&&secondChecklist?.ph===false, 'Converted checklist must preserve required and optional photo rules.');
-  requireCheck(fixtureState.tmod.length===1&&fixtureState.migrations.includes('cronogramas-para-checklists-v2'), 'Migration must retain original cronograma data and record its one-time marker.');
+  requireCheck(fixtureState.tmod.length===1&&fixtureState.migrations.includes('cronogramas-para-checklists-v3'), 'Original cronograma records must remain stored and migration v3 must be marked.');
+  fixtureState.tmod[0].items.push({id:'activity-late',t:'Nova atividade',steps:['Passo novo'],days:[5],photoMode:'none'});
+  const lateRun=migrate();
+  requireCheck(lateRun===true&&!!fixtureCK['c-cronograma-tm-test-activity-late']&&fixtureSaves===2, 'New cronograma models received after the first sync must also be converted even when the migration marker already exists.');
+  const legacyId='c-cronograma-tm-test-activity-legacy';
+  fixtureState.tmod[0].items.push({id:'activity-legacy',t:'Atividade já migrada',steps:['Etapa preservada'],days:[1],photoMode:'required'});
+  fixtureCK[legacyId]={n:'Abertura — Atividade já migrada',e:'☑️',i:'# Atividade: Atividade já migrada|Etapa preservada',l:['# Atividade: Atividade já migrada','Etapa preservada'],legacyCronogramaId:'tm-test',legacyCronogramaItemId:'activity-legacy',source:'cronograma-conversion',ph:true};
+  const repairRun=migrate();
+  requireCheck(repairRun===true&&fixtureCK[legacyId].m==='routine-inline'&&fixtureCK[legacyId].p==='', 'Previously converted models must be upgraded to the real checklist schema without overwriting their content.');
+  requireCheck(fixtureState.tmod.length===1, 'Original cronograma models must not be deleted by conversion.');
 } catch(error) {
   failures.push('Cronograma migration fixture test failed: '+error.message);
 }
