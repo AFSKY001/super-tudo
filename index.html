@@ -76,7 +76,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:5px 4px;text-align:left}
 .rail .rb.on{background:var(--pr);color:var(--on);border-color:var(--pr)}
 .rail .rb small{font-size:9px;line-height:1.05;font-weight:700;text-align:center}
 .rwrap{position:relative}
-.balloon{position:absolute;left:70px;top:0;z-index:20;background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:6px;box-shadow:0 8px 24px color-mix(in srgb,var(--fundo) 25%,transparent);display:flex;flex-direction:column;gap:4px;min-width:190px;max-height:min(260px,42vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.balloon{position:absolute;left:70px;top:0;z-index:20;background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:6px;box-shadow:0 8px 24px color-mix(in srgb,var(--fundo) 25%,transparent);display:flex;flex-direction:column;gap:4px;min-width:190px;max-height:min(260px,42vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .balloon button{text-align:left;border:0;background:var(--bg);color:var(--tx);border-radius:8px;padding:8px 10px;font:13px system-ui}
 .balloon button.on{background:var(--pr);color:var(--on)}
 .an.dr>*{animation:pgR .45s cubic-bezier(.2,.8,.2,1) both}
@@ -2940,8 +2940,8 @@ function retainForExit(node){
  const list=sheets(node),overlays=[];if(node.matches('.ov.dim'))overlays.push(node);if(node.querySelectorAll)overlays.push(...node.querySelectorAll('.ov.dim'));
  if(!list.length&&!overlays.length)return;pending.add(node);
  for(const sheet of list){cancelSpring(sheet);const y=readY(sheet);sheet.style.setProperty('--st-window-exit-from','translate3d(0,'+y.toFixed(2)+'px,0)');sheet.classList.remove('open','st-window-entering','st-sheet-dragging','st-sheet-settling');sheet.style.removeProperty('transform');sheet.classList.add('st-sheet-closing');sheet.setAttribute('aria-hidden','true');}
- for(const overlay of overlays){overlay.classList.remove('open','dragging');overlay.style.removeProperty('--p');overlay.classList.add('st-sheet-closing');overlay.setAttribute('aria-hidden','true');}
- host.appendChild(node);window.setTimeout(()=>{if(node.parentNode===host)node.remove();},overlays.length?210:EXIT_MS);
+ for(const overlay of overlays){const current=parseFloat(getComputedStyle(overlay).getPropertyValue('--p'));overlay.style.setProperty('--p',String(Number.isFinite(current)?current:1));overlay.classList.remove('open','dragging');overlay.classList.add('st-sheet-closing');overlay.setAttribute('aria-hidden','true');}
+ host.appendChild(node);for(const overlay of overlays){void overlay.offsetWidth;overlay.style.setProperty('--p','0');}window.setTimeout(()=>{if(node.parentNode===host)node.remove();},overlays.length?210:EXIT_MS);
 }
 function enter(node){for(const sheet of sheets(node)){if(sheet.classList.contains('st-sheet-closing')||pending.has(node))continue;ensureSheet(sheet);sheet.classList.remove('st-window-entering');void sheet.offsetWidth;sheet.classList.add('st-window-entering');sheet.addEventListener('animationend',event=>{if(event.target===sheet&&event.animationName==='st-window-enter')sheet.classList.remove('st-window-entering');},{once:true});}}
 const observer=new MutationObserver(records=>{const removed=[],added=[];for(const record of records){for(const n of record.removedNodes)if(elements(n))removed.push(n);for(const n of record.addedNodes)if(elements(n))added.push(n);}for(const n of removed)retainForExit(n);for(const n of added){if(n.matches('.ov.dim'))ensureOverlay(n);for(const sheet of sheets(n))ensureSheet(sheet);if(sheets(n).length&&!pending.has(n))enter(n);}});
