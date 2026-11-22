@@ -5,13 +5,14 @@ const root = process.cwd();
 const read = file => fs.readFile(path.join(root, file), 'utf8');
 const failures = [];
 
-const [html, rules, agent, sw, packageJson, packageLock] = await Promise.all([
+const [html, rules, agent, sw, packageJson, packageLock, routine] = await Promise.all([
   read('index.html'),
   read('docs/UI-DESIGN-SYSTEM.md'),
   read('AGENTS.md'),
   read('sw.js'),
   read('package.json'),
-  read('package-lock.json')
+  read('package-lock.json'),
+  read('routine.js')
 ]);
 
 const pkg = JSON.parse(packageJson);
@@ -31,6 +32,10 @@ requireCheck(/^\d+\.\d+\.\d+$/.test(String(pkg.version || '')), 'package.json mu
 requireCheck(lock.version === pkg.version && lock.packages?.['']?.version === pkg.version, 'package-lock.json root versions must match package.json.');
 requireCheck(sourceVersion?.[1] === pkg.version, 'index.html APP_VERSION must match package.json.');
 requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match package.json.');
+requireCheck(html.includes('<script src="/routine.js"></script>') && /'routine.js'/.test((await read('scripts/build-protected.mjs'))), 'Unified routine module must be loaded and included in the protected deployment.');
+requireCheck(!routine.includes('toISOString') && routine.includes("indexedDB.open('super-tudo-routine-photos'") && routine.includes("'image/jpeg',.7") && routine.includes('900/Math.max'), 'Routine dates must stay local and proof photos must be compressed into IndexedDB.');
+requireCheck(routine.includes('routine-v1') && routine.includes('routineOccurrences') && routine.includes('assignmentId') && routine.includes('updatedAt'), 'Routine migration, occurrence history, and update timestamps must be present.');
+try { new Function(routine); console.log('PASS - sintaxe do módulo externo de Rotina'); } catch (error) { failures.push('routine.js must have valid JavaScript syntax: ' + error.message); }
 requireCheck(!!localDateHelper && localDateHelper.includes('getFullYear()') && localDateHelper.includes('getMonth()') && localDateHelper.includes('getDate()') && !localDateHelper.includes('toISOString'), 'Date-only calendar helper must use local date fields instead of UTC ISO conversion.');
 
 const deleteAllMatch = html.match(/async function ntDeleteAll\(\)\{[\s\S]*?\}\s*function buy\(/);
