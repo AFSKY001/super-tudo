@@ -20,6 +20,11 @@ const teamReadMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
+  ['envio e recebimento usam fila serial única sem espera circular', /function enqueueSyncOperation\([\s\S]{0,900}syncOperationQueue=run\.catch\(\(\)=>\{\}\)[\s\S]{0,1200}async function pullCloudTeam\(\)[\s\S]{0,250}enqueueSyncOperation\(\(\)=>pullCloudTeamRun\(\)\)/],
+  ['revisão aguarda promessas de sincronização já iniciadas', /while\(syncBusy\|\|syncPullBusy\|\|syncFlushPromise\|\|syncPullPromise\)/],
+  ['erro de envio é preservado para não anunciar sucesso falso', /syncLastError=String\(_0x2f91dd&&_0x2f91dd\.message/],
+  ['diálogo de sincronização fica acima das camadas globais', /zIndex:'2147483001'/],
+  ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
   ['modelos e atribuições de Rotina entram na sincronização multiempresa', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
   ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:cro'/],
   ['cliente aplica modelos, atribuições e ocorrências recebidos da nuvem', /'routineModels'!==_0x3419a0&&'routineAssignments'!==_0x3419a0[\s\S]{0,1100}'routineOccurrences'===_0x3419a0/],
