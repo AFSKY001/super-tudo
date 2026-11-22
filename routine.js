@@ -67,7 +67,7 @@ function migrate(){
    legacyChecklistByPerson:{...(item.ckByPerson||{})},
    source:{type:source,checklistId:item.ckid||''},functionId:'',
    photo:item.photoMode==='required'?'required':item.photoMode==='optional'?'optional':'none',
-   mandatory:false,recurrence:recurrenceFor(item.days),time:item.time||'08:00',tolerance:0,updatedAt:Date.now()
+   mandatory:false,recurrence:recurrenceFor(item.days),time:item.time||'08:00',updatedAt:Date.now()
   });
  };
  for(const old of S.tmod||[]){
@@ -80,7 +80,7 @@ function migrate(){
     if(turns.length)turns.forEach((turn,index)=>activities.push(activityFrom(item,turn,index,'legacy-model-checklist')));
     else activities.push(activityFrom(item,'',0,'legacy-model'));
    }
-   D.models.push(touch({id,name:old.n||'Rotina migrada',description:'Migrada do modelo antigo de cronograma.',profile:'',sector:'',legacyId:old.id,activities,createdAt:Date.now()}));
+   D.models.push(touch({id,name:old.n||'Rotina migrada',description:'Migrada do modelo antigo de cronograma.',legacyId:old.id,activities,createdAt:Date.now()}));
   }
   modelMap.set(String(old.id),id);
  }
@@ -105,10 +105,10 @@ function migrate(){
       description:row.desc||'',steps,checklistSnapshot:[...steps],turns:row.ckt?[String(row.ckt)]:[],
       source:{type:'legacy-personal-checklist',checklistId:row.ckid||'',legacyCkId:row.legacyCkId||''},
       functionId:'',photo:row.photoMode==='required'?'required':row.photoMode==='optional'?'optional':'none',
-      mandatory:false,recurrence:recurrenceFor(row.days),time:row.time||'08:00',tolerance:0,updatedAt:Date.now()
+      mandatory:false,recurrence:recurrenceFor(row.days),time:row.time||'08:00',updatedAt:Date.now()
      });
     });
-    D.models.push(touch({id:modelId,name:first.t||'Rotina individual migrada',description:'Atividade individual migrada do cronograma/checklist.',profile:'',sector:'',legacyId:first.id,activities,createdAt:Date.now()}));
+    D.models.push(touch({id:modelId,name:first.t||'Rotina individual migrada',description:'Atividade individual migrada do cronograma/checklist.',legacyId:first.id,activities,createdAt:Date.now()}));
    }
   }
   const archivedAt=rows.map(row=>row.archivedAt).filter(Boolean).sort().at(-1)||null;
@@ -144,9 +144,9 @@ function migrate(){
      description:old.desc||'',steps:[...steps],checklistSnapshot:[...steps],turns:turn?[String(turn)]:[],
      legacyChecklistByPerson:{...(old.ckByPerson||{})},source:{type:'legacy-task',taskId:old.id,checklistId:ckid},
      functionId:'',photo:old.photoMode==='required'?'required':old.photoMode==='optional'?'optional':'none',
-     mandatory:false,recurrence:repeat,time:old.time||'08:00',tolerance:0,updatedAt:Date.now()
+     mandatory:false,recurrence:repeat,time:old.time||'08:00',updatedAt:Date.now()
     }));
-    D.models.push(touch({id:modelId,name:old.t||'Cronograma migrado',description:old.desc||'',profile:'',sector:'',legacyId:old.id,activities,createdAt:Date.now()}));
+    D.models.push(touch({id:modelId,name:old.t||'Cronograma migrado',description:old.desc||'',legacyId:old.id,activities,createdAt:Date.now()}));
    }
    if(target){
     const assignmentId='legacy-task-assignment-'+old.id+'-'+pid;
