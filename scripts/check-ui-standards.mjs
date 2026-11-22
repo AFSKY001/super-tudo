@@ -391,6 +391,37 @@ requireCheck(sheetController.includes('EXTRA_SPACE:220') && sheetController.incl
 requireCheck(sheetController.includes("sheet.querySelector(':scope > .sheet-body')") && sheetController.includes("body.className='sheet-body'") && sheetController.includes("overlay.classList.add('dragging')"), 'The global controller must create one scroll body and synchronize overlay motion.');
 requireCheck(!html.includes('function handleSheet(s)') && !html.includes("handle.addEventListener('pointerdown'") && !html.includes('.st-sheet-underfill{'), 'Legacy per-handle drag listeners and obsolete underfill CSS must be removed.');
 
+const migrationStart=html.indexOf('function migrateCronogramaModelsToChecklists(){');
+const migrationEnd=html.indexOf('function rRotChecklistHub(){',migrationStart);
+const migrationSource=migrationStart>=0&&migrationEnd>migrationStart?html.slice(migrationStart,migrationEnd):'';
+requireCheck(!!migrationSource, 'Cronograma-to-checklist migration must be present before the checklist hub.');
+try {
+  const fixtureModels=[{id:'tm-test',n:'Abertura',items:[
+    {id:'activity-1',t:'Conferir salão',desc:'Verificar limpeza',days:[1,2,3],time:'07:00',steps:['Ligar luzes','Conferir equipamentos'],ckid:'c-linked',photoMode:'required'},
+    {id:'activity-2',t:'Conferir estoque',desc:'Contar produtos',days:[1,4],time:'08:00',steps:[],ckid:'',photoMode:'optional'}
+  ]}];
+  const fixtureCK={'c-linked':{n:'Complementar',i:'Conferir extintores|Conferir saídas',l:['Conferir extintores','Conferir saídas']}};
+  const fixtureState={tmod:fixtureModels,migrations:[]};
+  let fixtureSaves=0;
+  const fixtureLz=()=>Object.values(fixtureCK).forEach(model=>{if(typeof model.i==='string')model.l=model.i.split('|');});
+  const fixtureSave=()=>{fixtureSaves++;return true;};
+  const runMigration=new Function('S','CK','lz','save',migrationSource+';return migrateCronogramaModelsToChecklists;');
+  const migrate=runMigration(fixtureState,fixtureCK,fixtureLz,fixtureSave);
+  const firstRun=migrate();
+  const secondRun=migrate();
+  const firstChecklist=fixtureCK['c-cronograma-tm-test-activity-1'];
+  const secondChecklist=fixtureCK['c-cronograma-tm-test-activity-2'];
+  requireCheck(firstRun===true&&secondRun===false&&fixtureSaves===1, 'Cronograma migration must run once and persist once without duplicating checklists.');
+  requireCheck(!!firstChecklist&&!!secondChecklist, 'Each cronograma activity must become its own checklist model.');
+  requireCheck(firstChecklist?.l?.includes('# Atividade: Conferir salão')&&firstChecklist?.l?.includes('Ligar luzes')&&firstChecklist?.l?.includes('Conferir equipamentos'), 'Converted checklist must preserve the activity title and its steps.');
+  requireCheck(firstChecklist?.l?.includes('# Instruções: Verificar limpeza')&&firstChecklist?.l?.includes('# Frequência: Seg, Ter, Qua')&&firstChecklist?.l?.includes('# Horário: 07:00'), 'Converted checklist must preserve instructions, weekdays and time.');
+  requireCheck(firstChecklist?.l?.includes('Conferir extintores')&&firstChecklist?.l?.includes('Conferir saídas'), 'Converted checklist must preserve a linked checklist.');
+  requireCheck(firstChecklist?.ph===true&&secondChecklist?.ph===false, 'Converted checklist must preserve required and optional photo rules.');
+  requireCheck(fixtureState.tmod.length===1&&fixtureState.migrations.includes('cronogramas-para-checklists-v2'), 'Migration must retain original cronograma data and record its one-time marker.');
+} catch(error) {
+  failures.push('Cronograma migration fixture test failed: '+error.message);
+}
+
 for (const name of Object.keys(ceilings)) {
   requireCheck(
     legacyDialogs[name] <= ceilings[name],
