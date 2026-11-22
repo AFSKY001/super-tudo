@@ -2917,8 +2917,8 @@ function ensureSheet(sheet){
  if(!body){body=document.createElement('div');body.className='sheet-body';for(const child of Array.from(sheet.childNodes))if(child!==handle)body.appendChild(child);sheet.appendChild(body);}
  if(!sheet.classList.contains('st-sheet-closing'))sheet.classList.add('open');
 }
-function ensureOverlay(overlay){overlay.setAttribute('data-sheet-overlay','');if(!overlay.classList.contains('st-sheet-closing'))overlay.classList.add('open');}
-function render(sheet,y,overlay,baseP){sheet.style.transform='translate3d(0,'+y.toFixed(2)+'px,0)';if(overlay)overlay.style.setProperty('--p',String(Math.max(0,Math.min(1,baseP*(1-y/Math.max(1,sheet._travelHeight))))));}
+function ensureOverlay(overlay){overlay.setAttribute('data-sheet-overlay','');if(!Number.isFinite(overlay._sheetProgress))overlay._sheetProgress=1;if(!overlay.classList.contains('st-sheet-closing'))overlay.classList.add('open');}
+function render(sheet,y,overlay,baseP){sheet.style.transform='translate3d(0,'+y.toFixed(2)+'px,0)';if(overlay){const progress=Math.max(0,Math.min(1,baseP*(1-y/Math.max(1,sheet._travelHeight))));overlay._sheetProgress=progress;overlay.style.setProperty('--p',String(progress));}}
 function reset(sheet,overlay){cancelSpring(sheet);sheet.classList.remove('st-sheet-dragging','st-sheet-settling');sheet.style.removeProperty('transform');if(overlay){overlay.classList.remove('dragging');overlay.style.removeProperty('--p');}}
 function spring(sheet,from,to,velocity,config,overlay,baseP,done){
  cancelSpring(sheet);sheet.classList.remove('st-sheet-dragging');if(overlay)overlay.classList.remove('dragging');
@@ -2940,7 +2940,7 @@ function retainForExit(node){
  const list=sheets(node),overlays=[];if(node.matches('.ov.dim'))overlays.push(node);if(node.querySelectorAll)overlays.push(...node.querySelectorAll('.ov.dim'));
  if(!list.length&&!overlays.length)return;pending.add(node);
  for(const sheet of list){cancelSpring(sheet);const y=readY(sheet);sheet.style.setProperty('--st-window-exit-from','translate3d(0,'+y.toFixed(2)+'px,0)');sheet.classList.remove('open','st-window-entering','st-sheet-dragging','st-sheet-settling');sheet.style.removeProperty('transform');sheet.classList.add('st-sheet-closing');sheet.setAttribute('aria-hidden','true');}
- for(const overlay of overlays){const current=parseFloat(getComputedStyle(overlay).getPropertyValue('--p'));overlay.style.setProperty('--p',String(Number.isFinite(current)?current:1));overlay.classList.remove('open','dragging');overlay.classList.add('st-sheet-closing');overlay.setAttribute('aria-hidden','true');}
+ for(const overlay of overlays){const current=Number.isFinite(overlay._sheetProgress)?overlay._sheetProgress:1;overlay.style.setProperty('--p',String(current));overlay.classList.remove('open','dragging');overlay.classList.add('st-sheet-closing');overlay.setAttribute('aria-hidden','true');}
  host.appendChild(node);for(const overlay of overlays){void overlay.offsetWidth;overlay.style.setProperty('--p','0');}window.setTimeout(()=>{if(node.parentNode===host)node.remove();},overlays.length?210:EXIT_MS);
 }
 function enter(node){for(const sheet of sheets(node)){if(sheet.classList.contains('st-sheet-closing')||pending.has(node))continue;ensureSheet(sheet);sheet.classList.remove('st-window-entering');void sheet.offsetWidth;sheet.classList.add('st-window-entering');sheet.addEventListener('animationend',event=>{if(event.target===sheet&&event.animationName==='st-window-enter')sheet.classList.remove('st-window-entering');},{once:true});}}
