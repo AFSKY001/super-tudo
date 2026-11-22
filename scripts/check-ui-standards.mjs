@@ -35,6 +35,9 @@ requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match 
 requireCheck(html.includes('<script src="/routine.js"></script>') && /'routine.js'/.test((await read('scripts/build-protected.mjs'))), 'Unified routine module must be loaded and included in the protected deployment.');
 requireCheck(!routine.includes('toISOString') && routine.includes("indexedDB.open('super-tudo-routine-photos'") && routine.includes("'image/jpeg',.7") && routine.includes('900/Math.max'), 'Routine dates must stay local and proof photos must be compressed into IndexedDB.');
 requireCheck(routine.includes('routine-v1') && routine.includes('routineOccurrences') && routine.includes('assignmentId') && routine.includes('updatedAt'), 'Routine migration, occurrence history, and update timestamps must be present.');
+const checklistRoute = html.match(/function rRotReg\(\)\{[\s\S]{0,1200}?\}/)?.[0] || '';
+requireCheck(checklistRoute.indexOf("V['ce']?rCe()") >= 0 && checklistRoute.indexOf("V['ce']?rCe()") < checklistRoute.indexOf("V['ck']"), 'Checklist model editor must take priority over a previously selected execution checklist.');
+requireCheck(html.includes('V.ck=null;V.rotTask=null;V.rotTaskContext=null;V.ce=') && html.includes('V.rotCkEdit=true;V.rotInlineChecklistEdit=false;R()'), 'Opening a checklist model editor must clear stale execution context before rendering the editor.');
 
 requireCheck(routine.includes('const dateValue=') && routine.includes('dayValue=v=>Core.dateValue(v)') && routine.includes('function recordDay(r){const v=r&&(r.data||r.d||r.date||r.createdAt);return Core.dateValue(v);}'), 'Routine timestamps and legacy dates must be normalized to the local calendar day.');
 requireCheck(routine.includes('function readPhoto(id)') && routine.includes('function photoSheet()') && routine.includes('root.rtPhoto=viewPhoto') && routine.includes('Ver foto'), 'Routine photo evidence must be viewable from its IndexedDB photo record.');
