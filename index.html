@@ -2308,10 +2308,10 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
   const modelName=String(model.n||model.name||model.title||'Cronograma').trim()||'Cronograma';
   const candidates=[model.items,model.itens,model.activities,model.tasks,model.atividades,model.steps,model.l,model.a,model.acts,model.list,model.data?.items,model.data?.activities];
   const sourceItems=candidates.find(items=>Array.isArray(items)&&items.length)||candidates.find(Array.isArray)||[];
-  const titles=sourceItems.map(item=>{
+  const titles=[...new Set(sourceItems.map(item=>{
    const value=typeof item==='string'?item:(item?.t??item?.title??item?.name??item?.atividade??item?.titulo??item?.label??item?.text??item?.value??'');
    return String(value??'').trim().replace(/\|/g,'/');
-  }).filter(Boolean);
+  }).filter(Boolean))];
   if(!titles.length){remaining.push(model);continue;}
   const key='c-cronograma-model-'+safe(modelId);
   let checklist=CK[key];
