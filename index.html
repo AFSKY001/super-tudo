@@ -2103,7 +2103,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
  --cor-info:#0066CC;--cor-info-suave:color-mix(in srgb,var(--cor-info) 12%,transparent);
  --fundo:#F5F6F8;--superficie:#FFFFFF;--superficie-2:#EEF1F5;--borda:#D8DEE8;
  --texto:#17202F;--texto-suave:#5B6575;--texto-desabilitado:#6B7280;--texto-inverso:#FFFFFF;
- --sombra:0 8px 28px rgba(23,32,47,.12);--vidro:color-mix(in srgb,var(--superficie) 82%,transparent);
+ --sombra:0 8px 28px rgba(23,32,47,.12);--vidro:color-mix(in srgb,var(--superficie) 82%,transparent);--st-glass-bg:var(--vidro);--st-glass-border:color-mix(in srgb,var(--borda) 78%,transparent);
  --bg:var(--fundo);--cd:var(--superficie);--tx:var(--texto);--mu:var(--texto-suave);--bd:var(--borda);--sf:var(--superficie-2);
  --pr:var(--cor-primaria);--on:var(--texto-inverso);--ac:var(--cor-alerta);--vi:var(--cor-primaria);--prs:var(--cor-primaria-suave);
  --ok:var(--cor-sucesso);--no:var(--cor-erro);--wa:var(--cor-alerta);--oks:var(--cor-sucesso-suave);--nos:var(--cor-erro-suave);--was:var(--cor-alerta-suave);
@@ -2118,7 +2118,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
  --cor-info:#8AB4F8;--cor-info-suave:color-mix(in srgb,var(--cor-info) 16%,transparent);
  --fundo:#111827;--superficie:#1B2637;--superficie-2:#253247;--borda:#35445A;
  --texto:#F3F6FC;--texto-suave:#B2BDCE;--texto-desabilitado:#8793A5;--texto-inverso:#102033;
- --sombra:0 12px 32px rgba(0,0,0,.32);--vidro:color-mix(in srgb,var(--superficie) 82%,transparent);color-scheme:dark;
+ --sombra:0 12px 32px rgba(0,0,0,.32);--vidro:color-mix(in srgb,var(--superficie) 82%,transparent);--st-glass-bg:var(--vidro);--st-glass-border:color-mix(in srgb,var(--borda) 78%,transparent);color-scheme:dark;
 }
 @media(prefers-color-scheme:dark){
  :root:not([data-theme="light"]){
@@ -2129,10 +2129,16 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
   --cor-info:#8AB4F8;--cor-info-suave:color-mix(in srgb,var(--cor-info) 16%,transparent);
   --fundo:#111827;--superficie:#1B2637;--superficie-2:#253247;--borda:#35445A;
   --texto:#F3F6FC;--texto-suave:#B2BDCE;--texto-desabilitado:#8793A5;--texto-inverso:#102033;
-  --sombra:0 12px 32px rgba(0,0,0,.32);--vidro:color-mix(in srgb,var(--superficie) 82%,transparent);color-scheme:dark;
+  --sombra:0 12px 32px rgba(0,0,0,.32);--vidro:color-mix(in srgb,var(--superficie) 82%,transparent);--st-glass-bg:var(--vidro);--st-glass-border:color-mix(in srgb,var(--borda) 78%,transparent);color-scheme:dark;
  }
 }
 :root,body{transition:background-color 180ms ease,color 180ms ease}
+@media(prefers-reduced-motion:no-preference){
+ body,header,main,nav,.sheet,.dd,.balloon{transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease}
+ .c{transition:box-shadow var(--st-motion-base) ease,border-color var(--st-motion-base) ease,transform 140ms var(--st-motion-ease),background-color 180ms ease,color 180ms ease}
+ button{transition:color 180ms ease,transform 180ms ease,background-color 180ms ease,border-color 180ms ease!important}
+ input,select,textarea{transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,box-shadow 180ms ease}
+}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button type="button" class="dots notification-trigger" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" class="notification-count"></b></button><span id="syncStatus" class="sync-status-label" title="Status da sincronização"></span><button type="button" class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
