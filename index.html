@@ -2293,6 +2293,10 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
  S.migrations=Array.isArray(S.migrations)?S.migrations:[];
  S.tmod=Array.isArray(S.tmod)?S.tmod:[];
  const models=S.tmod;
+ if(!models.length){
+  if(!S.migrations.includes(marker)){S.migrations.push(marker);save();}
+  return false;
+ }
  const ckBefore=Object.fromEntries(Object.entries(CK).map(([id,model])=>[id,model&&typeof model==='object'?{...model,l:Array.isArray(model.l)?[...model.l]:model.l,t:Array.isArray(model.t)?[...model.t]:model.t}:model]));
  const safe=value=>String(value??'').replace(/[^a-zA-Z0-9_-]/g,'_');
  const remaining=[];
@@ -2302,15 +2306,19 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
   if(!model||!model.id){remaining.push(model);continue;}
   const modelId=String(model.id);
   const modelName=String(model.n||model.name||model.title||'Cronograma').trim()||'Cronograma';
-  const sourceItems=Array.isArray(model.items)?model.items:
-   Array.isArray(model.itens)?model.itens:
-   Array.isArray(model.activities)?model.activities:
-   Array.isArray(model.tasks)?model.tasks:
-   Array.isArray(model.atividades)?model.atividades:
-   Array.isArray(model.steps)?model.steps:[];
-  const titles=sourceItems.map(item=>String(typeof item==='string'?item:
-   (item?.t??item?.title??item?.name??item?.atividade??item?.titulo??item?.label??'')).trim()).filter(Boolean);
-  if(!titles.length){remaining.push(model);continue;}
+  const candidates=[model.items,model.itens,model.activities,model.tasks,model.atividades,model.steps,model.l,model.a,model.acts,model.list,model.data?.items,model.data?.activities];
+  const sourceItems=candidates.find(items=>Array.isArray(items)&&items.length)||candidates.find(Array.isArray)||[];
+  const titles=sourceItems.map(item=>{
+   const value=typeof item==='string'?item:(item?.t??item?.title??item?.name??item?.atividade??item?.titulo??item?.label??item?.text??item?.value??'');
+   return String(value??'').trim().replace(/\|/g,'/');
+  }).filter(Boolean);
+  if(!titles.length){
+   if(sourceItems.length){remaining.push(model);continue;}
+   convertedIds.add(modelId);
+   converted++;
+   changed=true;
+   continue;
+  }
   const key='c-cronograma-model-'+safe(modelId);
   let checklist=CK[key];
   if(checklist&&(checklist.source!=='cronograma-model-conversion'||String(checklist.legacyCronogramaId)!==modelId)){
@@ -2323,6 +2331,7 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
    checklist=CK[key]={...CK[temporary],n:modelName,p:'',i:titles.join('|'),l:[...titles],
     ph:false,legacyCronogramaId:modelId,source:'cronograma-model-conversion'};
    delete CK[temporary];
+   changed=true;
   }else{
    if(checklist.n!==modelName){checklist.n=modelName;changed=true;}
    if(checklist.i!==titles.join('|')){checklist.i=titles.join('|');changed=true;}
@@ -2330,12 +2339,10 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
   }
   convertedIds.add(modelId);
   converted++;
-  changed=true;
  }
  if(remaining.length!==models.length){S.tmod=remaining;changed=true;}
- if(!S.migrations.includes(marker)){S.migrations.push(marker);changed=true;}
  for(const [oldKey,old] of Object.entries(CK)){
-  if(old?.source!=='cronograma-conversion'||old.rm!==true||!old.legacyCronogramaItemId)continue;
+  if(!old||old.source!=='cronograma-conversion'||old.rm!==true||!old.legacyCronogramaItemId)continue;
   const oldModelId=String(old.legacyCronogramaId||'');
   const replacement=CK['c-cronograma-model-'+safe(oldModelId)];
   if(replacement?.source==='cronograma-model-conversion'&&String(replacement.legacyCronogramaId)===oldModelId){
@@ -2343,6 +2350,7 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
    changed=true;
   }
  }
+ if(!S.migrations.includes(marker)){S.migrations.push(marker);changed=true;}
  if(changed){
   lz();
   if(!save()){
