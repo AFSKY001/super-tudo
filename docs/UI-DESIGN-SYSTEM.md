@@ -845,7 +845,7 @@ A identidade de cores da interface passa a ser controlada por uma única camada 
 
 ### Valores de referência
 
-**Tema claro:** marca #0066CC; hover #0057B8; sucesso #1B6E2F; alerta #995700; erro #C62828; informação #0066CC. Fundo #F5F6F8, superfície #FFFFFF, superfície secundária #EEF1F5, borda #D8DEE8, texto #17202F, texto suave #5B6575 e texto desabilitado #6B7280.
+**Tema claro:** marca #0066CC; hover #0057B8; sucesso #1B6E2F; alerta #995700; erro #C62828; informação #0066CC. Fundo #F5F6F8, superfície #FFFFFF, superfície secundária #EEF1F5, borda #D8DEE8, texto #17202F, texto suave #5B6575 e texto desabilitado #656D7A.
 
 **Tema escuro:** marca #8AB4F8; hover #A6C7FF; sucesso #5BCB8D; alerta #F0B65A; erro #FF7B72; informação #8AB4F8. Fundo #111827, superfície #1B2637, superfície secundária #253247, borda #35445A, texto #F3F6FC, texto suave #B2BDCE e texto desabilitado #8793A5.
 
