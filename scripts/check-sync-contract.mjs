@@ -21,6 +21,7 @@ const teamReadMigration = fs.readFileSync(
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
   ['cada modelo antigo tmod é convertido em checklist com o nome e as atividades', /function migrateCronogramaModelsToChecklists\(\)[\s\S]*?model\.items[\s\S]*?createChecklistFromSteps\(modelName,'',titles/],
+  ['checklists automáticos antigos só são removidos quando há checklist consolidado substituto', /old\\?\.\?source|old\?\.source!=='cronograma-conversion'[\s\S]*?old\.legacyCronogramaItemId[\s\S]*?replacement\?\.source==='cronograma-model-conversion'[\s\S]*?delete CK\[oldKey\]/],
   ['modelos antigos são removidos somente depois da conversão', /CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]*?S\.tmod=remaining/],
   ['migração usa somente os nomes das atividades', /const titles=sourceItems\.map[\s\S]{0,500}filter\(Boolean\)/],
   ['gerador antigo não recria modelos de cronograma', /function migFix\(\)[\s\S]{0,300}fixmodels-2026[\s\S]{0,100}save\(\)/],
