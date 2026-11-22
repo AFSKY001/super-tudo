@@ -443,7 +443,7 @@ try {
   requireCheck(quality?.p===''&&quality?.k==='Rotina diária'&&quality?.m==='routine-inline', 'Converted models must use the existing checklist model schema.');
   requireCheck(!!fixtureCK['c-manual']&&fixtureCK['c-manual'].n==='Gerente', 'Existing manual checklist templates must remain unchanged.');
   requireCheck(fixtureCK['c-old-generated']?.rm===true, 'Obsolete automatic per-activity conversion artifacts must be hidden without deleting stored data.');
-  requireCheck(fixtureState.tmod.length===2&&fixtureState.migrations.includes('cronogramas-para-checklists-v6'), 'Original cronograma data must remain stored and the new migration marker must be recorded.');
+  requireCheck(fixtureState.tmod.length===2&&fixtureState.migrations.includes('cronogramas-para-checklists-v7'), 'Original cronograma data must remain stored and the new migration marker must be recorded.');
   fixtureState.tmod.push({id:'tm-new',n:'Abertura',items:[{id:'n1',t:'Preparar setor',days:[2],time:'06:00'}]});
   const lateRun=migrate();
   requireCheck(lateRun===true&&!!fixtureCK['c-cronograma-model-tm-new']&&fixtureSaves===2, 'Cronograma models received after cloud sync must also convert without duplicating previous templates.');
