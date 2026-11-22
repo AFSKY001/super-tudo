@@ -27,7 +27,7 @@ const checks = [
   ['migração envia exclusão explícita dos cronogramas antigos à nuvem', /syncMeta\.queue\.push\(\{key,module:'tmod',record_id:modelId,kind:'r:cro',deleted:true/],
   ['migração não sobrescreve conflitos de exclusão pendentes', /if\(pending\.status==='conflict'\)continue/],
   ['migração transmite a exclusão depois de enfileirar', /if\(queuedDeletion\)[\s\S]*?syncPersist\(\)[\s\S]*?syncFlush\(\)\.catch/],
-  ['migração usa somente os nomes das atividades', /const titles=sourceItems\.map[\s\S]{0,500}filter\(Boolean\)/],
+  ['migração usa somente os nomes das atividades sem metadados de agenda e sem duplicatas', /const titles=\[\.\.\.new Set\(sourceItems\.map[\s\S]{0,500}filter\(Boolean\)\)\]/],
   ['gerador antigo não recria modelos de cronograma', /function migFix\(\)[\s\S]{0,300}fixmodels-2026[\s\S]{0,100}save\(\)/],
   ['ficha da rotina não oferece adicionar modelo antigo e mantém adicionar checklist', /function ptHTML\([\s\S]*?Nenhuma\\x20atividade\\x20nesta\\x20Rotina[\s\S]*?Adicionar\\x20checklist\\x20completo/],
   ['área de Rotinas informa que modelos antigos já foram convertidos e removidos', /modelos antigos de cronograma já foram convertidos em checklists e removidos desta área/],
