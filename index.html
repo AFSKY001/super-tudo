@@ -2774,13 +2774,23 @@ function runSyncStatusAction(){
     return;
   }
   if(V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine){
-    pullCloudTeam().then(syncFlush).catch(error=>{
+    const closeProgress=syncConflictProgress();
+    pullCloudTeam().then(async()=>{
+      closeProgress();
+      await syncFlush();
+      if(Object.values(syncMeta.conflicts||{}).some(item=>item&&item.status==='conflict')){
+        await syncResolveConflictsUI();
+      }else{
+        await syncConflictDialog('',null,'Sincronização consultada e atualizada. Não há conflitos pendentes para revisar.');
+      }
+    }).catch(error=>{
+      closeProgress();
       console.warn('Falha ao atualizar sincronização:',error);
-      syncConflictDialog('',null,'Não consegui consultar a nuvem. Confira sua conexão e tente novamente. Os dados locais continuam salvos.');
+      syncConflictDialog('',null,'Não consegui consultar a nuvem. Confira sua conexão. Os dados locais continuam salvos.');
     });
     return;
   }
-  syncConflictDialog('',null,'Não há conflitos para revisar neste momento. Quando houver conexão, o sistema tentará sincronizar novamente.');
+  syncConflictDialog('',null,'Não há conexão com a nuvem neste momento. Suas alterações locais continuam salvas.');
 }
 window.runSyncStatusAction=runSyncStatusAction;
 
@@ -3074,17 +3084,30 @@ host.querySelectorAll('.sheet').forEach(ensureSheet);host.querySelectorAll('.ov.
 
 <script>
 (function(){
- const syncButton=document.getElementById('syncStatus');
- if(syncButton){[['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['min-width','108px'],['min-height','42px'],['flex-shrink','0'],['max-width','none'],['padding','8px 10px']].forEach(([key,value])=>syncButton.style.setProperty(key,value,'important'));}
- function activate(event){
-  const target=event.target&&event.target.nodeType===1?event.target:event.target&&event.target.parentElement;
-  const control=target&&target.closest?target.closest('#syncStatus'):null;
-  if(!control)return;
-  event.preventDefault();event.stopPropagation();
-  if(typeof window.runSyncStatusAction==='function')window.runSyncStatusAction();
+ const button=document.getElementById('syncStatus');
+ if(!button)return;
+ button.removeAttribute('onclick');
+ [['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['min-width','108px'],['min-height','42px'],['flex-shrink','0'],['max-width','none'],['padding','8px 10px']].forEach(([key,value])=>button.style.setProperty(key,value,'important'));
+ let lastTouch=0;
+ function invoke(event){
+  if(event){event.preventDefault();event.stopPropagation();}
+  const action=window.runSyncStatusAction;
+  if(typeof action!=='function'){
+   if(typeof window.stAlert==='function')window.stAlert('A ação de sincronização ainda não carregou. Atualize o aplicativo.');
+   else console.error('Super Tudo: runSyncStatusAction indisponível.');
+   return;
+  }
+  action();
  }
- document.addEventListener('pointerup',event=>{if(event.pointerType==='touch')activate(event)},true);
- document.addEventListener('click',activate,true);
+ button.addEventListener('pointerup',event=>{
+  if(event.pointerType!=='touch')return;
+  lastTouch=Date.now();
+  invoke(event);
+ },{passive:false});
+ button.addEventListener('click',event=>{
+  if(Date.now()-lastTouch<900){event.preventDefault();event.stopPropagation();return;}
+  invoke(event);
+ },true);
 })();
 </script><script src="/routine.js"></script></body></html>
 
