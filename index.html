@@ -2756,6 +2756,12 @@ function bindSyncStatusControl(){
   control.setAttribute('aria-label','Revisar conflitos ou atualizar sincronização');
   control.title='Toque para revisar conflitos ou atualizar a sincronização';
   control.style.cursor='pointer';
+  control.style.pointerEvents='auto';
+  control.style.touchAction='manipulation';
+  control.onclick=event=>{
+    event.preventDefault();
+    runSyncStatusAction();
+  };
 }
 bindSyncStatusControl();
 if(!document.documentElement.dataset.syncStatusDelegated){
