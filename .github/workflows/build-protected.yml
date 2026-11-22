@@ -49,13 +49,14 @@ jobs:
           test -s dist/manifest.webmanifest
           test -s dist/logo.webp
           test -s dist/icon.svg
+          test -s dist/routine.js
           test -s dist/LICENSE
           test ! -d dist/supabase
           test ! -d dist/.github
           test ! -d dist/scripts
           test ! -f dist/package.json
           test ! -f dist/package-lock.json
-          test "$(find dist -type f | wc -l | tr -d ' ')" = "7"
+          test "$(find dist -type f | wc -l | tr -d ' ' )" = "8"
           ! find dist -type f -name '*.map' | grep .
           ! grep -R -E 'sourceMappingURL=|SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+' dist
       - name: Deploy protected distribution to Cloudflare Workers
