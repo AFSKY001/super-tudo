@@ -35,6 +35,8 @@ jobs:
         run: npm run check:sync
       - name: Verify global UI standards
         run: npm run check:ui
+      - name: Check routine domain and recurrence
+        run: npm run check:routine
       - name: Build protected Cloudflare distribution
         run: npm run build:protected
       - name: Validate Cloudflare deployment configuration without publishing
