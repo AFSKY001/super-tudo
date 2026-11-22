@@ -6,7 +6,8 @@
   "scripts": {
     "build:protected": "node scripts/build-protected.mjs",
     "check:ui": "node scripts/check-ui-standards.mjs",
-    "build:deploy": "npm run check:ui && node scripts/prepare-deploy.mjs",
+    "build:deploy": "npm run check:ui && npm run check:sync && npm run build:protected",
+    "deploy": "npm run build:deploy && wrangler deploy",
     "check:sync": "node scripts/check-sync-contract.mjs"
   },
   "devDependencies": {
