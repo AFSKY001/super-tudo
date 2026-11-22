@@ -20,7 +20,7 @@ const teamReadMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
-  ['cada modelo antigo tmod é convertido em checklist com o nome e as atividades', /function migrateCronogramaModelsToChecklists\(\)[\s\S]*?model\.items[\s\S]*?createChecklistFromSteps\(modelName,'',titles/],
+  ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\\[\\['tmod',S\\.tmod\\],\\['routineModels',S\\.routineModels\\]\\][\\s\\S]{0,500}targets\\.has\\(normalize\\(model\\?\\.n/],
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só sai da lista depois de checklist consolidado criado e salvo', /if\(!checklist\)[\s\S]*?createChecklistFromSteps\(modelName,'',titles[\s\S]*?CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]*?if\(changed\)[\s\S]*?if\(!save\(\)\)/],
   ['migração recupera conversões mesmo quando tmod já sumiu do armazenamento local', /const confirmedIds=new Set\([\s\S]*?Object\.values\(CK\)\.filter\(model=>model&&model\.source==='cronograma-model-conversion'/],
@@ -90,7 +90,7 @@ const checks = [
   ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*await syncResolveConflictsUI\(\)/],
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
   ['modelo convertido fornece a lista de itens exigida pelo renderizador', /CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]{0,180}l:\[\.\.\.titles\]/],
-  ['migração atualiza nome e itens dos modelos já convertidos', /if\(existing\.n!==modelName\)[\s\S]*?if\(existing\.i!==titles\.join\('\|'\)\)[\s\S]*?if\(!Array\.isArray\(existing\.l\)/],
+  ['migração atualiza nome e itens dos modelos já convertidos', /if\\(existing\\.n!==name\\)[\\s\\S]*?if\\(existing\\.i!==titles\\.join\\('\\\\\\|'\\)\\)[\\s\\S]*?if\\(!Array\\.isArray\\(existing\\.l\\)/],
 ];
 
 const permissionChecks = [
