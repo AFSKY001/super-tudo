@@ -2727,23 +2727,50 @@ async function syncBlockedQueueUI(){
     await syncConflictDialog(op.key,null,message);
   }
 }
-const syncStatusControl=document.getElementById('syncStatus');
-if(syncStatusControl&&!syncStatusControl.dataset.conflictAction){
-  syncStatusControl.dataset.conflictAction='1';
-  syncStatusControl.setAttribute('role','button');
-  syncStatusControl.setAttribute('tabindex','0');
-  syncStatusControl.setAttribute('aria-label','Revisar conflitos ou atualizar sincronização');
-  syncStatusControl.title='Clique para revisar conflitos de sincronização';
-  syncStatusControl.style.cursor='pointer';
-  const runSyncStatusAction=()=>{
-    if(Object.values(syncMeta.conflicts||{}).some(item=>item&&item.status==='conflict'))syncResolveConflictsUI();
-    else if((syncMeta.queue||[]).some(op=>op.status&&op.status!=='conflict'))syncBlockedQueueUI();
-    else if(V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine)
-      pullCloudTeam().then(syncFlush).catch(error=>console.warn('Falha ao atualizar sincronização:',error));
-  };
-  syncStatusControl.addEventListener('click',runSyncStatusAction);
-  syncStatusControl.addEventListener('keydown',event=>{
-    if(event.key==='Enter'||event.key===' '){event.preventDefault();runSyncStatusAction();}
+function runSyncStatusAction(){
+  if(Object.values(syncMeta.conflicts||{}).some(item=>item&&item.status==='conflict')){
+    syncResolveConflictsUI().catch(error=>{
+      console.error('Falha ao abrir a revisão de conflitos:',error);
+      syncConflictDialog('',null,'Não foi possível abrir a revisão agora. Suas alterações locais continuam salvas. Tente novamente em alguns segundos.');
+    });
+    return;
+  }
+  if((syncMeta.queue||[]).some(op=>op.status&&op.status!=='conflict')){
+    syncBlockedQueueUI().catch(error=>console.error('Falha ao revisar envios pendentes:',error));
+    return;
+  }
+  if(V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine){
+    pullCloudTeam().then(syncFlush).catch(error=>{
+      console.warn('Falha ao atualizar sincronização:',error);
+      syncConflictDialog('',null,'Não consegui consultar a nuvem. Confira sua conexão e tente novamente. Os dados locais continuam salvos.');
+    });
+    return;
+  }
+  syncConflictDialog('',null,'Não há conflitos para revisar neste momento. Quando houver conexão, o sistema tentará sincronizar novamente.');
+}
+function bindSyncStatusControl(){
+  const control=document.getElementById('syncStatus');
+  if(!control)return;
+  control.setAttribute('role','button');
+  control.setAttribute('tabindex','0');
+  control.setAttribute('aria-label','Revisar conflitos ou atualizar sincronização');
+  control.title='Toque para revisar conflitos ou atualizar a sincronização';
+  control.style.cursor='pointer';
+}
+bindSyncStatusControl();
+if(!document.documentElement.dataset.syncStatusDelegated){
+  document.documentElement.dataset.syncStatusDelegated='1';
+  document.addEventListener('click',event=>{
+    const control=event.target&&event.target.closest?event.target.closest('#syncStatus'):null;
+    if(!control)return;
+    event.preventDefault();
+    runSyncStatusAction();
+  });
+  document.addEventListener('keydown',event=>{
+    const control=event.target&&event.target.closest?event.target.closest('#syncStatus'):null;
+    if(!control||!(event.key==='Enter'||event.key===' '))return;
+    event.preventDefault();
+    runSyncStatusAction();
   });
 }
 
