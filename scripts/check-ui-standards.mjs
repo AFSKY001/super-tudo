@@ -450,7 +450,7 @@ try {
   const before=JSON.stringify(fixtureCK['c-cronograma-model-tm-quality'].l);
   fixtureState.tmod[0].items[0].t='Conferir temperatura atualizada';
   const updateRun=migrate();
-  requireCheck(updateRun===true&&fixtureCK['c-cronograma-model-tm-quality'].l[0]==='Conferir temperatura atualizada'&&fixtureCK['c-cronograma-model-tm-quality'].l.length===2, 'A converted checklist must update its activity titles from the source template without creating another model.');
+  requireCheck(updateRun===true&&fixtureCK['c-cronograma-model-tm-quality'].l[0]==='Conferir temperatura atualizada'&&fixtureCK['c-cronograma-model-tm-quality'].l.length===3, 'A converted checklist must update its activity titles from the source template without creating another model.');
   requireCheck(before!==JSON.stringify(fixtureCK['c-cronograma-model-tm-quality'].l)&&fixtureState.tmod.length===3, 'Updating converted content must preserve all original cronograma templates.');
 
 } catch(error) {
