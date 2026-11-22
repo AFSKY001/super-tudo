@@ -53,7 +53,7 @@ const checks = [
   ['controle de sincronização é acessível por teclado', /document\.addEventListener\('keydown'/],
   ['fila bloqueada não é apresentada como envio ativo', /_0xblocked=\(syncMeta\['queue'\]\|\|\[\]\)\.filter/],
   ['há revisão específica de operações recusadas', /async function syncBlockedQueueUI\(\)/],
-  ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\s*\{\s*syncResolveConflictsUI\(\)/],
+  ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*syncResolveConflictsUI\(\)/],
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
 ];
 
