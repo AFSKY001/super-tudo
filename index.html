@@ -52,7 +52,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:5px 4px;text-align:left}
 .dd{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));right:max(12px,calc(50% - 368px));z-index:21;box-shadow:0 10px 30px rgba(0,0,0,.3);animation:pop .18s ease both;transform-origin:top right}.sheet{max-width:760px;margin:0 auto;max-height:88vh;overflow:auto;animation:sl .25s cubic-bezier(.2,.8,.2,1) both}.dim{animation:fd .2s both}
 .cols{display:flex;gap:6px;align-items:flex-end;height:112px}.cols>div{flex:1;min-width:18px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;font-size:11px}.cols i{width:100%;display:block;border-radius:6px 6px 2px 2px}.cols span{color:var(--mu)}
 .stk{display:flex;height:26px;border-radius:9px;overflow:hidden;gap:2px}.stk i{display:flex;align-items:center;justify-content:center;color:#fff;font:700 12px system-ui;font-style:normal}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 
 /* Ajustes de navegação e cronograma */
 .month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:8px 0}
@@ -667,19 +667,7 @@ nav button.on .ni{transform:none}
 
 
 /
-@media (prefers-reduced-motion:reduce){
-  :root{
-    --dur-fast:0ms;
-    
-    
-  }
-  *,*::before,*::after{
-    animation:none!important;
-    transition:none!important;
-    transform:none!important;
-    scroll-behavior:auto!important;
-  }
-}
+@media(prefers-reduced-motion:reduce){:root{--dur-fast:140ms;--dur:180ms;--dur-s:220ms}html{scroll-behavior:auto!important}}
 
 
 .origin-animated{will-change:transform;transform-origin:top left;animation:none!important}
@@ -1266,10 +1254,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{
 @media(hover:hover){
   button.bt:hover{transform:translateY(-1px)}
 }
-@media(prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto!important}
-  *,*::before,*::after{animation:none!important;transition:none!important}
-}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 
 
 /* Ajuste: logo da tela de login mais compacto */
@@ -2030,7 +2015,7 @@ input[type="checkbox"]:focus-visible,input[type="radio"]:focus-visible{box-shado
 @keyframes st-screen-enter-back{from{opacity:1;transform:translate3d(-12px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
 #app.an>*{animation:st-screen-enter-forward 140ms var(--st-motion-ease) both;animation-delay:0s}
 #app.an.dl>*{animation:st-screen-enter-back 140ms var(--st-motion-ease) both;animation-delay:0s}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}nav button::after{display:none!important}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
 /* SUPER TUDO — sistema global de movimento v9 */
 :root{--st-motion-fast:120ms;--st-motion-base:180ms;--st-motion-enter:170ms;--st-motion-sheet:200ms;--st-motion-ease:cubic-bezier(.2,.8,.25,1);--st-motion-spring:cubic-bezier(.2,.9,.25,1);--st-glass-bg:color-mix(in srgb,var(--cd) 88%,transparent);--st-glass-border:color-mix(in srgb,var(--bd) 78%,transparent)}
 @property --st-progress{syntax:"<percentage>";inherits:false;initial-value:0%}
@@ -2081,7 +2066,7 @@ label.st-ios-toggle input[type="checkbox"]{position:absolute!important;left:0;to
 label.st-ios-toggle::before{content:"";position:absolute;left:0;top:50%;width:46px;height:28px;transform:translateY(-50%);border-radius:99px;background:var(--bd);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--mu) 18%,transparent);transition:background var(--st-motion-base) var(--st-motion-ease)}
 label.st-ios-toggle::after{content:"";position:absolute;left:3px;top:50%;width:22px;height:22px;transform:translateY(-50%);border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(16,24,40,.22);transition:transform var(--st-motion-base) var(--st-motion-spring)}
 label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios-toggle:has(input:checked)::after{transform:translate(18px,-50%)}label.st-ios-toggle:has(input:focus-visible){outline:2px solid color-mix(in srgb,var(--pr) 45%,transparent);outline-offset:4px;border-radius:8px}
-@media(prefers-reduced-motion:reduce){#app.st-screen-transition>*,.dd,.balloon,.nbx,.dsel.open .dsel-p,details[open]>:not(summary),#app .c.st-motion-card,#sh .sheet .c.st-motion-card,.sheet,.st-alert-card,.st-check-ring,.st-check-progress,.st-check-ring span::after,.st-confetti-piece,.dashboard-home .bar i,.dashboard-home .cols i,.dashboard-home svg:not(.ic) .st-line-series,.dashboard-home svg:not(.ic) .st-chart-area,.skeleton,.skel,.loading-placeholder,.st-field-shake,#bn.st-notification-pulse,nav::before,label.st-ios-toggle::before,label.st-ios-toggle::after,.st-ripple-layer i{animation:none!important;transition:none!important}#app .c.st-motion-card,#sh .sheet .c.st-motion-card{opacity:1!important}.st-confetti-layer{display:none!important}#app button:active,#sh button:active,#stDialogLayer button:active,header button:active,nav button:active{transform:none!important}}
+@media(prefers-reduced-motion:reduce){#app.st-screen-transition>*,.dd,.balloon,.nbx,.dsel.open .dsel-p,details[open]>:not(summary),#app .c.st-motion-card,#sh .sheet .c.st-motion-card,.sheet,.st-alert-card,.st-check-ring,.st-check-progress,.st-check-ring span::after,.st-confetti-piece,.dashboard-home .bar i,.dashboard-home .cols i,.dashboard-home svg:not(.ic) .st-line-series,.dashboard-home svg:not(.ic) .st-chart-area,.skeleton,.skel,.loading-placeholder,.st-field-shake,#bn.st-notification-pulse,nav::before,label.st-ios-toggle::before,label.st-ios-toggle::after,.st-ripple-layer i{animation-duration:180ms!important;transition-duration:180ms!important}#app .c.st-motion-card,#sh .sheet .c.st-motion-card{opacity:1!important}.st-confetti-layer{display:none!important}#app button:active,#sh button:active,#stDialogLayer button:active,header button:active,nav button:active{transform:none!important}}
 
 
 
