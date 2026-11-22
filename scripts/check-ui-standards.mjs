@@ -37,7 +37,7 @@ requireCheck(!routine.includes('toISOString') && routine.includes("indexedDB.ope
 requireCheck(routine.includes('routine-v1') && routine.includes('routineOccurrences') && routine.includes('assignmentId') && routine.includes('updatedAt'), 'Routine migration, occurrence history, and update timestamps must be present.');
 const checklistRoute = html.match(/function rRotReg\(\)\{[\s\S]{0,1200}?\}/)?.[0] || '';
 requireCheck(checklistRoute.indexOf("V['ce']?rCe()") >= 0 && checklistRoute.indexOf("V['ce']?rCe()") < checklistRoute.indexOf("V['ck']"), 'Checklist model editor must take priority over a previously selected execution checklist.');
-requireCheck(/V\.ck=null;(?:V\.ckd=null;)?V\.rotTask=null;V\.rotTaskContext=null;V\.ce=/.test(html) && html.includes('V.rotCkEdit=true;V.rotInlineChecklistEdit=false;R()'), 'Opening a checklist model editor must clear stale execution context before rendering the editor.');
+requireCheck(/V\.ck=null;V\.ckd=null;V\.rotTask=null;V\.rotTaskContext=null;V\.ce=/.test(html) && /V\.rotCkEdit=true;V\.rotInlineChecklistEdit=false;[\s\S]{0,100}R\(\)/.test(html), 'Opening a checklist model editor must clear stale execution context before rendering the editor.');
 
 requireCheck(routine.includes('const dateValue=') && routine.includes('dayValue=v=>Core.dateValue(v)') && routine.includes('function recordDay(r){const v=r&&(r.data||r.d||r.date||r.createdAt);return Core.dateValue(v);}'), 'Routine timestamps and legacy dates must be normalized to the local calendar day.');
 requireCheck(routine.includes('function readPhoto(id)') && routine.includes('function photoSheet()') && routine.includes('root.rtPhoto=viewPhoto') && routine.includes('Ver foto'), 'Routine photo evidence must be viewable from its IndexedDB photo record.');
