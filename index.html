@@ -2354,6 +2354,11 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
   converted++;
  }
  if(!converted)return false;
+ const convertedModelIds=new Set(completed.map(item=>item.modelId));
+ for(const [oldKey,oldModel] of Object.entries(CK)){
+  if(!oldModel||oldModel.source!=='cronograma-conversion'||oldModel.rm!==true||!oldModel.legacyCronogramaItemId)continue;
+  if(convertedModelIds.has(String(oldModel.legacyCronogramaId||'')))delete CK[oldKey];
+ }
  if(!S.migrations.includes(marker))S.migrations.push(marker);
  for(const {module,modelId} of completed){
   S[module]=S[module].filter(model=>String(model?.id||'')!==modelId);
