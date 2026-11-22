@@ -824,6 +824,14 @@ header p{margin:3px 0 0 49px!important;color:var(--mu)!important;font-size:11px!
   box-shadow:none!important;
 }
 #syncStatus{
+  appearance:none;
+  -webkit-appearance:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:30px;
+  cursor:pointer;
+  touch-action:manipulation;
   flex:0 0 auto;
   max-width:150px;
   overflow:hidden;
@@ -2176,7 +2184,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
  input,select,textarea{transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,box-shadow 180ms ease}
 }
 </style></head><body>
-<header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button type="button" class="dots notification-trigger" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" class="notification-count"></b></button><span id="syncStatus" class="sync-status-label" title="Status da sincronização"></span><button type="button" class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
+<header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button type="button" class="dots notification-trigger" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" class="notification-count"></b></button><button type="button" id="syncStatus" class="sync-status-label" title="Revisar conflitos ou atualizar sincronização" aria-label="Revisar conflitos ou atualizar sincronização" onclick="runSyncStatusAction()"></button><button type="button" class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
 <main id="app"></main>
 <nav id="nav"></nav>
@@ -2774,41 +2782,7 @@ function runSyncStatusAction(){
   }
   syncConflictDialog('',null,'Não há conflitos para revisar neste momento. Quando houver conexão, o sistema tentará sincronizar novamente.');
 }
-function bindSyncStatusControl(){
-  const control=document.getElementById('syncStatus');
-  if(!control)return;
-  control.setAttribute('role','button');
-  control.setAttribute('tabindex','0');
-  control.setAttribute('aria-label','Revisar conflitos ou atualizar sincronização');
-  control.title='Toque para revisar conflitos ou atualizar a sincronização';
-  control.style.cursor='pointer';
-  control.style.pointerEvents='auto';
-  control.style.touchAction='manipulation';
-  control.onclick=event=>{
-    event.preventDefault();
-    runSyncStatusAction();
-  };
-}
-bindSyncStatusControl();
-if(!document.documentElement.dataset.syncStatusDelegated){
-  document.documentElement.dataset.syncStatusDelegated='1';
-  document.addEventListener('click',event=>{
-    const target=event.target&&event.target.nodeType===1?event.target:event.target?.parentElement;
-    const control=target&&target.closest?target.closest('#syncStatus'):null;
-    if(!control)return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    runSyncStatusAction();
-  },true);
-  document.addEventListener('keydown',event=>{
-    const target=event.target&&event.target.nodeType===1?event.target:event.target?.parentElement;
-    const control=target&&target.closest?target.closest('#syncStatus'):null;
-    if(!control||!(event.key==='Enter'||event.key===' '))return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    runSyncStatusAction();
-  },true);
-}
+
 
 </script>
 <script>
