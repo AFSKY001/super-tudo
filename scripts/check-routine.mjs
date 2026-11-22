@@ -13,8 +13,14 @@ assert.match(indexSource,/get rRotChecklistHub\(\)\{return rRotChecklistHub\},ge
 assert.match(indexSource,/function rRotChecklistHub\(\)\{if\(V\.ce\)return rCe\(\);return/,'Ao editar um modelo, a tela de modelos deve encaminhar para o editor selecionado em vez de reapresentar a lista.');
 console.log('PASS - integração da conversão de cronogramas com a tela de modelos de checklist.');
 
+assert.match(routineSource,/function activityHtml\(a,i\)[\s\S]{0,2600}name="rt-weekday-/,'Cada atividade deve oferecer seleção visual dos dias da semana.');
+assert.match(routineSource,/function readDraft\(\)[\s\S]{0,900}type:'weekly',days/,'Os dias marcados devem ser salvos como recorrência semanal.');
+assert.doesNotMatch(routineSource,/id="rt-profile"|id="rt-sector"|id="rt-tol-|Tolerância \(minutos\)|Dias do mês|Data específica/,'O editor de Rotina não deve exibir perfil, setor, tolerância, recorrência mensal ou data específica.');
+assert.doesNotMatch(routineSource,/d\.profile=|d\.sector=|tolerance:/,'Novos modelos e atividades não devem salvar perfil, setor ou tolerância.');
+
+
 const assignment={id:'assign-1',modelId:'model-1',executorId:'person-1',verifierId:'leader-1',from:'2026-11-22',active:true};
-const activity={id:'activity-1',title:'Conferir setor',mandatory:true,photo:'required',time:'08:00',tolerance:15,recurrence:{type:'weekly',days:[1,2,3,4,5]}};
+const activity={id:'activity-1',title:'Conferir setor',mandatory:true,photo:'required',time:'08:15',recurrence:{type:'weekly',days:[1,2,3,4,5]}};
 const model={id:'model-1',name:'Rotina do repositor',activities:[activity]};
 const date=new Date(2026,10,23,8,15);
 const day=Core.localDate(date);
@@ -34,8 +40,9 @@ db.occurrences[first.created[0].id]=first.created[0];
 const second=Core.generate(db,day,date.getTime());
 assert.equal(second.created.length,0,'Reabrir não duplica ocorrência.');
 assert.equal(second.updated.length,0,'Snapshot igual não gera atualização.');
-assert.equal(Core.state(first.created[0],new Date(2026,10,23,8,15)),'pending','No limite da tolerância ainda está no prazo.');
-assert.equal(Core.state(first.created[0],new Date(2026,10,23,8,16)),'overdue','Após a tolerância fica atrasada.');
+assert.equal(Core.state(first.created[0],new Date(2026,10,23,8,15)),'pending','No horário previsto a atividade permanece no prazo, sem tolerância.');
+assert.equal(Core.state(first.created[0],new Date(2026,10,23,8,16)),'overdue','Um minuto após o horário previsto a atividade fica atrasada, sem tolerância.');
+assert.equal(Object.hasOwn(first.created[0].snapshot,'tolerance'),false,'Novas ocorrências não devem carregar tolerância.');
 
 const changed={...model,activities:[{...activity,title:'Título atualizado'}]};
 const pendingUpdate=Core.generate({models:[changed],assignments:[assignment],occurrences:db.occurrences},day,date.getTime());
