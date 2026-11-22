@@ -46,14 +46,115 @@ for(const key of LANC_KEYS||[]){if(!defs.some(f=>f.launch===key)&&FS[key])defs.p
 const FUNCOES=Object.fromEntries(defs.filter(f=>f.exists()).map(f=>[f.id,{label:f.label,abrir:()=>openFunction(f),...(f.feitoEm?{feitoEm:f.feitoEm}:{})}]));
 root.FUNCOES=FUNCOES;
 function openFunction(f){V.tab='reg';if(f.launch){V.rs='lanc';V.reg=f.launch;}else{V.rs=f.section||'home';V.reg=null;}V.rotTask=null;R();}
-function migrate(){const D=db();if(S.migrations.includes('routine-v1'))return;if(typeof migFix==='function'){try{migFix();}catch(err){console.warn('Migração de cronogramas:',err);}}
-const models=new Map(),keys=new Set(D.assignments.map(a=>a.id));
-for(const old of S.tmod||[]){if(!old?.id)continue;const id='legacy-model-'+old.id;if(!D.models.some(m=>m.id===id))D.models.push(touch({id,name:old.n||'Rotina migrada',description:'Migrada do modelo antigo.',profile:'',sector:'',legacyId:old.id,activities:(old.items||[]).map(a=>{const steps=a.ckid&&CK[a.ckid]?checklistItems(CK[a.ckid]):[...(a.steps||[])];return{id:String(a.id||uid()),title:a.t||'Atividade',description:a.desc||'',steps,checklistSnapshot:[...steps],source:{type:a.ckid?'checklist-copy':'legacy',checklistId:a.ckid||''},functionId:'',photo:a.photoMode==='required'?'required':a.photoMode==='optional'?'optional':'none',mandatory:false,recurrence:{type:'weekly',days:[...(a.days||[1,2,3,4,5])]},time:a.time||'08:00',tolerance:0,updatedAt:Date.now()};})}));models.set(String(old.id),id);}
-for(const old of S.pt||[]){if(!old?.pid)continue;let mid=old.mid&&models.get(String(old.mid));if(!mid){mid='legacy-personal-'+old.id;if(!D.models.some(m=>m.id===mid)){const steps=old.ckid&&CK[old.ckid]?checklistItems(CK[old.ckid]):[...(old.steps||[])];D.models.push(touch({id:mid,name:old.t||'Atividade migrada',description:old.desc||'',profile:'',sector:'',legacyId:old.id,activities:[{id:'legacy-activity-'+old.id,title:old.t||'Atividade migrada',description:old.desc||'',steps,checklistSnapshot:[...steps],source:{type:'legacy-personal',checklistId:old.ckid||''},functionId:'',photo:old.photoMode==='required'?'required':old.photoMode==='optional'?'optional':'none',mandatory:false,recurrence:{type:'weekly',days:[...(old.days||[0,1,2,3,4,5,6])]},time:old.time||'08:00',tolerance:0,updatedAt:Date.now()}]}));}}
-const aid='legacy-assignment-'+old.pid+'-'+mid;if(!keys.has(aid)){D.assignments.push(touch({id:aid,modelId:mid,executorId:String(old.pid),verifierId:supervisor(old.pid)?.id||'',from:dayValue(old.from||old.createdAt)||day(),until:old.archivedAt?addDays(dayValue(old.archivedAt),-1):null,active:!old.archivedAt,source:'legacy-pt'}));keys.add(aid);}}
-for(const old of S.tasks||[]){if(!old?.id)continue;const mid='legacy-task-'+old.id;if(!D.models.some(m=>m.id===mid)){const r=old.repeat==='weekly'?{type:'weekly',days:[...(old.days||[])]}:old.repeat==='monthly'?{type:'monthly',days:[Number(old.day||1)]}:old.repeat==='date'?{type:'date',date:old.date||''}:{type:'daily'};D.models.push(touch({id:mid,name:old.t||'Cronograma migrado',description:old.desc||'',profile:'',sector:'',legacyId:old.id,activities:[{id:'legacy-task-activity-'+old.id,title:old.t||'Atividade migrada',description:old.desc||'',steps:old.ckid&&CK[old.ckid]?checklistItems(CK[old.ckid]):[...(old.steps||[])],checklistSnapshot:old.ckid&&CK[old.ckid]?checklistItems(CK[old.ckid]):[...(old.steps||[])],source:{type:'legacy-task',taskId:old.id},functionId:'',photo:old.photoMode||'none',mandatory:false,recurrence:r,time:old.time||'08:00',tolerance:0,updatedAt:Date.now()}]}));}
-for(const recipient of old.r||[]){const matches=(S.team||[]).filter(p=>String(p.n).trim().toLowerCase()===String(recipient).trim().toLowerCase());if(matches.length!==1)continue;const pid=String(matches[0].id),aid='legacy-task-assignment-'+old.id+'-'+pid;if(!keys.has(aid)){D.assignments.push(touch({id:aid,modelId:mid,executorId:pid,verifierId:supervisor(pid)?.id||'',from:dayValue(old.createdAt)||day(),until:null,active:true,source:'legacy-task'}));keys.add(aid);}}}
-S.migrations.push('routine-v1');save();}
+function migrate(){
+ const D=db();
+ if(S.migrations.includes('routine-v1'))return;
+ if(typeof migFix==='function'){try{migFix();}catch(err){console.warn('Migração dos modelos antigos de cronograma:',err);}}
+ S.routineMigrationWarnings=Array.isArray(S.routineMigrationWarnings)?S.routineMigrationWarnings:[];
+ const modelMap=new Map(),assignmentIds=new Set(D.assignments.map(a=>a.id));
+ const recurrenceFor=(days)=>({type:'weekly',days:Array.isArray(days)&&days.length?[...days]:[0,1,2,3,4,5,6]});
+ const activityFrom=(item,turn,index,source)=>{
+  const checklist=item.ckid&&CK[item.ckid],steps=checklist?checklistItems(checklist):Array.isArray(item.steps)?item.steps.map(String):[];
+  return touch({
+   id:String(item.id||uid())+(turn?'|turn|'+index:''),
+   title:String(item.t||'Atividade')+(turn?' — '+String(turn):''),
+   description:item.desc||'',steps:[...steps],checklistSnapshot:[...steps],turns:turn?[String(turn)]:[],
+   legacyChecklistByPerson:{...(item.ckByPerson||{})},
+   source:{type:source,checklistId:item.ckid||''},functionId:'',
+   photo:item.photoMode==='required'?'required':item.photoMode==='optional'?'optional':'none',
+   mandatory:false,recurrence:recurrenceFor(item.days),time:item.time||'08:00',tolerance:0,updatedAt:Date.now()
+  });
+ };
+ for(const old of S.tmod||[]){
+  if(!old?.id)continue;
+  const id='legacy-model-'+old.id;
+  if(!D.models.some(m=>m.id===id)){
+   const activities=[];
+   for(const item of old.items||[]){
+    const turns=item.ckid&&CK[item.ckid]&&Array.isArray(CK[item.ckid].t)?CK[item.ckid].t.filter(Boolean):[];
+    if(turns.length)turns.forEach((turn,index)=>activities.push(activityFrom(item,turn,index,'legacy-model-checklist')));
+    else activities.push(activityFrom(item,'',0,'legacy-model'));
+   }
+   D.models.push(touch({id,name:old.n||'Rotina migrada',description:'Migrada do modelo antigo de cronograma.',profile:'',sector:'',legacyId:old.id,activities,createdAt:Date.now()}));
+  }
+  modelMap.set(String(old.id),id);
+ }
+ const ptGroups=new Map();
+ for(const old of S.pt||[]){
+  if(!old?.pid||!old.id)continue;
+  const baseId=String(old.id).replace(/-turn-\d+$/,'');
+  const key=String(old.pid)+'|'+baseId;
+  if(!ptGroups.has(key))ptGroups.set(key,[]);
+  ptGroups.get(key).push(old);
+ }
+ for(const rows of ptGroups.values()){
+  const first=rows[0],pid=String(first.pid);
+  let modelId=first.mid&&modelMap.get(String(first.mid));
+  if(!modelId){
+   modelId='legacy-personal-'+pid+'-'+String(first.id).replace(/-turn-\d+$/,'');
+   if(!D.models.some(m=>m.id===modelId)){
+    const activities=rows.map((row,index)=>{
+     const checklist=row.ckid&&CK[row.ckid],steps=checklist?checklistItems(checklist):Array.isArray(row.steps)?row.steps.map(String):[];
+     return touch({
+      id:'legacy-activity-'+row.id,title:String(row.t||'Atividade migrada')+(row.ckt?' — '+String(row.ckt):''),
+      description:row.desc||'',steps,checklistSnapshot:[...steps],turns:row.ckt?[String(row.ckt)]:[],
+      source:{type:'legacy-personal-checklist',checklistId:row.ckid||'',legacyCkId:row.legacyCkId||''},
+      functionId:'',photo:row.photoMode==='required'?'required':row.photoMode==='optional'?'optional':'none',
+      mandatory:false,recurrence:recurrenceFor(row.days),time:row.time||'08:00',tolerance:0,updatedAt:Date.now()
+     });
+    });
+    D.models.push(touch({id:modelId,name:first.t||'Rotina individual migrada',description:'Atividade individual migrada do cronograma/checklist.',profile:'',sector:'',legacyId:first.id,activities,createdAt:Date.now()}));
+   }
+  }
+  const archivedAt=rows.map(row=>row.archivedAt).filter(Boolean).sort().at(-1)||null;
+  const from=dayValue(first.createdAt||first.from)||day();
+  const assignmentId='legacy-assignment-'+pid+'-'+modelId+'-'+from+'-'+(archivedAt?dayValue(archivedAt):'active');
+  if(!assignmentIds.has(assignmentId)){
+   D.assignments.push(touch({id:assignmentId,modelId,executorId:pid,verifierId:supervisor(pid)?.id||'',from,until:archivedAt?addDays(dayValue(archivedAt),-1):null,active:!archivedAt,source:'legacy-pt'}));
+   assignmentIds.add(assignmentId);
+  }
+  if(!who(pid))S.routineMigrationWarnings.push(touch({id:'orphan-person-'+pid,personId:pid,reason:'A atribuição antiga aponta para uma pessoa que não existe mais no cadastro.',updatedAt:Date.now()}));
+ }
+ for(const old of S.tasks||[]){
+  if(!old?.id)continue;
+  const recipients=Array.isArray(old.r)?old.r:[];
+  const resolved=recipients.map(name=>({name,matches:(S.team||[]).filter(p=>String(p.n).trim().toLocaleLowerCase()===String(name).trim().toLocaleLowerCase())}));
+  const targets=resolved.filter(item=>item.matches.length===1).map(item=>item.matches[0]);
+  for(const item of resolved.filter(item=>item.matches.length!==1)){
+   S.routineMigrationWarnings.push(touch({id:'unmatched-task-'+old.id+'-'+String(item.name),taskId:old.id,recipient:String(item.name),reason:item.matches.length?'Nome de responsável duplicado no cadastro.':'Responsável não encontrado no cadastro.',updatedAt:Date.now()}));
+  }
+  const people=targets.length?targets:[null];
+  for(const target of people){
+   const pid=target?String(target.id):'';
+   const ckid=old.ckByPerson&&(old.ckByPerson[pid]||old.ckByPerson[target?.n])||old.ckid||'';
+   const checklist=ckid&&CK[ckid],turns=Array.isArray(old.turns)&&old.turns.length?[...old.turns]:checklist&&Array.isArray(checklist.t)?checklist.t.filter(Boolean):[];
+   const modelId='legacy-task-'+old.id+'-'+(target?pid:'shared');
+   if(!D.models.some(m=>m.id===modelId)){
+    const repeat=old.repeat==='weekly'?{type:'weekly',days:[...(old.days||[])]}:old.repeat==='monthly'?{type:'monthly',days:[Number(old.day||1)]}:old.repeat==='date'?{type:'date',date:old.date||''}:{type:'daily'};
+    const steps=checklist?checklistItems(checklist):Array.isArray(old.steps)?old.steps.map(String):[];
+    const turnList=turns.length?turns:[''];
+    const activities=turnList.map((turn,index)=>touch({
+     id:'legacy-task-activity-'+old.id+(target?'-'+pid:'')+(turn?'|turn|'+index:''),
+     title:String(old.t||'Atividade migrada')+(turn?' — '+String(turn):''),
+     description:old.desc||'',steps:[...steps],checklistSnapshot:[...steps],turns:turn?[String(turn)]:[],
+     legacyChecklistByPerson:{...(old.ckByPerson||{})},source:{type:'legacy-task',taskId:old.id,checklistId:ckid},
+     functionId:'',photo:old.photoMode==='required'?'required':old.photoMode==='optional'?'optional':'none',
+     mandatory:false,recurrence:repeat,time:old.time||'08:00',tolerance:0,updatedAt:Date.now()
+    }));
+    D.models.push(touch({id:modelId,name:old.t||'Cronograma migrado',description:old.desc||'',profile:'',sector:'',legacyId:old.id,activities,createdAt:Date.now()}));
+   }
+   if(target){
+    const assignmentId='legacy-task-assignment-'+old.id+'-'+pid;
+    if(!assignmentIds.has(assignmentId)){
+     D.assignments.push(touch({id:assignmentId,modelId,executorId:pid,verifierId:supervisor(pid)?.id||'',from:dayValue(old.createdAt)||day(),until:null,active:true,source:'legacy-task'}));
+     assignmentIds.add(assignmentId);
+    }
+   }
+  }
+ }
+ S.migrations.push('routine-v1');
+ save();
+}
 function refreshPending(m){for(const o of Object.values(db().occurrences)){if(o.status!=='pending'||o.date<day()||Core.state(o)!=='pending')continue;const at=db().assignments.find(a=>a.id===o.assignmentId);if(at?.modelId!==m.id)continue;const a=(m.activities||[]).find(x=>x.id===o.activityId);if(!a||!Core.occurs(a.recurrence,o.date)){Object.assign(o,{status:'dismissed',dismissedBy:'system',note:'Ocorrência cancelada após alteração do modelo.',updatedAt:Date.now()});continue;}o.snapshot=Core.snap(m,a);touch(o);}}
 function generateDay(d=day()){const D=db(),r=Core.generate(D,d);r.created.forEach(o=>D.occurrences[o.id]=o);r.updated.forEach(o=>D.occurrences[o.id]=o);if(r.created.length||r.updated.length)save();return r;}
 function syncFunctions(d=day()){let changed=false;for(const o of Object.values(db().occurrences)){if(o.date!==d||o.status!=='pending'||o.snapshot.photo==='required')continue;const f=FUNCOES[o.snapshot.functionId];if(!f?.feitoEm)continue;try{if(f.feitoEm(d,o.executorId)){Object.assign(o,{status:'done',madeAt:Date.now(),madeBy:'system',madeByName:'Sistema',viaSystem:true,updatedAt:Date.now()});changed=true;}}catch(err){console.warn('Falha ao verificar função da Rotina',err);}}if(changed)save();return changed;}
