@@ -2761,17 +2761,21 @@ bindSyncStatusControl();
 if(!document.documentElement.dataset.syncStatusDelegated){
   document.documentElement.dataset.syncStatusDelegated='1';
   document.addEventListener('click',event=>{
-    const control=event.target&&event.target.closest?event.target.closest('#syncStatus'):null;
+    const target=event.target&&event.target.nodeType===1?event.target:event.target?.parentElement;
+    const control=target&&target.closest?target.closest('#syncStatus'):null;
     if(!control)return;
     event.preventDefault();
+    event.stopImmediatePropagation();
     runSyncStatusAction();
-  });
+  },true);
   document.addEventListener('keydown',event=>{
-    const control=event.target&&event.target.closest?event.target.closest('#syncStatus'):null;
+    const target=event.target&&event.target.nodeType===1?event.target:event.target?.parentElement;
+    const control=target&&target.closest?target.closest('#syncStatus'):null;
     if(!control||!(event.key==='Enter'||event.key===' '))return;
     event.preventDefault();
+    event.stopImmediatePropagation();
     runSyncStatusAction();
-  });
+  },true);
 }
 
 </script>
