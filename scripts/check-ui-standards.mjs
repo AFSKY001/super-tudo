@@ -39,6 +39,10 @@ requireCheck(!!temperatureDeleteMatch && /await window\.stConfirm\(/.test(temper
 requireCheck(html.includes("document.addEventListener('click',event=>{if(!V.cf)return;const target=event.target instanceof Element?event.target:null;if(target?.closest('button.bt.d'))return;V.cf=null;R();})"), 'Inline delete confirmations must close when clicking outside the delete control.');
 requireCheck(html.includes("if(_0x5a8d2f!==V['sg'])V['cf']=null"), 'Inline delete confirmation state must reset whenever the active screen changes.');
 requireCheck(html.includes('Navegação — restaurar indicador deslizante'), 'Navigation motion restoration must be present.');
+requireCheck(html.includes('st-sheet-slide-up') && html.includes('translate3d(0,100%,0)'), 'Draggable sheets must enter vertically from below without scaling.');
+requireCheck(html.includes('st-sheet-slide-down') && html.includes('translate3d(0,105%,0)'), 'Draggable sheets must exit vertically downward without scaling.');
+requireCheck(html.includes("host.dataset.stSheetExitMotion==='1'") && html.includes("sheet.classList.add('st-sheet-closing')"), 'Removed sheets must remain mounted briefly so their downward exit animation can finish.');
+
 requireCheck(html.includes('transition:transform 340ms cubic-bezier(.22,1,.36,1),width 340ms cubic-bezier(.22,1,.36,1)!important'), 'Mobile navigation indicator must slide smoothly between selected items.');
 requireCheck(html.includes('background:linear-gradient(135deg,color-mix(in srgb,var(--pr) 17%,var(--cd)),color-mix(in srgb,var(--pr) 10%,var(--cd)))!important'), 'Mobile navigation indicator must use the active brand color.');
 requireCheck(!html.includes('@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}'), 'Reduced-motion preferences must not globally disable all application animations.');
