@@ -2753,13 +2753,54 @@ function syncConflictProgress(){
   return ()=>overlay.remove();
 }
 async function syncResolveConflictsUI(){
-  const keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
+  let keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
   if(!keys.length){
-    await syncConflictDialog('',null,'Não há conflitos pendentes registrados neste aparelho. A atualização da nuvem será verificada agora.');
-    if(V.cloudIdentity&&navigator.onLine){
-      try{await pullCloudTeam();await syncFlush();syncStatusUpdate();}
-      catch(error){console.warn('Falha ao atualizar a nuvem:',error);await syncConflictDialog('',null,'Não foi possível atualizar a nuvem. Os dados locais continuam preservados. Tente novamente quando a conexão estiver estável.');}
+    if(V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine){
+      const closeProgress=syncConflictProgress();
+      try{
+        await syncWaitForIdle();
+        await pullCloudTeam();
+        await syncWaitForIdle();
+        await syncFlush();
+        syncStatusUpdate();
+        closeProgress();
+        await syncConflictDialog('',null,'A consulta terminou. Não há conflitos pendentes; as alterações locais foram verificadas com a nuvem.');
+      }catch(error){
+        closeProgress();
+        console.warn('Falha ao atualizar a nuvem:',error);
+        await syncConflictDialog('',null,'Não foi possível atualizar a nuvem: '+(error?.message||'falha de conexão')+'. Os dados locais continuam preservados.');
+      }
+    }else{
+      await syncConflictDialog('',null,'Não há conflitos pendentes registrados neste aparelho. Conecte-se à internet para consultar a nuvem.');
     }
+    return;
+  }
+  if(!V.cloudIdentity||typeof navigator==='undefined'||!navigator.onLine){
+    await syncConflictDialog('',null,'Conecte este aparelho à internet para buscar a versão atual da nuvem. Nenhuma alteração local foi descartada e nenhuma escolha foi aplicada.');
+    return;
+  }
+  const closeProgress=syncConflictProgress();
+  let pullTimeout;
+  try{
+    await syncWaitForIdle();
+    await Promise.race([
+      pullCloudTeam(),
+      new Promise((_,reject)=>{pullTimeout=setTimeout(()=>reject(new Error('A consulta à nuvem excedeu 15 segundos.')),15000);})
+    ]);
+    clearTimeout(pullTimeout);
+    await syncWaitForIdle();
+  }catch(error){
+    clearTimeout(pullTimeout);
+    closeProgress();
+    console.warn('Não foi possível atualizar os conflitos antes da revisão:',error);
+    await syncConflictDialog('',null,'Não consegui carregar a versão mais recente da nuvem: '+(error?.message||'falha de conexão')+'. Para evitar uma escolha com dados antigos, nenhuma resolução foi aplicada. Tente novamente.');
+    return;
+  }
+  closeProgress();
+  keys=Object.keys(syncMeta.conflicts||{}).filter(key=>syncMeta.conflicts[key]?.status==='conflict');
+  if(!keys.length){
+    syncStatusUpdate();
+    await syncConflictDialog('',null,'A consulta atualizou os registros. Não há mais conflitos pendentes para revisar.');
     return;
   }
   for(const key of keys){
@@ -2767,7 +2808,7 @@ async function syncResolveConflictsUI(){
     const server=conflict?.server_record;
     const pending=(syncMeta.queue||[]).find(op=>op.key===key&&op.status==='conflict');
     if(!server||!Number(server.revision)||!pending){
-      await syncConflictDialog(key,null,'O conflito '+key+' está sem a cópia necessária para comparação. Nenhuma alteração local foi descartada. Atualize a sincronização e tente novamente.');
+      await syncConflictDialog(key,null,'O conflito '+key+' continua sem uma cópia atual e completa da nuvem. Nenhuma alteração local foi descartada. Atualize a sincronização e tente novamente.');
       continue;
     }
     const local=syncRows(S).get(key)||null;
