@@ -43,6 +43,8 @@ const checks = [
   ['conflito vindo do recebimento guarda snapshot da nuvem', /'server_record':_0x3e9d29/],
   ['existe resolução manual de conflitos', /async function syncResolveConflictsUI\(\)/],
   ['atualiza snapshot remoto antes de apresentar escolha', /try\{await pullCloudTeam\(\);\}/],
+  ['revisão mostra progresso antes de consultar a nuvem', /function syncConflictProgress\([\s\S]{0,900}Consultando a nuvem para carregar os conflitos/],
+  ['consulta de conflitos tem limite de espera', /Promise\.race\([\s\S]{0,500}15000/],
   ['diálogo de conflito usa interface do aplicativo', /function syncConflictDialog\(/],
   ['comparação de versões locais e nuvem é exibida', /Comparação dos dados[\s\S]{0,1800}Neste aparelho[\s\S]{0,500}Na nuvem/],
   ['valores de conflito são renderizados como texto seguro', /textContent=syncConflictValue\(/],
