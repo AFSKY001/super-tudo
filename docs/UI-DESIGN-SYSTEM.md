@@ -869,14 +869,14 @@ As cores de estado aplicadas por JavaScript (como o estado de sincronização) s
 A escolha segue as recomendações de Human Interface Guidelines da Apple: consistência semântica, adaptação entre aparências, contraste e informação que não dependa apenas da cor.
 
 
-## 15. Bottom Sheet global com arraste físico — versão 3.74.23
+## 15. Bottom Sheet global com arraste físico — versão 3.74.24
 
-As janelas inferiores usam um único controlador delegado no documento, com Pointer Events e captura do ponteiro na alça de toque de 44px. O gesto acompanha o dedo em tempo real por `translate3d`, sem alterar dimensões nem posição de layout. A mola usa `requestAnimationFrame` e velocidade inicial calculada pelas amostras recentes (janela de 100ms).
+O Bottom Sheet usa um único controlador delegado no documento, com Pointer Events e captura do ponteiro. A alça possui área de toque de 44px; o corpo interno é encapsulado em sheet-body e mantém rolagem independente com overscroll-behavior: contain.
 
-- Arraste para baixo: fecha após 30% da altura ou velocidade descendente acima de 600px/s; caso contrário retorna com mola.
-- Arraste para cima: resistência progressiva até o limite assintótico de 140px; o preenchimento inferior evita vão em folhas ancoradas ao rodapé.
-- Interrupção: uma mola em andamento pode ser agarrada na posição renderizada, sem salto.
-- Rolagem interna: a alça usa `touch-action:none`; a janela mantém contenção de overscroll e rolagem inercial.
-- Segundo dedo e botão direito são ignorados; `pointercancel` retorna a janela com segurança.
-- Respeita `prefers-reduced-motion`; os parâmetros ficam agrupados em `PHYSICS` no início do módulo.
-- As animações existentes de entrada e saída são preservadas; a saída parte da transformação e opacidade atuais.
+- O movimento usa translate3d e não altera a altura nem o layout durante o gesto.
+- A resistência elástica para cima é limitada a 140px e protegida por 220px de corpo extra no layout móvel, evitando vãos inferiores.
+- A opacidade e o desfoque do overlay compartilham a variável registrada --p, atualizada durante o arraste e a mola.
+- A velocidade inicial da mola é calculada com amostras dos últimos 100ms; fechar exige deslocamento superior a 30% da altura visível ou velocidade descendente maior que 600px/s.
+- Um único observador trata entrada e saída das janelas; o fechamento por gesto remove a janela já fora da tela, sem iniciar uma segunda animação.
+- O gesto pode ser interrompido sem salto; pointercancel retorna ao estado aberto e movimento reduzido elimina a mola.
+
