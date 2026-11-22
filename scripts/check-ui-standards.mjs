@@ -417,9 +417,11 @@ try {
   ];
   const fixtureCK={
     'c-manual':{n:'Gerente',i:'Conferir abertura|Conferir equipe',l:['Conferir abertura','Conferir equipe']},
-    'c-old-generated':{n:'Controle de Qualidade — atividade antiga',i:'Atividade antiga',l:['Atividade antiga'],source:'cronograma-conversion'}
+    'c-old-generated':{n:'Controle de Qualidade — atividade antiga',i:'Atividade antiga',l:['Atividade antiga'],source:'cronograma-conversion',rm:true,legacyCronogramaId:'tm-quality',legacyCronogramaItemId:'q1'}
   };
   const fixtureState={tmod:fixtureModels,migrations:['cronogramas-para-checklists-v2']};
+  const fixtureSyncMeta={queue:[],revisions:{}};
+  const fixtureV={};
   let fixtureSaves=0,fixtureIds=0;
   const fixtureLz=()=>Object.values(fixtureCK).forEach(model=>{if(typeof model.i==='string')model.l=model.i.split('|');});
   const fixtureSave=()=>{fixtureSaves++;return true;};
@@ -429,8 +431,8 @@ try {
     fixtureLz();
     return id;
   };
-  const runMigration=new Function('S','CK','lz','save','createChecklistFromSteps',migrationSource+';return migrateCronogramaModelsToChecklists;');
-  const migrate=runMigration(fixtureState,fixtureCK,fixtureLz,fixtureSave,fixtureCreate);
+  const runMigration=new Function('S','CK','lz','save','createChecklistFromSteps','syncReady','V','syncMeta','syncPersist','syncFlush','syncUuid',migrationSource+';return migrateCronogramaModelsToChecklists;');
+  const migrate=runMigration(fixtureState,fixtureCK,fixtureLz,fixtureSave,fixtureCreate,false,fixtureV,fixtureSyncMeta,()=>{},async()=>{},()=> 'fixture-uuid');
   const firstRun=migrate();
   const secondRun=migrate();
   const quality=fixtureCK['c-cronograma-model-tm-quality'];
@@ -438,24 +440,27 @@ try {
   requireCheck(firstRun===true&&secondRun===false&&fixtureSaves===1, 'Migration must convert once, persist once and avoid duplicate checklist models.');
   requireCheck(!!quality&&!!prevention, 'Each old cronograma template must become exactly one checklist model.');
   requireCheck(quality?.n==='Controle de Qualidade'&&prevention?.n==='Prevenção', 'Converted checklist models must retain the original template names.');
-  requireCheck(JSON.stringify(quality?.l)===JSON.stringify(['Conferir temperatura dos equipamentos','Verificar validade dos produtos']), 'Converted checklist must contain only unique activity titles, without schedule metadata or descriptions.');
+  requireCheck(JSON.stringify(quality?.l)===JSON.stringify(['Conferir temperatura dos equipamentos','Verificar validade dos produtos']), 'Converted checklist must contain unique activity titles, without schedule metadata or descriptions.');
   requireCheck(JSON.stringify(prevention?.l)===JSON.stringify(['Auditar pontos de risco','Verificar registros de perdas']), 'Prevention activities must become checkable items in the same template.');
   requireCheck(quality?.p===''&&quality?.k==='Rotina diária'&&quality?.m==='routine-inline', 'Converted models must use the existing checklist model schema.');
   requireCheck(!!fixtureCK['c-manual']&&fixtureCK['c-manual'].n==='Gerente', 'Existing manual checklist templates must remain unchanged.');
-  requireCheck(fixtureCK['c-old-generated']?.rm===true, 'Obsolete automatic per-activity conversion artifacts must be hidden without deleting stored data.');
-  requireCheck(fixtureState.tmod.length===2&&fixtureState.migrations.includes('cronogramas-para-checklists-v7'), 'Original cronograma data must remain stored and the new migration marker must be recorded.');
+  requireCheck(!fixtureCK['c-old-generated'], 'Obsolete automatic per-activity conversion artifacts must be removed after the consolidated replacement is saved.');
+  requireCheck(fixtureState.tmod.length===0&&fixtureState.migrations.includes('cronogramas-para-checklists-v10'), 'Successfully converted cronograma templates must be removed and the current migration marker recorded.');
   fixtureState.tmod.push({id:'tm-new',n:'Abertura',items:[{id:'n1',t:'Preparar setor',days:[2],time:'06:00'}]});
   const lateRun=migrate();
-  requireCheck(lateRun===true&&!!fixtureCK['c-cronograma-model-tm-new']&&fixtureSaves===2, 'Cronograma models received after cloud sync must also convert without duplicating previous templates.');
-  const before=JSON.stringify(fixtureCK['c-cronograma-model-tm-quality'].l);
-  fixtureState.tmod[0].items[0].t='Conferir temperatura atualizada';
+  requireCheck(lateRun===true&&!!fixtureCK['c-cronograma-model-tm-new']&&fixtureSaves===2&&fixtureState.tmod.length===0, 'Cronograma models received after cloud sync must also convert and be removed without duplicating previous templates.');
+  fixtureState.tmod.push({id:'tm-quality',n:'Controle de Qualidade',items:[
+    {id:'q1',t:'Conferir temperatura atualizada',days:[1,2,3],time:'07:00'},
+    {id:'q2',t:'Verificar validade dos produtos',days:[1,4],time:'08:00'},
+    {id:'q3',t:'Conferir temperatura atualizada',days:[5],time:'09:00'}
+  ]});
   const updateRun=migrate();
-  requireCheck(updateRun===true&&fixtureCK['c-cronograma-model-tm-quality'].l[0]==='Conferir temperatura atualizada'&&fixtureCK['c-cronograma-model-tm-quality'].l.length===3, 'A converted checklist must update its activity titles from the source template without creating another model.');
-  requireCheck(before!==JSON.stringify(fixtureCK['c-cronograma-model-tm-quality'].l)&&fixtureState.tmod.length===3, 'Updating converted content must preserve all original cronograma templates.');
-
+  requireCheck(updateRun===true&&fixtureCK['c-cronograma-model-tm-quality'].l[0]==='Conferir temperatura atualizada'&&fixtureCK['c-cronograma-model-tm-quality'].l.length===2, 'A reappearing cloud template must update its existing checklist once, deduplicate activities and be removed again.');
+  requireCheck(fixtureSaves===3&&fixtureState.tmod.length===0, 'Updating converted content must persist once and leave no legacy cronograma templates.');
 } catch(error) {
   failures.push('Cronograma migration fixture test failed: '+error.message);
 }
+
 
 for (const name of Object.keys(ceilings)) {
   requireCheck(
