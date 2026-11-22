@@ -867,3 +867,16 @@ As cores de estado aplicadas por JavaScript (como o estado de sincronização) s
 - Não criar novas cores hex/RGB diretamente em componentes. Usar os tokens globais ou suas variantes suaves.
 
 A escolha segue as recomendações de Human Interface Guidelines da Apple: consistência semântica, adaptação entre aparências, contraste e informação que não dependa apenas da cor.
+
+
+## 15. Bottom Sheet global com arraste físico — versão 3.74.23
+
+As janelas inferiores usam um único controlador delegado no documento, com Pointer Events e captura do ponteiro na alça de toque de 44px. O gesto acompanha o dedo em tempo real por `translate3d`, sem alterar dimensões nem posição de layout. A mola usa `requestAnimationFrame` e velocidade inicial calculada pelas amostras recentes (janela de 100ms).
+
+- Arraste para baixo: fecha após 30% da altura ou velocidade descendente acima de 600px/s; caso contrário retorna com mola.
+- Arraste para cima: resistência progressiva até o limite assintótico de 140px; o preenchimento inferior evita vão em folhas ancoradas ao rodapé.
+- Interrupção: uma mola em andamento pode ser agarrada na posição renderizada, sem salto.
+- Rolagem interna: a alça usa `touch-action:none`; a janela mantém contenção de overscroll e rolagem inercial.
+- Segundo dedo e botão direito são ignorados; `pointercancel` retorna a janela com segurança.
+- Respeita `prefers-reduced-motion`; os parâmetros ficam agrupados em `PHYSICS` no início do módulo.
+- As animações existentes de entrada e saída são preservadas; a saída parte da transformação e opacidade atuais.
