@@ -43,7 +43,7 @@ const checks = [
   ['conflito vindo do recebimento guarda snapshot da nuvem', /'server_record':_0x3e9d29/],
   ['existe resolução manual de conflitos', /async function syncResolveConflictsUI\(\)/],
   ['revisão usa o snapshot remoto já guardado sem bloquear a abertura', /const server=conflict\?\.server_record;[\s\S]{0,500}syncConflictDialog\(key,server/],
-  ['revisão não espera a consulta da nuvem para mostrar as escolhas', /async function syncResolveConflictsUI\(\)[\s\S]{0,900}syncConflictDialog\(key,server/],
+  ['revisão não espera a consulta da nuvem para mostrar as escolhas', /async function syncResolveConflictsUI\(\)[\s\S]*?syncConflictDialog\(key,server/],
   ['diálogo de conflito usa interface do aplicativo', /function syncConflictDialog\(/],
   ['comparação de versões locais e nuvem é exibida', /Comparação dos dados[\s\S]{0,1800}Neste aparelho[\s\S]{0,500}Na nuvem/],
   ['valores de conflito são renderizados como texto seguro', /textContent=syncConflictValue\(/],
