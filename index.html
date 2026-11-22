@@ -2228,7 +2228,7 @@ const _0x2c2823=_0x754e;(function(_0x3e9400,_0x5d2996){const _0x485697=_0x754e,_
  const models=Array.isArray(S.tmod)?S.tmod:[];
  if(!models.length)return false;
  const dayNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
- const clean=value=>String(value??'').trim().replace(/\\|/g,'/');
+ const clean=value=>String(value??'').trim().replace(/\|/g,'/');
  const safe=value=>String(value??'').replace(/[^a-zA-Z0-9_-]/g,'_');
  let changed=false,converted=0,repaired=0;
  models.forEach(model=>{
@@ -2242,12 +2242,13 @@ const _0x2c2823=_0x754e;(function(_0x3e9400,_0x5d2996){const _0x485697=_0x754e,_
    const current=CK[key];
    if(current){
     if(current.source==='cronograma-conversion'&&String(current.legacyCronogramaId)===String(model.id)&&String(current.legacyCronogramaItemId)===itemId){
-     if(current.p!=='' ){current.p='';changed=true;}
-     if(current.m!=='routine-inline'){current.m='routine-inline';changed=true;}
-     if(current.k!=='Rotina diária'){current.k='Rotina diária';changed=true;}
-     if(!Array.isArray(current.l)){current.l=String(current.i||'').split('|');changed=true;}
-     if(typeof current.ph!=='boolean'){current.ph=item.photoMode==='required';changed=true;}
-     repaired++;
+     let modelRepaired=false;
+     if(current.p!=='' ){current.p='';changed=true;modelRepaired=true;}
+     if(current.m!=='routine-inline'){current.m='routine-inline';changed=true;modelRepaired=true;}
+     if(current.k!=='Rotina diária'){current.k='Rotina diária';changed=true;modelRepaired=true;}
+     if(!Array.isArray(current.l)){current.l=String(current.i||'').split('|');changed=true;modelRepaired=true;}
+     if(typeof current.ph!=='boolean'){current.ph=item.photoMode==='required';changed=true;modelRepaired=true;}
+     if(modelRepaired)repaired++;
     }
     return;
    }
