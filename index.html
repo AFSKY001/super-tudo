@@ -3094,12 +3094,12 @@ host.querySelectorAll('.sheet').forEach(ensureSheet);host.querySelectorAll('.ov.
   if(!toast){
    toast=document.createElement('div');
    toast.id='syncStatusFeedback';
-   Object.assign(toast.style,{position:'fixed',left:'50%',top:'calc(env(safe-area-inset-top, 0px) + 76px)',transform:'translateX(-50%)',zIndex:'100001',maxWidth:'calc(100vw - 28px)',padding:'11px 15px',borderRadius:'12px',background:'var(--superficie, #fff)',color:'var(--texto, #222)',border:'1px solid var(--borda, #ccc)',boxShadow:'0 8px 28px rgba(0,0,0,.2)',font:'600 13px/1.4 system-ui',textAlign:'center',pointerEvents:'none'});
+   Object.assign(toast.style,{position:'fixed',left:'50%',top:'calc(env(safe-area-inset-top, 0px) + 76px)',transform:'translateX(-50%)',zIndex:'100001',maxWidth:'calc(100vw - 28px)',padding:'11px 15px',borderRadius:'12px',background:'var(--superficie)',color:'var(--texto)',border:'1px solid var(--borda)',boxShadow:'0 8px 28px rgba(0,0,0,.2)',font:'600 13px/1.4 system-ui',textAlign:'center',pointerEvents:'none'});
    document.body.append(toast);
   }
   toast.textContent=message;
   toast.style.display='block';
-  toast.style.borderColor=isError?'var(--cor-erro, #d33)':'var(--cor-primaria, #245BE8)';
+  toast.style.borderColor=isError?'var(--cor-erro)':'var(--cor-primaria)';
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>{toast.style.display='none';},isError?6500:1800);
  }
