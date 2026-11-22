@@ -90,7 +90,7 @@ const checks = [
   ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*await syncResolveConflictsUI\(\)/],
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
   ['modelo convertido fornece a lista de itens exigida pelo renderizador', /CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]{0,180}l:\[\.\.\.titles\]/],
-  ['migração atualiza nome e itens dos modelos já convertidos', /checklist\.n!==modelName[\s\S]*?checklist\.i!==titles\.join\('\|'\)[\s\S]*?checklist\.l/],
+  ['migração atualiza nome e itens dos modelos já convertidos', /if\(existing\.n!==modelName\)[\s\S]*?if\(existing\.i!==titles\.join\('\|'\)\)[\s\S]*?if\(!Array\.isArray\(existing\.l\)/],
 ];
 
 const permissionChecks = [
