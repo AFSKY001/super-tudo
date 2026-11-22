@@ -826,3 +826,44 @@ O fluxo de diagnóstico reutiliza o diálogo global do aplicativo, respeita os t
 - Menus, seções expansíveis, painéis e transições entre telas usam tempos menores e consistentes.
 - A animação não deve bloquear foco, clique, rolagem ou leitura. `prefers-reduced-motion` continua removendo os movimentos não essenciais.
 - Não alterar a lógica de abertura/fechamento, filas de diálogo, conteúdo, permissões ou dados ao ajustar o movimento.
+
+
+## 14. Paleta global semântica — versão 3.74.18
+
+A identidade de cores da interface passa a ser controlada por uma única camada de tokens CSS no final do CSS principal. Os nomes legados (--bg, --cd, --tx, --mu, --bd, --sf, --pr, --on, --ac, --ok, --no, --wa, --oks, --nos, --was, --grad, --sh1 e --sh2) permanecem apenas como aliases de compatibilidade para evitar reescrever componentes e módulos funcionais.
+
+### Tokens oficiais
+
+| Papel | Token |
+|---|---|
+| Marca | --cor-primaria, --cor-primaria-hover, --cor-primaria-suave |
+| Semânticos | --cor-sucesso, --cor-alerta, --cor-erro, --cor-info |
+| Fundos e superfícies | --fundo, --superficie, --superficie-2 |
+| Estrutura | --borda, --sombra, --vidro |
+| Texto | --texto, --texto-suave, --texto-desabilitado, --texto-inverso |
+| Fundos semânticos suaves | --cor-sucesso-suave, --cor-alerta-suave, --cor-erro-suave, --cor-info-suave |
+
+### Valores de referência
+
+**Tema claro:** marca #0066CC; hover #0057B8; sucesso #1B6E2F; alerta #995700; erro #C62828; informação #0066CC. Fundo #F5F6F8, superfície #FFFFFF, superfície secundária #EEF1F5, borda #D8DEE8, texto #17202F, texto suave #5B6575 e texto desabilitado #6B7280.
+
+**Tema escuro:** marca #8AB4F8; hover #A6C7FF; sucesso #5BCB8D; alerta #F0B65A; erro #FF7B72; informação #8AB4F8. Fundo #111827, superfície #1B2637, superfície secundária #253247, borda #35445A, texto #F3F6FC, texto suave #B2BDCE e texto desabilitado #8793A5.
+
+As cores suaves semânticas são derivadas dos próprios tokens com mistura de 12% no claro e 16% no escuro. A paleta escura evita preto puro nos fundos e reduz a intensidade visual sem perder a diferenciação dos estados.
+
+### Auditoria e consolidação
+
+Antes da consolidação, o CSS continha 82 hexadecimais, 65 valores RGB/RGBA, 13 gradientes e 109 declarações com cores literais. O JavaScript continha 16 hexadecimais e 2 valores RGB/RGBA próprios, além de escritas de estilo dinâmicas. As famílias azuis, violetas, verdes, vermelhas e âmbar foram agrupadas por significado; os gradientes e estados visuais passaram a consumir os tokens semânticos.
+
+As cores de estado aplicadas por JavaScript (como o estado de sincronização) são lidas de getComputedStyle(document.documentElement). Os campos de identidade de cada empresa continuam editáveis e preservam os valores salvos; apenas os valores iniciais/fallback agora partem da paleta global. A pequena arte vetorial da marca mantém as mesmas cores exatas dos tokens de marca e texto inverso, pois uma imagem SVG embutida não consegue resolver variáveis CSS do documento.
+
+### Regras obrigatórias
+
+- Azul é ação/informação; verde é sucesso/concluído; âmbar é atenção; vermelho é erro/problema.
+- Botões principais usam a marca; ações secundárias usam superfícies neutras.
+- Estados importantes devem ter rótulo, ícone ou texto além da cor.
+- Manter tema claro, tema escuro explícito e adaptação automática por preferência do sistema.
+- Transições de cor usam 180ms e respeitam prefers-reduced-motion; os keyframes e movimentos existentes permanecem preservados.
+- Não criar novas cores hex/RGB diretamente em componentes. Usar os tokens globais ou suas variantes suaves.
+
+A escolha segue as recomendações de Human Interface Guidelines da Apple: consistência semântica, adaptação entre aparências, contraste e informação que não dependa apenas da cor.
