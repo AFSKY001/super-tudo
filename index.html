@@ -2083,6 +2083,27 @@ label.st-ios-toggle::after{content:"";position:absolute;left:3px;top:50%;width:2
 label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios-toggle:has(input:checked)::after{transform:translate(18px,-50%)}label.st-ios-toggle:has(input:focus-visible){outline:2px solid color-mix(in srgb,var(--pr) 45%,transparent);outline-offset:4px;border-radius:8px}
 @media(prefers-reduced-motion:reduce){#app.st-screen-transition>*,.dd,.balloon,.nbx,.dsel.open .dsel-p,details[open]>:not(summary),#app .c.st-motion-card,#sh .sheet .c.st-motion-card,.sheet,.st-alert-card,.st-check-ring,.st-check-progress,.st-check-ring span::after,.st-confetti-piece,.dashboard-home .bar i,.dashboard-home .cols i,.dashboard-home svg:not(.ic) .st-line-series,.dashboard-home svg:not(.ic) .st-chart-area,.skeleton,.skel,.loading-placeholder,.st-field-shake,#bn.st-notification-pulse,nav::before,label.st-ios-toggle::before,label.st-ios-toggle::after,.st-ripple-layer i{animation:none!important;transition:none!important}#app .c.st-motion-card,#sh .sheet .c.st-motion-card{opacity:1!important}.st-confetti-layer{display:none!important}#app button:active,#sh button:active,#stDialogLayer button:active,header button:active,nav button:active{transform:none!important}}
 
+
+
+/* Navegação — restaurar indicador deslizante e microinterações da barra */
+@media(max-width:1023px){
+  nav{isolation:isolate}
+  nav::before{
+    z-index:0!important;
+    border:1px solid color-mix(in srgb,var(--pr) 24%,transparent)!important;
+    background:linear-gradient(135deg,color-mix(in srgb,var(--pr) 17%,var(--cd)),color-mix(in srgb,var(--pr) 10%,var(--cd)))!important;
+    box-shadow:0 3px 12px color-mix(in srgb,var(--pr) 13%,transparent),inset 0 1px 0 rgba(255,255,255,.72)!important;
+    transition:transform 340ms cubic-bezier(.22,1,.36,1),width 340ms cubic-bezier(.22,1,.36,1)!important;
+    will-change:transform,width;
+  }
+  nav button{transition:color 180ms ease,transform 180ms ease!important}
+  nav button .ni{transition:transform 220ms cubic-bezier(.2,.8,.2,1),color 180ms ease!important}
+  nav button.on .ni{transform:scale(1.08)!important}
+  nav button .nl{transition:opacity 180ms ease,color 180ms ease!important}
+}
+@media(prefers-reduced-motion:reduce){
+  @media(max-width:1023px){nav::before{transition:transform 180ms ease,width 180ms ease!important}nav button .ni,nav button .nl{transition-duration:120ms!important}}
+}
 </style></head><body>
 <header><div><h1><img class="app-brand-logo" src="/logo.webp" alt="Super Tudo">Atacarejo Super Tudo</h1><p id="hd"></p></div><button type="button" class="dots notification-trigger" id="bl" onclick="V.nb=1;V.nd=null;rNb()" aria-label="Notificações"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16v-5a6 6 0 0112 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg><b id="bn" class="notification-count"></b></button><span id="syncStatus" class="sync-status-label" title="Status da sincronização"></span><button type="button" class="dots" id="dt" onclick="V.mn=1;rMenu()" aria-label="Menu"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/><circle cx="12" cy="18.5" r="1.4" fill="currentColor"/></svg></button><div id="mn"></div><div id="nbx"></div></header>
 <div id="sh"></div>
