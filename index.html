@@ -2294,7 +2294,7 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
  S.tmod=Array.isArray(S.tmod)?S.tmod:[];
  S.routineModels=Array.isArray(S.routineModels)?S.routineModels:[];
  const targets=new Set(['controle de qualidade','prevencao','encarregado']);
- const normalize=value=>String(value??'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim();
+ const normalize=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
  const safe=value=>String(value??'').replace(/[^a-zA-Z0-9_-]/g,'_');
  const sources=[['tmod',S.tmod],['routineModels',S.routineModels]];
  const found=sources.flatMap(([module,models])=>models.filter(model=>targets.has(normalize(model?.n||model?.name||model?.title||model?.nome))).map(model=>({module,model})));
@@ -2305,7 +2305,7 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
   const output=[];
   const seen=new Set();
   const add=value=>{
-   const title=String(value??'').trim().replace(/\\|/g,'/');
+   const title=String(value??'').trim().replace(/\|/g,'/');
    if(title&&!title.startsWith('#')&&!seen.has(normalize(title))){seen.add(normalize(title));output.push(title);}
   };
   const itemText=item=>typeof item==='string'?item:(item&&typeof item==='object'?(item.t??item.title??item.name??item.atividade??item.atividades??item.titulo??item.label??item.text??item.value??item.descricao??item.description??item.nome??''):'');
