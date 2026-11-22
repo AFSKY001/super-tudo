@@ -404,6 +404,7 @@ const routinesRouteEnd=html.indexOf('function rCroReg()',routinesRouteStart);
 const routinesRoute=routinesRouteStart>=0&&routinesRouteEnd>routinesRouteStart?html.slice(routinesRouteStart,routinesRouteEnd):'';
 requireCheck(routinesRoute.includes('migrateCronogramaModelsToChecklists()')&&routinesRoute.includes('rRotChecklistHub()')&&routinesRoute.includes('Modelos de checklist')&&!routinesRoute.includes('tmList()')&&!routinesRoute.includes('tmEditor()'), 'Rotinas must expose checklist models and hide the old cronograma template editor/list.');
 requireCheck(html.includes('syncPersist(),migrateCronogramaModelsToChecklists(),_0x32cd9d;'), 'Cronograma migration must run again after cloud data is pulled.');
+requireCheck(!html.includes('function exportTempRecovery(){')&&!html.includes('Importar JSON')&&!html.includes('Exportar JSON'), 'Obsolete JSON recovery import/export controls must not be present.');
 try {
   const fixtureModels=[{id:'tm-test',n:'Abertura',items:[
     {id:'activity-1',t:'Conferir salão',desc:'Verificar limpeza',days:[1,2,3],time:'07:00',steps:['Ligar luzes','Conferir equipamentos'],ckid:'c-linked',photoMode:'required'},
