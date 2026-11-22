@@ -41,6 +41,8 @@ requireCheck(html.includes("if(_0x5a8d2f!==V['sg'])V['cf']=null"), 'Inline delet
 requireCheck(html.includes('Navegação — restaurar indicador deslizante'), 'Navigation motion restoration must be present.');
 requireCheck(html.includes('transition:transform 340ms cubic-bezier(.22,1,.36,1),width 340ms cubic-bezier(.22,1,.36,1)!important'), 'Mobile navigation indicator must slide smoothly between selected items.');
 requireCheck(html.includes('background:linear-gradient(135deg,color-mix(in srgb,var(--pr) 17%,var(--cd)),color-mix(in srgb,var(--pr) 10%,var(--cd)))!important'), 'Mobile navigation indicator must use the active brand color.');
+requireCheck(!html.includes('@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}'), 'Reduced-motion preferences must not globally disable all application animations.');
+requireCheck(html.includes('--dur-fast:140ms;--dur:180ms;--dur-s:220ms'), 'Reduced-motion mode must shorten global motion instead of removing it.');
 requireCheck(html.includes('lastTrigger=target') && html.includes('layer.dataset.position=position'), 'Internal dialogs must anchor vertically to the initiating button.');
 requireCheck(html.includes('aria-label="Resposta"') && html.includes("input.setAttribute('aria-label',isInput?'Resposta':'')"), 'Prompt input must expose an accessible name.');
 requireCheck(html.includes("document.body.classList.add('st-dialog-open')") && html.includes("document.body.classList.remove('st-dialog-open')") && html.includes('body.st-dialog-open{overflow:hidden;overscroll-behavior:none}'), 'Open dialogs must lock background scrolling and release it on close.');
