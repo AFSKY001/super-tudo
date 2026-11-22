@@ -3088,24 +3088,33 @@ host.querySelectorAll('.sheet').forEach(ensureSheet);host.querySelectorAll('.ov.
  if(!button)return;
  button.removeAttribute('onclick');
  [['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['min-width','108px'],['min-height','42px'],['flex-shrink','0'],['max-width','none'],['padding','8px 10px']].forEach(([key,value])=>button.style.setProperty(key,value,'important'));
- let lastTouch=0;
+ let touchStart=null,lastAction=0;
+ function inside(x,y){
+  const r=button.getBoundingClientRect();
+  return x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom;
+ }
  function invoke(event){
+  if(Date.now()-lastAction<650)return;
+  lastAction=Date.now();
   if(event){event.preventDefault();event.stopPropagation();}
   const action=window.runSyncStatusAction;
-  if(typeof action!=='function'){
-   if(typeof window.stAlert==='function')window.stAlert('A ação de sincronização ainda não carregou. Atualize o aplicativo.');
-   else console.error('Super Tudo: runSyncStatusAction indisponível.');
-   return;
-  }
-  action();
+  if(typeof action==='function')action();
+  else if(typeof window.stAlert==='function')window.stAlert('A ação de sincronização ainda não carregou. Atualize o aplicativo.');
  }
- button.addEventListener('pointerup',event=>{
-  if(event.pointerType!=='touch')return;
-  lastTouch=Date.now();
-  invoke(event);
- },{passive:false});
+ document.addEventListener('touchstart',event=>{
+  const t=event.changedTouches&&event.changedTouches[0];
+  touchStart=t&&inside(t.clientX,t.clientY)?{x:t.clientX,y:t.clientY}:null;
+ },{capture:true,passive:true});
+ document.addEventListener('touchend',event=>{
+  const t=event.changedTouches&&event.changedTouches[0];
+  if(!touchStart||!t)return;
+  const start=touchStart;touchStart=null;
+  const moved=Math.hypot(t.clientX-start.x,t.clientY-start.y);
+  if(moved<=18&&inside(t.clientX,t.clientY))invoke(event);
+ },{capture:true,passive:false});
+ document.addEventListener('touchcancel',()=>{touchStart=null},true);
  button.addEventListener('click',event=>{
-  if(Date.now()-lastTouch<900){event.preventDefault();event.stopPropagation();return;}
+  if(Date.now()-lastAction<900){event.preventDefault();event.stopPropagation();return;}
   invoke(event);
  },true);
 })();
