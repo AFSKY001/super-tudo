@@ -35,6 +35,13 @@ requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match 
 requireCheck(html.includes('<script src="/routine.js"></script>') && /'routine.js'/.test((await read('scripts/build-protected.mjs'))), 'Unified routine module must be loaded and included in the protected deployment.');
 requireCheck(!routine.includes('toISOString') && routine.includes("indexedDB.open('super-tudo-routine-photos'") && routine.includes("'image/jpeg',.7") && routine.includes('900/Math.max'), 'Routine dates must stay local and proof photos must be compressed into IndexedDB.');
 requireCheck(routine.includes('routine-v1') && routine.includes('routineOccurrences') && routine.includes('assignmentId') && routine.includes('updatedAt'), 'Routine migration, occurrence history, and update timestamps must be present.');
+
+requireCheck(routine.includes('const dateValue=') && routine.includes('dayValue=v=>Core.dateValue(v)') && routine.includes('function recordDay(r){const v=r&&(r.data||r.d||r.date||r.createdAt);return Core.dateValue(v);}'), 'Routine timestamps and legacy dates must be normalized to the local calendar day.');
+requireCheck(routine.includes('const oldFinal=old.status===\'done\'||old.status===\'dismissed\'') && routine.includes('if(oldFinal&&!nextFinal)return old'), 'Routine backup merge must never reopen completed or dismissed occurrences.');
+requireCheck(routine.includes('function readPhoto(id)') && routine.includes('function photoSheet()') && routine.includes('root.rtPhoto=viewPhoto') && routine.includes('Ver foto'), 'Routine photo evidence must be viewable from its IndexedDB photo record.');
+requireCheck(routine.includes('st-check-ring') && routine.includes('const done=rows.filter(o=>o.status===\'done\').length,pct=Math.round(done/rows.length*100)'), 'Routine team view must show each person’s progress using the shared progress ring.');
+requireCheck(routine.includes('uniqueName=!!name') && routine.includes('owners.some(owner=>owner.trim().toLocaleLowerCase()===name)'), 'Automatic routine completion must not match ambiguous duplicate employee names.');
+
 try { new Function(routine); console.log('PASS - sintaxe do módulo externo de Rotina'); } catch (error) { failures.push('routine.js must have valid JavaScript syntax: ' + error.message); }
 requireCheck(!!localDateHelper && localDateHelper.includes('getFullYear()') && localDateHelper.includes('getMonth()') && localDateHelper.includes('getDate()') && !localDateHelper.includes('toISOString'), 'Date-only calendar helper must use local date fields instead of UTC ISO conversion.');
 
