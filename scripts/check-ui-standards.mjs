@@ -81,10 +81,10 @@ const requiredPatterns = [
   ['global card sizing contract', /\.c,\s*\.page-content \.c,\s*\.dashboard-home \.c\s*\{[^}]*padding:\s*var\(--ui-card-padding\)!important/s],
 ['global motion feedback token', /--ui-motion-feedback\s*:\s*120ms/i],
   ['global motion state token', /--ui-motion-state\s*:\s*190ms/i],
-  ['global motion enter token', /--ui-motion-enter\s*:\s*250ms/i],
+  ['global motion enter token', /--ui-motion-enter\s*:\s*170ms/i],
   ['global navigation active indicator', /nav button\.on::after\s*\{[^}]*width:\s*18px/s],
   ['global field focus feedback', /input\[type="checkbox"\]:focus-visible[\s\S]*box-shadow:/s],
-  ['global reduced-motion contract', /prefers-reduced-motion\s*:\s*reduce[\s\S]*nav button::after\{display:none!important\}/s],
+  ['global reduced-motion contract', /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*nav::before\{transition:transform 180ms ease,width 180ms ease!important\}/s],
   ['navigation compact labels', /'Painel'.*'Rotina'.*'Avaliar'.*'Progresso'.*'Equipe'.*'Registro'.*'Ajustes'/s],
   ['navigation selected pill', /nav button\.on\s*\{[^}]*background:var\(--prs\)!important/s],
   ['navigation current page semantics', /aria-current=/],
@@ -271,8 +271,8 @@ requireCheck(new Set(staticIds).size === staticIds.length, 'Duplicate static HTM
 requireCheck((html.match(/function editL\s*\(/g) || []).length === 1, 'The editL action must have exactly one declaration.');
 requireCheck((html.match(/function editTempRecord\s*\(/g) || []).length === 1, 'The temperature edit action must have exactly one declaration.');
 requireCheck(html.includes('editTempRecord(this.dataset.id)'), 'Temperature history must call its dedicated edit action.');
-const globalReducedMotionBlocks = (styleBlocks.length === 1 ? (styleBlocks[0][1].match(/@media\s*\(?prefers-reduced-motion:reduce\)?\s*\{\*\{animation:none!important;transition:none!important\}\}/g) || []).length : 0);
-requireCheck(globalReducedMotionBlocks === 1, 'Expected exactly one global reduced-motion fallback; duplicate or missing fallback detected.');
+const globalReducedMotionBlocks = (styleBlocks.length === 1 ? (styleBlocks[0][1].match(/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{\s*:root\s*\{--dur-fast:140ms;--dur:180ms;--dur-s:220ms\}/g) || []).length : 0);
+requireCheck(globalReducedMotionBlocks === 1, 'Expected exactly one shared reduced-motion token block that shortens motion without disabling all application animations.');
 const cssImportantCount = styleBlocks.length === 1 ? (styleBlocks[0][1].match(/!important/g) || []).length : 0;
 requireCheck(cssImportantCount <= 799, 'The global CSS !important count increased above the audited 3.73.33 baseline (799).');
 
