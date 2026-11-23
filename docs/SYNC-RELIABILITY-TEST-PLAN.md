@@ -223,3 +223,19 @@ O verificador `npm run check:sync` agora inclui testes estáticos para:
 Commit `cd3b55b8` passou por contrato de sincronização, padrões globais de interface, build protegido, auditoria de dependências e implantação Cloudflare. Deployment `8d1e26a6-cb0c-4b0d-8665-95c0dfa3fbbc`, versão `3446bc25-32ca-485a-bca6-ee6c2afe32b1`, com 100% do tráfego.
 
 **Limite:** ainda falta teste ponta a ponta com JWT de encarregado, gerente e dois tenants distintos. A verificação atual combina leitura de definições SQL, agregados da base e contrato estático no CI; não simula sessões reais.
+
+
+## Correção de concorrência preparada — 23/11/2026
+
+A auditoria de 23/11 identificou que a RPC ativa `sync_push(jsonb, uuid)` fazia uma consulta em `sync_ops` para verificar `(org_id, client_id)` e só depois gravava o resultado. Duas transações simultâneas podiam passar pela consulta antes da primeira inserção. A chave única evita duplicação, mas não garante que a segunda chamada retorne o resultado idempotente.
+
+Foi preparada a migração `20261123170000_serialize_sync_push_per_org.sql`:
+- adquire um advisory lock transacional por organização antes de processar a fila;
+- serializa somente envios da mesma organização; empresas diferentes continuam independentes;
+- protege tanto a consulta/inserção de `sync_ops` quanto a criação inicial em `app_records`;
+- mantém a implementação atual da RPC por transformação controlada de `pg_get_functiondef`, sem reescrever regras de autorização ou mudar grants;
+- é idempotente e falha se não reconhecer a estrutura esperada.
+
+O bloqueio por organização é uma escolha conservadora: reduz paralelismo de gravações dentro da mesma empresa, mas evita deadlocks entre lotes que contenham registros em ordens diferentes. A duração do bloqueio é limitada à transação da chamada RPC.
+
+A migração precisa ser aplicada ao projeto e verificada pela definição efetiva da função. A prova de concorrência real com duas sessões simultâneas continua pendente; o teste estático do CI não substitui esse teste funcional.
