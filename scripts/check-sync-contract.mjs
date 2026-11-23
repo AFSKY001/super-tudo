@@ -17,6 +17,10 @@ const teamReadMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261121192522_require_team_leader_permission_for_team_reads.sql'),
   'utf8',
 );
+const syncConcurrencyMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261123170000_serialize_sync_push_per_org.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -106,6 +110,23 @@ const permissionChecks = [
   ['RPC multiempresa troca verificação legada de r:eqp por verificação escopada', /public\.has_perm_for_org\(''r:eqp'', v_org_id\)/i],
   ['migração de leitura exige papel encarregado e permissão r:eqp', /om\.role=''encarregado''[\s\S]{0,100}has_perm_for_org\(''r:eqp'',p_org_id\)/i],
 ];
+
+const concurrencyChecks = [
+  ['migração serializa envios concorrentes por organização', syncConcurrencyMigration.includes('pg_advisory_xact_lock')],
+  ['bloqueio usa chave estável derivada da organização', syncConcurrencyMigration.includes("hashtextextended(''sync_push:'' || v_org_id::text, 0)")],
+  ['migração preserva a assinatura multiempresa da RPC', syncConcurrencyMigration.includes("public.sync_push(jsonb,uuid)")],
+  ['migração falha se não reconhecer a estrutura ativa', syncConcurrencyMigration.includes('Não foi possível localizar o início do processamento da fila')],
+  ['migração verifica o bloqueio após a substituição', syncConcurrencyMigration.includes('O bloqueio transacional de sync_push não foi instalado')],
+];
+const failedConcurrency = [];
+for (const [label, passed] of concurrencyChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedConcurrency.push(label);
+}
+if (failedConcurrency.length) {
+  console.error('Falhas na proteção de concorrência: ' + failedConcurrency.join('; '));
+  process.exitCode = 1;
+}
 
 const failedPermissions = [];
 for (const [label, pattern] of permissionChecks) {
