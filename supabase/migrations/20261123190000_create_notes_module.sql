@@ -111,15 +111,15 @@ for select to authenticated
 using (
   (
     author_id = auth.uid()
-    and public.has_perm_for_org('l:notes', org_id)
+    and public.notas_has_permission('l:notes', org_id)
   )
   or (
     shared = true
     and archived = false
     and deleted_at is null
-    and public.has_perm_for_org('r:notes', org_id)
+    and public.notas_has_permission('r:notes', org_id)
   )
-  or public.has_perm_for_org('m:notes', org_id)
+  or public.notas_has_permission('m:notes', org_id)
 );
 
 drop policy if exists notas_insert on public.notas;
@@ -127,27 +127,27 @@ create policy notas_insert on public.notas
 for insert to authenticated
 with check (
   author_id = auth.uid()
-  and public.has_perm_for_org('l:notes', org_id)
+  and public.notas_has_permission('l:notes', org_id)
 );
 
 drop policy if exists notas_update on public.notas;
 create policy notas_update on public.notas
 for update to authenticated
 using (
-  (author_id = auth.uid() and public.has_perm_for_org('l:notes', org_id))
-  or public.has_perm_for_org('m:notes', org_id)
+  (author_id = auth.uid() and public.notas_has_permission('l:notes', org_id))
+  or public.notas_has_permission('m:notes', org_id)
 )
 with check (
-  (author_id = auth.uid() and public.has_perm_for_org('l:notes', org_id))
-  or public.has_perm_for_org('m:notes', org_id)
+  (author_id = auth.uid() and public.notas_has_permission('l:notes', org_id))
+  or public.notas_has_permission('m:notes', org_id)
 );
 
 drop policy if exists notas_delete on public.notas;
 create policy notas_delete on public.notas
 for delete to authenticated
 using (
-  (author_id = auth.uid() and deleted_at is not null and public.has_perm_for_org('l:notes', org_id))
-  or public.has_perm_for_org('m:notes', org_id)
+  (author_id = auth.uid() and deleted_at is not null and public.notas_has_permission('l:notes', org_id))
+  or public.notas_has_permission('m:notes', org_id)
 );
 
 grant select, insert, update, delete on public.notas to authenticated;
