@@ -11,14 +11,14 @@ const check=(ok,message)=>{if(!ok)failures.push(message);};
 try{new Function(notes);console.log('PASS - sintaxe do módulo de notas');}catch(error){failures.push('notes.js syntax: '+error.message);}
 check(/<script src="\/notes\.js(?:\?[^" ]*)?"><\/script>/.test(html),'index must load the notes module.');
 check(build.includes("'notes.js'"),'protected build must include notes.js.');
-check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v3.74.66'),'service worker must cache the notes module under the current version.');
-check(pkg.version==='3.74.66'&&lock.version===pkg.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
-check(html.includes("const APP_VERSION='3.74.66'")&&html.includes("'v':'3.74.66'"),'application version and release history must match.');
+check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v3.74.67'),'service worker must cache the notes module under the current version.');
+check(pkg.version==='3.74.67'&&lock.version===pkg.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
+check(html.includes("const APP_VERSION='3.74.67'")&&html.includes("'v':'3.74.67'"),'application version and release history must match.');
 check(html.includes("['Bloco de notas',[['r:notes'")&&html.includes("['l:notes'")&&html.includes("['m:notes'"),'notes permissions must be exposed in the existing permission editor.');
 check(html.includes('nt-page')&&html.includes('nt-card')&&html.includes('nt-editor')&&html.includes('prefers-reduced-motion:reduce){.nt-page'),'notes styles must use the shared design tokens and reduced-motion support.');
 check(html.includes("))+(isFullAccess()||can('r:notes')")&&html.includes("</button>':'')+_0x3ac14e(0x59a)+regMenuVersion()")&&html.includes('data-notes-tile')&&html.includes('Bloco de Notas')&&html.includes('stNotesOpen()'),'notes tile must be inside the registry grid and before its closing tag.');
 check(html.includes('data-st-notes-fallback')&&html.includes('window.stNotesOpen=fallback')&&html.includes('script.onerror')&&html.includes('script.onload'),'notes access must recover when the module did not register its global open handler.');
-check(notes.includes("root.__ST_NOTES_MODULE_READY__=true")&&notes.includes("root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing'"),'notes module must expose an explicit initialization status.');
+check(notes.endsWith('})(window);\\n')&&notes.includes("root.__ST_NOTES_MODULE_READY__=true")&&notes.includes("root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing'"),'notes module must expose an explicit initialization status.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick="window.stNotes')&&notes.includes('oninput="window.stNotes')&&html.includes('onclick="window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
