@@ -44,7 +44,7 @@ function visibleNotes(){
  const q=normalize(state.search);
  return state.notes.filter(n=>{
   if(state.tab==='minhas'&&(!isOwner(n)||n.archived||n.deleted_at))return false;
-  if(state.tab==='equipe'&&(!(n.shared&&allowed('r:notes')||canModerate())||isOwner(n)||n.archived||n.deleted_at))return false;
+  if(state.tab==='equipe'&&(!(n.shared&&(allowed('r:notes')||canModerate()))||isOwner(n)||n.archived||n.deleted_at))return false;
   if(state.tab==='arquivadas'&&(!isOwner(n)||!n.archived||n.deleted_at))return false;
   if(state.tab==='lixeira'&&(!isOwner(n)||!n.deleted_at))return false;
   if(state.color&&n.color!==state.color)return false;
