@@ -1,7 +1,8 @@
 (function(root){
 'use strict';
+if(!root.document)return;
 const bridge=root.__ST_ROUTINE_BRIDGE__;
-if(!bridge||!root.document)return;
+if(!bridge){root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing';return;}
 const S=bridge.S,V=bridge.V,supa=bridge.supa,can=bridge.can,esc=bridge.esc;
 const $=id=>root.document.getElementById(id);
 const state={tab:'minhas',color:'',search:'',notes:[],loading:false,error:'',editor:null,readOnly:false,timer:null,saving:false,dirty:false,channel:null,saveChain:Promise.resolve(),lastUpdated:null};
@@ -179,7 +180,7 @@ function search(value){state.search=value;const cursor=$('nt-search');render();c
 function refresh(){loadNotes();}
 function newNote(){if(!canCreate())return notify('Você não tem permissão para criar notas.');openEditor(null);}
 function setColorFilter(color){state.color=color;render();}
-root.stNotesOpen=open;root.stNotesBack=()=>state.editor?back():backToRegistry();root.stNotesNew=newNote;root.stNotesTab=setTab;root.stNotesLoad=loadNotes;root.stNotesRefresh=refresh;root.stNotesMenu=menu;root.stNotesSearch=search;root.stNotesFilterColor=setColorFilter;root.stNotesSetColor=setColor;root.stNotesShare=share;root.stNotesTogglePin=togglePin;root.stNotesArchive=archive;root.stNotesDelete=deleteNote;root.stNotesRestore=restore;root.stNotesEmptyTrash=emptyTrash;root.stNotesOpenEditor=openEditor;
+root.__ST_NOTES_MODULE_READY__=true;root.stNotesOpen=open;root.stNotesBack=()=>state.editor?back():backToRegistry();root.stNotesNew=newNote;root.stNotesTab=setTab;root.stNotesLoad=loadNotes;root.stNotesRefresh=refresh;root.stNotesMenu=menu;root.stNotesSearch=search;root.stNotesFilterColor=setColorFilter;root.stNotesSetColor=setColor;root.stNotesShare=share;root.stNotesTogglePin=togglePin;root.stNotesArchive=archive;root.stNotesDelete=deleteNote;root.stNotesRestore=restore;root.stNotesEmptyTrash=emptyTrash;root.stNotesOpenEditor=openEditor;
 const originalReg=bridge.rReg;
 bridge.rReg=function(){
  if(V.rs==='notes')return '<div class="regwrap"><div class="regbody" id="nt-root"><div class="nt-empty">Carregando bloco de notas…</div></div></div>';
