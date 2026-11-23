@@ -880,3 +880,13 @@ O Bottom Sheet usa um único controlador delegado no documento, com Pointer Even
 - Um único observador trata entrada e saída das janelas; o fechamento por gesto remove a janela já fora da tela, sem iniciar uma segunda animação.
 - O gesto pode ser interrompido sem salto; pointercancel retorna ao estado aberto e movimento reduzido elimina a mola.
 
+
+
+## Bloco de notas — versão 3.74.56
+
+- O mural de post-its é um módulo externo isolado (`notes.js`) carregado dentro de Registro e usa a ponte de integração já existente, sem reimplementar navegação, autenticação ou componentes globais.
+- Os dados ficam em `public.notas`, separados por `org_id`, com RLS, autoria definida no trigger, permissões `l:notes`, `r:notes` e `m:notes`, e Realtime.
+- Notas são privadas por padrão. Compartilhamento, arquivamento, fixação, lixeira e restauração são operações autorizadas pelo banco; o cliente não é fonte de verdade para autor ou empresa.
+- O módulo é online: quando não há conexão, não anuncia salvamento concluído. O autosave é serializado e usa `updated_at` como proteção contra sobrescrita concorrente.
+- O corpo HTML é sanitizado com lista permitida na entrada e na renderização. Colagem é convertida em texto puro. A paleta mantém tinta escura fixa nas notas pastel e o movimento respeita `prefers-reduced-motion`.
+- A feature não altera a fila geral `sync_push`/`sync_pull`; por isso, notas exigem conexão para carregar e salvar, preservando o isolamento do sync operacional.
