@@ -29,7 +29,8 @@ check(sql.includes('org_id uuid not null')&&sql.includes('enable row level secur
 check(sql.includes("author_id := v_uid")&&sql.includes('new.author_id := old.author_id')&&sql.includes('new.author_name := old.author_name'),'author identity must be assigned by the database and immutable.');
 check(sql.includes("notas_has_permission('l:notes'")&&sql.includes("notas_has_permission('r:notes'")&&sql.includes("notas_has_permission('m:notes'"),'database policies must enforce create, read, and moderation permissions.');
 check(notes.includes('!!n.shared&&canModerate()')&&notes.includes("n.shared&&(allowed('r:notes')||canModerate())"),'moderators must only see and edit notes explicitly shared with the team.');
+check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOnly||!canToggleShare?'disabled':''"),'only the note author may change its sharing state.');
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+21+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+22+' verificações)');
