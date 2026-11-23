@@ -190,4 +190,4 @@ root.addEventListener('online',()=>{if(state.editor&&state.dirty)saveNow();else 
 root.document.addEventListener('visibilitychange',()=>{if(root.document.hidden&&state.editor&&state.dirty)saveNow();});
 root.addEventListener('pagehide',()=>{if(state.editor&&state.dirty)saveNow();});
 bridge.R();
-})();
+})(window);
