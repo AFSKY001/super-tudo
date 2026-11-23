@@ -11,9 +11,9 @@ const check=(ok,message)=>{if(!ok)failures.push(message);};
 try{new Function(notes);console.log('PASS - sintaxe do módulo de notas');}catch(error){failures.push('notes.js syntax: '+error.message);}
 check(html.includes('<script src="/notes.js"></script>'),'index must load the notes module.');
 check(build.includes("'notes.js'"),'protected build must include notes.js.');
-check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v3.74.56'),'service worker must cache the notes module under the current version.');
-check(pkg.version==='3.74.56'&&lock.version===pkg.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
-check(html.includes("const APP_VERSION='3.74.56'")&&html.includes("'v':'3.74.56'"),'application version and release history must match.');
+check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v3.74.57'),'service worker must cache the notes module under the current version.');
+check(pkg.version==='3.74.57'&&lock.version===pkg.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
+check(html.includes("const APP_VERSION='3.74.57'")&&html.includes("'v':'3.74.57'"),'application version and release history must match.');
 check(html.includes("['Bloco de notas',[['r:notes'")&&html.includes("['l:notes'")&&html.includes("['m:notes'"),'notes permissions must be exposed in the existing permission editor.');
 check(html.includes('nt-page')&&html.includes('nt-card')&&html.includes('nt-editor')&&html.includes('prefers-reduced-motion:reduce){.nt-page'),'notes styles must use the shared design tokens and reduced-motion support.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
