@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'acorn';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
@@ -148,7 +149,10 @@ for (let index = 0; index < inlineScripts.length; index++) {
     new Function(inlineScripts[index][2]);
     console.log('PASS - sintaxe JavaScript do script inline ' + (index + 1));
   } catch (error) {
-    console.error('FAIL - sintaxe JavaScript do script inline ' + (index + 1) + ': ' + error.message);
+    let location = '';
+    try { parse(inlineScripts[index][2], { ecmaVersion: 'latest', sourceType: 'script' }); }
+    catch (parseError) { location = parseError.loc ? ' em ' + parseError.loc.line + ':' + parseError.loc.column : ''; }
+    console.error('FAIL - sintaxe JavaScript do script inline ' + (index + 1) + location + ': ' + error.message);
     process.exitCode = 1;
   }
 }
