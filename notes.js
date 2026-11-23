@@ -196,7 +196,7 @@ const originalReg=bridge.rReg;
 bridge.rReg=function(){
  if(V.rs==='notes')return '<div class="regwrap"><div class="regbody" id="nt-root"><div class="nt-empty">Carregando bloco de notas…</div></div></div>';
  const html=originalReg.apply(this,arguments);
- if(!canView()||!html.includes('reg-menu-screen')||!html.includes('reg-menu-grid'))return html;
+ if(!canView()||!html.includes('<h2>Áreas de Registro</h2>')||!html.includes('reg-menu-grid'))return html;
  if(html.includes('data-notes-tile'))return html;
  const tile='<button type="button" class="reg-menu-tile" data-notes-tile onclick="stNotesOpen()"><span class="reg-menu-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="reg-menu-copy"><span class="reg-menu-label">Bloco de notas</span><span class="reg-menu-hint">Anotações pessoais e compartilhadas</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
  return appendTileToGrid(html,tile);
