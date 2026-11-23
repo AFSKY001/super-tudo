@@ -30,6 +30,5 @@ assert.match(index,/set rRegLanc\(value\)\{rRegLanc=value\}/);
 assert.match(index,/get REG_MENU_ICON_PATHS\(\)\{return REG_MENU_ICON_PATHS\}/);
 assert.match(pkg.version,/^\d+\.\d+\.\d+$/);assert.equal(lock.version,pkg.version);assert.equal(lock.packages?.['']?.version,pkg.version);
 assert.ok(index.includes("const APP_VERSION='"+pkg.version+"'"));assert.ok(sw.includes('super-tudo-v'+pkg.version));
-assert.match(index,/const APP_VERSION='3\.74\.51'/);assert.match(sw,/super-tudo-v3\.74\.51/);
 assert.match(workflow,/run: npm run check:recipes/);
 console.log('PASS - ficha técnica de receitas: validação, campos, botão +, edição, exclusão e integração com Lançamentos.');
