@@ -105,10 +105,11 @@ async function saveNow(){
  if(!state.editor||state.readOnly||!state.dirty)return;
  clearTimeout(state.timer);
  const n=state.editor,title=String(n.title||'').trim().slice(0,120),body=sanitize(n.body||'').slice(0,20000);
- if(!title&&!textOf(body).trim()){state.dirty=false;status('');return;}
- if(!root.navigator.onLine){status('Sem conexão. A nota ainda não foi salva.');return;}
+ if(!title&&!textOf(body).trim()){state.dirty=false;status('');return true;}
+ if(!root.navigator.onLine){status('Sem conexão. A nota ainda não foi salva.');return false;}
  state.saving=true;status('Salvando…');
  const payload={title,body,color:n.color||'amarelo',pinned:!!n.pinned,archived:!!n.archived,shared:!!n.shared};
+ const snapshot=JSON.stringify(payload);
  const task=async()=>{
   try{
    let result;
@@ -135,7 +136,7 @@ async function openEditor(id){
  state.readOnly=!!n&&!canEdit(n);state.dirty=false;state.lastUpdated=n?.updated_at||null;state.menu=false;render();
 }
 async function back(){
- if(state.editor){clearTimeout(state.timer);if(state.dirty)await saveNow();state.editor=null;state.readOnly=false;}
+ if(state.editor){clearTimeout(state.timer);if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return;}}state.editor=null;state.readOnly=false;}
  state.menu=false;render();await loadNotes();
 }
 async function mutate(id,fields){
