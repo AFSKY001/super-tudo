@@ -16,7 +16,7 @@ const canCreate=()=>allowed('l:notes');
 const canView=()=>allowed('r:notes')||allowed('l:notes')||allowed('m:notes');
 const canModerate=()=>allowed('m:notes');
 const isOwner=n=>String(n?.author_id||'')===user();
-const canEdit=n=>!!n&&(isOwner(n)?canCreate():canModerate());
+const canEdit=n=>!!n&&(isOwner(n)?canCreate():!!n.shared&&canModerate());
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 const escHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const textOf=html=>{const d=new DOMParser().parseFromString(String(html||''),'text/html');return d.body.textContent||'';};
