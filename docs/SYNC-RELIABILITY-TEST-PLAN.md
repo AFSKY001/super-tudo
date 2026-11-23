@@ -229,7 +229,7 @@ Commit `cd3b55b8` passou por contrato de sincronização, padrões globais de in
 
 A auditoria de 23/11 identificou que a RPC ativa `sync_push(jsonb, uuid)` fazia uma consulta em `sync_ops` para verificar `(org_id, client_id)` e só depois gravava o resultado. Duas transações simultâneas podiam passar pela consulta antes da primeira inserção. A chave única evita duplicação, mas não garante que a segunda chamada retorne o resultado idempotente.
 
-Foi preparada a migração `20261123170000_serialize_sync_push_per_org.sql`:
+Foi preparada a migração `20261123165349_serialize_sync_push_per_org.sql`:
 - adquire um advisory lock transacional por organização antes de processar a fila;
 - serializa somente envios da mesma organização; empresas diferentes continuam independentes;
 - protege tanto a consulta/inserção de `sync_ops` quanto a criação inicial em `app_records`;
