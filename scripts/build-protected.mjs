@@ -10,6 +10,7 @@ const runtimeFiles = [
   'index.html',
   'routine.js',
   'pickers.js',
+  'notes.js',
   'avaliacao.html',
   'sw.js',
   'manifest.webmanifest',
