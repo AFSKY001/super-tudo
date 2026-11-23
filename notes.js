@@ -141,8 +141,8 @@ async function openEditor(id){
  state.readOnly=!!n&&!canEdit(n);state.dirty=false;state.lastUpdated=n?.updated_at||null;state.menu=false;render();
 }
 async function back(){
- if(state.editor){clearTimeout(state.timer);if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return;}}state.editor=null;state.readOnly=false;}
- state.menu=false;render();await loadNotes();
+ if(state.editor){clearTimeout(state.timer);if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return false;}}state.editor=null;state.readOnly=false;}
+ state.menu=false;render();await loadNotes();return true;
 }
 async function mutate(id,fields){
  const n=state.notes.find(x=>String(x.id)===String(id));if(!n||!canEdit(n))return notify('Você não tem permissão para alterar esta nota.');
@@ -169,7 +169,7 @@ function open(){
  if(!canView())return notify('Você não tem permissão para acessar o Bloco de notas.');
  V.tab='reg';V.rs='notes';V.reg=null;state.tab='minhas';state.search='';state.color='';state.editor=null;state.menu=false;bridge.R();subscribe();loadNotes();
 }
-function backToRegistry(){back().then(()=>{if(state.channel){supa.removeChannel(state.channel);state.channel=null;}V.rs='home';V.reg=null;bridge.R();});}
+async function backToRegistry(){const saved=await back();if(saved===false)return;if(state.channel){supa.removeChannel(state.channel);state.channel=null;}V.rs='home';V.reg=null;bridge.R();}
 function setTab(tab){state.tab=tab;state.search='';state.color='';state.menu=false;loadNotes();}
 function setColor(color){if(!state.editor||state.readOnly)return;state.editor.color=color;const el=document.querySelector('.nt-editor');if(el){el.dataset.color=color;el.style.setProperty('--nt-bg',colors[color]);}document.querySelectorAll('.nt-editor-colors button').forEach(b=>b.setAttribute('aria-checked',String(b.getAttribute('aria-label')===color)));state.dirty=true;scheduleSave();}
 function share(value){if(!state.editor||state.readOnly)return;state.editor.shared=!!value;state.dirty=true;scheduleSave();}
