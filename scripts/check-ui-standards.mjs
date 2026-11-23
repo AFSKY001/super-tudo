@@ -29,6 +29,7 @@ const requireCheck = (condition, message) => {
 };
 
 requireCheck(/^\d+\.\d+\.\d+$/.test(String(pkg.version || '')), 'package.json must contain a semantic application version.');
+requireCheck(html.includes("'trf':{'n':'Transformação'") && !html.includes("'trf'!==_0x24d848") && html.includes('Restauração de Transformação de produtos'), 'Transformação must remain available in Registro > Lançamentos with its preserved form and release note.');
 requireCheck(lock.version === pkg.version && lock.packages?.['']?.version === pkg.version, 'package-lock.json root versions must match package.json.');
 requireCheck(sourceVersion?.[1] === pkg.version, 'index.html APP_VERSION must match package.json.');
 requireCheck(cacheVersion?.[1] === pkg.version, 'sw.js cache version must match package.json.');
