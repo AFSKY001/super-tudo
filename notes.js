@@ -179,16 +179,27 @@ function search(value){state.search=value;const cursor=$('nt-search');render();c
 function refresh(){loadNotes();}
 function newNote(){if(!canCreate())return notify('Você não tem permissão para criar notas.');openEditor(null);}
 function setColorFilter(color){state.color=color;render();}
+function appendTileToGrid(html,tile){
+ const start=html.indexOf('<div class="reg-menu-grid">');
+ if(start<0)return html;
+ const tags=/<\/?div\b[^>]*>/gi;
+ tags.lastIndex=start;
+ let depth=0,match;
+ while((match=tags.exec(html))){
+  if(/^<div\b/i.test(match[0]))depth++;
+  else if(/^<\/div/i.test(match[0])&&--depth===0)return html.slice(0,match.index)+tile+html.slice(match.index);
+ }
+ return html;
+}
 root.stNotesOpen=open;root.stNotesBack=()=>state.editor?back():backToRegistry();root.stNotesNew=newNote;root.stNotesTab=setTab;root.stNotesLoad=loadNotes;root.stNotesRefresh=refresh;root.stNotesMenu=menu;root.stNotesSearch=search;root.stNotesFilterColor=setColorFilter;root.stNotesSetColor=setColor;root.stNotesShare=share;root.stNotesTogglePin=togglePin;root.stNotesArchive=archive;root.stNotesDelete=deleteNote;root.stNotesRestore=restore;root.stNotesEmptyTrash=emptyTrash;root.stNotesOpenEditor=openEditor;
 const originalReg=bridge.rReg;
 bridge.rReg=function(){
  if(V.rs==='notes')return '<div class="regwrap"><div class="regbody" id="nt-root"><div class="nt-empty">Carregando bloco de notas…</div></div></div>';
  const html=originalReg.apply(this,arguments);
- if(!canView()||!html.includes('<h2>Áreas de Registro</h2>')||!html.includes('reg-menu-grid'))return html;
- const tile='<button type="button" class="reg-menu-tile" onclick="stNotesOpen()"><span class="reg-menu-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="reg-menu-copy"><span class="reg-menu-label">Bloco de notas</span><span class="reg-menu-hint">Anotações pessoais e compartilhadas</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
- const marker=html.match(/<div class="reg-menu-grid">[\s\S]*?<\/div>/);
- if(!marker||html.includes('stNotesOpen'))return html;
- return html.replace(marker[0],marker[0].slice(0,-6)+tile+'</div>');
+ if(!canView()||!html.includes('reg-menu-screen')||!html.includes('reg-menu-grid'))return html;
+ if(html.includes('data-notes-tile'))return html;
+ const tile='<button type="button" class="reg-menu-tile" data-notes-tile onclick="stNotesOpen()"><span class="reg-menu-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="reg-menu-copy"><span class="reg-menu-label">Bloco de notas</span><span class="reg-menu-hint">Anotações pessoais e compartilhadas</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
+ return appendTileToGrid(html,tile);
 };
 root.addEventListener('online',()=>{if(state.editor&&state.dirty)saveNow();else if(V.rs==='notes')loadNotes();});
 root.document.addEventListener('visibilitychange',()=>{if(root.document.hidden&&state.editor&&state.dirty)saveNow();});
