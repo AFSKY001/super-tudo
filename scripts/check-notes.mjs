@@ -17,7 +17,7 @@ check(html.includes("const APP_VERSION='3.74.56'")&&html.includes("'v':'3.74.56'
 check(html.includes("['Bloco de notas',[['r:notes'")&&html.includes("['l:notes'")&&html.includes("['m:notes'"),'notes permissions must be exposed in the existing permission editor.');
 check(html.includes('nt-page')&&html.includes('nt-card')&&html.includes('nt-editor')&&html.includes('prefers-reduced-motion:reduce){.nt-page'),'notes styles must use the shared design tokens and reduced-motion support.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
-check(notes.includes("can('l:notes')")&&notes.includes("can('r:notes')")&&notes.includes("can('m:notes')"),'notes UI must check the three permission levels.');
+check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes("if(!title&&!textOf(body).trim())")&&notes.includes("setTimeout(()=>saveNow(),800)"),'empty notes must not be inserted and autosave must be debounced.');
 check(notes.includes("getData('text/plain')")&&notes.includes('function sanitize(html)')&&notes.includes("['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','TEMPLATE']"),'pasted text and displayed HTML must be sanitized.');
 check(notes.includes("state.lastUpdated")&&notes.includes(".eq('updated_at',state.lastUpdated)"),'note updates must detect stale revisions rather than silently overwrite another device.');
