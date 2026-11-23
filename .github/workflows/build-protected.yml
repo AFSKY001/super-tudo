@@ -37,6 +37,8 @@ jobs:
         run: npm run check:ui
       - name: Check routine domain and recurrence
         run: npm run check:routine
+      - name: Check shared picker components
+        run: npm run check:pickers
       - name: Build protected Cloudflare distribution
         run: npm run build:protected
       - name: Validate Cloudflare deployment configuration without publishing
@@ -52,13 +54,14 @@ jobs:
           test -s dist/logo.webp
           test -s dist/icon.svg
           test -s dist/routine.js
+          test -s dist/pickers.js
           test -s dist/LICENSE
           test ! -d dist/supabase
           test ! -d dist/.github
           test ! -d dist/scripts
           test ! -f dist/package.json
           test ! -f dist/package-lock.json
-          test "$(find dist -type f | wc -l | tr -d ' ' )" = "8"
+          test "$(find dist -type f | wc -l | tr -d ' ' )" = "9"
           ! find dist -type f -name '*.map' | grep .
           ! grep -R -E 'sourceMappingURL=|SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+' dist
       - name: Deploy protected distribution to Cloudflare Workers
