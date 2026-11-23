@@ -31,6 +31,26 @@ create index if not exists idx_notas_org_shared_updated
   on public.notas (org_id, updated_at desc)
   where shared = true and archived = false and deleted_at is null;
 
+create or replace function public.notas_has_permission(p text, p_org_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $function$
+  select public.has_perm_for_org(p, p_org_id)
+    or exists (
+      select 1
+      from public.org_members om
+      join public.profiles pr on pr.id = om.user_id
+      where om.user_id = auth.uid()
+        and om.org_id = p_org_id
+        and om.role in ('admin','gerente')
+        and om.active = true
+        and pr.active = true
+    );
+$function$;
+
 create or replace function public.notas_set_author()
 returns trigger
 language plpgsql
@@ -151,4 +171,5 @@ commit;
 -- begin;
 -- drop table if exists public.notas cascade;
 -- drop function if exists public.notas_set_author();
+-- drop function if exists public.notas_has_permission(text, uuid);
 -- commit;
