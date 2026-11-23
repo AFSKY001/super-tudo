@@ -19,7 +19,7 @@ check(html.includes('nt-page')&&html.includes('nt-card')&&html.includes('nt-edit
 check(html.includes("))+(isFullAccess()||can('r:notes')")&&html.includes("</button>':'')+_0x3ac14e(0x59a)+regMenuVersion()")&&html.includes('data-notes-tile')&&html.includes('Bloco de Notas')&&html.includes('stNotesOpen()'),'notes tile must be inside the registry grid and before its closing tag.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
-check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick=\\"window.stNotes')&&notes.includes('oninput=\\"window.stNotes')&&html.includes('onclick=\\"window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
+check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick="window.stNotes')&&notes.includes('oninput="window.stNotes')&&html.includes('onclick="window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
 check(!notes.includes('appendTileToGrid')&&((html.match(/data-notes-tile/g)||[]).length===1),'notes tile must have one insertion path only.');
 check(notes.includes("if(!title&&!textOf(body).trim())")&&notes.includes("setTimeout(()=>saveNow(),800)"),'empty notes must not be inserted and autosave must be debounced.');
 check(notes.includes("getData('text/plain')")&&notes.includes('function sanitize(html)')&&notes.includes("['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','TEMPLATE']"),'pasted text and displayed HTML must be sanitized.');
