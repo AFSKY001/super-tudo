@@ -39,6 +39,8 @@ jobs:
         run: npm run check:routine
       - name: Check shared picker components
         run: npm run check:pickers
+      - name: Check bakery recipe form and shared launch integration
+        run: npm run check:recipes
       - name: Build protected Cloudflare distribution
         run: npm run build:protected
       - name: Validate Cloudflare deployment configuration without publishing

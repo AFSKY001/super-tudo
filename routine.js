@@ -15,6 +15,38 @@ const state=(o,now=new Date())=>{if(!o)return'pending';if(o.status==='done'||o.s
 const activeOn=(a,d)=>a&&a.active!==false&&(!a.from||a.from<=d)&&(!a.until||a.until>=d);
 const generate=(db,day,now=Date.now())=>{const created=[],updated=[],models=new Map((db.models||[]).map(m=>[String(m.id),m]));for(const at of db.assignments||[]){if(!activeOn(at,day))continue;const m=models.get(String(at.modelId));if(!m||m.archivedAt)continue;for(const a of m.activities||[]){if(!a.title||!occurs(a.recurrence,day))continue;const id=idOf(at.id,a.id,day),old=(db.occurrences||{})[id];if(!old)created.push(makeOccurrence(at,m,a,day,now));else if(old.status==='pending'&&state(old,new Date(now))==='pending'&&day>=localDate(new Date(now))){const next=snap(m,a);if(JSON.stringify(old.snapshot)!==JSON.stringify(next))updated.push({...old,snapshot:next,updatedAt:now});}}}return{created,updated};};
 const legacyWeekdays=days=>[...new Set((Array.isArray(days)?days:[]).map(Number).filter(day=>Number.isInteger(day)&&day>=0&&day<7).map(day=>(day+1)%7))].sort((a,b)=>a-b);
+
+const recipeNormalize=value=>{
+ const source=value&&typeof value==='object'?value:{};
+ return {
+  nome:String(source.nome||'').trim(),
+  ingredientes:(Array.isArray(source.ingredientes)?source.ingredientes:[]).slice(0,14).map(item=>({nome:String(item?.nome||'').trim(),unidade:String(item?.unidade||'').trim(),peso:String(item?.peso??'').trim()})),
+  pesoInicial:String(source.pesoInicial??'').trim(),pesoFinal:String(source.pesoFinal??'').trim(),
+  rendimento:String(source.rendimento??'').trim(),unidadeRendimento:String(source.unidadeRendimento||'').trim(),
+  pessoas:String(source.pessoas??'').trim(),tempoPreparo:String(source.tempoPreparo||'').trim(),
+  tempoForno:String(source.tempoForno||'').trim(),preparo:String(source.preparo||''),
+  usaEmbalagem:String(source.usaEmbalagem||'nao'),tipoEmbalagem:String(source.tipoEmbalagem||'').trim(),
+  quantidadeEmbalagem:String(source.quantidadeEmbalagem??'').trim(),responsavel:String(source.responsavel||'').trim(),
+  dataVersao:String(source.dataVersao||'').trim()
+ };
+};
+const recipeValidate=value=>{
+ const recipe=recipeNormalize(value);
+ if(!recipe.nome)return 'Informe o nome da receita.';
+ const ingredients=recipe.ingredientes.filter(item=>item.nome);
+ if(!ingredients.length)return 'Adicione pelo menos um ingrediente.';
+ if(ingredients.some(item=>!item.unidade||!item.peso||!Number.isFinite(Number(item.peso))||Number(item.peso)<=0))return 'Complete a unidade e o peso de todos os ingredientes informados.';
+ for(const [key,label] of [['pesoInicial','peso inicial'],['pesoFinal','peso final'],['rendimento','rendimento'],['pessoas','quantidade de pessoas']]){
+  const fieldValue=recipe[key];
+  if(fieldValue!==''&&(!Number.isFinite(Number(fieldValue))||Number(fieldValue)<0))return 'Confira o campo '+label+'.';
+ }
+ if(recipe.pessoas!==''&&(!Number.isInteger(Number(recipe.pessoas))||Number(recipe.pessoas)<1))return 'A quantidade de pessoas deve ser um número inteiro maior que zero.';
+ if(recipe.usaEmbalagem==='sim'&&(!recipe.tipoEmbalagem||!recipe.quantidadeEmbalagem||!Number.isFinite(Number(recipe.quantidadeEmbalagem))||Number(recipe.quantidadeEmbalagem)<=0))return 'Informe o tipo e a quantidade de embalagens.';
+ return '';
+};
+const recipeIngredient=()=>({nome:'',unidade:'',peso:''});
+Core.recipes={normalize:recipeNormalize,validate:recipeValidate,ingredient:recipeIngredient};
+
 const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,generate,legacyWeekdays};
 root.SuperTudoRoutineCore=Core;if(typeof module!=='undefined'&&module.exports)module.exports=Core;
 const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
@@ -218,5 +250,74 @@ migrate();generateDay();syncFunctions();
 const originalRender=R;let rendering=false;if(typeof originalRender==='function'){R=function(){if(!rendering){rendering=true;try{generateDay();syncFunctions();}finally{rendering=false;}}return originalRender.apply(this,arguments);};bridge.R=R;}
 root.addEventListener('focus',()=>{generateDay();syncFunctions();});root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden){generateDay();syncFunctions();}});
 function scheduleLocalMidnight(){const now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);root.setTimeout(()=>{generateDay();syncFunctions();scheduleLocalMidnight();},Math.max(1000,next.getTime()-now.getTime()));}scheduleLocalMidnight();
+
+/* Fichas técnicas de receitas da padaria — extensão de Lançamentos */
+(function registerBakeryRecipes(){
+ const recipeKey='receitas';
+ FS[recipeKey]=FS[recipeKey]||{n:'Ficha técnica de receitas',e:'🥖',f:'',F:[],ti:recipe=>recipe?.nome||'Receita'};
+ if(!LANC_KEYS.includes(recipeKey))LANC_KEYS.push(recipeKey);
+ if(bridge.REG_MENU_ICON_PATHS)bridge.REG_MENU_ICON_PATHS[recipeKey]='<path d="M4 10.5c0-2.5 2-4.5 4.5-4.5h7A4.5 4.5 0 0 1 20 10.5V19H4z"/><path d="M4 13h16M7 6l-1-2M12 5V2M17 6l1-2M8 16h.01M12 16h.01M16 16h.01"/>';
+ const originalLaunchRenderer=bridge.rRegLanc;
+ const recipeList=()=>{S.log=S.log&&typeof S.log==='object'?S.log:{};S.log[recipeKey]=Array.isArray(S.log[recipeKey])?S.log[recipeKey]:[];return S.log[recipeKey];};
+ const recipeCanWrite=()=>typeof isFullAccess==='function'&&isFullAccess()||!!V.me&&(V.me.perm||[]).includes('l:receitas');
+ const recipeBlank=()=>({id:'new',...Core.recipes.normalize({ingredientes:[Core.recipes.ingredient()],usaEmbalagem:'nao',responsavel:V.me?.n||V.cloudIdentity?.name||'',dataVersao:Core.localDate().split('-').reverse().join('/')+' · v1'})});
+ const recipeField=(key,value)=>{if(!V.recipeDraft||!['nome','pesoInicial','pesoFinal','rendimento','unidadeRendimento','pessoas','tempoPreparo','tempoForno','preparo','usaEmbalagem','tipoEmbalagem','quantidadeEmbalagem','responsavel','dataVersao'].includes(key))return;V.recipeDraft[key]=value;};
+ const recipeIngredientField=(index,key,value)=>{const row=V.recipeDraft?.ingredientes?.[index];if(!row||!['nome','unidade','peso'].includes(key))return;row[key]=value;};
+ const recipeAddIngredient=()=>{if(!V.recipeDraft)return;if(V.recipeDraft.ingredientes.length>=14)return root.stAlert('A ficha permite até 14 ingredientes.');V.recipeDraft.ingredientes.push(Core.recipes.ingredient());R();};
+ const recipeRemoveIngredient=index=>{if(!V.recipeDraft)return;V.recipeDraft.ingredientes.splice(index,1);if(!V.recipeDraft.ingredientes.length)V.recipeDraft.ingredientes.push(Core.recipes.ingredient());R();};
+ const recipeNew=()=>{if(!recipeCanWrite())return root.stAlert('Você não tem permissão para cadastrar receitas.');V.recipeDraft=recipeBlank();R();};
+ const recipeEdit=id=>{if(!recipeCanWrite())return root.stAlert('Você não tem permissão para editar receitas.');const recipe=recipeList().find(item=>String(item.id)===String(id));if(!recipe)return;V.recipeDraft={...Core.recipes.normalize(recipe),id:recipe.id,createdAt:recipe.createdAt||null};if(!V.recipeDraft.ingredientes.length)V.recipeDraft.ingredientes=[Core.recipes.ingredient()];R();};
+ const recipeCancel=()=>{V.recipeDraft=null;R();};
+ const recipeSave=()=>{
+  if(!recipeCanWrite())return root.stAlert('Você não tem permissão para salvar receitas.');
+  const draft=V.recipeDraft;if(!draft)return;
+  const data=Core.recipes.normalize(draft),error=Core.recipes.validate(data);if(error)return root.stAlert(error);
+  const rows=recipeList(),old=draft.id&&draft.id!=='new'?rows.find(item=>String(item.id)===String(draft.id)):null,now=Date.now();
+  const record={...data,id:old?.id||'recipe-'+uid(),createdAt:old?.createdAt||draft.createdAt||now,updatedAt:now};
+  if(old)Object.assign(old,record);else rows.unshift(record);
+  V.recipeDraft=null;save();R();
+ };
+ const recipeDelete=async id=>{
+  if(!recipeCanWrite())return root.stAlert('Você não tem permissão para excluir receitas.');
+  const recipe=recipeList().find(item=>String(item.id)===String(id));if(!recipe)return;
+  if(!await root.stConfirm('Excluir a ficha técnica de "'+(recipe.nome||'Receita')+'"? Esta ação não poderá ser desfeita.',{title:'Excluir ficha técnica'}))return;
+  S.log[recipeKey]=recipeList().filter(item=>String(item.id)!==String(id));save();R();
+ };
+ const recipeFieldHtml=(label,key,value,type='text',extra='')=>'<label>'+label+'<input type="'+type+'" '+extra+' value="'+e(value??'')+'" oninput="stRecipeField(\''+key+'\',this.value)"></label>';
+ const recipeIngredientsHtml=d=>d.ingredientes.map((item,index)=>{
+  const field=(label,key,value,type='text',extra='')=>'<label>'+label+'<input type="'+type+'" '+extra+' value="'+e(value??'')+'" oninput="stRecipeIngredientField('+index+',\''+key+'\',this.value)"></label>';
+  return '<div class="c"><div class="row sp"><b>Ingrediente '+(index+1)+'</b>'+(d.ingredientes.length>1?'<button type="button" class="bt d" onclick="stRecipeRemoveIngredient('+index+')">Excluir</button>':'')+'</div><div class="g2">'+field('Nome do ingrediente','nome',item.nome)+'</div><div class="g2">'+field('Unidade','unidade',item.unidade)+field('Peso / quantidade (g ou kg)','peso',item.peso,'number','min="0" step="any" inputmode="decimal"')+'</div></div>';
+ }).join('');
+ const recipeEditor=()=>{
+  const d=V.recipeDraft,ingredientRows=recipeIngredientsHtml(d);
+  return '<div class="row sp"><button type="button" class="bt g" onclick="stRecipeCancel()">‹ Receitas</button><span class="mu">Ficha técnica</span></div>'+
+   '<div class="c"><h3>'+(d.id==='new'?'Nova receita':'Editar receita')+'</h3><p class="mu">Preencha os dados da receita e os ingredientes utilizados na produção.</p>'+recipeFieldHtml('Nome da receita','nome',d.nome)+'</div>'+
+   '<div class="c"><div class="row sp"><div><h3>Ingredientes</h3><p class="mu">Até 14 ingredientes por receita.</p></div><span class="b">'+d.ingredientes.length+'/14</span></div>'+ingredientRows+
+   '<button type="button" class="bt g" onclick="stRecipeAddIngredient()" '+(d.ingredientes.length>=14?'disabled':'')+'>+ Ingrediente</button></div>'+
+   '<div class="c"><h3>Dados de produção</h3><div class="g2">'+recipeFieldHtml('Peso inicial da receita (g/kg)','pesoInicial',d.pesoInicial,'number','min="0" step="any" inputmode="decimal"')+recipeFieldHtml('Peso final da receita (g/kg)','pesoFinal',d.pesoFinal,'number','min="0" step="any" inputmode="decimal"')+'</div><div class="g2">'+recipeFieldHtml('Rendimento / quantidade produzida','rendimento',d.rendimento,'number','min="0" step="any" inputmode="decimal"')+recipeFieldHtml('Unidade do rendimento','unidadeRendimento',d.unidadeRendimento)+'</div><div class="g2">'+recipeFieldHtml('Quantidade de pessoas envolvidas','pessoas',d.pessoas,'number','min="1" step="1" inputmode="numeric"')+recipeFieldHtml('Tempo total de preparo','tempoPreparo',d.tempoPreparo)+'</div>'+recipeFieldHtml('Tempo de forno / cocção','tempoForno',d.tempoForno)+'</div>'+
+   '<div class="c"><h3>Modo de preparo e observações</h3><label>Descreva o modo de preparo, etapas e observações<textarea rows="5" oninput="stRecipeField(\'preparo\',this.value)">'+e(d.preparo)+'</textarea></label></div>'+
+   '<div class="c"><h3>Embalagem</h3><label>Necessita de embalagem?<select onchange="stRecipeField(\'usaEmbalagem\',this.value);R()"><option value="nao" '+(d.usaEmbalagem!=='sim'?'selected':'')+'>Não</option><option value="sim" '+(d.usaEmbalagem==='sim'?'selected':'')+'>Sim</option></select></label>'+(d.usaEmbalagem==='sim'?'<div class="g2">'+recipeFieldHtml('Qual embalagem?','tipoEmbalagem',d.tipoEmbalagem)+recipeFieldHtml('Quantas?','quantidadeEmbalagem',d.quantidadeEmbalagem,'number','min="0" step="any" inputmode="decimal"')+'</div>':'')+'</div>'+
+   '<div class="c"><h3>Cadastro e controle</h3><div class="g2">'+recipeFieldHtml('Responsável','responsavel',d.responsavel)+recipeFieldHtml('Data / versão','dataVersao',d.dataVersao)+'</div></div>'+
+   '<div class="row u-mt10"><button type="button" class="bt" onclick="stRecipeSave()">Salvar receita</button><button type="button" class="bt g" onclick="stRecipeCancel()">Cancelar</button></div>';
+ };
+ const recipeCard=recipe=>{
+  const ingredients=(recipe.ingredientes||[]).filter(item=>item?.nome).length;
+  const weight=recipe.pesoFinal?recipe.pesoFinal+' g/kg':'—';
+  const yieldText=recipe.rendimento?[recipe.rendimento,recipe.unidadeRendimento].filter(Boolean).join(' '):'—';
+  return '<article class="c"><div class="row sp"><div><b>'+e(recipe.nome||'Receita sem nome')+'</b><div class="mu">'+ingredients+' ingrediente(s) · Peso final: '+e(weight)+'</div></div><span class="b">'+e(recipe.dataVersao||'Sem versão')+'</span></div><div class="row sp u-mt8"><span class="mu">Rendimento: '+e(yieldText)+' · Preparo: '+e(recipe.tempoPreparo||'—')+'</span></div><div class="mu u-mt8">Responsável: '+e(recipe.responsavel||'—')+'</div><div class="row u-mt10"><button type="button" class="bt g" onclick="stRecipeEdit(\''+e(recipe.id)+'\')">Editar ficha</button><button type="button" class="bt d" onclick="stRecipeDelete(\''+e(recipe.id)+'\')">Excluir</button></div></article>';
+ };
+ const recipePage=()=>{
+  if(V.recipeDraft)return recipeEditor();
+  const rows=[...recipeList()].sort((a,b)=>(Number(b.updatedAt)||0)-(Number(a.updatedAt)||0));
+  const plus='<div class="c launch-card launch-primary"><button type="button" class="launch-plus" aria-label="Cadastrar receita" title="Cadastrar receita" onclick="stRecipeNew()">+</button><div class="launch-primary-copy"><b>Nova ficha técnica</b><p class="launch-info">Cadastre os ingredientes, rendimento e padrão de produção da padaria.</p></div></div>';
+  return '<section><div class="row sp"><div><h2>Ficha técnica de receitas</h2><p class="mu">Padaria · Controle e padronização da produção</p></div><span class="b">'+rows.length+' receita(s)</span></div>'+plus+'<div class="u-mt10"><h3>Receitas cadastradas</h3>'+(rows.length?rows.map(recipeCard).join(''):'<div class="c mu">Nenhuma receita cadastrada. Toque no botão + para criar a primeira ficha técnica.</div>')+'</div></section>';
+ };
+ bridge.rRegLanc=function(){if(V.reg===recipeKey)return recipePage();return typeof originalLaunchRenderer==='function'?originalLaunchRenderer.apply(this,arguments):'';};
+ root.stRecipeField=recipeField;root.stRecipeIngredientField=recipeIngredientField;
+ root.stRecipeAddIngredient=recipeAddIngredient;root.stRecipeRemoveIngredient=recipeRemoveIngredient;
+ root.stRecipeNew=recipeNew;root.stRecipeEdit=recipeEdit;root.stRecipeCancel=recipeCancel;
+ root.stRecipeSave=recipeSave;root.stRecipeDelete=recipeDelete;
+})();
+
 if(typeof R==='function')R();
 })(typeof window!=='undefined'?window:globalThis);
