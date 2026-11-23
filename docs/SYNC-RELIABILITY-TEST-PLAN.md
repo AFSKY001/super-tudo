@@ -239,3 +239,23 @@ Foi preparada a migração `20261123165349_serialize_sync_push_per_org.sql`:
 O bloqueio por organização é uma escolha conservadora: reduz paralelismo de gravações dentro da mesma empresa, mas evita deadlocks entre lotes que contenham registros em ordens diferentes. A duração do bloqueio é limitada à transação da chamada RPC.
 
 A migração foi aplicada ao projeto Supabase em 23/11/2026 (versão registrada: `20261123165349`). A definição efetiva da RPC foi relida e confirmou: bloqueio instalado antes do processamento da fila, assinatura `sync_push(jsonb, uuid)` preservada, `SECURITY DEFINER` e `search_path` vazio mantidos, `EXECUTE` permitido a `authenticated` e negado a `anon`.\n\nValidação realizada: duas chamadas simultâneas de repetição de uma operação já registrada retornaram o mesmo resultado com `duplicate: true` e a mesma revisão; a contagem de operações não aumentou. Isso confirma o caminho idempotente de repetição, mas não substitui o teste de concorrência de primeira gravação com duas sessões independentes e um `client_id` novo; esse cenário ainda deve ser executado em ambiente de teste isolado antes de considerar a matriz de concorrência totalmente concluída.\n\nA auditoria também encontrou 32 conflitos antigos, todos no módulo `ck`, registrados entre 19 e 21/11/2026. Eles foram preservados e não foram resolvidos automaticamente, para evitar sobrescrever alterações locais sem revisão humana.
+
+
+
+## Reclassificação do histórico de conflitos — 23/11/2026
+
+Consulta somente leitura em `sync_ops` cruzada com `app_records`, sem ler ou exportar o conteúdo operacional dos checklists e sem modificar dados.
+
+- O histórico contém 4.384 operações `applied` e 32 operações `conflict`.
+- As 32 operações de conflito pertencem a 11 registros distintos do módulo `ck`, de um único solicitante, e estão concentradas em cinco lotes entre 19 e 21/11.
+- Em 10 dos 11 registros há operações `applied` posteriores ao último conflito daquele registro; no conjunto relacionado, foram encontradas 2.960 operações aplicadas no histórico. Isso indica que o fluxo continuou gravando versões posteriores, mas não prova que a fila local de algum aparelho esteja limpa.
+- Em 10 registros a revisão atual da nuvem é posterior à revisão guardada no último snapshot de conflito. Em 1 registro, a revisão e os dados do último snapshot coincidem exatamente com o estado atual da nuvem.
+- Nenhum dos 11 registros está ausente na nuvem e todos os 11 possuem snapshot remoto no resultado histórico do conflito.
+
+### Interpretação e decisão
+
+Essas 32 linhas devem ser tratadas como histórico de tentativas recusadas por revisão-base antiga, não como 32 conflitos atuais automaticamente acionáveis. Dez registros tiveram gravações posteriores bem-sucedidas e o snapshot antigo já não representa a versão atual; um registro ainda coincide com o snapshot do último conflito. Ainda assim, a tabela do servidor não contém a fila local por aparelho, então não é possível declarar os conflitos resolvidos sem consultar os dispositivos.
+
+**Ação segura:** não apagar nem reclassificar as linhas históricas de `sync_ops`, e não executar resolução em massa. Ao abrir a revisão de conflitos no cliente, buscar o registro remoto atual e apresentar as opções sobre a revisão atual, preservando a cópia local até a escolha do usuário. O teste com dois aparelhos continua necessário para verificar se a interface e as filas locais convergem corretamente.
+
+A execução mais recente do CI para o commit documental anterior, `1cf4d3d9116855d8ec8ec9ea6f8d042c166f871b`, terminou com sucesso no workflow [45221953853](https://github.com/AFSKY001/super-tudo/actions/runs/45221953853). Esta auditoria não alterou a aplicação nem o banco.
