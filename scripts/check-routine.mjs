@@ -14,8 +14,10 @@ assert.match(indexSource,/function rRotChecklistHub\(\)\{if\(V\.ce\)return rCe\(
 console.log('PASS - integração da conversão de cronogramas com a tela de modelos de checklist.');
 
 assert.match(routineSource,/function activityHtml\(a,i\)[\s\S]{0,3000}Pickers\.campoDias/,'O editor deve usar a grade global de dias da semana.');
-assert.match(routineSource,/function readDraft\(\)[\s\S]{0,1200}g\('days'\)\?\.dataset\.valor[\s\S]{0,500}type:'weekly',days/,'Os dias selecionados devem continuar sendo salvos como números de 0 a 6.');
-assert.doesNotMatch(routineSource,/id="rt-profile"|id="rt-sector"|id="rt-tol-|Tolerância \(minutos\)|Dias do mês|Data específica|type="time"|name="rt-weekday-/,'O editor não deve manter campos antigos nem controles nativos de hora ou dias.');
+assert.match(routineSource,/function readDraft\(\)[\s\S]{0,1800}g\('days'\)\?\.dataset\.valor[\s\S]{0,1400}recurrence,time:/,'O editor deve preservar o tipo de recorrência selecionado.');
+assert.match(routineSource,/data-repeat-mode/);
+assert.match(routineSource,/data-repeat-end-mode/);
+assert.doesNotMatch(routineSource,/id="rt-profile"|id="rt-sector"|id="rt-tol-|Tolerância \(minutos\)|type="time"|name="rt-weekday-/,'O editor não deve manter campos antigos nem controles nativos de hora ou dias.');
 assert.match(routineSource,/Pickers\.campoHora/,'Horário deve usar o seletor global.');
 assert.match(routineSource,/Pickers\.segmentado/,'Foto deve usar controle segmentado.');
 assert.match(routineSource,/Pickers\.interruptor/,'Atividade obrigatória deve usar switch.');
@@ -41,6 +43,13 @@ assert.equal(Core.occurs({type:'weekly',days:[1]},'2026-11-23'),true,'Recorrênc
 assert.equal(Core.occurs({type:'monthly',days:[31]},'2026-01-31'),true,'Recorrência mensal deve aceitar o dia 31.');
 assert.equal(Core.occurs({type:'date',date:'2026-11-23'},'2026-11-23'),true,'Data específica deve coincidir.');
 assert.equal(Core.occurs({type:'date',date:'2026-11-22'},'2026-11-23'),false);
+assert.equal(Core.occurs({type:'dates',dates:['2026-11-23','2026-11-25']},'2026-11-25'),true);
+assert.equal(Core.occurs({type:'dates',dates:['2026-11-23','2026-11-25']},'2026-11-24'),false);
+const limited={type:'weekly',days:[1,3],startDate:'2026-11-23',count:2};
+assert.equal(Core.occurs(limited,'2026-11-23'),true);
+assert.equal(Core.occurs(limited,'2026-11-25'),true);
+assert.equal(Core.occurs(limited,'2026-11-30'),false);
+assert.equal(Core.occurs({type:'daily',startDate:'2026-11-23',endDate:'2026-11-24'},'2026-11-25'),false);
 assert.deepEqual(Core.legacyWeekdays([0,1,2,6]),[0,1,2,3],'Dias antigos do cronograma (segunda a domingo) devem ser convertidos para o padrão do calendário.');
 
 const db={models:[model],assignments:[assignment],occurrences:{}};

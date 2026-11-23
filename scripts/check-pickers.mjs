@@ -14,6 +14,14 @@ assert.equal(Pickers.wheelIndex([0,5,10],17),0,'Valor fora da lista deve usar o 
 assert.deepEqual(Pickers.normalizeDays([1,'2',7,0,1,-1]),[0,1,2]);
 assert.match(Pickers.campoHora('08:00'),/data-picker="time"/);
 assert.match(Pickers.campoHora('08:00'),/data-valor="08:00"/);
+assert.match(Pickers.campoData('2026-11-23'),/data-picker="date"/);
+assert.match(Pickers.campoMes('2026-11'),/data-picker="month"/);
+assert.match(Pickers.campoPeriodo('2026-11-01','2026-11-07'),/data-picker="period"/);
+assert.match(Pickers.campoDiaMes([1,15,31]),/data-month-day="31"/);
+assert.match(Pickers.campoDatas(['2026-11-23']),/data-add-date/);
+assert.equal(typeof Pickers.escolherData,'function');
+assert.equal(typeof Pickers.escolherPeriodo,'function');
+assert.equal(typeof Pickers.escolherMes,'function');
 const days=Pickers.campoDias([1,2,5]);
 assert.match(days,/aria-pressed="true"/);
 assert.doesNotMatch(days,/type="checkbox"/);
@@ -27,5 +35,5 @@ assert.match(index,/\.stp-days\{display:grid;grid-template-columns:repeat\(7,min
 assert.match(index,/\.stp-activity-controls\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
 assert.match(index,/@media\(prefers-reduced-motion:reduce\)\{\.stp-field/);
 assert.doesNotMatch(routine,/type="time"|name="rt-weekday-/);
-for(const api of ['campoHora','campoDias','segmentado','interruptor','campoEscolha'])assert.match(routine,new RegExp('Pickers\\.'+api));
-console.log('PASS - construtores globais, responsividade, acessibilidade básica e contratos de dados.');
+for(const api of ['campoHora','campoData','campoMes','campoPeriodo','campoDias','campoDiaMes','campoDatas','segmentado','interruptor','campoEscolha'])assert.match(routine,new RegExp('Pickers\\.'+api));
+console.log('PASS - seletores globais de hora, data, mês, período, dias e recorrência.');
