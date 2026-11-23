@@ -13,9 +13,13 @@ assert.match(indexSource,/get rRotChecklistHub\(\)\{return rRotChecklistHub\},ge
 assert.match(indexSource,/function rRotChecklistHub\(\)\{if\(V\.ce\)return rCe\(\);return/,'Ao editar um modelo, a tela de modelos deve encaminhar para o editor selecionado em vez de reapresentar a lista.');
 console.log('PASS - integração da conversão de cronogramas com a tela de modelos de checklist.');
 
-assert.match(routineSource,/function activityHtml\(a,i\)[\s\S]{0,2600}name="rt-weekday-/,'Cada atividade deve oferecer seleção visual dos dias da semana.');
-assert.match(routineSource,/function readDraft\(\)[\s\S]{0,900}type:'weekly',days/,'Os dias marcados devem ser salvos como recorrência semanal.');
-assert.doesNotMatch(routineSource,/id="rt-profile"|id="rt-sector"|id="rt-tol-|Tolerância \(minutos\)|Dias do mês|Data específica/,'O editor de Rotina não deve exibir perfil, setor, tolerância, recorrência mensal ou data específica.');
+assert.match(routineSource,/function activityHtml\(a,i\)[\s\S]{0,3000}Pickers\.campoDias/,'O editor deve usar a grade global de dias da semana.');
+assert.match(routineSource,/function readDraft\(\)[\s\S]{0,1200}g\('days'\)\?\.dataset\.valor[\s\S]{0,500}type:'weekly',days/,'Os dias selecionados devem continuar sendo salvos como números de 0 a 6.');
+assert.doesNotMatch(routineSource,/id="rt-profile"|id="rt-sector"|id="rt-tol-|Tolerância \(minutos\)|Dias do mês|Data específica|type="time"|name="rt-weekday-/,'O editor não deve manter campos antigos nem controles nativos de hora ou dias.');
+assert.match(routineSource,/Pickers\.campoHora/,'Horário deve usar o seletor global.');
+assert.match(routineSource,/Pickers\.segmentado/,'Foto deve usar controle segmentado.');
+assert.match(routineSource,/Pickers\.interruptor/,'Atividade obrigatória deve usar switch.');
+assert.match(routineSource,/Pickers\.campoEscolha/,'Função deve usar seletor customizado.');
 assert.doesNotMatch(routineSource,/d\.profile=|d\.sector=|tolerance:/,'Novos modelos e atividades não devem salvar perfil, setor ou tolerância.');
 
 assert.match(routineSource,/const supervisor=id=>\(S\.team\|\|\[\]\)\.find\(p=>\(p\.lead\|\|\[\]\)\.map\(String\)\.includes\(String\(id\)\)\)/,'A liderança responsável pela rotina deve vir exclusivamente da relação líder/subordinado cadastrada em Dados.');

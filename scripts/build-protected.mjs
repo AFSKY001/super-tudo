@@ -9,7 +9,6 @@ const dist = path.join(root, 'dist');
 const runtimeFiles = [
   'index.html',
   'routine.js',
-  'pickers.js',
   'avaliacao.html',
   'sw.js',
   'manifest.webmanifest',
