@@ -45,9 +45,9 @@ const recipeValidate=value=>{
  return '';
 };
 const recipeIngredient=()=>({nome:'',unidade:'',peso:''});
-Core.recipes={normalize:recipeNormalize,validate:recipeValidate,ingredient:recipeIngredient};
 
 const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,generate,legacyWeekdays};
+Core.recipes={normalize:recipeNormalize,validate:recipeValidate,ingredient:recipeIngredient};
 root.SuperTudoRoutineCore=Core;if(typeof module!=='undefined'&&module.exports)module.exports=Core;
 const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
 const S=bridge.S,V=bridge.V,CK=bridge.CK,person=bridge.person,teamOf=bridge.teamOf,isFullAccess=bridge.isFullAccess,migFix=bridge.migFix,save=bridge.save,today=bridge.today,esc=bridge.esc,rConf=bridge.rConf,rMov=bridge.rMov,rPdc=bridge.rPdc,rAvaReg=bridge.rAvaReg,rRegLanc=bridge.rRegLanc,LANC_KEYS=bridge.LANC_KEYS,FS=bridge.FS,RSEC=bridge.RSEC;
