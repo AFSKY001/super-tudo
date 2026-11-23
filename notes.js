@@ -103,7 +103,8 @@ function applyClass(cls){const body=$('nt-body'),sel=root.getSelection(),range=s
 function clearFormat(){const body=$('nt-body'),range=selectionRange(),sel=root.getSelection();if(!body||!range||range.collapsed)return;const frag=range.extractContents();frag.querySelectorAll('span,b,strong,i,em,u,mark').forEach(n=>n.replaceWith(...n.childNodes));range.insertNode(frag);state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();}
 function scheduleSave(){status('Salvando…');state.dirty=true;clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),800);}
 async function saveNow(){
- if(!state.editor||state.readOnly||!state.dirty)return;
+ if(!state.editor||state.readOnly)return true;
+ if(!state.dirty)return true;
  clearTimeout(state.timer);
  const n=state.editor,title=String(n.title||'').trim().slice(0,120),body=sanitize(n.body||'').slice(0,20000);
  if(!title&&!textOf(body).trim()){state.dirty=false;status('');return true;}
@@ -125,8 +126,11 @@ async function saveNow(){
     if(result.error)throw result.error;
     n.id=result.data.id;
    }
-   state.lastUpdated=result.data.updated_at;n.updated_at=result.data.updated_at;state.dirty=false;state.saving=false;status('Salvo ✓');
-     }catch(error){state.saving=false;state.dirty=true;const message=error?.message||'Falha ao salvar';status(message.includes('alterada em outro aparelho')?'Conflito: atualize o mural antes de continuar.':'Não foi possível salvar. Tentando novamente…');state.error=message;if(!message.includes('alterada em outro aparelho')){clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),3000);}}
+   state.lastUpdated=result.data.updated_at;n.updated_at=result.data.updated_at;state.saving=false;
+   const current=JSON.stringify({title:String(n.title||'').trim().slice(0,120),body:sanitize(n.body||'').slice(0,20000),color:n.color||'amarelo',pinned:!!n.pinned,archived:!!n.archived,shared:!!n.shared});
+   if(current===snapshot){state.dirty=false;status('Salvo ✓');return true;}
+   state.dirty=true;status('Salvando…');scheduleSave();return true;
+  }catch(error){state.saving=false;state.dirty=true;const message=error?.message||'Falha ao salvar';status(message.includes('alterada em outro aparelho')?'Conflito: atualize o mural antes de continuar.':'Não foi possível salvar. Tentando novamente…');state.error=message;if(!message.includes('alterada em outro aparelho')&&root.navigator.onLine){clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),3000);}return false;}
  };
  state.saveChain=state.saveChain.then(task,task);return state.saveChain;
 }
