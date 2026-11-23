@@ -23,6 +23,7 @@ check(notes.includes("getData('text/plain')")&&notes.includes('function sanitize
 check(notes.includes("state.lastUpdated")&&notes.includes(".eq('updated_at',state.lastUpdated)"),'note updates must detect stale revisions rather than silently overwrite another device.');
 check(notes.includes('if(!state.dirty)return true;')&&notes.includes('const current=JSON.stringify')&&notes.includes('if(current===snapshot)'),'autosave must preserve edits made while an earlier save is still in flight.');
 check(notes.includes("supa.removeChannel(state.channel)")&&notes.includes("function backToRegistry()"),'Realtime subscription must be released when leaving the notes module.');
+check(notes.includes('root.stNotesBack=()=>state.editor?back():backToRegistry()')&&notes.includes('if(saved===false)return'),'editor navigation must return to the board and keep the editor open if saving fails.');
 check(notes.includes("state.tab==='lixeira'")&&notes.includes("30*86400000")&&notes.includes('stNotesRestore'),'trash must support restore and 30-day cleanup.');
 check(sql.includes('org_id uuid not null')&&sql.includes('enable row level security')&&sql.includes('notas_select')&&sql.includes('notas_insert')&&sql.includes('notas_update')&&sql.includes('notas_delete'),'notes SQL must enforce tenant-scoped RLS for all operations.');
 check(sql.includes("author_id := v_uid")&&sql.includes('new.author_id := old.author_id')&&sql.includes('new.author_name := old.author_name'),'author identity must be assigned by the database and immutable.');
@@ -31,4 +32,4 @@ check(notes.includes('!!n.shared&&canModerate()')&&notes.includes("n.shared&&(al
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+20+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+21+' verificações)');
