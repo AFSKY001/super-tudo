@@ -18,7 +18,7 @@ const teamReadMigration = fs.readFileSync(
   'utf8',
 );
 const syncConcurrencyMigration = fs.readFileSync(
-  path.join(root, 'supabase/migrations/20261123170000_serialize_sync_push_per_org.sql'),
+  path.join(root, 'supabase/migrations/20261123165349_serialize_sync_push_per_org.sql'),
   'utf8',
 );
 
