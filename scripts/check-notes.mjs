@@ -9,7 +9,7 @@ const build=read('scripts/build-protected.mjs'),sw=read('sw.js'),pkg=JSON.parse(
 const failures=[];
 const check=(ok,message)=>{if(!ok)failures.push(message);};
 try{new Function(notes);console.log('PASS - sintaxe do módulo de notas');}catch(error){failures.push('notes.js syntax: '+error.message);}
-check(html.includes('<script src="/notes.js"></script>'),'index must load the notes module.');
+check(/<script src="\/notes\.js(?:\?[^" ]*)?"><\/script>/.test(html),'index must load the notes module.');
 check(build.includes("'notes.js'"),'protected build must include notes.js.');
 check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v3.74.59'),'service worker must cache the notes module under the current version.');
 check(pkg.version==='3.74.59'&&lock.version===pkg.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
