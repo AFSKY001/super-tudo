@@ -52,6 +52,7 @@ function visibleNotes(){
  }).sort((a,b)=>Number(b.pinned)-Number(a.pinned)||new Date(b.updated_at)-new Date(a.updated_at));
 }
 async function loadNotes(){
+ if(state.tab==='lixeira')await cleanupTrash();
  if(!org()||!user()){state.error='Entre novamente para acessar suas notas.';render();return;}
  state.loading=true;state.error='';render();
  try{
@@ -69,7 +70,7 @@ function noteCard(n,i){
  const title=n.title?'<h3>'+escHtml(n.title)+'</h3>':'';
  const body=sanitize(n.body||'');
  const author=n.shared?'<footer>👥 '+escHtml(n.author_name||'Equipe')+' · '+dateLabel(n.updated_at)+'</footer>':'';
- return '<article class="nt-card" data-color="'+escHtml(n.color||'amarelo')+'" style="--nt-bg:'+noteColor(n)+';--nt-rot:'+((((parseInt(String(n.id).replace(/-/g,'' ).slice(0,4),16)||0)%31)-15)/10)+'deg;--nt-i:'+Math.min(i,12)+'" onclick="stNotesOpen(\''+escHtml(n.id)+'\')">'+(n.pinned?'<span class="nt-pin" aria-label="Fixada">●</span>':'')+title+'<div class="nt-card-body">'+body+'</div>'+author+'<div class="nt-card-actions" onclick="event.stopPropagation()">'+(canEdit(n)?'<button type="button" aria-label="'+(n.pinned?'Desafixar':'Fixar')+'" onclick="stNotesTogglePin(\''+escHtml(n.id)+'\')">'+(n.pinned?'📌':'⌖')+'</button><button type="button" aria-label="'+(n.archived?'Restaurar':'Arquivar')+'" onclick="stNotesArchive(\''+escHtml(n.id)+'\')">'+(n.archived?'↩':'▣')+'</button><button type="button" aria-label="Excluir" onclick="stNotesDelete(\''+escHtml(n.id)+'\')">⌫</button>':'')+'</div></article>';
+ return '<article class="nt-card" data-color="'+escHtml(n.color||'amarelo')+'" style="--nt-bg:'+noteColor(n)+';--nt-rot:'+((((parseInt(String(n.id).replace(/-/g,'' ).slice(0,4),16)||0)%31)-15)/10)+'deg;--nt-i:'+Math.min(i,12)+'" onclick="stNotesOpen(\''+escHtml(n.id)+'\')">'+(n.pinned?'<span class="nt-pin" aria-label="Fixada">●</span>':'')+title+'<div class="nt-card-body">'+body+'</div>'+author+'<div class="nt-card-actions" onclick="event.stopPropagation()">'+(canEdit(n)?(state.tab==='lixeira'?'<button type="button" aria-label="Restaurar" onclick="stNotesRestore(\''+escHtml(n.id)+'\')">↩</button><button type="button" aria-label="Excluir definitivamente" onclick="stNotesDelete(\''+escHtml(n.id)+'\')">⌫</button>':'<button type="button" aria-label="'+(n.pinned?'Desafixar':'Fixar')+'" onclick="stNotesTogglePin(\''+escHtml(n.id)+'\')">'+(n.pinned?'📌':'⌖')+'</button><button type="button" aria-label="'+(n.archived?'Restaurar':'Arquivar')+'" onclick="stNotesArchive(\''+escHtml(n.id)+'\')">'+(n.archived?'↩':'▣')+'</button><button type="button" aria-label="Excluir" onclick="stNotesDelete(\''+escHtml(n.id)+'\')">⌫</button>'):'')+'</div></article>';
 }
 function tabsHtml(){return '<div class="nt-tabs" role="tablist"><button type="button" class="'+(state.tab==='minhas'?'on':'')+'" onclick="stNotesTab(\'minhas\')">Minhas</button><button type="button" class="'+(state.tab==='equipe'?'on':'')+'" '+(allowed('r:notes')?'':'disabled')+' onclick="stNotesTab(\'equipe\')">Da equipe</button><button type="button" class="'+(state.tab==='arquivadas'?'on':'')+'" onclick="stNotesTab(\'arquivadas\')">Arquivadas</button></div>';}
 function render(){
@@ -78,7 +79,7 @@ function render(){
  const rows=visibleNotes();
  const colorsHtml='<button type="button" class="nt-color-filter '+(!state.color?'on':'')+'" aria-label="Todas as cores" onclick="stNotesFilterColor(\'\')">Todas</button>'+Object.keys(colors).map(c=>'<button type="button" class="nt-color-dot '+(state.color===c?'on':'')+'" style="--nt-dot:'+colors[c]+'" aria-label="'+c+'" onclick="stNotesFilterColor(\''+c+'\')"></button>').join('');
  const list=state.loading?'<div class="nt-empty"><span class="nt-spinner"></span><p>Carregando notas…</p></div>':state.error?'<div class="nt-empty"><p>'+escHtml(state.error)+'</p><button class="bt g" onclick="stNotesLoad()">Tentar novamente</button></div>':rows.length?'<div class="nt-grid">'+rows.map(noteCard).join('')+'</div>':'<div class="nt-empty"><div class="nt-empty-icon">✎</div><h3>'+({minhas:'Seu mural está vazio',equipe:'Nenhuma nota compartilhada',arquivadas:'Nenhuma nota arquivada',lixeira:'A lixeira está vazia'}[state.tab])+'</h3><p>'+({minhas:'Guarde aqui lembretes e informações importantes do seu trabalho.',equipe:'Quando alguém compartilhar uma nota com a equipe, ela aparecerá aqui.',arquivadas:'As notas arquivadas ficam guardadas aqui.',lixeira:'As notas excluídas ficam disponíveis por até 30 dias.'}[state.tab])+'</p>'+(state.tab==='minhas'&&canCreate()?'<button type="button" class="bt" onclick="stNotesNew()">Criar primeira nota</button>':'')+'</div>';
- host.innerHTML='<section class="nt-page"><div class="nt-head"><div><button type="button" class="nt-back" onclick="stNotesBack()">‹ Registros</button><h2>Bloco de notas</h2><p class="mu">Suas ideias e lembretes em um só lugar.</p></div><button type="button" class="nt-more" aria-label="Mais opções" onclick="stNotesMenu()">⋯</button></div>'+tabsHtml()+'<div class="nt-tools"><input type="search" placeholder="Buscar nas notas…" value="'+escHtml(state.search)+'" oninput="stNotesSearch(this.value)"><div class="nt-colors">'+colorsHtml+'</div></div>'+(state.tab==='lixeira'?'<div class="nt-trash-info">As notas são removidas definitivamente após 30 dias. <button type="button" onclick="stNotesEmptyTrash()">Esvaziar lixeira</button></div>':'')+list+(canCreate()&&state.tab==='minhas'?'<button type="button" class="nt-fab" aria-label="Nova nota" onclick="stNotesNew()">+</button>':'')+(state.menu?'<div class="nt-menu"><button type="button" onclick="stNotesTab(\\'lixeira\\')">Lixeira</button><button type="button" onclick="stNotesRefresh()">Atualizar</button></div>':'')+'</section>';
+ host.innerHTML='<section class="nt-page"><div class="nt-head"><div><button type="button" class="nt-back" onclick="stNotesBack()">‹ Registros</button><h2>Bloco de notas</h2><p class="mu">Suas ideias e lembretes em um só lugar.</p></div><button type="button" class="nt-more" aria-label="Mais opções" onclick="stNotesMenu()">⋯</button></div>'+tabsHtml()+'<div class="nt-tools"><input type="search" placeholder="Buscar nas notas…" value="'+escHtml(state.search)+'" oninput="stNotesSearch(this.value)"><div class="nt-colors">'+colorsHtml+'</div></div>'+(state.tab==='lixeira'?'<div class="nt-trash-info">As notas são removidas definitivamente após 30 dias. <button type="button" onclick="stNotesEmptyTrash()">Esvaziar lixeira</button></div>':'')+list+(canCreate()&&state.tab==='minhas'?'<button type="button" class="nt-fab" aria-label="Nova nota" onclick="stNotesNew()">+</button>':'')+(state.menu?'<div class="nt-menu"><button type="button" onclick="stNotesTab(\'lixeira\')">Lixeira</button><button type="button" onclick="stNotesRefresh()">Atualizar</button></div>':'')+'</section>';
 }
 function editorHtml(){
  const n=state.editor,readOnly=state.readOnly,body=sanitize(n.body||'');
@@ -123,8 +124,7 @@ async function saveNow(){
     n.id=result.data.id;
    }
    state.lastUpdated=result.data.updated_at;n.updated_at=result.data.updated_at;state.dirty=false;state.saving=false;status('Salvo ✓');
-   await loadNotes();
-  }catch(error){state.saving=false;state.dirty=true;status('Não foi possível salvar. Tentando novamente…');state.error=error?.message||'Falha ao salvar';clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),3000);}
+     }catch(error){state.saving=false;state.dirty=true;const message=error?.message||'Falha ao salvar';status(message.includes('alterada em outro aparelho')?'Conflito: atualize o mural antes de continuar.':'Não foi possível salvar. Tentando novamente…');state.error=message;if(!message.includes('alterada em outro aparelho')){clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),3000);}}
  };
  state.saveChain=state.saveChain.then(task,task);return state.saveChain;
 }
@@ -136,7 +136,7 @@ async function openEditor(id){
 }
 async function back(){
  if(state.editor){clearTimeout(state.timer);if(state.dirty)await saveNow();state.editor=null;state.readOnly=false;}
- state.menu=false;render();if(state.tab==='lixeira')await cleanupTrash();
+ state.menu=false;render();await loadNotes();
 }
 async function mutate(id,fields){
  const n=state.notes.find(x=>String(x.id)===String(id));if(!n||!canEdit(n))return notify('Você não tem permissão para alterar esta nota.');
@@ -150,7 +150,8 @@ async function cleanupTrash(){
  if(error)state.error='Não foi possível limpar notas antigas da lixeira.';
 }
 async function emptyTrash(){if(!await root.stConfirm('Excluir definitivamente todas as suas notas da lixeira? Esta ação não poderá ser desfeita.',{title:'Esvaziar lixeira'}))return;const {error}=await supa.from('notas').delete().eq('org_id',org()).eq('author_id',user()).not('deleted_at','is',null);if(error)return notify(error.message);await loadNotes();}
-async function deleteNote(id){const n=state.notes.find(x=>String(x.id)===String(id));if(!n)return;if(!canEdit(n))return notify('Você não tem permissão para excluir esta nota.');if(!await root.stConfirm('Mover esta nota para a lixeira?',{title:'Excluir nota',confirmText:'Mover para lixeira',cancelText:'Cancelar'}))return;await mutate(id,{deleted_at:new Date().toISOString()});}
+async function deleteNote(id){const n=state.notes.find(x=>String(x.id)===String(id));if(!n)return;if(!canEdit(n))return notify('Você não tem permissão para excluir esta nota.');if(state.tab==='lixeira'){if(!await root.stConfirm('Excluir definitivamente esta nota?',{title:'Excluir definitivamente'}))return;const {error}=await supa.from('notas').delete().eq('id',id);if(error)return notify(error.message);await loadNotes();return;}if(!await root.stConfirm('Mover esta nota para a lixeira?',{title:'Excluir nota',confirmText:'Mover para lixeira',cancelText:'Cancelar'}))return;await mutate(id,{deleted_at:new Date().toISOString()});}
+async function restore(id){await mutate(id,{deleted_at:null,archived:false});}
 async function archive(id){const n=state.notes.find(x=>String(x.id)===String(id));if(!n)return;await mutate(id,{archived:!n.archived});}
 async function togglePin(id){const n=state.notes.find(x=>String(x.id)===String(id));if(!n)return;await mutate(id,{pinned:!n.pinned});}
 function subscribe(){
@@ -160,7 +161,7 @@ function subscribe(){
 }
 function open(){
  if(!canView())return notify('Você não tem permissão para acessar o Bloco de notas.');
- V.tab='reg';V.rs='notes';V.reg=null;state.tab='minhas';state.search='';state.color='';state.editor=null;state.menu=false;subscribe();loadNotes();
+ V.tab='reg';V.rs='notes';V.reg=null;state.tab='minhas';state.search='';state.color='';state.editor=null;state.menu=false;bridge.R();subscribe();loadNotes();
 }
 function backToRegistry(){back().then(()=>{V.rs='home';V.reg=null;bridge.R();});}
 function setTab(tab){state.tab=tab;state.search='';state.color='';state.menu=false;loadNotes();}
@@ -171,7 +172,7 @@ function search(value){state.search=value;const cursor=$('nt-search');render();c
 function refresh(){loadNotes();}
 function newNote(){if(!canCreate())return notify('Você não tem permissão para criar notas.');openEditor(null);}
 function setColorFilter(color){state.color=color;render();}
-root.stNotesOpen=open;root.stNotesBack=backToRegistry;root.stNotesNew=newNote;root.stNotesTab=setTab;root.stNotesLoad=loadNotes;root.stNotesRefresh=refresh;root.stNotesMenu=menu;root.stNotesSearch=search;root.stNotesFilterColor=setColorFilter;root.stNotesSetColor=setColor;root.stNotesShare=share;root.stNotesTogglePin=togglePin;root.stNotesArchive=archive;root.stNotesDelete=deleteNote;root.stNotesEmptyTrash=emptyTrash;root.stNotesOpenEditor=openEditor;
+root.stNotesOpen=open;root.stNotesBack=backToRegistry;root.stNotesNew=newNote;root.stNotesTab=setTab;root.stNotesLoad=loadNotes;root.stNotesRefresh=refresh;root.stNotesMenu=menu;root.stNotesSearch=search;root.stNotesFilterColor=setColorFilter;root.stNotesSetColor=setColor;root.stNotesShare=share;root.stNotesTogglePin=togglePin;root.stNotesArchive=archive;root.stNotesDelete=deleteNote;root.stNotesRestore=restore;root.stNotesEmptyTrash=emptyTrash;root.stNotesOpenEditor=openEditor;
 const originalReg=bridge.rReg;
 bridge.rReg=function(){if(V.rs==='notes')return '<div class="regwrap"><div class="regbody" id="nt-root"><div class="nt-empty">Carregando bloco de notas…</div></div></div>';const html=originalReg.apply(this,arguments);if(V.rs==='home'&&canView())return html.replace(/(<div class="reg-menu-grid">[\s\S]*?)(<\/div>)/,'$1<button type="button" class="reg-menu-tile" onclick="stNotesOpen()"><span class="reg-menu-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="reg-menu-label">Bloco de notas</span><span class="reg-menu-hint">Abrir</span></button>$2');return html;};
 root.addEventListener('online',()=>{if(state.editor&&state.dirty)saveNow();else if(V.rs==='notes')loadNotes();});
