@@ -12,9 +12,10 @@ const uid=()=>root.crypto?.randomUUID?root.crypto.randomUUID():'note-'+Date.now(
 const org=()=>String(V.cloudIdentity?.org_id||'');
 const user=()=>String(V.cloudIdentity?.id||V.me?.id||'');
 const allowed=(p)=>typeof can==='function'&&can(p);
-const canCreate=()=>allowed('l:notes');
-const canView=()=>allowed('r:notes')||allowed('l:notes')||allowed('m:notes');
-const canModerate=()=>allowed('m:notes');
+const fullAccess=()=>typeof bridge.isFullAccess==='function'&&bridge.isFullAccess();
+const canCreate=()=>fullAccess()||allowed('l:notes');
+const canView=()=>fullAccess()||allowed('r:notes')||allowed('l:notes')||allowed('m:notes');
+const canModerate=()=>fullAccess()||allowed('m:notes');
 const isOwner=n=>String(n?.author_id||'')===user();
 const canEdit=n=>!!n&&(isOwner(n)?canCreate():!!n.shared&&canModerate());
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
@@ -185,9 +186,9 @@ bridge.rReg=function(){
  const html=originalReg.apply(this,arguments);
  if((V.rs||'home')!=='home'||!canView())return html;
  const tile='<button type="button" class="reg-menu-tile" onclick="stNotesOpen()"><span class="reg-menu-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h14v18H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="reg-menu-copy"><span class="reg-menu-label">Bloco de notas</span><span class="reg-menu-hint">Anotações pessoais e compartilhadas</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';
- const marker=/<div class="reg-menu-grid">([\s\S]*?)<\/div>(?=<div class="u-ver reg-menu-version)/;
- if(!marker.test(html))return html;
- return html.replace(marker,(match,content)=>'<div class="reg-menu-grid">'+content+tile+'</div>');
+ const marker=html.match(/<div class="reg-menu-grid">[\s\S]*?<\/div>/);
+ if(!marker||html.includes('stNotesOpen'))return html;
+ return html.replace(marker[0],marker[0].slice(0,-6)+tile+'</div>');
 };
 root.addEventListener('online',()=>{if(state.editor&&state.dirty)saveNow();else if(V.rs==='notes')loadNotes();});
 root.document.addEventListener('visibilitychange',()=>{if(root.document.hidden&&state.editor&&state.dirty)saveNow();});
