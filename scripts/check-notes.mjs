@@ -11,12 +11,12 @@ const check=(ok,message)=>{if(!ok)failures.push(message);};
 try{new Function(notes);console.log('PASS - sintaxe do módulo de notas');}catch(error){failures.push('notes.js syntax: '+error.message);}
 check(html.includes('<script src="/notes.js"></script>'),'index must load the notes module.');
 check(build.includes("'notes.js'"),'protected build must include notes.js.');
-check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v3.74.58'),'service worker must cache the notes module under the current version.');
-check(pkg.version==='3.74.58'&&lock.version===pkg.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
-check(html.includes("const APP_VERSION='3.74.58'")&&html.includes("'v':'3.74.58'"),'application version and release history must match.');
+check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v3.74.59'),'service worker must cache the notes module under the current version.');
+check(pkg.version==='3.74.59'&&lock.version===pkg.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
+check(html.includes("const APP_VERSION='3.74.59'")&&html.includes("'v':'3.74.59'"),'application version and release history must match.');
 check(html.includes("['Bloco de notas',[['r:notes'")&&html.includes("['l:notes'")&&html.includes("['m:notes'"),'notes permissions must be exposed in the existing permission editor.');
 check(html.includes('nt-page')&&html.includes('nt-card')&&html.includes('nt-editor')&&html.includes('prefers-reduced-motion:reduce){.nt-page'),'notes styles must use the shared design tokens and reduced-motion support.');
-check(notes.includes('(?=<div class="u-ver reg-menu-version)')&&notes.includes('const tile=')&&notes.includes('Anotações pessoais e compartilhadas'),'notes tile must be inserted at the end of the existing registry grid without breaking nested cards.');
+check(notes.includes('const marker=html.match(/<div class="reg-menu-grid">[\\s\\S]*?<\\/div>/);')&&notes.includes('const tile=')&&notes.includes('Anotações pessoais e compartilhadas'),'notes tile must be inserted into the existing registry grid without breaking nested cards.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes("if(!title&&!textOf(body).trim())")&&notes.includes("setTimeout(()=>saveNow(),800)"),'empty notes must not be inserted and autosave must be debounced.');
