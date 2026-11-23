@@ -44,7 +44,7 @@ function visibleNotes(){
  const q=normalize(state.search);
  return state.notes.filter(n=>{
   if(state.tab==='minhas'&&(!isOwner(n)||n.archived||n.deleted_at))return false;
-  if(state.tab==='equipe'&&(!n.shared||isOwner(n)||n.archived||n.deleted_at))return false;
+  if(state.tab==='equipe'&&(!(n.shared&&allowed('r:notes')||canModerate())||isOwner(n)||n.archived||n.deleted_at))return false;
   if(state.tab==='arquivadas'&&(!isOwner(n)||!n.archived||n.deleted_at))return false;
   if(state.tab==='lixeira'&&(!isOwner(n)||!n.deleted_at))return false;
   if(state.color&&n.color!==state.color)return false;
@@ -69,7 +69,7 @@ async function loadNotes(){
 function noteCard(n,i){
  const title=n.title?'<h3>'+escHtml(n.title)+'</h3>':'';
  const body=sanitize(n.body||'');
- const author=n.shared?'<footer>👥 '+escHtml(n.author_name||'Equipe')+' · '+dateLabel(n.updated_at)+'</footer>':'';
+ const author=(n.shared||!isOwner(n))?'<footer>👥 '+escHtml(n.author_name||'Equipe')+' · '+dateLabel(n.updated_at)+'</footer>':'';
  return '<article class="nt-card" data-color="'+escHtml(n.color||'amarelo')+'" style="--nt-bg:'+noteColor(n)+';--nt-rot:'+((((parseInt(String(n.id).replace(/-/g,'' ).slice(0,4),16)||0)%31)-15)/10)+'deg;--nt-i:'+Math.min(i,12)+'" onclick="stNotesOpen(\''+escHtml(n.id)+'\')">'+(n.pinned?'<span class="nt-pin" aria-label="Fixada">●</span>':'')+title+'<div class="nt-card-body">'+body+'</div>'+author+'<div class="nt-card-actions" onclick="event.stopPropagation()">'+(canEdit(n)?(state.tab==='lixeira'?'<button type="button" aria-label="Restaurar" onclick="stNotesRestore(\''+escHtml(n.id)+'\')">↩</button><button type="button" aria-label="Excluir definitivamente" onclick="stNotesDelete(\''+escHtml(n.id)+'\')">⌫</button>':'<button type="button" aria-label="'+(n.pinned?'Desafixar':'Fixar')+'" onclick="stNotesTogglePin(\''+escHtml(n.id)+'\')">'+(n.pinned?'📌':'⌖')+'</button><button type="button" aria-label="'+(n.archived?'Restaurar':'Arquivar')+'" onclick="stNotesArchive(\''+escHtml(n.id)+'\')">'+(n.archived?'↩':'▣')+'</button><button type="button" aria-label="Excluir" onclick="stNotesDelete(\''+escHtml(n.id)+'\')">⌫</button>'):'')+'</div></article>';
 }
 function tabsHtml(){return '<div class="nt-tabs" role="tablist"><button type="button" class="'+(state.tab==='minhas'?'on':'')+'" onclick="stNotesTab(\'minhas\')">Minhas</button><button type="button" class="'+(state.tab==='equipe'?'on':'')+'" '+(allowed('r:notes')?'':'disabled')+' onclick="stNotesTab(\'equipe\')">Da equipe</button><button type="button" class="'+(state.tab==='arquivadas'?'on':'')+'" onclick="stNotesTab(\'arquivadas\')">Arquivadas</button></div>';}
