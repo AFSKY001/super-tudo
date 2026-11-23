@@ -2916,12 +2916,34 @@ async function syncResolveConflictsUI(){
   let pullTimeout;
   try{
     await syncWaitForIdle();
-    await Promise.race([
+    const latestRecords=await Promise.race([
       pullCloudTeam(),
       new Promise((_,reject)=>{pullTimeout=setTimeout(()=>reject(new Error('A consulta à nuvem excedeu 15 segundos.')),15000);})
     ]);
     clearTimeout(pullTimeout);
     await syncWaitForIdle();
+
+    // pullCloudTeam retorna o snapshot completo da consulta, inclusive registros
+    // cuja revisão já consta no mapa local. Use esse retorno como fonte atual
+    // para a comparação; nunca permita escolher com um snapshot antigo.
+    const latestByKey=new Map((Array.isArray(latestRecords)?latestRecords:[])
+      .filter(record=>record&&record.module&&record.record_id&&Number(record.revision)>0)
+      .map(record=>[String(record.module)+'|'+String(record.record_id),record]));
+    for(const [key,conflict] of Object.entries(syncMeta.conflicts||{})){
+      if(!conflict||conflict.status!=='conflict')continue;
+      const latest=latestByKey.get(key);
+      if(latest){
+        conflict.server_record=latest;
+        conflict.server_revision=Number(latest.revision);
+        delete conflict.refresh_error;
+      }else{
+        // Registro não retornado (por exclusão física ou falta de leitura):
+        // falha fechada, sem recorrer ao snapshot antigo do conflito.
+        conflict.server_record=null;
+        conflict.refresh_error='A consulta atual não retornou uma versão legível deste registro.';
+      }
+    }
+    syncPersist();
   }catch(error){
     clearTimeout(pullTimeout);
     closeProgress();
