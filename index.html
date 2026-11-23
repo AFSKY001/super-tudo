@@ -2312,13 +2312,13 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 .nt-toolbar .nt-format-mark{background:var(--nt-format);color:#263244;font-weight:800}
 .nt-readonly{margin:8px 0 0;padding:9px 10px;border-radius:10px;background:#ffffff80;color:#455064;font-size:11px}
 @keyframes nt-drop{from{opacity:0;transform:translateY(-20px) rotate(calc(var(--nt-rot)*4)) scale(.96)}to{opacity:1;transform:rotate(var(--nt-rot)) scale(1)}}
-@keyframes nt-pin{from{opacity:0;transform:translateY(-15px) scale(1.5)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes nt-pin{from{opacity:0;transform:translateY(-15px) scale(1.5)}to{opacity:1;transform:translateY(0)}}
 @keyframes nt-fade{from{opacity:0}to{opacity:1}}
 @keyframes nt-spin{to{transform:rotate(360deg)}}
 @media(min-width:720px){.nt-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.nt-page{padding-bottom:30px}.nt-fab{bottom:26px}}
 @media(min-width:1050px){.nt-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:360px){.nt-grid{gap:10px 8px}.nt-card{padding:12px 10px 9px;min-height:132px}.nt-card-body{font-size:12px}}
-@media(prefers-reduced-motion:reduce){.nt-page,.nt-card,.nt-pin,.nt-empty,.nt-spinner,.nt-editor,.nt-fab,.nt-color-dot{animation:none!important;transition:none!important}.nt-spinner{border-top-color:var(--borda)}}
+@media(prefers-reduced-motion:reduce){.nt-page,.nt-card,.nt-pin,.nt-empty,.nt-spinner,.nt-editor,.nt-fab,.nt-color-dot{animation:none;transition:none}.nt-spinner{border-top-color:var(--borda)}}
 
 
 .nt-card-body .tc-vermelho{color:#8B1E2D}.nt-card-body .tc-azul{color:#164B87}.nt-card-body .tc-verde{color:#155A32}.nt-card-body .tc-roxo{color:#542477}
@@ -2331,8 +2331,8 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 
 .nt-card.nt-exiting{animation:nt-crumple .32s ease forwards;pointer-events:none}
 @keyframes nt-crumple{to{opacity:0;transform:translateY(22px) rotate(12deg) scale(.72)}}
-body.nt-editing nav{display:none!important}
-body.nt-editing{padding-bottom:env(safe-area-inset-bottom,0px)!important}
+body.nt-editing nav{display:none}
+body.nt-editing{padding-bottom:env(safe-area-inset-bottom,0px)}
 body.nt-editing .nt-editor{min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 
 </style></head><body>
