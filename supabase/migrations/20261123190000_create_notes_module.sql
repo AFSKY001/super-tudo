@@ -145,7 +145,10 @@ using (
 )
 with check (
   (author_id = auth.uid() and public.notas_has_permission('l:notes', org_id))
-  or public.notas_has_permission('m:notes', org_id)
+  or (
+    shared = true
+    and public.notas_has_permission('m:notes', org_id)
+  )
 );
 
 drop policy if exists notas_delete on public.notas;
