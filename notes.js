@@ -169,7 +169,7 @@ function open(){
  if(!canView())return notify('Você não tem permissão para acessar o Bloco de notas.');
  V.tab='reg';V.rs='notes';V.reg=null;state.tab='minhas';state.search='';state.color='';state.editor=null;state.menu=false;bridge.R();subscribe();loadNotes();
 }
-function backToRegistry(){back().then(()=>{V.rs='home';V.reg=null;bridge.R();});}
+function backToRegistry(){back().then(()=>{if(state.channel){supa.removeChannel(state.channel);state.channel=null;}V.rs='home';V.reg=null;bridge.R();});}
 function setTab(tab){state.tab=tab;state.search='';state.color='';state.menu=false;loadNotes();}
 function setColor(color){if(!state.editor||state.readOnly)return;state.editor.color=color;const el=document.querySelector('.nt-editor');if(el){el.dataset.color=color;el.style.setProperty('--nt-bg',colors[color]);}document.querySelectorAll('.nt-editor-colors button').forEach(b=>b.setAttribute('aria-checked',String(b.getAttribute('aria-label')===color)));state.dirty=true;scheduleSave();}
 function share(value){if(!state.editor||state.readOnly)return;state.editor.shared=!!value;state.dirty=true;scheduleSave();}
