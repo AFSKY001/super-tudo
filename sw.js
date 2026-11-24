@@ -53,7 +53,13 @@ self.addEventListener('fetch', event => {
         if (response && response.ok) {
           const cache = await caches.open(CACHE_NAME);
           await cache.put('/', response.clone());
+          return response;
         }
+        if (response && response.status < 500) return response;
+        const cached = await caches.match('/');
+        if (cached) return cached;
+        const fallback = await caches.match('/index.html');
+        if (fallback) return fallback;
         return response;
       } catch (error) {
         const cached = await caches.match('/');
@@ -73,7 +79,13 @@ self.addEventListener('fetch', event => {
       const cache = await caches.open(CACHE_NAME);
       try {
         const response = await fetch(new Request(request, { cache: 'no-store' }));
-        if (response && response.ok) await cache.put(request, response.clone());
+        if (response && response.ok) {
+          await cache.put(request, response.clone());
+          return response;
+        }
+        if (response && response.status < 500) return response;
+        const cached = await cache.match(request);
+        if (cached) return cached;
         return response;
       } catch (error) {
         const cached = await cache.match(request);
