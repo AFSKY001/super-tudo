@@ -90,7 +90,7 @@ const checks = [
   ['usar nuvem aplica a versão remota', /syncApplyRecord\(server\)/],
   ['Realtime informa o estado da inscrição', /\['subscribe'\]\(function\(status\)/],
   ['falha e recuperação do canal Realtime atualizam o estado visual', /syncRealtimeFailed=false[\s\S]{0,1000}syncRealtimeFailed=true[\s\S]{0,180}syncStatusUpdate\(\)/],
-  ['sincronização rápida mantém o estado visual por pelo menos 700 ms e termina o ciclo', /cycleElapsed=elapsed%800[\s\S]{0,120}cycleWait=elapsed===0\?800[\s\S]{0,100}Math\.max\(700-elapsed/],
+  ['sincronização rápida mantém o estado visual por pelo menos 700 ms e termina o ciclo', /const SYNC_MIN_VISIBLE_MS=700,SYNC_ROTATION_MS=800[\s\S]{0,1800}const cycleElapsed=elapsed%SYNC_ROTATION_MS,cycleWait=elapsed===0\?SYNC_ROTATION_MS:cycleElapsed===0\?0:SYNC_ROTATION_MS-cycleElapsed;[\s\S]{0,100}Math\.max\(SYNC_MIN_VISIBLE_MS-elapsed,reduced\?0:cycleWait/],
   ['indicador usa estados semânticos sincronizando, sincronizado e não sincronizado', /let state='error'[\s\S]{0,900}state='syncing'[\s\S]{0,500}state='synced'[\s\S]{0,1500}button\.dataset\.syncState=state/],
   ['estado amarelo acompanha somente operações efetivamente em execução', /const active=!!\(syncBusy\|\|syncPullBusy\)/],
   ['fila pendente sem operação ativa não fica amarela', /else if\(active\)\{state='syncing'[\s\S]{0,180}else if\(syncLastError\)[\s\S]{0,120}else if\(pending\)\{label='Envio pendente/],
