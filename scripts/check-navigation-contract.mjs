@@ -23,6 +23,7 @@ const checks = [
   ['movimento reduzido desativa animações do menu e sincronização', includes('@media(prefers-reduced-motion:reduce)') && includes('#syncStatus,#syncStatus .sync-status-icon') && includes('#nav,#nav::before')],
   ['fila persistente e RPCs Supabase permanecem intactas', includes('st_cloud_sync_v1') && includes("supa['rpc']('sync_push'") && includes("supa['rpc']('sync_pull'")],
   ['ação de revisão de sincronização continua disponível', includes('async function runSyncStatusAction()') && includes('onclick="runSyncStatusAction()"')],
+  ['atualização manual redesenha a tela atual após sincronização confirmada', includes('    R();\\n    await syncConflictDialog(\\'\\',null,\\'Atualização concluída.')],
   ['indicador anuncia os estados por aria-live', includes("button.setAttribute('aria-live','polite')") && includes("button.setAttribute('aria-atomic','true')")]
 ];
 let failed = 0;
