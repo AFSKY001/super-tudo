@@ -1,12 +1,12 @@
 {
   "name": "super-tudo",
   "private": true,
-  "version": "3.74.77",
+  "version": "3.74.78",
   "description": "Protected build tooling for the proprietary Super Tudo application",
   "scripts": {
     "build:protected": "node scripts/build-protected.mjs",
     "check:ui": "node scripts/check-ui-standards.mjs",
-    "build:deploy": "npm run check:ui && npm run check:notification-sounds && npm run check:notification-reliability && npm run check:sync && npm run check:routine && npm run check:pickers && npm run check:recipes && npm run check:notes && npm run build:protected",
+    "build:deploy": "npm run check:ui && npm run check:navigation && npm run check:notification-sounds && npm run check:notification-reliability && npm run check:sync && npm run check:routine && npm run check:pickers && npm run check:recipes && npm run check:notes && npm run build:protected",
     "deploy": "npm run build:deploy && wrangler deploy",
     "check:sync": "node scripts/check-sync-contract.mjs",
     "check:routine": "node scripts/check-routine.mjs",
@@ -14,7 +14,8 @@
     "check:recipes": "node scripts/check-recipes.mjs",
     "check:notes": "node scripts/check-notes.mjs",
     "check:notification-sounds": "node scripts/check-notification-sounds.mjs",
-    "check:notification-reliability": "node scripts/check-notification-reliability.mjs"
+    "check:notification-reliability": "node scripts/check-notification-reliability.mjs",
+    "check:navigation": "node scripts/check-navigation-contract.mjs"
   },
   "devDependencies": {
     "javascript-obfuscator": "5.10.1",
