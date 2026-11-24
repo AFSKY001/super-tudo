@@ -60,6 +60,8 @@ requireCheck(html.includes('.st-ripple-host>:not(.st-ripple-layer):not(.sr-only)
 requireCheck(/#bn\{position:absolute;top:2px;right:2px;z-index:3;/.test(html), 'Notification count must remain absolutely anchored to the bell button.');
 requireCheck(!html.includes("addEventListener('controllerchange'") && !html.includes('window.location.reload()') && html.includes("navigator.serviceWorker.register('/sw.js',{scope:'/'});await registration.update();"), 'Service Worker updates must not force-reload the active login or application screen.');
 requireCheck(html.includes('<nav id="nav" aria-label="Navegação principal"></nav>') && html.includes('Navegação principal') && html.includes('text-overflow:ellipsis') && html.includes('data-keyboard'), 'Mobile navigation must expose an accessible label, uniform truncated tabs, and keyboard-aware visibility.');
+requireCheck(html.includes('function marcarAbaAtiva(tela)') && html.includes("marcarAbaAtiva(V['tab']);"), 'Every navigation render must synchronize the active tab and sliding indicator.');
+requireCheck(html.includes('font-size:.68rem;font-weight:600') && !html.includes('#nav button:last-child .nl{font-size:clamp'), 'All mobile navigation labels must share one fixed font size and weight.');
 requireCheck(html.includes('background:color-mix(in srgb,var(--cd) 84%,transparent)') && !html.includes("background:var(--pr)!important;\n    border-color:color-mix(in srgb,var(--pr) 78%"), 'Mobile navigation must use the theme glass surface rather than a solid primary-color bar.');
 requireCheck(html.includes('sync-status-icon') && html.includes('syncRealtimeFailed') && html.includes('aria-live'), 'Sync status must use the accessible three-state vector indicator and report Realtime failure.');
 
