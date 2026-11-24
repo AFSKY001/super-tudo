@@ -842,7 +842,7 @@ header p{margin:3px 0 0 49px!important;color:var(--mu)!important;font-size:11px!
 #syncStatus:active{transform:scale(.92)}
 #syncStatus:focus-visible{outline:2px solid var(--pr);outline-offset:3px}
 #syncStatus.sync-complete .sync-status-icon{animation:syncStatusPop var(--sync-pop-duration,420ms) var(--st-motion-spring,cubic-bezier(.2,.9,.25,1))}
-#syncStatus.sync-complete::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;animation:syncStatusWave .72s ease-out}
+#syncStatus.sync-complete::after{content:"";position:absolute;inset:0;z-index:-1;border:2px solid color-mix(in srgb,var(--sync-success-color,var(--cor-sucesso)) 42%,transparent);border-radius:inherit;pointer-events:none;animation:syncStatusWave .72s ease-out}
 #syncStatus.sync-error-pulse .sync-status-icon{animation:syncStatusShake var(--sync-error-shake-duration,380ms) ease-out}
 @keyframes syncStatusSpin{to{transform:rotate(360deg)}}
 @keyframes syncStatusPop{0%{transform:scale(.76)}65%{transform:scale(1.14)}100%{transform:scale(1)}}
