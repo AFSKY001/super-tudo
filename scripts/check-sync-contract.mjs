@@ -60,6 +60,7 @@ const checks = [
   ['cliente Supabase usa fetch customizado somente para RPCs de sincronização', /global':\{'fetch':supaSyncFetch\}/],
   ['fetch customizado conta chamadas simultâneas de sync_push e sync_pull', /let syncHttpInFlight=0;const supaSyncFetch=\(input,init\)=>\{[\s\S]{0,900}syncHttpInFlight\+\+;syncStatusUpdate\(\)[\s\S]{0,500}syncHttpInFlight=Math\.max\(0,syncHttpInFlight-1\);syncStatusUpdate\(\)/],
   ['fetch customizado não intercepta login ou chamadas HTTP fora dos RPCs de sincronização', /if\(!tracked\)return fetch\(input,init\)/],
+  ['fetch customizado filtra somente as rotas RPC sync_push e sync_pull', source.includes('/^\\/rest\\/v1\\/rpc\\/sync_(?:push|pull)$/.test(requestUrl.pathname)')],
   ['recebimento usa RPC sync_pull', /supa\['rpc'\]\('sync_pull'/],
   ['sync_push usa a empresa ativa da sessão', /supa\['rpc'\]\('sync_push',\{'p_ops':\[_0x14313\],'p_org_id':V\['cloudIdentity'\]\['org_id'\]\}\)/],
   ['sync_pull usa a empresa ativa da sessão', /supa\['rpc'\]\('sync_pull',\{'p_since':null,'p_org_id':V\['cloudIdentity'\]\['org_id'\]\}\)/],
