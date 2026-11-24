@@ -16,7 +16,7 @@ check(start.includes("setTimeout(()=>{V['pushRetryTimer']=null;pushRecover();},3
 check(start.includes("window['addEventListener']('online'")&&start.includes("window['addEventListener']('offline'"),'network transitions must be observed.');
 check(start.includes("document['addEventListener']('visibilitychange'"),'returning to the foreground must re-establish Realtime.');
 check(stop.includes("clearTimeout(V['pushRetryTimer'])")&&stop.includes("V['pushRealtimeConnected']=false"),'logout must cancel retries and reset connection state.');
-check(pkg.version==='3.74.71'&&html.includes("const APP_VERSION='3.74.71'")&&sw.includes("super-tudo-v3.74.71"),'release versions must be aligned.');
+check(pkg.version==='3.74.72'&&html.includes("const APP_VERSION='3.74.72'")&&sw.includes("super-tudo-v3.74.72"),'release versions must be aligned.');
 check(html.includes('@supabase/supabase-js@2.119.2'),'the app must use the current pinned Supabase SDK.');
 check(html.includes("'realtime':{'worker':!0x0}"),'Realtime heartbeat must use the browser worker.');
 check(sw.includes("self.addEventListener('push'")&&sw.includes('event.waitUntil')&&sw.includes('showNotification'),'service worker must retain background push delivery.');
