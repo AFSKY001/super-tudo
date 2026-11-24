@@ -11,6 +11,7 @@ const runtimeFiles = [
   'routine.js',
   'pickers.js',
   'notes.js',
+  'notification-sounds.js',
   'avaliacao.html',
   'sw.js',
   'manifest.webmanifest',
