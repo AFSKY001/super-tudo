@@ -45,4 +45,4 @@ check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOn
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+28+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+35+' verificações)');
