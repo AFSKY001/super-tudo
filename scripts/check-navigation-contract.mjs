@@ -16,6 +16,8 @@ const checks = [
   ['barra usa superfície do tema, transparência e blur', includes('#nav{isolation:isolate;') && includes('background:color-mix(in srgb,var(--cd) 84%,transparent)') && includes('backdrop-filter:blur(22px)')],
   ['barra usa margens laterais simétricas sem centralização por transform', includes('#nav{isolation:isolate;position:fixed;left:12px;right:12px;') && includes('width:auto;max-width:680px;margin-left:auto;margin-right:auto') && includes('backdrop-filter:blur(22px) saturate(1.35);transform:none;')],
   ['pílula única acompanha largura e posição da aba ativa', includes('#nav::before{') && includes('var(--st-nav-pill-width,0px)') && includes('var(--st-nav-pill-x,0px)')],
+  ['indicador usa box-sizing border-box para não exceder a largura do botão', includes('#nav::before{content:"";display:block;position:absolute;z-index:0;left:0;top:7px;bottom:7px;box-sizing:border-box;width:var(--st-nav-pill-width,0px);') && includes("host.style.setProperty('--st-nav-pill-width',active.offsetWidth+'px')")],
+  ['indicador e posição usam a mesma duração de transição', includes('transition:transform 340ms cubic-bezier(.22,1,.36,1),width 340ms cubic-bezier(.22,1,.36,1)')],
   ['rótulos têm tamanho e peso uniformes', includes('font-size:.68rem;font-weight:600') && includes('#nav button.on .nl{font-weight:600;opacity:1}')],
   ['rótulos usam reticências sem quebra', includes('text-overflow:ellipsis;white-space:nowrap')],
   ['alvos da barra têm altura mínima de 44 px', includes('#nav button{') && includes('min-height:54px')],
