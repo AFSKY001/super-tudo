@@ -3104,6 +3104,7 @@ async function runSyncStatusAction(){
       await syncConflictDialog('',null,'A nuvem foi consultada, mas '+pending.length+' alteração(ões) ainda não foram confirmadas. Elas continuam salvas neste aparelho e não serão apresentadas como sincronizadas.'+reason);
       return;
     }
+    R();
     await syncConflictDialog('',null,'Atualização concluída. A nuvem foi consultada e não há conflitos nem envios pendentes.');
   }catch(error){
     clearTimeout(pullTimeout);
