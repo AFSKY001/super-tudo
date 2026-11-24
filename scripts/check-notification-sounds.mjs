@@ -9,7 +9,7 @@ const [html,module,build,sw,pkgText]=await Promise.all([
 const pkg=JSON.parse(pkgText),fail=[];
 const check=(ok,message)=>{if(!ok)fail.push(message);};
 try{new Function(module);}catch(error){fail.push('notification-sounds.js syntax: '+error.message);}
-check(pkg.version==='3.74.70','package version must be 3.74.69.');
+check(pkg.version==='3.74.70','package version must be 3.74.70.');
 check(html.includes("const APP_VERSION='3.74.70'"),'index APP_VERSION must match package version.');
 check(sw.includes("const CACHE_NAME='super-tudo-v3.74.70'"),'service worker cache version must match package version.');
 check(html.includes('<script src="/notification-sounds.js?v=3.74.70"></script>'),'sound module must be loaded by index.html.');
