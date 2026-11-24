@@ -898,3 +898,16 @@ O Bottom Sheet usa um único controlador delegado no documento, com Pointer Even
 - Amarelo com rotação indica envio ou recebimento ativo; verde indica sincronização concluída; vermelho indica ausência de conexão, conflitos, envios bloqueados ou sincronização ainda não estabelecida.
 - O texto de estado permanece em title e aria-label, e o controle continua acionando a revisão existente.
 - A animação respeita prefers-reduced-motion e não altera a fila, as RPCs, os dados nem as permissões.
+
+
+## 12. Navegação inferior e indicador de sincronização — versão 3.74.76
+
+- A navegação móvel usa a superfície do tema com transparência, desfoque, borda semântica e pílula ativa deslizante. Não usar fundo primário chapado na barra.
+- A pílula acompanha o botão ativo que o renderizador R0() produz. O observador global existente recalcula posição e largura após navegação interna, alteração de permissão, redimensionamento e reconstrução da barra.
+- Os rótulos da navegação móvel compartilham tipografia, altura de linha e tratamento de reticências. Não criar exceção de fonte para a última aba.
+- O conteúdo reserva espaço para a barra e respeita a safe-area. Quando o teclado virtual ocupa a tela, a barra é recolhida e o espaço extra inferior é removido.
+- O indicador de sincronização reutiliza o estado real da fila e das operações de envio/recebimento. Não rastrear indiscriminadamente todos os requests do Supabase: autenticação e consultas não relacionadas não representam necessariamente sincronização.
+- O ícone é SVG inline, com anel giratório em andamento, círculo e check no sucesso e círculo com exclamação em erro. Cores vêm de --cor-alerta, --cor-sucesso e --cor-erro.
+- O estado sincronizando permanece visível por no mínimo 700 ms e a troca para sucesso aguarda o fechamento do ciclo visual. Falhas de Realtime são refletidas como erro, sem remover o polling de segurança existente.
+- O botão permanece compacto em 32 × 32 px para preservar o cabeçalho; a ação atual de revisão de conflitos, consulta à nuvem e tentativa de envio é mantida. Não substituir essa ação por uma recarga genérica de tela.
+- Movimento reduzido remove giro, pop, onda e tremor, mantendo os três estados distinguíveis por ícone e cor.
