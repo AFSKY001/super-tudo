@@ -68,7 +68,7 @@ self.addEventListener('fetch', event => {
     })());
     return;
   }
-  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg', '/logo.webp', '/routine.js', '/notes.js'].includes(url.pathname)) {
+  if (url.origin === self.location.origin && ['/manifest.webmanifest', '/icon.svg', '/logo.webp', '/routine.js', '/notes.js', '/notification-sounds.js'].includes(url.pathname)) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       try {
