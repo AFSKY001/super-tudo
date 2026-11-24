@@ -17,7 +17,7 @@ check(build.includes("'notification-sounds.js'"),'sound module must be copied in
 check(html.includes("window.stNotificationSound?.play(incoming?.['cat'],V['cloudIdentity']?.['id'])"),'only newly received Realtime notifications must trigger the local sound.');
 check(module.includes('silentStart')&&module.includes('silentEnd')&&module.includes('categories'),'local preferences must include quiet hours and notification categories.');
 check(module.includes('localStorage')&&module.includes('AudioContext'),'sound settings must remain local and use browser audio.');
-check(module.includes('function setConnectionStatus(state)')&&module.includes('data-connection="connected"'),'notification bell must expose an accessible live-connection indicator.');
+check(module.includes('function setConnectionStatus(state)')&&html.includes('#bl[data-connection="connected"]::after'),'notification bell must expose an accessible live-connection indicator.');
 check(html.includes('#bl[data-connection]::after')&&!module.includes('createElement(\'style\')'),'connection indicator styles must stay in the main stylesheet, not be injected at runtime.');
 check(html.includes("setConnectionStatus('connected')")&&html.includes("setConnectionStatus(navigator.onLine?'reconnecting':'offline')")&&html.includes("setConnectionStatus('offline')"),'Realtime lifecycle must update the notification connection indicator.');
 if(fail.length){console.error(fail.join('\n'));process.exit(1);}
