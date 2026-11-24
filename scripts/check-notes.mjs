@@ -46,7 +46,7 @@ check(notes.includes('!!n.shared&&canModerate()')&&notes.includes("n.shared&&(al
 check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOnly||!canToggleShare?'disabled':''"),'only the note author may change its sharing state.');
 check(notes.includes("b.classList.toggle('on',selected)")&&notes.includes("b.setAttribute('aria-checked',String(selected))"),'selected note color must update both visual and accessible selected states.');
 check(notes.indexOf('class="nt-editor-footer"')<notes.indexOf('id="nt-title"'),'note sharing controls must stay above the note content and be immediately accessible.');
-check(notes.indexOf('id="nt-toolbar"')<notes.indexOf('id="nt-title"')&&h.includes('.nt-toolbar{position:sticky;top:0;bottom:auto;'),'formatting controls must stay near the top of the editor and remain accessible while scrolling.');
+check(notes.indexOf('id="nt-toolbar"')<notes.indexOf('id="nt-title"')&&html.includes('.nt-toolbar{position:sticky;top:0;bottom:auto;'),'formatting controls must stay near the top of the editor and remain accessible while scrolling.');
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
 check(hardening.includes('create schema if not exists private')&&hardening.includes('create or replace function private.notas_has_permission'),'permission helper must live in a non-exposed schema.');
@@ -57,4 +57,4 @@ check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.n
 check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
 check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+42+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+47+' verificações)');
