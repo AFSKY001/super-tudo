@@ -8,6 +8,7 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const includes = (value) => source.includes(value);
 const checks = [
   ['versões do aplicativo e pacote alinhadas', pkg.version === '3.74.78' && includes("const APP_VERSION='3.74.78'")],
+  ['sessões autenticadas da versão anterior continuam aceitas', includes("_0x4892f1['version']==='3.74.77'")],
   ['barra usa superfície do tema, transparência e blur', includes('#nav{isolation:isolate;') && includes('background:color-mix(in srgb,var(--cd) 84%,transparent)') && includes('backdrop-filter:blur(22px)')],
   ['pílula única acompanha largura e posição da aba ativa', includes('#nav::before{') && includes('var(--st-nav-pill-width,0px)') && includes('var(--st-nav-pill-x,0px)')],
   ['rótulos têm tamanho e peso uniformes', includes('font-size:.68rem;font-weight:600') && includes('#nav button.on .nl{font-weight:600;opacity:1}')],
