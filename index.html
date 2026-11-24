@@ -838,7 +838,7 @@ header p{margin:3px 0 0 49px!important;color:var(--mu)!important;font-size:11px!
   overflow:hidden;
   padding:0;
   border:1px solid transparent;
-  border-radius:50%;
+  border-radius:10px;
   background:var(--sf);
   color:var(--no);
   font-size:0!important;
@@ -3477,7 +3477,7 @@ host.querySelectorAll('.sheet').forEach(ensureSheet);host.querySelectorAll('.ov.
  const button=document.getElementById('syncStatus');
  if(!button)return;
  button.removeAttribute('onclick');
- [['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['min-width','108px'],['min-height','42px'],['flex-shrink','0'],['max-width','none'],['padding','8px 10px']].forEach(([key,value])=>button.style.setProperty(key,value,'important'));
+ [['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['width','32px'],['min-width','32px'],['height','32px'],['min-height','32px'],['flex-basis','32px'],['flex-shrink','0'],['max-width','32px'],['padding','0'],['border-radius','10px']].forEach(([key,value])=>button.style.setProperty(key,value,'important'));
  let lastAction=0,toastTimer=0;
  function feedback(message,isError){
   let toast=document.getElementById('syncStatusFeedback');

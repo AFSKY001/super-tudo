@@ -94,6 +94,8 @@ const checks = [
   ['controle de sincronização é um botão nativo acessível por teclado', /<button type="button" id="syncStatus" class="sync-status-label"[^>]*aria-label="Revisar conflitos ou atualizar sincronização"[^>]*onclick="runSyncStatusAction\(\)"/],
   ['ação direta do indicador de sincronização', /onclick="runSyncStatusAction\(\)"/],
   ['indicador de sincronização aceita toque', /#syncStatus\{[\s\S]{0,500}touch-action:manipulation/],
+  ['indicador mantém formato quadrado compacto de 32px com cantos arredondados', /#syncStatus\{[\s\S]{0,700}width:32px;[\s\S]{0,120}height:32px;[\s\S]{0,220}border-radius:10px;/],
+  ['proteção de toque preserva dimensões compactas do indicador', /\['width','32px'\][\s\S]{0,120}\['min-width','32px'\][\s\S]{0,120}\['height','32px'\][\s\S]{0,120}\['min-height','32px'\]/],
   ['fila bloqueada não é apresentada como envio ativo', /let state='error'[\s\S]{0,900}else if\(blocked\)\{label='Revisar envio/],
   ['há revisão específica de operações recusadas', /async function syncBlockedQueueUI\(\)/],
   ['indicador diferencia conflito de bloqueio de permissão', /some\(item=>item&&item\.status==='conflict'\)\)\s*\{\s*await syncResolveConflictsUI\(\)/],
