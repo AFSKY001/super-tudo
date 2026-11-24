@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
-const html=read('index.html'),notes=read('notes.js'),sql=read('supabase/migrations/20261123190000_create_notes_module.sql');
+const html=read('index.html'),notes=read('notes.js'),sql=read('supabase/migrations/20261123190000_create_notes_module.sql'),hardening=read('supabase/migrations/20261124202453_harden_notes_security.sql');
 const build=read('scripts/build-protected.mjs'),sw=read('sw.js'),pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
 const failures=[];
 const check=(ok,message)=>{if(!ok)failures.push(message);};
@@ -38,5 +38,12 @@ check(notes.includes('!!n.shared&&canModerate()')&&notes.includes("n.shared&&(al
 check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOnly||!canToggleShare?'disabled':''"),'only the note author may change its sharing state.');
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
+check(hardening.includes('create schema if not exists private')&&hardening.includes('create or replace function private.notas_has_permission'),'permission helper must live in a non-exposed schema.');
+check(hardening.includes('grant usage on schema private to authenticated')&&hardening.includes('grant execute on function private.notas_has_permission(text, uuid) to authenticated'),'RLS must retain authenticated access to the private permission helper.');
+check(hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'public RPC permission helper must be removed after policies move.');
+check(hardening.includes('revoke all on function public.notas_set_author() from public, anon, authenticated'),'trigger helper must not be callable through the public Data API.');
+check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.notas(author_id)'),'author foreign key must have a dedicated supporting index.');
+check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
+check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+22+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+36+' verificações)');
