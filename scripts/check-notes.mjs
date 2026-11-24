@@ -10,6 +10,7 @@ const failures=[];
 const check=(ok,message)=>{if(!ok)failures.push(message);};
 try{new Function(notes);console.log('PASS - sintaxe do módulo de notas');}catch(error){failures.push('notes.js syntax: '+error.message);}
 check(/<script src="\/notes\.js(?:\?[^" ]*)?"><\/script>/.test(html),'index must load the notes module.');
+check(html.includes('<script src="/notes.js?v='+pkg.version+'"></script>'),'notes module cache key must match the application version.');
 check(build.includes("'notes.js'"),'protected build must include notes.js.');
 check(sw.includes("'/notes.js'")&&sw.includes('super-tudo-v'+pkg.version),'service worker must cache the notes module under the current version.');
 check(pkg.version===lock.version&&lock.packages?.['']?.version===pkg.version,'package versions must be aligned.');
