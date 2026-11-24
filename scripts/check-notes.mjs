@@ -43,7 +43,7 @@ check(hardening.includes('grant usage on schema private to authenticated')&&hard
 check(hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'public RPC permission helper must be removed after policies move.');
 check(hardening.includes('revoke all on function public.notas_set_author() from public, anon, authenticated'),'trigger helper must not be callable through the public Data API.');
 check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.notas(author_id)'),'author foreign key must have a dedicated supporting index.');
-check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&!hardening.includes('public.notas_has_permission('),'all note RLS policies must call the private permission helper.');
+check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
 check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
 console.log('PASS - contrato do Bloco de notas ('+36+' verificações)');
