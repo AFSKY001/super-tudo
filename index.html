@@ -3103,6 +3103,8 @@ async function runSyncStatusAction(){
     await syncConflictDialog('',null,'Atualização concluída. A nuvem foi consultada e não há conflitos nem envios pendentes.');
   }catch(error){
     clearTimeout(pullTimeout);
+    syncLastError=String(error?.message||'Falha ao atualizar sincronização');
+    syncStatusUpdate();
     console.warn('Falha ao atualizar sincronização:',error);
     await syncConflictDialog('',null,'Não foi possível concluir a atualização: '+(error?.message||'erro de conexão')+'. As alterações locais continuam preservadas.');
   }finally{
