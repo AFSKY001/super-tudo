@@ -890,3 +890,11 @@ O Bottom Sheet usa um único controlador delegado no documento, com Pointer Even
 - O módulo é online: quando não há conexão, não anuncia salvamento concluído. O autosave é serializado e usa `updated_at` como proteção contra sobrescrita concorrente.
 - O corpo HTML é sanitizado com lista permitida na entrada e na renderização. Colagem é convertida em texto puro. A paleta mantém tinta escura fixa nas notas pastel e o movimento respeita `prefers-reduced-motion`.
 - A feature não altera a fila geral `sync_push`/`sync_pull`; por isso, notas exigem conexão para carregar e salvar, preservando o isolamento do sync operacional.
+
+
+## Indicador compacto de sincronização — versão 3.74.73
+
+- O cabeçalho usa um único símbolo circular no controle de sincronização, sem texto visual ocupando espaço.
+- Amarelo com rotação indica envio ou recebimento ativo; verde indica sincronização concluída; vermelho indica ausência de conexão, conflitos, envios bloqueados ou sincronização ainda não estabelecida.
+- O texto de estado permanece em title e aria-label, e o controle continua acionando a revisão existente.
+- A animação respeita prefers-reduced-motion e não altera a fila, as RPCs, os dados nem as permissões.
