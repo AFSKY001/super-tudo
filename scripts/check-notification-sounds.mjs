@@ -18,6 +18,6 @@ check(html.includes("window.stNotificationSound?.play(incoming?.['cat'],V['cloud
 check(module.includes('silentStart')&&module.includes('silentEnd')&&module.includes('categories'),'local preferences must include quiet hours and notification categories.');
 check(module.includes('localStorage')&&module.includes('AudioContext'),'sound settings must remain local and use browser audio.');
 check(module.includes('function setConnectionStatus(state)')&&module.includes('data-connection="connected"'),'notification bell must expose an accessible live-connection indicator.');
-check(html.includes("setConnectionStatus('connected')")&&html.includes("setConnectionStatus('reconnecting')")&&html.includes("setConnectionStatus('offline')"),'Realtime lifecycle must update the notification connection indicator.');
+check(html.includes("setConnectionStatus('connected')")&&html.includes("setConnectionStatus(navigator.onLine?'reconnecting':'offline')")&&html.includes("setConnectionStatus('offline')"),'Realtime lifecycle must update the notification connection indicator.');
 if(fail.length){console.error(fail.join('\n'));process.exit(1);}
 console.log('PASS - notification sounds: syntax, integration, local preferences, quiet hours and deployment contract');
