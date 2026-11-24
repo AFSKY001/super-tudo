@@ -842,7 +842,7 @@ header p{margin:3px 0 0 49px!important;color:var(--mu)!important;font-size:11px!
 #syncStatus:focus-visible{outline:2px solid var(--pr);outline-offset:3px}
 #syncStatus.sync-complete .sync-status-icon{animation:syncStatusPop var(--sync-pop-duration,420ms) var(--st-motion-spring,cubic-bezier(.2,.9,.25,1))}
 #syncStatus.sync-complete::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;pointer-events:none;animation:syncStatusWave .72s ease-out}
-#syncStatus.sync-error-pulse .sync-status-icon{animation:syncStatusShake .38s ease-out}
+#syncStatus.sync-error-pulse .sync-status-icon{animation:syncStatusShake var(--sync-error-shake-duration,380ms) ease-out}
 @keyframes syncStatusSpin{to{transform:rotate(360deg)}}
 @keyframes syncStatusPop{0%{transform:scale(.76)}65%{transform:scale(1.14)}100%{transform:scale(1)}}
 @keyframes syncStatusWave{0%{opacity:.48;box-shadow:0 0 0 0 color-mix(in srgb,var(--sync-success-color,var(--cor-sucesso)) 32%,transparent)}100%{opacity:0;box-shadow:0 0 0 13px color-mix(in srgb,var(--sync-success-color,var(--cor-sucesso)) 0%,transparent)}}
@@ -2278,6 +2278,7 @@ function syncStatusUpdate(){
  const button=document.getElementById('syncStatus');if(!button)return;
  button.style.setProperty('--sync-rotation-duration',SYNC_ROTATION_MS+'ms');
  button.style.setProperty('--sync-pop-duration',SYNC_POP_MS+'ms');
+ button.style.setProperty('--sync-error-shake-duration',SYNC_ERROR_SHAKE_MS+'ms');
  const rootStyle=getComputedStyle(document.documentElement);
  button.style.setProperty('--sync-alert-color',rootStyle.getPropertyValue('--cor-alerta').trim());
  button.style.setProperty('--sync-success-color',rootStyle.getPropertyValue('--cor-sucesso').trim());
