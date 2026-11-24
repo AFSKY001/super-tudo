@@ -60,13 +60,14 @@ jobs:
           test -s dist/routine.js
           test -s dist/pickers.js
           test -s dist/notes.js
+          test -s dist/notification-sounds.js
           test -s dist/LICENSE
           test ! -d dist/supabase
           test ! -d dist/.github
           test ! -d dist/scripts
           test ! -f dist/package.json
           test ! -f dist/package-lock.json
-          test "$(find dist -type f | wc -l | tr -d ' ' )" = "10"
+          test "$(find dist -type f | wc -l | tr -d ' ' )" = "11"
           ! find dist -type f -name '*.map' | grep .
           ! grep -R -E 'sourceMappingURL=|SUPABASE_SERVICE_ROLE_KEY|sb_secret_[A-Za-z0-9_-]+' dist
       - name: Deploy protected distribution to Cloudflare Workers
