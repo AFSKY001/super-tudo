@@ -823,8 +823,9 @@ header p{margin:3px 0 0 49px!important;color:var(--mu)!important;font-size:11px!
   background:var(--superficie);
   box-shadow:none!important;
 }
-#syncStatus{appearance:none;-webkit-appearance:none;position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;flex:0 0 44px;padding:0;border:1px solid color-mix(in srgb,currentColor 22%,var(--bd));border-radius:10px;background:color-mix(in srgb,var(--sync-error-color,var(--cor-erro)) 12%,var(--cd));color:var(--sync-error-color,var(--cor-erro));cursor:pointer;touch-action:manipulation;font-size:0!important;line-height:1;overflow:visible;transition:background-color var(--st-motion-base,180ms) ease,color var(--st-motion-base,180ms) ease,border-color var(--st-motion-base,180ms) ease,transform var(--st-motion-fast,120ms) ease}
+#syncStatus{appearance:none;-webkit-appearance:none;position:relative;isolation:isolate;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;flex:0 0 44px;padding:0;border:1px solid color-mix(in srgb,currentColor 22%,var(--bd));border-radius:12px;background:color-mix(in srgb,var(--sync-error-color,var(--cor-erro)) 12%,var(--cd));color:var(--sync-error-color,var(--cor-erro));cursor:pointer;touch-action:manipulation;font-size:0!important;line-height:1;overflow:visible;transition:background-color var(--st-motion-base,180ms) ease,color var(--st-motion-base,180ms) ease,border-color var(--st-motion-base,180ms) ease,transform var(--st-motion-fast,120ms) ease}
 #syncStatus .sync-status-icon{display:block;width:19px;height:19px;overflow:visible}
+#syncStatus .sync-status-live{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 #syncStatus .sync-status-icon *{fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 #syncStatus .sync-ring-wrap{transform-origin:12px 12px}
 #syncStatus .sync-ring{stroke-dasharray:100 0;transition:stroke-dasharray .48s var(--st-motion-spring,cubic-bezier(.2,.9,.25,1))}
@@ -845,16 +846,16 @@ header p{margin:3px 0 0 49px!important;color:var(--mu)!important;font-size:11px!
 #syncStatus.sync-error-pulse .sync-status-icon{animation:syncStatusShake var(--sync-error-shake-duration,380ms) ease-out}
 @keyframes syncStatusSpin{to{transform:rotate(360deg)}}
 @keyframes syncStatusPop{0%{transform:scale(.76)}65%{transform:scale(1.14)}100%{transform:scale(1)}}
-@keyframes syncStatusWave{0%{opacity:.48;box-shadow:0 0 0 0 color-mix(in srgb,var(--sync-success-color,var(--cor-sucesso)) 32%,transparent)}100%{opacity:0;box-shadow:0 0 0 13px color-mix(in srgb,var(--sync-success-color,var(--cor-sucesso)) 0%,transparent)}}
+@keyframes syncStatusWave{0%{opacity:.52;transform:scale(.72)}100%{opacity:0;transform:scale(1.5)}}
 @keyframes syncStatusShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}50%{transform:translateX(2px)}75%{transform:translateX(-1px)}}
 @media(prefers-reduced-motion:reduce){#syncStatus,#syncStatus .sync-status-icon,#syncStatus .sync-ring-wrap,#syncStatus::after{transition:none!important;animation:none!important}}
 header p:empty{display:none!important}
 .dots{
   display:grid!important;
   place-items:center;
-  width:40px!important;
-  height:40px!important;
-  flex:0 0 40px;
+  width:44px!important;
+  height:44px!important;
+  flex:0 0 44px;
   padding:0!important;
   border:1px solid var(--bd)!important;
   border-radius:12px!important;
@@ -2307,10 +2308,10 @@ function syncStatusUpdate(){
  }
  if(state==='syncing'){clearTimeout(syncStatusTimer);syncStatusTimer=null;if(current!=='syncing')syncStatusSince=Date.now();}
  else if(state==='error'){clearTimeout(syncStatusTimer);syncStatusTimer=null;}
- if(!button.querySelector('.sync-status-icon'))button.innerHTML='<svg class="sync-status-icon" viewBox="0 0 24 24" aria-hidden="true"><g class="sync-ring-wrap"><circle class="sync-ring" cx="12" cy="12" r="9" pathLength="100"/></g><path class="sync-check" d="M7.5 12.5l3 3 6-6.5" pathLength="1"/><path class="sync-error-line" d="M12 7.5v5.5" pathLength="1"/><circle class="sync-error-dot" cx="12" cy="16.6" r="1"/></svg>';
+ if(!button.querySelector('.sync-status-icon'))button.innerHTML='<svg class="sync-status-icon" viewBox="0 0 24 24" aria-hidden="true"><g class="sync-ring-wrap"><circle class="sync-ring" cx="12" cy="12" r="9" pathLength="100"/></g><path class="sync-check" d="M7.5 12.5l3 3 6-6.5" pathLength="1"/><path class="sync-error-line" d="M12 7.5v5.5" pathLength="1"/><circle class="sync-error-dot" cx="12" cy="16.6" r="1"/></svg><span class="sync-status-live" aria-live="polite" aria-atomic="true"></span>';
  button.dataset.syncState=state;button.title=label;
  button.setAttribute('aria-label',state==='syncing'?'Sincronizando…':state==='synced'?'Sincronizado':'Sem sincronizar. Toque para tentar de novo. '+label);
- button.setAttribute('aria-live','polite');button.setAttribute('aria-atomic','true');
+ const live=button.querySelector('.sync-status-live');if(live)live.textContent=label;
  if(current&&current!==state){
   button.classList.remove('sync-complete','sync-error-pulse');
   if(state==='synced'&&current==='syncing'){
@@ -3416,7 +3417,7 @@ host.querySelectorAll('.sheet').forEach(ensureSheet);host.querySelectorAll('.ov.
  const button=document.getElementById('syncStatus');
  if(!button)return;
  button.removeAttribute('onclick');
- [['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['width','44px'],['min-width','44px'],['height','44px'],['min-height','44px'],['flex-basis','44px'],['flex-shrink','0'],['max-width','44px'],['padding','0'],['border-radius','10px']].forEach(([key,value])=>button.style.setProperty(key,value,'important'));
+ [['position','relative'],['z-index','100'],['pointer-events','auto'],['touch-action','manipulation'],['-webkit-tap-highlight-color','transparent'],['width','44px'],['min-width','44px'],['height','44px'],['min-height','44px'],['flex-basis','44px'],['flex-shrink','0'],['max-width','44px'],['padding','0'],['border-radius','12px']].forEach(([key,value])=>button.style.setProperty(key,value,'important'));
  let lastAction=0,toastTimer=0;
  function feedback(message,isError){
   let toast=document.getElementById('syncStatusFeedback');
