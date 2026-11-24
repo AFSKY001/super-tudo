@@ -33,6 +33,7 @@ check(notes.includes('function persistDraft()')&&notes.includes('function recove
 check(notes.includes("state.recoveredDraft=true")&&notes.includes("Rascunho recuperado deste aparelho")&&notes.includes("root.addEventListener('online'"),'recovered drafts must be restored and retried after reconnecting.');
 check(notes.includes('await removeDraft(n.id)')&&notes.includes("removeDraft('new')"),'successfully saved drafts must be removed from local storage.');
 check(notes.includes('baseUpdatedAt:state.lastUpdated')&&notes.includes(".eq('updated_at',state.lastUpdated)"),'recovered drafts must retain optimistic concurrency protection.');
+check(notes.includes("function draftKey(id){return 'draft:'+org()+':'+user()+':")&&notes.includes("(id||'new')"),'local drafts must be isolated by organization, user, and note.');
 check(notes.includes("supa.removeChannel(state.channel)")&&notes.includes("function backToRegistry()"),'Realtime subscription must be released when leaving the notes module.');
 check(notes.includes('root.stNotesBack=()=>state.editor?back():backToRegistry()')&&notes.includes('if(saved===false)return'),'editor navigation must return to the board and keep the editor open if saving fails.');
 check(notes.includes("state.tab==='lixeira'")&&notes.includes("30*86400000")&&notes.includes('stNotesRestore'),'trash must support restore and 30-day cleanup.');
@@ -44,4 +45,4 @@ check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOn
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+22+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+28+' verificações)');
