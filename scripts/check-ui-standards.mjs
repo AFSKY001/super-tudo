@@ -60,6 +60,11 @@ requireCheck(html.includes('.st-ripple-host>:not(.st-ripple-layer):not(.sr-only)
 requireCheck(/#bn\{position:absolute;top:2px;right:2px;z-index:3;/.test(html), 'Notification count must remain absolutely anchored to the bell button.');
 requireCheck(!html.includes("addEventListener('controllerchange'") && !html.includes('window.location.reload()') && html.includes("navigator.serviceWorker.register('/sw.js',{scope:'/'});await registration.update();"), 'Service Worker updates must not force-reload the active login or application screen.');
 
+const authRestoreMatch = html.match(/function watchCloudAuth\(\)[\s\S]*?watchCloudAuth\(\);/);
+requireCheck(html.includes("'authChecking':!0x0,'authRestoring':!0x0"), 'Initial authentication restoration must have an explicit state flag.');
+requireCheck(!!authRestoreMatch && /const restoring=V\.authRestoring/.test(authRestoreMatch?.[0] || '') && /if\(!restoring\)R\(\)/.test(authRestoreMatch?.[0] || ''), 'A SIGNED_OUT event emitted while restoring an old session must not trigger a duplicate login render.');
+requireCheck(/if\(meOf\(V\['wel'\]\)\)\{V\.authRestoring=false;return void enterApp\(\);\}/.test(html) && /V\.authRestoring=false,R\(\);/.test(html), 'Authentication restoration must release its guard on both success and login fallback.');
+
 const logoutMatch = html.match(/async function logout\(\)\{[\s\S]*?\}function rWelcome\(/);
 requireCheck(!!logoutMatch && /await window\.stConfirm\('Deseja realmente sair da sua conta\?'/.test(logoutMatch?.[0] || '') && /confirmText:'Sair da conta',cancelText:'Cancelar',intent:'danger'/.test(logoutMatch?.[0] || '') && logoutMatch[0].indexOf('await window.stConfirm') < logoutMatch[0].indexOf('pushStop()'), 'Account logout must require an explicit confirmation before stopping sync or clearing the session.');
 requireCheck(!/'✕'/.test(html.slice(html.indexOf('const dw='), html.indexOf('function pdcStatusSymbol'))), 'Inline delete controls must use Excluir instead of the X glyph.');
