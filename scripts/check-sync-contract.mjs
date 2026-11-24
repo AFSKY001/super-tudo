@@ -99,6 +99,7 @@ const checks = [
   ['recebimento atualiza o indicador ao iniciar e terminar', /syncPullBusy=!0x0;syncStatusUpdate\(\);try\{[\s\S]{0,8000}finally\{syncPullBusy=!0x1;syncStatusUpdate\(\)/],
   ['falha no recebimento automático mantém o indicador em erro', /catch\(error\)\{syncLastError=String\(error&&error\.message\|\|'Falha ao receber dados da nuvem\.'\);throw error;\}finally\{syncPullBusy=!0x1;syncStatusUpdate\(\)/],
   ['indicador anuncia o estado por região acessível independente', /sync-status-live[\s\S]{0,180}aria-live="polite"[\s\S]{0,120}live\.textContent=label/],
+  ['onda de sucesso mantém contorno visível sem animar sombra', /#syncStatus\.sync-complete::after\{[^}]*border:2px solid color-mix\(in srgb,var\(--sync-success-color,var\(--cor-sucesso\)\) 42%,transparent\)/],
   ['onda de sucesso usa somente escala e opacidade', /@keyframes syncStatusWave\{0%\{opacity:\.52;transform:scale\(\.72\)\}100%\{opacity:0;transform:scale\(1\.5\)\}\}/],
   ['controle de sincronização é um botão nativo acessível por teclado', /<button type="button" id="syncStatus" class="sync-status-label"[^>]*aria-label="Revisar conflitos ou atualizar sincronização"[^>]*onclick="runSyncStatusAction\(\)"/],
   ['ação direta do indicador de sincronização', /onclick="runSyncStatusAction\(\)"/],
