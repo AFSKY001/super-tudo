@@ -16,6 +16,8 @@ check(start.includes("window['addEventListener']('online'")&&start.includes("win
 check(start.includes("document['addEventListener']('visibilitychange'"),'returning to the foreground must re-establish Realtime.');
 check(stop.includes("clearTimeout(V['pushRetryTimer'])")&&stop.includes("V['pushRealtimeConnected']=false"),'logout must cancel retries and reset connection state.');
 check(pkg.version==='3.74.70'&&html.includes("const APP_VERSION='3.74.70'")&&sw.includes("super-tudo-v3.74.70"),'release versions must be aligned.');
+check(html.includes('@supabase/supabase-js@2.119.2'),'the app must use the current pinned Supabase SDK.');
+check(html.includes("'realtime':{'worker':!0x0}"),'Realtime heartbeat must use the browser worker.');
 check(sw.includes("self.addEventListener('push'")&&sw.includes('event.waitUntil')&&sw.includes('showNotification'),'service worker must retain background push delivery.');
 if(fail.length){console.error(fail.join('\n'));process.exit(1);}
 console.log('PASS - notification reliability: Realtime status, reconnect, lifecycle, logout and push service worker');
