@@ -37,6 +37,8 @@ jobs:
         run: npm run check:ui
       - name: Check routine domain and recurrence
         run: npm run check:routine
+      - name: Check Service Worker offline and HTTP fallback
+        run: npm run check:service-worker
       - name: Check shared picker components
         run: npm run check:pickers
       - name: Check bakery recipe form and shared launch integration

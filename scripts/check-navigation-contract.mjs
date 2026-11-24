@@ -14,6 +14,7 @@ const checks = [
   ['versões do aplicativo e pacote alinhadas', pkg.version === sourceVersion?.[1]],
   ['sessões autenticadas da versão anterior continuam aceitas', includes(`_0x4892f1['version']==='${previousVersion}'`)],
   ['barra usa superfície do tema, transparência e blur', includes('#nav{isolation:isolate;') && includes('background:color-mix(in srgb,var(--cd) 84%,transparent)') && includes('backdrop-filter:blur(22px)')],
+  ['barra usa margens laterais simétricas sem centralização por transform', includes('#nav{isolation:isolate;position:fixed;left:12px;right:12px;') && includes('width:auto;max-width:680px;margin-left:auto;margin-right:auto') && includes('backdrop-filter:blur(22px) saturate(1.35);transform:none;')],
   ['pílula única acompanha largura e posição da aba ativa', includes('#nav::before{') && includes('var(--st-nav-pill-width,0px)') && includes('var(--st-nav-pill-x,0px)')],
   ['rótulos têm tamanho e peso uniformes', includes('font-size:.68rem;font-weight:600') && includes('#nav button.on .nl{font-weight:600;opacity:1}')],
   ['rótulos usam reticências sem quebra', includes('text-overflow:ellipsis;white-space:nowrap')],
