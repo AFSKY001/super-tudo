@@ -11,6 +11,12 @@ const stop=html.slice(html.indexOf('function pushStop'),html.indexOf('function n
 check(start.includes("notificationChannel['subscribe']((status,error)=>"),'notification channel must observe subscription status.');
 check(start.includes("status==='SUBSCRIBED'"),'successful subscription must be tracked.');
 check(start.includes("setConnectionStatus('connected')")&&start.includes("setConnectionStatus('connecting')")&&start.includes("setConnectionStatus(navigator.onLine?'reconnecting':'offline')"),'notification connection state must be reflected in the bell indicator.');
+check(start.includes("if(!known&&incoming?.['created_by']!==V['cloudIdentity']?.['id']){window.stNotificationArrival?.();"),'only genuinely new notifications from other users must animate the bell.');
+check(html.includes('#bl.st-notification-arrival .ic')&&html.includes('@keyframes st-notification-arrival-wave'),'incoming notification feedback must include the bell motion and expanding water-like rings.');
+check(html.includes("@media(prefers-reduced-motion:reduce){#bl.st-notification-arrival .ic,#bl.st-notification-arrival .st-notification-waves i{animation:none!important}}"),'notification arrival motion must respect reduced-motion preferences.');
+const catchup=html.slice(html.indexOf('async function pushSyncNotifications'),html.indexOf('async function pushEnsureSubscription'));
+check(!catchup.includes('stNotificationArrival'),'initial notification catch-up must not replay arrival animations.');
+
 check(start.includes("['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)"),'channel failures must trigger recovery.');
 check(start.includes("setTimeout(()=>{V['pushRetryTimer']=null;pushRecover();},3000)"),'failed channels must retry with a bounded delay.');
 check(start.includes("window['addEventListener']('online'")&&start.includes("window['addEventListener']('offline'"),'network transitions must be observed.');
