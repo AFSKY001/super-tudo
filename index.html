@@ -2384,7 +2384,8 @@ function syncStatusUpdate(){
  if(state==='synced'&&current==='syncing'){
   const elapsed=Date.now()-syncStatusSince;
   const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const wait=Math.max(700-elapsed,reduced?0:800-(elapsed%800));
+  const cycleElapsed=elapsed%800,cycleWait=elapsed===0?800:cycleElapsed===0?0:800-cycleElapsed;
+    const wait=Math.max(700-elapsed,reduced?0:cycleWait);
   if(wait>0){clearTimeout(syncStatusTimer);syncStatusTimer=setTimeout(syncStatusUpdate,wait);return;}
  }
  if(state==='syncing'){clearTimeout(syncStatusTimer);syncStatusTimer=null;if(current!=='syncing')syncStatusSince=Date.now();}
