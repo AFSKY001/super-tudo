@@ -8,8 +8,8 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const includes = (value) => source.includes(value);
 const syncAction = source.slice(source.indexOf('async function runSyncStatusAction()'), source.indexOf('window.runSyncStatusAction=runSyncStatusAction;'));
 const checks = [
-  ['versões do aplicativo e pacote alinhadas', pkg.version === '3.74.78' && includes("const APP_VERSION='3.74.78'")],
-  ['sessões autenticadas da versão anterior continuam aceitas', includes("_0x4892f1['version']==='3.74.77'")],
+  ['versões do aplicativo e pacote alinhadas', pkg.version === '3.74.80' && includes("const APP_VERSION='3.74.80'")],
+  ['sessões autenticadas da versão anterior continuam aceitas', includes("_0x4892f1['version']==='3.74.79'")],
   ['barra usa superfície do tema, transparência e blur', includes('#nav{isolation:isolate;') && includes('background:color-mix(in srgb,var(--cd) 84%,transparent)') && includes('backdrop-filter:blur(22px)')],
   ['pílula única acompanha largura e posição da aba ativa', includes('#nav::before{') && includes('var(--st-nav-pill-width,0px)') && includes('var(--st-nav-pill-x,0px)')],
   ['rótulos têm tamanho e peso uniformes', includes('font-size:.68rem;font-weight:600') && includes('#nav button.on .nl{font-weight:600;opacity:1}')],
@@ -25,7 +25,7 @@ const checks = [
   ['fila persistente e RPCs Supabase permanecem intactas', includes('st_cloud_sync_v1') && includes("supa['rpc']('sync_push'") && includes("supa['rpc']('sync_pull'")],
   ['ação de revisão de sincronização continua disponível', includes('async function runSyncStatusAction()') && includes('onclick="runSyncStatusAction()"')],
   ['atualização manual redesenha a tela atual após sincronização confirmada', syncAction.includes('    R();') && syncAction.indexOf('    R();') < syncAction.indexOf('Atualização concluída.')],
-  ['indicador anuncia os estados por aria-live', includes("button.setAttribute('aria-live','polite')") && includes("button.setAttribute('aria-atomic','true')")]
+  ['indicador anuncia os estados por aria-live', includes('sync-status-live') && includes('aria-live="polite"') && includes('aria-atomic="true"')]
 ];
 let failed = 0;
 for (const [label, passed] of checks) {
