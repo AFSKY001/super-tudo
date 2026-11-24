@@ -2382,7 +2382,7 @@ function syncStatusUpdate(){
   if(conflicts){label='Revisar conflito';}
   else if(blocked){label='Revisar envio ('+blocked+')';}
   else if(offline){label='Sem conexão — dados aguardam sincronização';}
-  else if(syncReady&&(pending||active)){state='syncing';label='Sincronizando '+(pending||'dados')+'…';}
+  else if(active||(syncReady&&pending)){state='syncing';label='Sincronizando '+(pending||'dados')+'…';}
   else if(syncReady){state='synced';label='Sincronizado';}
   const palette=getComputedStyle(document.documentElement);
   button.style.color=(state==='syncing'?palette.getPropertyValue('--cor-alerta'):state==='synced'?palette.getPropertyValue('--cor-sucesso'):palette.getPropertyValue('--cor-erro')).trim();
