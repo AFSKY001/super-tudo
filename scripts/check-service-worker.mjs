@@ -81,7 +81,9 @@ response=await dispatch('https://super-tudo.test/','navigate');
 assert.equal(response.status,200,'Offline navigation must use the cached application.');
 assert.equal(await response.text(),'cached application');
 
-await handlers.activate({waitUntil(promise){this.promise=promise;} }).promise;
+const activateEvent={waitUntil(promise){this.promise=promise;}};
+handlers.activate(activateEvent);
+await activateEvent.promise;
 assert.ok(deleted.includes('super-tudo-v3.74.80'),'Activation must remove the previous Super Tudo cache.');
 assert.ok(!deleted.includes('unrelated-cache'),'Activation must preserve unrelated Cache Storage entries.');
 
