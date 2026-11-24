@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=file=>fs.readFileSync(path.join(root,file),'utf8');
-const html=read('index.html'),notes=read('notes.js'),sql=read('supabase/migrations/20261123190000_create_notes_module.sql'),hardening=read('supabase/migrations/20261124210000_harden_notes_security.sql');
+const html=read('index.html'),notes=read('notes.js'),sql=read('supabase/migrations/20261123190000_create_notes_module.sql'),hardening=read('supabase/migrations/20261124202453_harden_notes_security.sql');
 const build=read('scripts/build-protected.mjs'),sw=read('sw.js'),pkg=JSON.parse(read('package.json')),lock=JSON.parse(read('package-lock.json'));
 const failures=[];
 const check=(ok,message)=>{if(!ok)failures.push(message);};
