@@ -224,7 +224,7 @@ function open(){
 }
 async function backToRegistry(){const saved=await back();if(saved===false)return;if(state.channel){supa.removeChannel(state.channel);state.channel=null;}V.rs='home';V.reg=null;bridge.R();}
 function setTab(tab){state.tab=tab;state.search='';state.color='';state.menu=false;loadNotes();}
-function setColor(color){if(!state.editor||state.readOnly)return;state.editor.color=color;const el=document.querySelector('.nt-editor');if(el){el.dataset.color=color;el.style.setProperty('--nt-bg',colors[color]);}document.querySelectorAll('.nt-editor-colors button').forEach(b=>b.setAttribute('aria-checked',String(b.getAttribute('aria-label')===color)));state.dirty=true;persistDraft();scheduleSave();}
+function setColor(color){if(!state.editor||state.readOnly)return;state.editor.color=color;const el=document.querySelector('.nt-editor');if(el){el.dataset.color=color;el.style.setProperty('--nt-bg',colors[color]);}document.querySelectorAll('.nt-editor-colors button').forEach(b=>{const selected=b.getAttribute('aria-label')===color;b.setAttribute('aria-checked',String(selected));b.classList.toggle('on',selected);});state.dirty=true;persistDraft();scheduleSave();}
 function share(value){if(!state.editor||state.readOnly)return;state.editor.shared=!!value;state.dirty=true;persistDraft();scheduleSave();}
 function menu(){state.menu=!state.menu;render();}
 function search(value){state.search=value;const cursor=$('nt-search');render();const input=document.querySelector('.nt-tools input');if(input){input.focus();input.setSelectionRange(value.length,value.length);}}
