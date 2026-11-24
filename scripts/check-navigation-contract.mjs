@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const includes = (value) => source.includes(value);
+const syncAction = source.slice(source.indexOf('async function runSyncStatusAction()'), source.indexOf('window.runSyncStatusAction=runSyncStatusAction;'));
 const checks = [
   ['versões do aplicativo e pacote alinhadas', pkg.version === '3.74.78' && includes("const APP_VERSION='3.74.78'")],
   ['sessões autenticadas da versão anterior continuam aceitas', includes("_0x4892f1['version']==='3.74.77'")],
@@ -23,7 +24,7 @@ const checks = [
   ['movimento reduzido desativa animações do menu e sincronização', includes('@media(prefers-reduced-motion:reduce)') && includes('#syncStatus,#syncStatus .sync-status-icon') && includes('#nav,#nav::before')],
   ['fila persistente e RPCs Supabase permanecem intactas', includes('st_cloud_sync_v1') && includes("supa['rpc']('sync_push'") && includes("supa['rpc']('sync_pull'")],
   ['ação de revisão de sincronização continua disponível', includes('async function runSyncStatusAction()') && includes('onclick="runSyncStatusAction()"')],
-  ['atualização manual redesenha a tela atual após sincronização confirmada', includes('    R();\\n    await syncConflictDialog(\\'\\',null,\\'Atualização concluída.')],
+  ['atualização manual redesenha a tela atual após sincronização confirmada', syncAction.includes('    R();') && syncAction.indexOf('    R();') < syncAction.indexOf('Atualização concluída.')],
   ['indicador anuncia os estados por aria-live', includes("button.setAttribute('aria-live','polite')") && includes("button.setAttribute('aria-atomic','true')")]
 ];
 let failed = 0;
