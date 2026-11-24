@@ -158,8 +158,8 @@ async function saveNow(){
  clearTimeout(state.timer);
  const n=state.editor,title=String(n.title||'').trim().slice(0,120),body=sanitize(n.body||'').slice(0,20000);
  if(!title&&!textOf(body).trim()){state.dirty=false;status('');removeDraft(n.id||'new');return true;}
- await persistDraft();
- if(!root.navigator.onLine){status('Sem conexão. A nota ainda não foi salva.');return false;}
+ const draftStored=await persistDraft();
+ if(!root.navigator.onLine){status(draftStored===false?'Sem conexão. O navegador não conseguiu guardar este rascunho neste aparelho.':'Sem conexão · rascunho guardado neste aparelho');return false;}
  state.saving=true;status('Salvando…');
  const payload={title,body,color:n.color||'amarelo',pinned:!!n.pinned,archived:!!n.archived,shared:!!n.shared};
  const snapshot=JSON.stringify(payload),snapshotNoteId=n.id||null;
