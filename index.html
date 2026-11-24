@@ -2159,6 +2159,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 
 
 /* Bloco de notas — mural de post-its integrado ao design system */
+html:has(.nt-page),html:has(.nt-editor){overscroll-behavior-x:contain}
 .nt-page{position:relative;min-height:65vh;padding:4px 0 88px;overflow-x:clip;overscroll-behavior-x:contain;animation:nt-fade .22s ease both}
 .nt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:0 2px 14px}
 .nt-head h2{margin:8px 0 2px;font-size:clamp(21px,4vw,27px);letter-spacing:-.04em}
