@@ -847,10 +847,10 @@ header p{margin:3px 0 0 49px!important;color:var(--mu)!important;font-size:11px!
   transition:background var(--dur,200ms),color var(--dur,200ms),transform var(--dur-f,140ms);
 }
 #syncStatus::before{content:"⟳";display:block;font:700 22px/1 system-ui,sans-serif}
-#syncStatus[data-sync-state="syncing"]{color:var(--wa);background:var(--was)}
+#syncStatus[data-sync-state="syncing"]{background:var(--was)}
 #syncStatus[data-sync-state="syncing"]::before{animation:syncStatusSpin .85s linear infinite}
-#syncStatus[data-sync-state="synced"]{color:var(--ok);background:var(--oks)}
-#syncStatus[data-sync-state="error"]{color:var(--no);background:var(--nos)}
+#syncStatus[data-sync-state="synced"]{background:var(--oks)}
+#syncStatus[data-sync-state="error"]{background:var(--nos)}
 #syncStatus:active{transform:scale(.92)}
 #syncStatus:focus-visible{outline:2px solid var(--pr);outline-offset:3px}
 @keyframes syncStatusSpin{to{transform:rotate(360deg)}}
@@ -1163,7 +1163,7 @@ details[open]>summary{margin-bottom:10px}
   
   .app-brand-logo{width:36px!important;height:36px!important;flex-basis:36px}
   header p{margin-left:44px!important;font-size:10px!important}
-  #syncStatus{width:32px!important;height:32px!important;min-height:32px!important;max-width:none!important;flex-basis:32px!important;padding:0!important;font-size:0!important}
+  
   .dots{width:36px!important;height:36px!important;flex-basis:36px}
   main{padding:18px 14px 30px!important}
   .page-shell{padding-bottom:20px!important}
@@ -1219,7 +1219,7 @@ details[open]>summary{margin-bottom:10px}
 @media(max-width:360px){
   header{gap:6px!important;padding-left:9px!important;padding-right:9px!important}
   header h1{font-size:12.5px!important}
-  #syncStatus{width:32px!important;height:32px!important;max-width:none!important;padding:0!important;font-size:0!important}
+  
   .dots{width:33px!important;height:33px!important;flex-basis:33px}
   main{padding-left:10px!important;padding-right:10px!important}
   .page-heading{flex-direction:column!important}
@@ -1340,14 +1340,14 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
  header{min-height:60px!important;gap:8px!important;padding:7px 12px!important}
  header h1{font-size:14px!important;gap:8px!important}
  .app-brand-logo{height:36px!important;flex-basis:36px!important}
- #syncStatus{width:32px!important;height:32px!important;max-width:none!important;padding:0!important;font-size:0!important}
+ 
  #bl{width:38px!important;height:38px!important;flex-basis:38px!important}
  nav button:last-child .nl{font-size:7.3px!important;letter-spacing:-.28px!important}
  .config-menu-group{margin-top:17px}
  .config-menu-card{min-height:76px!important;padding:10px!important}
 }
 @media(max-width:360px){
- #syncStatus{width:32px!important;height:32px!important;max-width:none!important;padding:0!important;font-size:0!important}
+ 
  #bl{width:34px!important;height:34px!important;flex-basis:34px!important}
  nav button:last-child .nl{font-size:6.9px!important;letter-spacing:-.32px!important}
 }
@@ -2384,6 +2384,8 @@ function syncStatusUpdate(){
   else if(offline){label='Sem conexão — dados aguardam sincronização';}
   else if(syncReady&&(pending||active)){state='syncing';label='Sincronizando '+(pending||'dados')+'…';}
   else if(syncReady){state='synced';label='Sincronizado';}
+  const palette=getComputedStyle(document.documentElement);
+  button.style.color=(state==='syncing'?palette.getPropertyValue('--cor-alerta'):state==='synced'?palette.getPropertyValue('--cor-sucesso'):palette.getPropertyValue('--cor-erro')).trim();
   button.dataset.syncState=state;
   button.textContent=label;
   button.title=label;

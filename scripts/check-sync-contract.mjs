@@ -88,7 +88,7 @@ const checks = [
   ['manter local gera novo identificador idempotente', /pending\.client_id=syncUuid\(\)/],
   ['usar nuvem aplica a versão remota', /syncApplyRecord\(server\)/],
   ['Realtime informa o estado da inscrição', /\['subscribe'\]\(function\(status\)/],
-  ['indicador usa estados semânticos sincronizando, sincronizado e não sincronizado', /button\.dataset\.syncState=state[\s\S]{0,450}state='syncing'[\s\S]{0,300}state='synced'/],
+  ['indicador usa estados semânticos sincronizando, sincronizado e não sincronizado', /state='syncing'[\s\S]{0,180}state='synced'[\s\S]{0,180}button\.dataset\.syncState=state/],
   ['estado amarelo acompanha envio e recebimento ativos', /const active=!!\(syncBusy\|\|syncPullBusy\|\|syncFlushPromise\|\|syncPullPromise\)/],
   ['recebimento atualiza o indicador ao iniciar e terminar', /syncPullBusy=!0x0;syncStatusUpdate\(\);try\{[\s\S]{0,8000}finally\{syncPullBusy=!0x1;syncStatusUpdate\(\)/],
   ['controle de sincronização é um botão nativo acessível por teclado', /<button type="button" id="syncStatus" class="sync-status-label"[^>]*aria-label="Revisar conflitos ou atualizar sincronização"[^>]*onclick="runSyncStatusAction\(\)"/],
