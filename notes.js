@@ -23,7 +23,7 @@ const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
 const escHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const textOf=html=>{const d=new DOMParser().parseFromString(String(html||''),'text/html');return d.body.textContent||'';};
 const allowedTags=new Set(['B','STRONG','I','EM','U','MARK','UL','OL','LI','BR','DIV','P','SPAN']);
-const classOk=/^(tc-(vermelho|azul|verde|roxo)|mk-(amarelo|verde|rosa|azul)|nt-check-item|nt-check-item checked|nt-checklist)$/;
+const classOk=/^(tc-(vermelho|azul|verde|roxo)|mk-(amarelo|verde|rosa|azul)|nt-check-item|checked|nt-checklist)$/;
 function sanitize(html){
  const doc=new DOMParser().parseFromString(String(html||''),'text/html');
  const walk=node=>{for(const child of [...node.childNodes]){
@@ -113,7 +113,7 @@ function bindEditor(){
 function createChecklist(){
  const body=$('nt-body'),range=selectionRange();if(!body||!range||range.collapsed)return notify('Selecione o texto que deseja transformar em checklist.');
  const selected=range.toString().trim();if(!selected)return notify('Selecione o texto que deseja transformar em checklist.');
- const lines=selected.split(/\\n+/).map(x=>x.trim()).filter(Boolean);if(!lines.length)return;
+ const lines=selected.split(/\n+/).map(x=>x.trim()).filter(Boolean);if(!lines.length)return;
  const list=document.createElement('ul');list.className='nt-checklist';
  lines.forEach(line=>{const li=document.createElement('li'),box=document.createElement('span');box.className='nt-check-item';box.dataset.checked='false';box.setAttribute('aria-label','Marcar tarefa');li.append(box,document.createTextNode(line));list.append(li);});
  range.deleteContents();range.insertNode(list);const sel=root.getSelection();sel?.removeAllRanges();
