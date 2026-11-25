@@ -125,7 +125,7 @@ const requiredPatterns = [
   ['global motion enter token', /--ui-motion-enter\s*:\s*170ms/i],
   ['global navigation active indicator', /nav button\.on::after\s*\{[^}]*width:\s*18px/s],
   ['global field focus feedback', /input\[type="checkbox"\]:focus-visible[\s\S]*box-shadow:/s],
-  ['global reduced-motion contract', /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*nav::before\{transition:transform 180ms ease,width 180ms ease!important\}/s],
+  ['mobile reduced-motion contract', /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*and\s*\(max-width:\s*1023px\)\s*\{\s*nav::before,nav button,nav button \.ni,nav button \.nl\s*\{\s*transition:none!important;\s*animation:none!important;\s*will-change:auto!important;/s],
   ['navigation compact labels', /'Painel'.*'Rotina'.*'Avaliar'.*'Progresso'.*'Equipe'.*'Registro'.*'Ajustes'/s],
   ['navigation selected pill', /nav button\.on\s*\{[^}]*background:var\(--prs\)!important/s],
   ['navigation current page semantics', /aria-current=/],
