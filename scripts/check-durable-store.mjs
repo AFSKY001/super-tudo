@@ -244,6 +244,31 @@ test('adaptador IndexedDB valida revisão e snapshot atual antes do compare-and-
   assert.ok(commitBody.indexOf('validateRecord(current, record.owner)') < commitBody.indexOf('currentRevision !== expectedRevision'));
 });
 
+
+test('IndexedDB serializa primeiras gravações concorrentes e permite recuperação após reload', async t => {
+  if (!globalThis.indexedDB || typeof globalThis.indexedDB.open !== 'function') {
+    t.skip('IndexedDB não está disponível neste runtime.');
+    return;
+  }
+  const owner = 'ci-race:' + process.pid + ':' + Date.now() + ':' + Math.random().toString(36).slice(2);
+  const adapterA = require('./durable-store.js').createIndexedDbAdapter(globalThis.indexedDB);
+  const adapterB = require('./durable-store.js').createIndexedDbAdapter(globalThis.indexedDB);
+  const storeA = create(adapterA);
+  const storeB = create(adapterB);
+  const outcomes = await Promise.allSettled([
+    storeA.save(owner, { winner: 'A' }, { ...syncMeta, owner }),
+    storeB.save(owner, { winner: 'B' }, { ...syncMeta, owner })
+  ]);
+  assert.equal(outcomes.filter(result => result.status === 'fulfilled').length, 1);
+  assert.equal(outcomes.filter(result => result.status === 'rejected').length, 1);
+  const winner = await storeA.load(owner);
+  assert.ok(['A', 'B'].includes(winner.state.winner));
+  const staleStore = outcomes[0].status === 'rejected' ? storeA : storeB;
+  await staleStore.load(owner);
+  await staleStore.save(owner, { winner: 'recovered' }, { ...syncMeta, owner });
+  assert.equal((await staleStore.load(owner)).state.winner, 'recovered');
+});
+
 test('IndexedDB real persiste snapshot e bloqueia gravação obsoleta entre instâncias', async t => {
   if (!globalThis.indexedDB || typeof globalThis.indexedDB.open !== 'function') {
     t.skip('IndexedDB nativo indisponível neste runtime.');
