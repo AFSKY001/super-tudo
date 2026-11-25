@@ -111,6 +111,48 @@ test('rejeita metadados de sincronização incompletos ou com tipos inválidos',
   assert.equal(adapter.records.size, 0);
 });
 
+test('aceita o formato real dos metadados da fila de sincronização do app', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  const owner = 'atacarejo-super-tudo:user-123';
+  const appSyncMeta = {
+    owner,
+    revisions: { 'notes|note-1': 7 },
+    queue: [{
+      key: 'notes|note-1',
+      module: 'notes',
+      record_id: 'note-1',
+      kind: 'notes',
+      deleted: false,
+      client_id: 'client-op-123',
+      status: ''
+    }],
+    conflicts: {},
+    lastSync: '2026-11-25T20:00:00.000Z'
+  };
+  assert.equal(await store.save(owner, { notes: [{ id: 'note-1', text: 'local' }] }, appSyncMeta), 1);
+  const restored = await store.load(owner);
+  assert.deepEqual(restored.syncMeta, appSyncMeta);
+  assert.equal(restored.syncMeta.queue[0].client_id, 'client-op-123');
+  assert.equal(restored.syncMeta.lastSync, appSyncMeta.lastSync);
+});
+
+test('mantém filas independentes quando o mesmo usuário alterna de empresa', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  const user = 'user-123';
+  const ownerA = 'empresa-a:' + user;
+  const ownerB = 'empresa-b:' + user;
+  const queueA = { ...syncMeta, owner: ownerA, queue: [{ client_id: 'pending-a' }] };
+  const queueB = { ...syncMeta, owner: ownerB, queue: [{ client_id: 'pending-b' }] };
+  await store.save(ownerA, { company: 'A' }, queueA);
+  await store.save(ownerB, { company: 'B' }, queueB);
+  assert.deepEqual((await store.load(ownerA)).syncMeta.queue, queueA.queue);
+  assert.deepEqual((await store.load(ownerB)).syncMeta.queue, queueB.queue);
+  assert.equal((await store.load(ownerA)).state.company, 'A');
+  assert.equal((await store.load(ownerB)).state.company, 'B');
+});
+
 test('leitura aguarda gravação pendente na mesma instância', async () => {
   let release;
   const adapter = {
