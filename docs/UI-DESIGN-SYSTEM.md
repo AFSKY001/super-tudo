@@ -845,9 +845,9 @@ A identidade de cores da interface passa a ser controlada por uma única camada 
 
 ### Valores de referência
 
-**Tema claro:** marca #0066CC; hover #0057B8; sucesso #1B6E2F; alerta #995700; erro #C62828; informação #0066CC. Fundo #F5F6F8, superfície #FFFFFF, superfície secundária #EEF1F5, borda #D8DEE8, texto #17202F, texto suave #5B6575 e texto desabilitado #656D7A.
+**Tema claro:** marca #0066CC; hover #0057B8; borda de controles #778397 (contraste mínimo de 3:1 nas superfícies de campo); sucesso #1B6E2F; alerta #995700; erro #C62828; informação #0066CC. Fundo #F5F6F8, superfície #FFFFFF, superfície secundária #EEF1F5, borda #D8DEE8, texto #17202F, texto suave #5B6575 e texto desabilitado #656D7A.
 
-**Tema escuro:** marca #8AB4F8; hover #A6C7FF; sucesso #5BCB8D; alerta #F0B65A; erro #FF7B72; informação #8AB4F8. Fundo #111827, superfície #1B2637, superfície secundária #253247, borda #35445A, texto #F3F6FC, texto suave #B2BDCE e texto desabilitado #8793A5.
+**Tema escuro:** marca #8AB4F8; hover #A6C7FF; borda de controles #71819A (contraste mínimo de 3:1 nas superfícies de campo); sucesso #5BCB8D; alerta #F0B65A; erro #FF7B72; informação #8AB4F8. Fundo #111827, superfície #1B2637, superfície secundária #253247, borda #35445A, texto #F3F6FC, texto suave #B2BDCE e texto desabilitado #8793A5.
 
 As cores suaves semânticas são derivadas dos próprios tokens com mistura de 12% no claro e 16% no escuro. A paleta escura evita preto puro nos fundos e reduz a intensidade visual sem perder a diferenciação dos estados.
 
@@ -862,6 +862,7 @@ As cores de estado aplicadas por JavaScript (como o estado de sincronização) s
 - Azul é ação/informação; verde é sucesso/concluído; âmbar é atenção; vermelho é erro/problema.
 - Botões principais usam a marca; ações secundárias usam superfícies neutras.
 - Estados importantes devem ter rótulo, ícone ou texto além da cor.
+- Campos de texto, seletores e áreas de texto usam `--borda-controle`; o foco mantém indicador visual próprio. Controles nativos de checkbox/radio preservam o `accent-color` sem customização que prejudique a plataforma.
 - Manter tema claro, tema escuro explícito e adaptação automática por preferência do sistema.
 - Transições de cor usam 180ms e respeitam prefers-reduced-motion; os keyframes e movimentos existentes permanecem preservados.
 - Não criar novas cores hex/RGB diretamente em componentes. Usar os tokens globais ou suas variantes suaves.
