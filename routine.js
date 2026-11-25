@@ -268,8 +268,8 @@ function todayScreen(){
   const groups=new Map();
   items.forEach(o=>{const k=String(o.executorId);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(o);});
   html+=[...groups].map(([pid,rows])=>{
-   const personDone=rows.filter(o=>o.status==='done').length,personPct=Math.round(personDone/rows.length*100);
-   return'<section class="c"><div class="row sp"><b>'+e(whoName(pid))+'</b><div class="row"><span class="mu">'+personDone+'/'+rows.length+'</span><div class="st-check-ring" style="--st-progress:'+personPct+'%"><span>'+personPct+'%</span></div></div></div>'+rows.map(card).join('')+'</section>';
+   const done=rows.filter(o=>o.status==='done').length,pct=Math.round(done/rows.length*100);
+   return'<section class="c"><div class="row sp"><b>'+e(whoName(pid))+'</b><div class="row"><span class="mu">'+done+'/'+rows.length+'</span><div class="st-check-ring" style="--st-progress:'+pct+'%"><span>'+pct+'%</span></div></div></div>'+rows.map(card).join('')+'</section>';
   }).join('')||'<div class="c mu">Nenhuma rotina atribuída à equipe hoje.</div>';
  }else html+=items.map(card).join('');
  return html;
