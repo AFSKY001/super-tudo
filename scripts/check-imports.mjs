@@ -16,9 +16,10 @@ const wanted=new Set(['pimParse','pimFingerprint']);
 const declarations=ast.body.filter(node=>node.type==='FunctionDeclaration'&&wanted.has(node.id?.name));
 for(const name of wanted)assert.ok(declarations.some(node=>node.id.name===name),'Missing '+name);
 const code=declarations.map(node=>source.slice(node.start,node.end)).join('\n')+'\nglobalThis.api={pimParse,pimFingerprint};';
-const context={motivoBusca:value=>({n:String(value||'').trim()}),pimNorm:value=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/\\s+/g,' ').trim()};
+const context={motivoBusca:value=>({n:String(value||'').trim()}),pimNorm:value=>String(value||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim()};
 vm.runInNewContext(code,context);
 const {pimParse,pimFingerprint}=context.api;
+assert.equal(context.pimNorm('Descrição'),'descricao');
 
 const semicolon='Produto;Descrição;Quantidade;Custo c/ imposto;Custo total;Motivo\n123;Pão francês;2;3,50;7,00;Quebra operacional';
 const parsed=pimParse(semicolon);
