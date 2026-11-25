@@ -11,6 +11,11 @@ assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCron
 assert.match(routineSource,/function modelPage\(\)[\s\S]{0,700}V\.rotChecklistHub=true;R\(\)[\s\S]{0,100}Modelos de checklist/,'A tela de modelos precisa manter o acesso aos modelos de checklist.');
 assert.match(indexSource,/get rRotChecklistHub\(\)\{return rRotChecklistHub\},get migrateCronogramaModelsToChecklists\(\)\{return migrateCronogramaModelsToChecklists\}/,'O bridge deve expor a migração e a tela de modelos de checklist.');
 assert.match(indexSource,/function rRotChecklistHub\(\)\{if\(V\.ce\)return rCe\(\);return/,'Ao editar um modelo, a tela de modelos deve encaminhar para o editor selecionado em vez de reapresentar a lista.');
+assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,2600}toLocaleDateString\('pt-BR'/,'A tela de Rotina deve apresentar a data em formato local legível.');
+assert.match(routineSource,/overdue=items\.filter\(x=>Core\.state\(x\)==='overdue'\)\.length/,'O resumo diário deve contabilizar atividades atrasadas pelo estado calculado.');
+assert.match(routineSource,/pending=items\.filter\(x=>Core\.state\(x\)==='pending'\)\.length/,'O resumo diário deve distinguir atividades pendentes das atrasadas.');
+assert.match(routineSource,/dismissed=items\.filter\(x=>x\.status==='dismissed'\)\.length/,'O resumo diário deve informar atividades dispensadas sem marcá-las como concluídas.');
+assert.match(routineSource,/Nenhuma atividade para hoje[\s\S]{0,240}As atividades atribuídas aparecerão aqui/,'A tela deve explicar o estado vazio sem inventar atividades.');
 console.log('PASS - integração da conversão de cronogramas com a tela de modelos de checklist.');
 
 assert.match(routineSource,/function activityHtml\(a,i\)[\s\S]{0,3000}Pickers\.campoDias/,'O editor deve usar a grade global de dias da semana.');
