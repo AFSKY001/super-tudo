@@ -24,23 +24,21 @@ A camada mais recente identificada no CSS é o bloco **REDESIGN v4 — identidad
 
 | Token | Valor de referência | Uso |
 |---|---|---|
-| `--pr` | `#2457e6` | Ação primária e identidade |
-| `--on` | `#ffffff` | Texto/ícone sobre ação primária |
-| `--vi` | `#6a4bff` | Destaque secundário |
-| `--prs` | `#eaf0ff` | Superfície suave de destaque |
-| `--ac` | `#6a4bff` | Acento |
-| `--bg` | `#f5f6f9` | Fundo da aplicação |
-| `--cd` | `#ffffff` | Superfície/cartão |
-| `--tx` | `#101828` | Texto principal |
-| `--mu` | `#667085` | Texto secundário |
-| `--bd` | `#e4e7ec` | Bordas e divisores |
-| `--sf` | `#eef1f6` | Superfície neutra |
-| `--ok` | `#12805c` | Sucesso |
-| `--no` | `#d92d20` | Erro/ação destrutiva |
-| `--wa` | `#b54708` | Atenção |
-| `--oks` | `#e6f5ee` | Fundo suave de sucesso |
-| `--nos` | `#fdecea` | Fundo suave de erro |
-| `--was` | `#fff3e0` | Fundo suave de atenção |
+| `--pr` | `#0066CC` | Ação primária azul |
+| `--on` | `#FFFFFF` | Texto/ícone sobre ação primária |
+| `--vi` | `#6A4BFF` | Destaque violeta da marca |
+| `--cor-destaque` | `#6A4BFF` | Token semântico do violeta |
+| `--grad-brand` | Azul → violeta | Degradê de marca em ações principais |
+| `--prs` | Derivado de `--cor-primaria` | Superfície suave azul |
+| `--ac` / `--wa` | `#995700` | Atenção/alerta âmbar |
+| `--bg` | `#F5F6F8` | Fundo da aplicação |
+| `--cd` | `#FFFFFF` | Superfície/cartão |
+| `--tx` | `#17202F` | Texto principal |
+| `--mu` | `#5B6575` | Texto secundário |
+| `--bd` | `#D8DEE8` | Bordas e divisores |
+| `--sf` | `#EEF1F5` | Superfície neutra |
+| `--ok` | `#1B6E2F` | Sucesso |
+| `--no` | `#C62828` | Erro/ação destrutiva |
 
 ### Tipografia, espaçamento e forma
 
@@ -830,7 +828,7 @@ O fluxo de diagnóstico reutiliza o diálogo global do aplicativo, respeita os t
 
 ## 14. Paleta global semântica — versão 3.74.18
 
-A identidade de cores da interface passa a ser controlada por uma única camada de tokens CSS no final do CSS principal. Os nomes legados (--bg, --cd, --tx, --mu, --bd, --sf, --pr, --on, --ac, --ok, --no, --wa, --oks, --nos, --was, --grad, --sh1 e --sh2) permanecem apenas como aliases de compatibilidade para evitar reescrever componentes e módulos funcionais.
+A identidade de cores da interface passa a ser controlada por uma única camada de tokens CSS no final do CSS principal. Os aliases legados são mantidos no bloco `SISTEMA VISUAL 2026`, enquanto os valores primitivos por tema ficam no bloco final `PALETA GLOBAL`; não criar novos blocos `:root` intermediários. As camadas históricas redundantes anteriores foram removidas em uma limpeza controlada. Os nomes legados (--bg, --cd, --tx, --mu, --bd, --sf, --pr, --on, --ac, --ok, --no, --wa, --oks, --nos, --was, --grad, --sh1 e --sh2) permanecem apenas como aliases de compatibilidade para evitar reescrever componentes e módulos funcionais.
 
 ### Tokens oficiais
 
@@ -845,9 +843,9 @@ A identidade de cores da interface passa a ser controlada por uma única camada 
 
 ### Valores de referência
 
-**Tema claro:** marca #0066CC; hover #0057B8; sucesso #1B6E2F; alerta #995700; erro #C62828; informação #0066CC. Fundo #F5F6F8, superfície #FFFFFF, superfície secundária #EEF1F5, borda #D8DEE8, texto #17202F, texto suave #5B6575 e texto desabilitado #656D7A.
+**Tema claro:** marca #0066CC; hover #0057B8; destaque violeta #6A4BFF; sucesso #1B6E2F; alerta #995700; erro #C62828; informação #0066CC. Fundo #F5F6F8, superfície #FFFFFF, superfície secundária #EEF1F5, borda #D8DEE8, texto #17202F, texto suave #5B6575 e texto desabilitado #656D7A.
 
-**Tema escuro:** marca #8AB4F8; hover #A6C7FF; sucesso #5BCB8D; alerta #F0B65A; erro #FF7B72; informação #8AB4F8. Fundo #111827, superfície #1B2637, superfície secundária #253247, borda #35445A, texto #F3F6FC, texto suave #B2BDCE e texto desabilitado #8793A5.
+**Tema escuro:** marca #8AB4F8; hover #A6C7FF; destaque violeta #A99BFF; sucesso #5BCB8D; alerta #F0B65A; erro #FF7B72; informação #8AB4F8. Fundo #111827, superfície #1B2637, superfície secundária #253247, borda #35445A, texto #F3F6FC, texto suave #B2BDCE e texto desabilitado #8793A5.
 
 As cores suaves semânticas são derivadas dos próprios tokens com mistura de 12% no claro e 16% no escuro. A paleta escura evita preto puro nos fundos e reduz a intensidade visual sem perder a diferenciação dos estados.
 
@@ -859,7 +857,10 @@ As cores de estado aplicadas por JavaScript (como o estado de sincronização) s
 
 ### Regras obrigatórias
 
-- Azul é ação/informação; verde é sucesso/concluído; âmbar é atenção; vermelho é erro/problema.
+- Azul é a cor primária de ação e informação; violeta é destaque de marca; verde é sucesso/concluído; âmbar é atenção; vermelho é erro/problema.
+- `--ac` e `--wa` permanecem semânticos de alerta âmbar; nunca devem ser reaproveitados como violeta.
+- `--grad` permanece o gradiente funcional azul; `--grad-brand` é reservado a elementos de marca e ações principais.
+- Tema escuro: `--cor-destaque:#A99BFF`; tema claro: `--cor-destaque:#6A4BFF`.
 - Botões principais usam a marca; ações secundárias usam superfícies neutras.
 - Estados importantes devem ter rótulo, ícone ou texto além da cor.
 - Manter tema claro, tema escuro explícito e adaptação automática por preferência do sistema.
