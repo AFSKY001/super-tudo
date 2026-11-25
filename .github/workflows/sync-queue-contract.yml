@@ -1,0 +1,34 @@
+name: Sync queue contract
+
+on:
+  push:
+    branches:
+      - fix/sync-queue-persistence-guard-20261125
+  pull_request:
+    branches:
+      - feature/notas-selecao-paleta
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-queue-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --include=dev --ignore-scripts --no-audit --no-fund
+      - name: Check offline and cloud sync contract
+        run: npm run check:sync
+      - name: Verify global UI standards
+        run: npm run check:ui
