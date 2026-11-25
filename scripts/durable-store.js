@@ -46,7 +46,9 @@
 
     function load(owner) {
       const key = validateOwner(owner);
-      return writes.then(function () { return adapter.read(key); }).then(function (record) {
+      const operation = writes.then(function () {
+        return adapter.read(key);
+      }).then(function (record) {
         if (record == null) { revisions.set(key, 0); return null; }
         if (!validObject(record) || record.format !== FORMAT || record.owner !== key) {
           throw new Error('Snapshot local incompatível ou corrompido; os dados foram preservados.');
@@ -61,6 +63,8 @@
           syncMeta: clone(record.syncMeta)
         };
       });
+      writes = operation.catch(function () {});
+      return operation;
     }
 
     function save(owner, state, syncMeta) {
