@@ -39,6 +39,11 @@ check(notes.includes("if(!title&&!textOf(body).trim())")&&notes.includes("setTim
 check(notes.includes("getData('text/plain')")&&notes.includes('function sanitize(html)')&&notes.includes("['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','TEMPLATE']"),'pasted text and displayed HTML must be sanitized.');
 check(notes.includes("state.lastUpdated")&&notes.includes(".eq('updated_at',state.lastUpdated)"),'note updates must detect stale revisions rather than silently overwrite another device.');
 check(notes.includes('if(!state.dirty)return true;')&&notes.includes('const current=JSON.stringify')&&notes.includes('if(current===snapshot)'),'autosave must preserve edits made while an earlier save is still in flight.');
+check(notes.includes("indexedDB.open('super-tudo-notes-drafts',1)")&&notes.includes("function draftKey(id)")&&notes.includes("org()+':'+user()"),'offline note drafts must be isolated by organization and user.');
+check(notes.includes('body:sanitize(n?.body||\'\').slice(0,MAX_NOTE_BODY_LENGTH)')&&notes.includes('MAX_NOTE_BODY_LENGTH=400000'),'offline drafts must preserve the current 400k note limit and sanitized drawing content.');
+check(notes.includes('await persistDraft()')&&notes.includes('await removeDraft(n.id)')&&notes.includes('async function recoverDraft(id)'),'offline drafts must be persisted, recovered, and removed only after confirmed cloud save.');
+check(notes.includes('state.draftConflict=!!n&&(!draft.baseUpdatedAt||draft.baseUpdatedAt!==n.updated_at)')&&notes.includes('if(state.draftConflict){status('),'stale recovered drafts must be preserved without overwriting a newer remote note.');
+
 check(notes.includes("supa.removeChannel(state.channel)")&&notes.includes("function backToRegistry()"),'Realtime subscription must be released when leaving the notes module.');
 check(notes.includes('root.stNotesBack=()=>state.editor?back():backToRegistry()')&&notes.includes('if(saved===false)return'),'editor navigation must return to the board and keep the editor open if saving fails.');
 check(notes.includes("state.tab==='lixeira'")&&notes.includes("30*86400000")&&notes.includes('stNotesRestore'),'trash must support restore and 30-day cleanup.');
