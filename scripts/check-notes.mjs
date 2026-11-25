@@ -45,6 +45,7 @@ check(sql.includes("notas_has_permission('l:notes'")&&sql.includes("notas_has_pe
 check(notes.includes('!!n.shared&&canModerate()')&&notes.includes("n.shared&&(allowed('r:notes')||canModerate())"),'moderators must only see and edit notes explicitly shared with the team.');
 check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOnly||!canToggleShare?'disabled':''"),'only the note author may change its sharing state.');
 check(notes.includes("b.classList.toggle('on',selected)")&&notes.includes("b.setAttribute('aria-checked',String(selected))"),'selected note color must update both visual and accessible selected states.');
+check(!notes.includes('<input <div id="nt-toolbar"')&&notes.includes('</div><div id="nt-toolbar"'),'note editor toolbar markup must remain valid and must not contain a stray input tag.');
 check(notes.indexOf('class="nt-editor-footer"')<notes.indexOf('id="nt-title"'),'note sharing controls must stay above the note content and be immediately accessible.');
 check(notes.indexOf('id="nt-toolbar"')<notes.indexOf('id="nt-title"')&&html.includes('.nt-toolbar{position:sticky;top:0;bottom:auto;'),'formatting controls must stay near the top of the editor and remain accessible while scrolling.');
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
