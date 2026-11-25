@@ -220,3 +220,17 @@ test('rejeita revisão inválida e preserva o snapshot original', async () => {
   );
   assert.deepEqual(adapter.records.get('org-a:user-1'), original);
 });
+
+test('isola os dados salvos e restaurados de mutações externas', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  const input = { nested: { value: 'original' } };
+  const pending = store.save('org-a:user-1', input, syncMeta);
+  input.nested.value = 'alterado depois da chamada';
+  await pending;
+  const restored = await store.load('org-a:user-1');
+  assert.equal(restored.state.nested.value, 'original');
+  restored.state.nested.value = 'mutação na cópia restaurada';
+  const again = await store.load('org-a:user-1');
+  assert.equal(again.state.nested.value, 'original');
+});
