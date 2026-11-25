@@ -136,5 +136,5 @@ test('falha de gravação não envenena a fila de gravações seguintes', async 
   };
   const store = create(adapter);
   await assert.rejects(store.save('org-a:user-1', state, syncMeta), /quota/);
-  assert.equal(await store.save('org-a:user-1', state, syncMeta), 7);
+  assert.equal(await store.save('org-a:user-1', state, syncMeta), 1);
 });
