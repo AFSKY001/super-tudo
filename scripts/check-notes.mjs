@@ -21,6 +21,11 @@ check(html.includes("))+(isFullAccess()||can('r:notes')")&&html.includes("</butt
 check(html.includes('data-st-notes-fallback')&&html.includes('window.stNotesOpen=fallback')&&html.includes('script.onerror')&&html.includes('script.onload'),'notes access must recover when the module did not register its global open handler.');
 check(notes.trimEnd().endsWith('})(window);')&&notes.includes("root.__ST_NOTES_MODULE_READY__=true")&&notes.includes("root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing'"),'notes module must expose an explicit initialization status.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
+check(notes.includes('function createChecklist()')&&notes.includes('selected.split(/\\n+/)')&&notes.includes('nt-check-item')&&notes.includes('data-checked'),'selected note text must convert into persistent, individually toggleable checklist items.');
+check(notes.includes('nt-palette')&&notes.includes('data-note-color')&&notes.includes('state.paletteOpen')&&notes.includes('function setColor(color)'),'note color selection must use the editor palette and persist the selected color.');
+check(notes.includes('nt-select-mode')&&notes.includes('nt-make-checklist')&&notes.includes('selectionRange()'),'checklist conversion must require an explicit text selection and user action.');
+check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-check-item[data-checked="true"]'),'checklist and palette controls must follow the note editor design system.');
+
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick="window.stNotes')&&notes.includes('oninput="window.stNotes')&&html.includes('onclick="window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
 check(!notes.includes('appendTileToGrid')&&((html.match(/data-notes-tile/g)||[]).length===1),'notes tile must have one insertion path only.');
