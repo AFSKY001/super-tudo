@@ -6,7 +6,7 @@ if(!bridge){root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing';return;}
 const S=bridge.S,V=bridge.V,supa=bridge.supa,can=bridge.can,esc=bridge.esc;
 const $=id=>root.document.getElementById(id);
 const MAX_NOTE_BODY_LENGTH=400000;
-const state={tab:'minhas',color:'',search:'',notes:[],loading:false,error:'',editor:null,readOnly:false,mode:'write',paletteOpen:false,drawOpen:false,timer:null,saving:false,dirty:false,channel:null,saveChain:Promise.resolve(),lastUpdated:null};
+const state={tab:'minhas',color:'',search:'',notes:[],loading:false,error:'',editor:null,readOnly:false,mode:'write',paletteOpen:false,drawOpen:false,timer:null,saving:false,dirty:false,channel:null,saveChain:Promise.resolve(),lastUpdated:null,draftChain:Promise.resolve(),recoveredDraft:false,draftConflict:false};
 const colors={amarelo:'#FFF1A6',rosa:'#FFD1E2',azul:'#C9E7FF',verde:'#D2F1CC',laranja:'#FFE0BD',lilas:'#E8D9FF',cinza:'#E7EAF0'};
 const textColors={vermelho:'#A51D2D',azul:'#124F9B',verde:'#176334',roxo:'#5B278A'};
 const markColors={amarelo:'#FFE16A',verde:'#B8E8A8',rosa:'#FFBFD5',azul:'#B8DFFF'};
@@ -47,6 +47,54 @@ function sanitize(html){
 }
 const dateLabel=value=>{if(!value)return'';const d=new Date(value);return Number.isNaN(d.getTime())?'':new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short',year:'numeric'}).format(d);};
 const status=t=>{const el=$('nt-status');if(el)el.textContent=t;};
+let draftDbPromise=null;
+function openDraftDb(){
+ if(!root.indexedDB)return Promise.reject(new Error('Armazenamento local indisponível neste navegador.'));
+ if(draftDbPromise)return draftDbPromise;
+ draftDbPromise=new Promise((resolve,reject)=>{
+  const request=root.indexedDB.open('super-tudo-notes-drafts',1);
+  request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains('drafts'))db.createObjectStore('drafts',{keyPath:'key'});};
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>{draftDbPromise=null;reject(request.error||new Error('Não foi possível abrir o armazenamento local.'));};
+  request.onblocked=()=>{draftDbPromise=null;reject(new Error('O armazenamento local está ocupado por outra aba.'));};
+ });
+ return draftDbPromise;
+}
+function draftKey(id){return 'draft:'+org()+':'+user()+':'+(id||'new');}
+async function draftOperation(mode,action){
+ const db=await openDraftDb();
+ return new Promise((resolve,reject)=>{
+  let result;
+  const tx=db.transaction('drafts',mode),store=tx.objectStore('drafts');
+  let request;
+  try{request=action(store);}catch(error){reject(error);return;}
+  if(request){request.onsuccess=()=>{result=request.result;};request.onerror=()=>reject(request.error||tx.error);}
+  tx.oncomplete=()=>resolve(result);
+  tx.onerror=()=>reject(tx.error||new Error('Falha no armazenamento local.'));
+  tx.onabort=()=>reject(tx.error||new Error('Gravação local interrompida.'));
+ });
+}
+function draftSnapshot(){
+ const n=state.editor;
+ return {key:draftKey(n?.id),noteId:n?.id||null,baseUpdatedAt:state.lastUpdated||null,title:String(n?.title||'').slice(0,120),body:sanitize(n?.body||'').slice(0,MAX_NOTE_BODY_LENGTH),color:n?.color||'amarelo',pinned:!!n?.pinned,archived:!!n?.archived,shared:!!n?.shared,savedAt:Date.now()};
+}
+function persistDraft(){
+ if(!state.editor||state.readOnly||!state.dirty)return state.draftChain;
+ const draft=draftSnapshot();
+ state.draftChain=state.draftChain.then(()=>draftOperation('readwrite',store=>store.put(draft))).catch(error=>{
+  if(state.editor)status('Rascunho não protegido localmente: '+(error?.message||'falha no armazenamento.'));
+  return false;
+ });
+ return state.draftChain;
+}
+function removeDraft(id){
+ const key=draftKey(id);
+ state.draftChain=state.draftChain.then(()=>draftOperation('readwrite',store=>store.delete(key))).catch(()=>false);
+ return state.draftChain;
+}
+async function recoverDraft(id){
+ try{return await draftOperation('readonly',store=>store.get(draftKey(id)));}catch(_){return null;}
+}
 const notify=t=>root.stAlert?.(t);
 function noteColor(n){return colors[n.color]||colors.amarelo;}
 function visibleNotes(){
@@ -146,17 +194,19 @@ function command(name){const body=$('nt-body');if(!body)return;body.focus();docu
 function selectionRange(){const sel=root.getSelection();if(!sel?.rangeCount)return null;const range=sel.getRangeAt(0);return $('nt-body')?.contains(range.commonAncestorContainer)?range:null;}
 function applyClass(cls){const body=$('nt-body'),sel=root.getSelection(),range=selectionRange();if(!body||!range||range.collapsed)return;const fragment=range.extractContents();fragment.querySelectorAll('span').forEach(s=>{if([...s.classList].some(c=>c.startsWith(cls.slice(0,3))))s.replaceWith(...s.childNodes);});const span=document.createElement('span');span.className=cls;span.append(fragment);range.insertNode(span);sel.removeAllRanges();const next=document.createRange();next.selectNodeContents(span);sel.addRange(next);state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();}
 function clearFormat(){const body=$('nt-body'),range=selectionRange(),sel=root.getSelection();if(!body||!range||range.collapsed)return;const frag=range.extractContents();frag.querySelectorAll('span,b,strong,i,em,u,mark').forEach(n=>n.replaceWith(...n.childNodes));range.insertNode(frag);state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();}
-function scheduleSave(){status('Salvando…');state.dirty=true;clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),800);}
+function scheduleSave(){state.dirty=true;persistDraft();status(root.navigator.onLine?'Salvando…':'Sem conexão · rascunho neste aparelho');clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),800);}
 async function saveNow(){
  if(!state.editor||state.readOnly)return true;
  if(!state.dirty)return true;
+ if(state.draftConflict){status('Conflito: rascunho local preservado; a nota remota mudou.');return false;}
  clearTimeout(state.timer);
  const n=state.editor,title=String(n.title||'').trim().slice(0,120),body=sanitize(n.body||'').slice(0,MAX_NOTE_BODY_LENGTH);
- if(!title&&!textOf(body).trim()){state.dirty=false;status('');return true;}
- if(!root.navigator.onLine){status('Sem conexão. A nota ainda não foi salva.');return false;}
+ if(!title&&!textOf(body).trim()){state.dirty=false;status('');await removeDraft(n.id||'new');return true;}
+ const draftStored=await persistDraft();
+ if(!root.navigator.onLine){status(draftStored===false?'Sem conexão. O navegador não conseguiu guardar este rascunho neste aparelho.':'Sem conexão · rascunho guardado neste aparelho');return false;}
  state.saving=true;status('Salvando…');
  const payload={title,body,color:n.color||'amarelo',pinned:!!n.pinned,archived:!!n.archived,shared:!!n.shared};
- const snapshot=JSON.stringify(payload);
+ const snapshot=JSON.stringify(payload),snapshotNoteId=n.id||null;
  const task=async()=>{
   try{
    let result;
@@ -173,8 +223,8 @@ async function saveNow(){
    }
    state.lastUpdated=result.data.updated_at;n.updated_at=result.data.updated_at;state.saving=false;
    const current=JSON.stringify({title:String(n.title||'').trim().slice(0,120),body:sanitize(n.body||'').slice(0,MAX_NOTE_BODY_LENGTH),color:n.color||'amarelo',pinned:!!n.pinned,archived:!!n.archived,shared:!!n.shared});
-   if(current===snapshot){state.dirty=false;status('Salvo ✓');return true;}
-   state.dirty=true;status('Salvando…');scheduleSave();return true;
+   if(current===snapshot){state.dirty=false;await removeDraft(n.id);if(!snapshotNoteId)await removeDraft('new');status('Salvo ✓');return true;}
+   state.dirty=true;if(!snapshotNoteId)await removeDraft('new');status('Salvando…');scheduleSave();return true;
   }catch(error){state.saving=false;state.dirty=true;const message=error?.message||'Falha ao salvar';status(message.includes('alterada em outro aparelho')?'Conflito: atualize o mural antes de continuar.':'Não foi possível salvar. Tentando novamente…');state.error=message;if(!message.includes('alterada em outro aparelho')&&root.navigator.onLine){clearTimeout(state.timer);state.timer=setTimeout(()=>saveNow(),3000);}return false;}
  };
  state.saveChain=state.saveChain.then(task,task);return state.saveChain;
@@ -183,7 +233,9 @@ async function openEditor(id){
  const n=id?state.notes.find(x=>String(x.id)===String(id)):null;
  if(id&&!n){await loadNotes();return;}
  state.editor=n?{...n,body:sanitize(n.body||'')}:{id:null,title:'',body:'',color:'amarelo',pinned:false,archived:false,shared:false};
- state.readOnly=!!n&&!canEdit(n);state.dirty=false;state.lastUpdated=n?.updated_at||null;state.menu=false;render();
+ state.readOnly=!!n&&!canEdit(n);state.dirty=false;state.recoveredDraft=false;state.draftConflict=false;state.lastUpdated=n?.updated_at||null;state.menu=false;
+ if(!state.readOnly){const draft=await recoverDraft(n?.id||'new');if(draft&&(!draft.noteId||String(draft.noteId)===String(n?.id||''))){state.editor={...state.editor,title:draft.title||'',body:sanitize(draft.body||'').slice(0,MAX_NOTE_BODY_LENGTH),color:colors[draft.color]?draft.color:'amarelo',pinned:!!draft.pinned,archived:!!draft.archived,shared:!!draft.shared};state.lastUpdated=draft.baseUpdatedAt||null;state.dirty=true;state.recoveredDraft=true;state.draftConflict=!!n&&(!draft.baseUpdatedAt||draft.baseUpdatedAt!==n.updated_at);}}
+ render();if(state.recoveredDraft){status(state.draftConflict?'Rascunho recuperado · a nota mudou em outro aparelho':'Rascunho recuperado deste aparelho');if(state.draftConflict)notify('Encontrei um rascunho local, mas esta nota também foi alterada em outro aparelho. O rascunho foi preservado e não será enviado por cima da versão mais recente. Copie o conteúdo recuperado antes de sair.');else if(root.navigator.onLine)scheduleSave();}
 }
 async function back(){
  if(state.editor){clearTimeout(state.timer);if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return false;}}state.editor=null;state.readOnly=false;state.mode='write';state.paletteOpen=false;state.drawOpen=false;}
