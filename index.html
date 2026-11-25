@@ -152,13 +152,9 @@ button,.c,.day{transition:transform var(--dur-f),background var(--dur),color var
 .dsel-o.on,.dsel-o:active{background:var(--bd)}
 
 /* =====================================================================
-   REDESIGN v4 — identidade visual Super Tudo (camada por cima do CSS atual)
+   REDESIGN — base compartilhada de componentes Super Tudo
    Tokens → base → navegação → componentes → janelas → responsivo
    ===================================================================== */
-:root{--pr:var(--cor-primaria);--on:var(--superficie);--vi:var(--cor-primaria);--prs:var(--cor-primaria-suave);--ac:var(--cor-primaria);--bg:var(--fundo);--tx:var(--texto);--mu:var(--texto-suave);--bd:var(--borda);--sf:var(--superficie-2);--ok:var(--cor-sucesso);--no:var(--cor-erro);--wa:var(--cor-alerta);--oks:var(--cor-sucesso-suave);--nos:var(--cor-erro-suave);--was:var(--cor-alerta-suave);
---fn:"Inter","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
---r-s:8px;--r-m:10px;--r-l:14px;--rad:10px;--rad-sheet:16px;
---sh1:0 1px 2px color-mix(in srgb,var(--cor-primaria) 5%,transparent);--sh2:0 8px 24px color-mix(in srgb,var(--cor-primaria) 10%,transparent);--sb:240px}
 
 
 
@@ -263,16 +259,14 @@ header h1,header p::before{display:none}header p{margin:0;font-size:22px;font-we
 @media(max-width:1023px){header p{margin-left:42px}}
 
 /* =====================================================================
-   TEMA SUAVE (v5) — cartões amplos, sombras suaves, degradê azul-violeta,
+   TEMA SUAVE — componentes, cartões e navegação em pílula.
    menu em pílula. Inspirado nas referências enviadas.
    ===================================================================== */
-:root{--pr:var(--cor-primaria);--vi:var(--cor-primaria);--prs:var(--cor-primaria-suave);--grad:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria) 100%);--bg:var(--superficie-2);--cd:var(--superficie);--tx:var(--texto);--mu:var(--texto-suave);--bd:var(--borda);--sf:var(--superficie-2);--r-s:12px;--r-m:16px;--r-l:22px;--rad:22px;--sb:256px;
---sh1:0 2px 6px color-mix(in srgb,var(--cor-primaria) 6%,transparent),0 8px 22px color-mix(in srgb,var(--cor-primaria) 8%,transparent);--sh2:0 4px 10px color-mix(in srgb,var(--cor-primaria) 8%,transparent),0 18px 40px color-mix(in srgb,var(--cor-primaria) 16%,transparent);--glow:0 6px 16px color-mix(in srgb,var(--cor-primaria) 35%,transparent)}
 
 
 body{padding-bottom:112px}
 body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(700px 420px at 90% -8%,color-mix(in srgb,var(--cor-primaria) 14%,transparent),transparent 65%),radial-gradient(640px 420px at -10% 2%,color-mix(in srgb,var(--cor-primaria) 16%,transparent),transparent 65%)}
-.logo,.lgt{background:var(--grad);color:var(--texto-inverso);box-shadow:var(--glow);border-radius:12px}
+.logo,.lgt{background:var(--grad-brand);color:var(--texto-inverso);box-shadow:var(--glow);border-radius:12px}
 .dots{border:0;border-radius:14px;box-shadow:var(--sh1)}
 h2{font-size:16px;margin:24px 4px 10px}
 .big{font-size:30px}
@@ -285,7 +279,7 @@ h2{font-size:16px;margin:24px 4px 10px}
 details{padding:6px 16px}
 
 /* botões e filtros */
-.bt{background:var(--grad);color:var(--texto-inverso);border-radius:14px;padding:11px 18px;box-shadow:var(--glow)}
+.bt{background:var(--grad-brand);color:var(--texto-inverso);border-radius:14px;padding:11px 18px;box-shadow:var(--glow)}
 .bt.g{box-shadow:var(--sh1)}
 .bt.d{box-shadow:none}
 .ch{border-radius:999px;padding:8px 14px;background:var(--cd);border-color:transparent;box-shadow:var(--sh1)}
@@ -328,7 +322,7 @@ nav button.on .nl{font-weight:700}
 .nbx{border-radius:22px}
 .lgc{border-radius:28px;padding:28px}.lgt{width:56px;height:56px;border-radius:16px}
 
-@media(hover:hover){.c[onclick]:hover,.c.tap:hover{border-color:transparent;box-shadow:var(--sh2);transform:translateY(-1px)}.bt:hover{background:var(--grad);filter:brightness(1.08);box-shadow:var(--glow)}.ch.on:hover,.nav button.on:hover{background:var(--grad)}.rail .rb.on:hover,nav button.on:hover{background:none}.rail .rb.on:hover{background:var(--grad)}}
+@media(hover:hover){.c[onclick]:hover,.c.tap:hover{border-color:transparent;box-shadow:var(--sh2);transform:translateY(-1px)}.bt:hover{background:var(--grad-brand);filter:brightness(1.08);box-shadow:var(--glow)}.ch.on:hover{background:var(--grad)}.nav button.on:hover{background:var(--grad)}.rail .rb.on:hover,nav button.on:hover{background:none}.rail .rb.on:hover{background:var(--grad)}}
 
 @media(min-width:1024px){
 body{padding-bottom:32px}
@@ -490,19 +484,9 @@ nav button .ni{transition:transform 180ms var(--ease-emphasis)}
 
 
 /* =====================================================================
-   SUPER TUDO — POLIMENTO CORPORATIVO v1
+   SUPER TUDO — componentes e layout corporativo.
    Camada visual CSS-only: preserva estrutura, fluxos e componentes.
    ===================================================================== */
-:root{
-  --pr:var(--cor-info);--on:var(--superficie);--vi:var(--cor-info);--ac:var(--cor-alerta);--prs:var(--cor-info-suave);
-  --grad:var(--cor-info);--bg:var(--superficie-2);--cd:var(--superficie);--tx:var(--texto);--mu:var(--texto-suave);
-  --bd:var(--borda);--sf:var(--superficie-2);--ok:var(--cor-sucesso);--no:var(--cor-erro);--wa:var(--cor-alerta);
-  --oks:var(--cor-sucesso-suave);--nos:var(--cor-erro-suave);--was:var(--cor-alerta-suave);
-  --r-s:7px;--r-m:9px;--r-l:11px;--rad:10px;--rad-sheet:14px;
-  --sh1:0 1px 2px color-mix(in srgb,var(--cor-primaria) 5%,transparent);--sh2:0 5px 16px color-mix(in srgb,var(--cor-primaria) 9%,transparent);
-  --glow:none;--fn:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
-  color-scheme:light;
-}
 
 
 body{font-family:var(--fn);font-size:14px;line-height:1.45;padding-bottom:92px}
@@ -512,7 +496,7 @@ header h1{font-size:16px;letter-spacing:-.15px}
 header p{font-size:12px;color:var(--mu)}
 .app-brand-logo{width:38px;height:38px;border-radius:8px}
 .dots{height:38px;border:1px solid var(--bd);border-radius:9px;background:var(--cd);box-shadow:none;}
-.logo,.lgt{background:var(--pr);color:var(--on);box-shadow:none;border-radius:9px}
+.logo,.lgt{background:var(--grad-brand);color:var(--on);box-shadow:none;border-radius:9px}
 .page-shell{max-width:1240px;padding:4px 0 28px}
 .page-heading{margin:2px 0 14px;padding:0 0 12px;}
 .page-heading h1{font-size:clamp(20px,2.5vw,25px);font-weight:700;letter-spacing:-.025em}
@@ -602,19 +586,8 @@ nav button.on .ni{transform:none}
 }
 
 
-/* Ajuste solicitado: identidade azul e navegação inferior sem caixas */
-:root{
- --pr:var(--cor-primaria);--on:var(--superficie);--vi:var(--cor-primaria);--ac:var(--cor-alerta);--prs:var(--cor-primaria-suave);
- --grad:var(--cor-primaria);--sf:var(--superficie-2);
-}
 
 
-/* Correção visual solicitada: azul em toda a identidade e menu inferior flutuante */
-:root{
- --pr:var(--cor-primaria)!important;--vi:var(--cor-primaria)!important;--ac:var(--cor-primaria)!important;
- --prs:var(--cor-primaria-suave)!important;--grad:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria) 100%)!important;
- --glow:0 5px 14px color-mix(in srgb,var(--cor-primaria) 22%,transparent)!important;
-}
 
 
 @media(max-width:1023px){
@@ -692,8 +665,8 @@ nav button.on .ni{transform:none}
   --sf:var(--superficie-2)!important;
   --pr:var(--cor-primaria)!important;
   --on:var(--superficie)!important;
-  --vi:var(--cor-primaria)!important;
-  --ac:var(--cor-primaria)!important;
+  --vi:var(--cor-destaque)!important;
+  --ac:var(--cor-alerta)!important;
   --prs:var(--cor-primaria-suave)!important;
   --grad:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria) 100%)!important;
   --ok:var(--cor-sucesso)!important;
@@ -724,8 +697,8 @@ nav button.on .ni{transform:none}
     --sf:var(--superficie-2)!important;
     --pr:var(--cor-primaria)!important;
     --on:var(--texto-inverso)!important;
-    --vi:var(--cor-primaria-hover)!important;
-    --ac:var(--cor-primaria)!important;
+    --vi:var(--cor-destaque)!important;
+    --ac:var(--cor-alerta)!important;
     --prs:var(--cor-primaria-suave)!important;
     --grad:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria-hover) 100%)!important;
     --ok:var(--cor-sucesso)!important;
@@ -749,8 +722,8 @@ nav button.on .ni{transform:none}
   --sf:var(--superficie-2)!important;
   --pr:var(--cor-primaria)!important;
   --on:var(--texto-inverso)!important;
-  --vi:var(--cor-primaria-hover)!important;
-  --ac:var(--cor-primaria)!important;
+  --vi:var(--cor-destaque)!important;
+  --ac:var(--cor-alerta)!important;
   --prs:var(--cor-primaria-suave)!important;
   --grad:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria-hover) 100%)!important;
   --ok:var(--cor-sucesso)!important;
@@ -962,7 +935,7 @@ h4{color:var(--pr)!important;font-size:11px!important;font-weight:750!important;
   padding:10px 14px!important;
   border:1px solid var(--pr)!important;
   border-radius:11px!important;
-  background:var(--pr)!important;
+  background:var(--grad-brand)!important;
   color:var(--on)!important;
   box-shadow:none!important;
   font-size:13px!important;
@@ -1672,7 +1645,7 @@ textarea{min-height:96px}
   padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));
 }
 .lgc{border-radius:24px;padding:24px;box-shadow:var(--ui-shadow-card-hover)}
-.lgt{background:var(--pr);color:var(--texto-inverso);border-radius:14px}
+.lgt{background:var(--grad-brand);color:var(--texto-inverso);border-radius:14px}
 .balloon button{border-radius:10px}
 .balloon button.on{background:var(--prs);color:var(--pr)}
 
@@ -2037,6 +2010,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 /* PALETA GLOBAL — tokens únicos Super Tudo */
 :root{
  --cor-primaria:#0066CC;--cor-primaria-hover:#0057B8;--cor-primaria-suave:color-mix(in srgb,var(--cor-primaria) 12%,transparent);
+ --cor-destaque:#6A4BFF;--grad-brand:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-destaque) 100%);
  --cor-sucesso:#1B6E2F;--cor-sucesso-suave:color-mix(in srgb,var(--cor-sucesso) 12%,transparent);
  --cor-alerta:#995700;--cor-alerta-suave:color-mix(in srgb,var(--cor-alerta) 12%,transparent);
  --cor-erro:#C62828;--cor-erro-suave:color-mix(in srgb,var(--cor-erro) 12%,transparent);
@@ -2045,13 +2019,14 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
  --texto:#17202F;--texto-suave:#5B6575;--texto-desabilitado:#656D7A;--texto-inverso:#FFFFFF;
  --sombra:0 8px 28px rgba(23,32,47,.12);--vidro:color-mix(in srgb,var(--superficie) 82%,transparent);--st-glass-bg:var(--vidro);--st-glass-border:color-mix(in srgb,var(--borda) 78%,transparent);
  --bg:var(--fundo);--cd:var(--superficie);--tx:var(--texto);--mu:var(--texto-suave);--bd:var(--borda);--sf:var(--superficie-2);
- --pr:var(--cor-primaria);--on:var(--texto-inverso);--ac:var(--cor-alerta);--vi:var(--cor-primaria);--prs:var(--cor-primaria-suave);
+ --pr:var(--cor-primaria);--on:var(--texto-inverso);--ac:var(--cor-alerta);--vi:var(--cor-destaque);--prs:var(--cor-primaria-suave);
  --ok:var(--cor-sucesso);--no:var(--cor-erro);--wa:var(--cor-alerta);--oks:var(--cor-sucesso-suave);--nos:var(--cor-erro-suave);--was:var(--cor-alerta-suave);
  --grad:linear-gradient(135deg,var(--cor-primaria),var(--cor-primaria-hover));--sh1:var(--sombra);--sh2:var(--sombra);--glow:0 5px 16px var(--cor-primaria-suave);
  color-scheme:light;
 }
 :root[data-theme="dark"]{
  --cor-primaria:#8AB4F8;--cor-primaria-hover:#A6C7FF;--cor-primaria-suave:color-mix(in srgb,var(--cor-primaria) 16%,transparent);
+ --cor-destaque:#A99BFF;--grad-brand:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-destaque) 100%);
  --cor-sucesso:#5BCB8D;--cor-sucesso-suave:color-mix(in srgb,var(--cor-sucesso) 16%,transparent);
  --cor-alerta:#F0B65A;--cor-alerta-suave:color-mix(in srgb,var(--cor-alerta) 16%,transparent);
  --cor-erro:#FF7B72;--cor-erro-suave:color-mix(in srgb,var(--cor-erro) 16%,transparent);
@@ -2063,6 +2038,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 @media(prefers-color-scheme:dark){
  :root:not([data-theme="light"]){
   --cor-primaria:#8AB4F8;--cor-primaria-hover:#A6C7FF;--cor-primaria-suave:color-mix(in srgb,var(--cor-primaria) 16%,transparent);
+ --cor-destaque:#A99BFF;--grad-brand:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-destaque) 100%);
   --cor-sucesso:#5BCB8D;--cor-sucesso-suave:color-mix(in srgb,var(--cor-sucesso) 16%,transparent);
   --cor-alerta:#F0B65A;--cor-alerta-suave:color-mix(in srgb,var(--cor-alerta) 16%,transparent);
   --cor-erro:#FF7B72;--cor-erro-suave:color-mix(in srgb,var(--cor-erro) 16%,transparent);
