@@ -28,7 +28,7 @@
     if (!validObject(snapshot) || !validObject(snapshot.state) || !validObject(snapshot.syncMeta)) {
       throw new TypeError('Snapshot local inválido.');
     }
-    if (snapshot.syncMeta.owner && snapshot.syncMeta.owner !== owner) {
+    if (snapshot.syncMeta.owner !== owner) {
       throw new Error('O snapshot pertence a outra identidade.');
     }
     if (!Array.isArray(snapshot.syncMeta.queue)) {
@@ -45,7 +45,7 @@
 
     function load(owner) {
       const key = validateOwner(owner);
-      return Promise.resolve(adapter.read(key)).then(function (record) {
+      return writes.then(function () { return adapter.read(key); }).then(function (record) {
         if (record == null) return null;
         if (!validObject(record) || record.format !== FORMAT || record.owner !== key) {
           throw new Error('Snapshot local incompatível ou corrompido; os dados foram preservados.');
