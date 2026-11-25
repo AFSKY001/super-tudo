@@ -497,6 +497,7 @@ requireCheck(html.includes('html[data-motion="reduce"] *') && html.includes('.st
 requireCheck(html.includes("window.__stAppearanceEsc=event=>{if(event.key==='Escape')") && html.includes("document.removeEventListener('keydown',window.__stAppearanceEsc)"), 'Appearance dialog must close with Escape and remove its temporary keyboard listener.');
 requireCheck(html.includes("if(event.key==='Tab'){const dialog=host.querySelector('[role="dialog"]')") && html.includes("event.shiftKey&&document.activeElement===first") && html.includes("!event.shiftKey&&document.activeElement===last"), 'Appearance dialog must keep keyboard focus inside the modal while it is open.');
 requireCheck(html.includes("window.__stAppearanceTrigger=document.activeElement") && html.includes("if(trigger&&trigger.isConnected)trigger.focus()"), 'Closing appearance settings must restore focus to the control that opened it.');
+requireCheck(html.includes("host.insertAdjacentHTML('beforeend','<div class=\"st-pref-overlay\">") && html.includes("host?.querySelector('.st-pref-overlay')?.remove()") && !html.includes("host.innerHTML='';if(window.__stAppearanceEsc"), 'Opening and closing appearance settings must preserve the underlying Settings sheet and remove only the appearance overlay.');
 requireCheck(html.includes(':root[data-theme="dark"]') && html.includes('@media(prefers-color-scheme:dark)') && html.includes(':root:not([data-theme="light"])'), 'Explicit light/dark themes and automatic system theme must use the existing global theme tokens.');
 
 for (const name of Object.keys(ceilings)) {
