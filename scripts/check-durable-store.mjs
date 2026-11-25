@@ -293,6 +293,38 @@ test('IndexedDB real persiste snapshot e bloqueia gravação obsoleta entre inst
 });
 
 
+
+test('IndexedDB preserva registro corrompido e bloqueia leitura e gravação', async t => {
+  if (!globalThis.indexedDB || typeof globalThis.indexedDB.open !== 'function') {
+    t.skip('IndexedDB não está disponível neste runtime.');
+    return;
+  }
+  const owner = 'ci-corrupt:' + process.pid + ':' + Date.now() + ':' + Math.random().toString(36).slice(2);
+  const adapter = require('./durable-store.js').createIndexedDbAdapter(globalThis.indexedDB);
+  await adapter.read(owner);
+  const db = await new Promise((resolve, reject) => {
+    const request = globalThis.indexedDB.open('st-app-durable-v1', 1);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  const original = { format: 99, owner, revision: 4, payload: 'preservar' };
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction('snapshots', 'readwrite');
+    tx.objectStore('snapshots').put(original);
+    tx.oncomplete = resolve;
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error('seed abortado'));
+  });
+  db.close();
+  const store = create(adapter);
+  await assert.rejects(store.load(owner), /incompatível ou corrompido/);
+  await assert.rejects(
+    store.save(owner, { safe: true }, { ...syncMeta, owner }),
+    /incompatível ou corrompido/
+  );
+  assert.deepEqual(await adapter.read(owner), original);
+});
+
 test('falha de leitura inicial não envenena operações seguintes', async () => {
   let failRead = true;
   const records = new Map();
