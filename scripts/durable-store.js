@@ -36,6 +36,14 @@
     }
   }
 
+  function validateRecord(record, owner) {
+    if (!validObject(record) || record.format !== FORMAT || record.owner !== owner ||
+        !Number.isSafeInteger(record.revision) || record.revision < 1) {
+      throw new Error('Snapshot local incompatível ou corrompido; os dados foram preservados.');
+    }
+    validateSnapshot(record, owner);
+  }
+
   function create(adapter) {
     if (!adapter || typeof adapter.read !== 'function' || typeof adapter.commit !== 'function') {
       throw new TypeError('Adaptador de armazenamento inválido.');
@@ -50,10 +58,7 @@
         return adapter.read(key);
       }).then(function (record) {
         if (record == null) { revisions.set(key, 0); return null; }
-        if (!validObject(record) || record.format !== FORMAT || record.owner !== key) {
-          throw new Error('Snapshot local incompatível ou corrompido; os dados foram preservados.');
-        }
-        validateSnapshot(record, key);
+        validateRecord(record, key);
         revisions.set(key, Number(record.revision) || 0);
         return {
           owner: key,
@@ -81,10 +86,7 @@
       const operation = writes.then(async function () {
         if (!revisions.has(key)) {
           const current = await adapter.read(key);
-          if (current != null && (!validObject(current) || current.format !== FORMAT || current.owner !== key)) {
-            throw new Error('Snapshot local incompatível ou corrompido; os dados foram preservados.');
-          }
-          if (current != null) validateSnapshot(current, key);
+          if (current != null) validateRecord(current, key);
           revisions.set(key, Number(current && current.revision) || 0);
         }
         const expectedRevision = revisions.get(key);
