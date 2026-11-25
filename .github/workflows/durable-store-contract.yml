@@ -28,4 +28,6 @@ jobs:
       - name: Install isolated IndexedDB test implementation
         run: npm install --no-save --package-lock=false fake-indexeddb@6
       - name: Run durable snapshot contract tests with IndexedDB enabled
+        env:
+          DURABLE_STORE_REQUIRE_INDEXEDDB: '1'
         run: node --import=fake-indexeddb/auto --test scripts/check-durable-store.mjs
