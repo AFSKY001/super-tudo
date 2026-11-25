@@ -483,6 +483,9 @@ requireCheck(html.includes("const THEME_KEY='st_tema',MOTION_KEY='st_mov'") && h
 requireCheck(html.indexOf("THEME_KEY='st_tema'")>=0 && html.indexOf("THEME_KEY='st_tema'")<html.indexOf('<style>'), 'Theme and motion preferences must be applied before styles to avoid a visible theme flash.');
 requireCheck(html.includes("configMenuCard('appearance','Aparência e acessibilidade'") && html.includes("REG_MENU_ICON_PATHS['appearance']"), 'Appearance and accessibility must be reachable from Settings with a registered icon.');
 requireCheck(html.includes('html[data-motion="reduce"] *') && html.includes('.st-pref-control:focus-visible'), 'Manual reduced motion and visible keyboard focus must be supported by the appearance controls.');
+requireCheck(html.includes("window.__stAppearanceEsc=event=>{if(event.key==='Escape')") && html.includes("document.removeEventListener('keydown',window.__stAppearanceEsc)"), 'Appearance dialog must close with Escape and remove its temporary keyboard listener.');
+requireCheck(html.includes("window.__stAppearanceTrigger=document.activeElement") && html.includes("if(trigger&&trigger.isConnected)trigger.focus()"), 'Closing appearance settings must restore focus to the control that opened it.');
+requireCheck(html.includes(':root[data-theme="dark"]') && html.includes('@media(prefers-color-scheme:dark)') && html.includes(':root:not([data-theme="light"])'), 'Explicit light/dark themes and automatic system theme must use the existing global theme tokens.');
 
 for (const name of Object.keys(ceilings)) {
   requireCheck(
