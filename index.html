@@ -30,7 +30,7 @@
   const host=document.getElementById('sh');if(!host)return;
   window.__stAppearanceTrigger=document.activeElement;
   if(window.__stAppearanceEsc)document.removeEventListener('keydown',window.__stAppearanceEsc);
-  window.__stAppearanceEsc=event=>{if(event.key==='Escape'){event.preventDefault();window.closeAppearanceSettings()}};
+  window.__stAppearanceEsc=event=>{if(event.key==='Escape'){event.preventDefault();window.closeAppearanceSettings();return}if(event.key==='Tab'){const dialog=host.querySelector('[role="dialog"]');if(!dialog)return;const items=[...dialog.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])')];if(!items.length)return;const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}}};
   document.addEventListener('keydown',window.__stAppearanceEsc);
   const theme=window.stPrefs.getTheme(),motion=window.stPrefs.getMotion();
   host.innerHTML='<div class="ov dim" onclick="closeAppearanceSettings()" aria-hidden="true"></div>'+
