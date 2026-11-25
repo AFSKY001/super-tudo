@@ -21,6 +21,8 @@ check(html.includes("))+(isFullAccess()||can('r:notes')")&&html.includes("</butt
 check(html.includes('data-st-notes-fallback')&&html.includes('window.stNotesOpen=fallback')&&html.includes('script.onerror')&&html.includes('script.onload'),'notes access must recover when the module did not register its global open handler.');
 check(notes.trimEnd().endsWith('})(window);')&&notes.includes("root.__ST_NOTES_MODULE_READY__=true")&&notes.includes("root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing'"),'notes module must expose an explicit initialization status.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
+check(notes.includes('function cleanupViewport()')&&notes.includes("removeEventListener('resize',state.viewportHandler)")&&notes.includes("removeEventListener('scroll',state.viewportHandler)"),'notes must release visual viewport listeners when the editor closes.');
+check(notes.includes('state.viewport=viewport')&&notes.includes('state.viewportHandler=update')&&notes.includes('cleanupViewport();state.editor=null'),'notes must keep only one viewport handler across editor sessions.');
 check(notes.includes('function createChecklist()')&&notes.includes('selected.split(/\\n+/)')&&notes.includes('nt-check-item')&&notes.includes('data-checked'),'selected note text must convert into persistent, individually toggleable checklist items.');
 check(notes.includes('nt-palette')&&notes.includes('data-note-color')&&notes.includes('state.paletteOpen')&&notes.includes('function setColor(color)'),'note color selection must use the editor palette and persist the selected color.');
 check(notes.includes('initDrawingCanvas')&&notes.includes('pointerdown')&&notes.includes('toDataURL(\'image/png\')')&&notes.includes('safeImageSrc'),'freehand drawings must be inserted as sanitized PNG images and persisted with the note.');
@@ -57,4 +59,4 @@ check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.n
 check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
 check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+46+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+48+' verificações)');
