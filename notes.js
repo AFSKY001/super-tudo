@@ -238,7 +238,7 @@ async function openEditor(id){
  render();if(state.recoveredDraft){status(state.draftConflict?'Rascunho recuperado · a nota mudou em outro aparelho':'Rascunho recuperado deste aparelho');if(state.draftConflict)notify('Encontrei um rascunho local, mas esta nota também foi alterada em outro aparelho. O rascunho foi preservado e não será enviado por cima da versão mais recente. Copie o conteúdo recuperado antes de sair.');else if(root.navigator.onLine)scheduleSave();}
 }
 async function back(){
- if(state.editor){clearTimeout(state.timer);if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return false;}}state.editor=null;state.readOnly=false;state.mode='write';state.paletteOpen=false;state.drawOpen=false;}
+ if(state.editor){clearTimeout(state.timer);if(state.draftConflict){await persistDraft();notify('O rascunho conflitante continua guardado neste aparelho e não foi enviado por cima da nota atual.');}else if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return false;}}state.editor=null;state.readOnly=false;state.mode='write';state.paletteOpen=false;state.drawOpen=false;state.draftConflict=false;}
  state.menu=false;render();await loadNotes();return true;
 }
 async function mutate(id,fields){
