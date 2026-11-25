@@ -1234,6 +1234,8 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
 #bl:focus-visible{outline:2px solid var(--pr)!important;outline-offset:3px!important}
 #bn{top:1px!important;right:1px!important;min-width:17px!important;height:17px!important;line-height:17px!important}
 .config-menu{padding-bottom:12px}
+.access-summary-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.access-summary-tags span{display:inline-flex;max-width:100%;padding:5px 8px;border:1px solid var(--bd);border-radius:999px;background:var(--sf);color:var(--tx);font-size:11px;line-height:1.3}
 .config-menu-search{display:block;width:100%;min-height:46px;margin:0 0 14px;padding:11px 14px;border:1px solid var(--bd);border-radius:14px;background:var(--cd);color:var(--tx);font:14px system-ui;box-sizing:border-box}
 .config-menu-search:focus-visible{outline:2px solid var(--pr);outline-offset:2px}
 .config-menu-group[hidden],.config-menu-card[hidden]{display:none!important}
@@ -2546,6 +2548,8 @@ REG_MENU_ICON_PATHS['help']='<circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 
 REG_MENU_ICON_PATHS['logout']='<path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M14 8l4 4-4 4M8 12h10"/>';
 REG_MENU_ICON_PATHS['hist']='<path d="M3 12a9 9 0 1 0 2.6-6.4L3 8M3 4v4h4M12 7v5l3 2"/>';
 REG_MENU_ICON_PATHS['appearance']='<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>';
+REG_MENU_ICON_PATHS['access-profiles']='<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 9h8M8 13h5M8 17h8"/>';
+REG_MENU_ICON_PATHS['access-map']='<circle cx="9" cy="8" r="3"/><path d="M3 20c.3-3.5 2.3-5.3 6-5.3s5.7 1.8 6 5.3M17 8h4M17 12h4M17 16h4"/>';
 REG_MENU_ICON_PATHS['access']='<circle cx="9" cy="8" r="3"/><path d="M3 20c.3-3.5 2.3-5.3 6-5.3s5.7 1.8 6 5.3M16 5.5a3 3 0 0 1 0 5.8M17 14.8c2.2.5 3.5 2.2 3.8 5.2"/>';
 REG_MENU_ICON_PATHS['notify']='<path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 21h4"/>';
 REG_MENU_ICON_PATHS['config-history']='<path d="M4 5h16M4 12h16M4 19h16M8 3v4M15 10v4M10 17v4"/>';
@@ -2567,7 +2571,9 @@ function rConfig(){
  if(canImp())system.push(configMenuCard('hist','Histórico de atualizações','Consulte novidades e versões','openUpdateHistory()'));
  if(V.me&&['master','admin','gerente'].includes(V.me.role))system.push(configMenuCard('bug-sync','Sincronizar relatórios de erros','Enviar relatórios pendentes ao GitHub','retryPendingBugReports()'));
  if(V.me&&['master','admin'].includes(V.me.role)){
-  admin.push(configMenuCard('access','Acessos e logins','Gerencie usuários e permissões',"V.mn=0;V.accLinksLoaded=false;V.sh='acc';rMenu()"));
+  admin.push(configMenuCard('access','Usuários e logins','Gerencie contas e acessos individuais',"V.mn=0;V.accView='users';V.accE=null;V.accLinksLoaded=false;V.sh='acc';rMenu()"));
+admin.push(configMenuCard('access-profiles','Perfis de acesso','Consulte os modelos de permissões existentes',"V.mn=0;V.accView='profiles';V.accLinksLoaded=false;V.sh='acc';rMenu()"));
+admin.push(configMenuCard('access-map','O que cada pessoa acessa','Consulte as permissões registradas por pessoa',"V.mn=0;V.accView='people';V.accLinksLoaded=false;V.sh='acc';rMenu()"));
 }
 if(V.me&&V.me.role==='master'){
   admin.push(configMenuCard('notify','Distribuição de notificações','Configure quem recebe cada aviso',"V.mn=0;V.sh='ntsettings';rMenu()"));
@@ -2808,7 +2814,21 @@ function rRegLancMain(){const _0x18d4ce=_0x2c2823;if('ck'===V['reg'])return rRot
  const label=role==='master'?'Master da plataforma':role==='admin'?'Administrador da empresa':role==='gerente'?'Gerente da empresa':role==='encarregado'?'Encarregado':String(personItem.f||'Liderança');
  return {cloud,hasAccount,active,role,label};
 }
+function accessSummaryBack(){return '<button type="button" class="ch" onclick="V.sh=0;V.accView=\'users\';V.accE=null;rMenu()">‹ Voltar às configurações</button>';}
+function permissionLabels(keys){const selected=new Set(keys||[]);return PGA().flatMap(([,items])=>items.filter(([key])=>selected.has(key)).map(([,label])=>label));}
+function accessProfilesSummaryHTML(){
+ const profiles=S.presets||[],team=S.team||[];
+ return accessSummaryBack()+'<h3 class="u-mt8b">Perfis de acesso</h3><p class="mu">Consulta dos modelos existentes. Esta tela não altera permissões nem aplica perfis a ninguém.</p>'+
+ (profiles.length?profiles.map(profile=>{const keys=pfKeys(profile),labels=permissionLabels(keys),assigned=team.filter(member=>pfOf(member)?.id===profile.id).length;return '<section class="c"><div class="row sp"><b>'+esc(profile.e||'🧩')+' '+esc(profile.n||'Perfil sem nome')+'</b><span class="b">'+(profile.all?'Acesso total':keys.length+' funções')+'</span></div><p class="mu">'+assigned+' pessoa(s) com permissões correspondentes</p><div class="access-summary-tags">'+(profile.all?'<span>Todas as funções atuais</span>':labels.length?labels.map(label=>'<span>'+esc(label)+'</span>').join(''):'<span>Nenhuma permissão registrada</span>')+'</div></section>';}).join(''):'<div class="c mu">Nenhum modelo de perfil encontrado nos dados atuais.</div>');
+}
+function accessPeopleSummaryHTML(){
+ const people=(S.team||[]).filter(loginRoleOK).sort((a,b)=>String(a.n||'').localeCompare(String(b.n||''),'pt-BR'));
+ return accessSummaryBack()+'<h3 class="u-mt8b">O que cada pessoa acessa</h3><p class="mu">Resumo somente de leitura das permissões registradas para cada liderança. Nenhuma permissão será alterada nesta tela.</p>'+
+ (people.length?people.map(personItem=>{const meta=accountAccessMeta(personItem),keys=(personItem.perm||[]).filter(key=>ALLK().includes(key)),labels=permissionLabels(keys),full=meta.role==='master'||(personItem.perm||[]).includes('*');return '<section class="c"><div class="row sp"><b>'+esc(personItem.n||'Sem nome')+'</b><span class="b '+(meta.hasAccount&&meta.active?'ok':'wa')+'">'+(meta.hasAccount&&meta.active?'Login ativo':meta.hasAccount?'Login desativado':'Sem login')+'</span></div><p class="mu">'+esc(meta.label)+(personItem.s?' · '+esc(personItem.s):'')+'</p><div class="access-summary-tags">'+(full?'<span>Acesso total</span>':labels.length?labels.map(label=>'<span>'+esc(label)+'</span>').join(''):'<span>Sem permissões específicas registradas</span>')+'</div></section>';}).join(''):'<div class="c mu">Nenhuma pessoa elegível para login foi encontrada.</div>');
+}
 function accHTML(){
+ if(V.accView==='profiles')return accessProfilesSummaryHTML();
+ if(V.accView==='people')return accessPeopleSummaryHTML();
  if(V.accP)V.accP=null;
  const selected=V.accE?person(V.accE):null;
  if(selected&&!loginRoleOK(selected))return V.accE=null,'<h3>👤 Acessos e logins</h3><p class="mu">Somente pessoas em funções de liderança podem receber login. Altere a função no cadastro da equipe para habilitá-las.</p><button class="bt g" onclick="rMenu()">Voltar</button>';
