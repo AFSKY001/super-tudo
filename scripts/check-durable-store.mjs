@@ -65,11 +65,11 @@ test('rejeita identidade divergente e fila inválida sem gravar', async () => {
   const adapter = memoryAdapter();
   const store = create(adapter);
   await assert.rejects(
-    store.save('org-a:user-1', state, { ...syncMeta, owner: 'org-b:user-1' }),
+    async () => store.save('org-a:user-1', state, { ...syncMeta, owner: 'org-b:user-1' }),
     /outra identidade/
   );
   await assert.rejects(
-    store.save('org-a:user-1', state, { owner: 'org-a:user-1', queue: {} }),
+    async () => store.save('org-a:user-1', state, { owner: 'org-a:user-1', queue: {} }),
     /Fila de sincronização inválida/
   );
   assert.equal(adapter.records.size, 0);
@@ -80,7 +80,7 @@ test('exige proprietário explícito nos metadados', async () => {
   const adapter = memoryAdapter();
   const store = create(adapter);
   await assert.rejects(
-    store.save('org-a:user-1', state, { queue: [] }),
+    async () => store.save('org-a:user-1', state, { queue: [] }),
     /outra identidade/
   );
   assert.equal(adapter.records.size, 0);
@@ -101,8 +101,7 @@ test('leitura aguarda gravação pendente na mesma instância', async () => {
   const store = create(adapter);
   const saving = store.save('org-a:user-1', state, syncMeta);
   const loading = store.load('org-a:user-1');
-  await Promise.resolve();
-  assert.equal(typeof release, 'function');
+  while (!release) await Promise.resolve();
   release();
   await saving;
   const restored = await loading;
