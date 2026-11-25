@@ -35,12 +35,12 @@ function sanitize(html){
   if(child.tagName==='IMG'&&!safeImageSrc){child.remove();continue;}
   walk(child);
   if(!allowedTags.has(child.tagName)){child.replaceWith(...child.childNodes);continue;}
-  const classes=(child.tagName==='SPAN'||child.tagName==='UL')?[...child.classList].filter(c=>classOk.test(c)):[];
+  const classes=(child.tagName==='SPAN'||child.tagName==='UL'||child.tagName==='IMG')?[...child.classList].filter(c=>classOk.test(c)||child.tagName==='IMG'&&c==='nt-drawing-image'):[];
   const checked=child.tagName==='SPAN'&&child.classList.contains('nt-check-item')?child.getAttribute('data-checked'):null;
   [...child.attributes].forEach(a=>child.removeAttribute(a.name));
   if(classes.length)child.className=classes.join(' ');
-  if(checked==='true'||checked==='false')child.setAttribute('data-checked',checked);
-  if(safeImageSrc)child.setAttribute('src',safeImageSrc);
+  if(checked==='true'||checked==='false'){child.setAttribute('data-checked',checked);child.setAttribute('role','checkbox');child.setAttribute('tabindex','0');child.setAttribute('aria-checked',checked);child.setAttribute('aria-label','Marcar tarefa');}
+  if(safeImageSrc){child.setAttribute('src',safeImageSrc);const alt=String(child.getAttribute('alt')||'').slice(0,120);if(alt)child.setAttribute('alt',alt);}
  }};
  walk(doc.body);return doc.body.innerHTML;
 }
@@ -109,13 +109,13 @@ function bindEditor(){
  drawCancel?.addEventListener('click',()=>{state.drawOpen=false;if(drawPanel)drawPanel.hidden=true;drawOpen?.classList.remove('on');drawOpen?.setAttribute('aria-expanded','false');});
  drawSave?.addEventListener('click',()=>{if(!drawCanvas||!drawCanvas.dataset.hasInk)return notify('Faça um desenho antes de inserir.');const img=document.createElement('img');img.src=drawCanvas.toDataURL('image/png');img.alt='Desenho da anotação';img.className='nt-drawing-image';body.append(document.createElement('br'),img,document.createElement('br'));state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();state.drawOpen=false;if(drawPanel)drawPanel.hidden=true;drawOpen?.classList.remove('on');drawOpen?.setAttribute('aria-expanded','false');});
  selectMode?.addEventListener('click',()=>{state.mode=state.mode==='select'?'write':'select';if(hint)hint.hidden=state.mode!=='select';selectMode.classList.toggle('on',state.mode==='select');selectMode.setAttribute('aria-pressed',String(state.mode==='select'));});
- makeChecklist?.addEventListener('click',createChecklist);
+ makeChecklist?.addEventListener('pointerdown',e=>e.preventDefault());makeChecklist?.addEventListener('click',createChecklist);
  paletteOpen?.addEventListener('click',()=>{state.paletteOpen=!state.paletteOpen;if(palette)palette.hidden=!state.paletteOpen;paletteOpen.setAttribute('aria-expanded',String(state.paletteOpen));});
  paletteClose?.addEventListener('click',()=>{state.paletteOpen=false;if(palette)palette.hidden=true;paletteOpen?.setAttribute('aria-expanded','false');});
  palette?.addEventListener('click',e=>{const b=e.target.closest('[data-note-color]');if(!b)return;setColor(b.dataset.noteColor);state.paletteOpen=false;palette.hidden=true;paletteOpen?.setAttribute('aria-expanded','false');});
- body.addEventListener('click',e=>{const item=e.target.closest('.nt-check-item');if(!item||state.readOnly)return;e.preventDefault();item.dataset.checked=item.dataset.checked==='true'?'false':'true';item.classList.toggle('checked',item.dataset.checked==='true');state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();});
+ body.addEventListener('click',e=>{const item=e.target.closest('.nt-check-item');if(!item||state.readOnly)return;e.preventDefault();item.dataset.checked=item.dataset.checked==='true'?'false':'true';item.setAttribute('aria-checked',item.dataset.checked);item.classList.toggle('checked',item.dataset.checked==='true');state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();});
 
- body.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveNow();}});
+ body.addEventListener('keydown',e=>{const item=e.target.closest('.nt-check-item');if(item&&(e.key==='Enter'||e.key===' ')){e.preventDefault();item.click();}if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveNow();}});
  const viewport=root.visualViewport;
  if(viewport){const update=()=>document.documentElement.style.setProperty('--nt-kb',Math.max(0,root.innerHeight-viewport.height-viewport.offsetTop)+'px');viewport.addEventListener('resize',update);viewport.addEventListener('scroll',update);update();}
 }
@@ -136,7 +136,7 @@ function createChecklist(){
  const selected=range.toString().trim();if(!selected)return notify('Selecione o texto que deseja transformar em checklist.');
  const lines=selected.split(/\n+/).map(x=>x.trim()).filter(Boolean);if(!lines.length)return;
  const list=document.createElement('ul');list.className='nt-checklist';
- lines.forEach(line=>{const li=document.createElement('li'),box=document.createElement('span');box.className='nt-check-item';box.dataset.checked='false';box.setAttribute('aria-label','Marcar tarefa');li.append(box,document.createTextNode(line));list.append(li);});
+ lines.forEach(line=>{const li=document.createElement('li'),box=document.createElement('span');box.className='nt-check-item';box.dataset.checked='false';box.setAttribute('role','checkbox');box.setAttribute('tabindex','0');box.setAttribute('aria-checked','false');box.setAttribute('aria-label','Marcar tarefa');li.append(box,document.createTextNode(line));list.append(li);});
  range.deleteContents();range.insertNode(list);const sel=root.getSelection();sel?.removeAllRanges();
  state.mode='write';const hint=$('nt-select-hint'),toggle=$('nt-select-mode');if(hint)hint.hidden=true;if(toggle){toggle.classList.remove('on');toggle.setAttribute('aria-pressed','false');}
  state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();
