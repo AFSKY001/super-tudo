@@ -43,6 +43,7 @@ check(notes.includes("indexedDB.open('super-tudo-notes-drafts',1)")&&notes.inclu
 check(notes.includes('body:sanitize(n?.body||\'\').slice(0,MAX_NOTE_BODY_LENGTH)')&&notes.includes('MAX_NOTE_BODY_LENGTH=400000'),'offline drafts must preserve the current 400k note limit and sanitized drawing content.');
 check(notes.includes('await persistDraft()')&&notes.includes('await removeDraft(n.id)')&&notes.includes('async function recoverDraft(id)'),'offline drafts must be persisted, recovered, and removed only after confirmed cloud save.');
 check(notes.includes('state.draftConflict=!!n&&(!draft.baseUpdatedAt||draft.baseUpdatedAt!==n.updated_at)')&&notes.includes('if(state.draftConflict){status('),'stale recovered drafts must be preserved without overwriting a newer remote note.');
+check(notes.includes('if(state.draftConflict){await persistDraft();notify(')&&notes.includes('state.draftConflict=false;'),'a stale local draft must remain recoverable while allowing the user to leave the editor safely.');
 
 check(notes.includes("supa.removeChannel(state.channel)")&&notes.includes("function backToRegistry()"),'Realtime subscription must be released when leaving the notes module.');
 check(notes.includes('root.stNotesBack=()=>state.editor?back():backToRegistry()')&&notes.includes('if(saved===false)return'),'editor navigation must return to the board and keep the editor open if saving fails.');
