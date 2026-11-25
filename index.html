@@ -2624,8 +2624,8 @@ function pimHTML(){const _0x4cf793=_0x2c2823,_0x1f298f=V['pim'],_0x3bf33c='<div\
  const current=V.pim;
  if(!current||!current.res||current.res.err||current.res.errs.length||!current.res.rows.length)return;
  S.impPerd=S.impPerd||[];
- const legacy=current.raw.length+':'+current.setor+':'+current.res.rows.length+':'+current.res.total.toFixed(2);
- const fingerprint=pimFingerprint(current.raw,current.setor);
+ const legacy=current[_0x2c2823(0x160)].length+':'+current.setor+':'+current.res.rows.length+':'+current.res.total.toFixed(2);
+ const fingerprint=pimFingerprint(current[_0x2c2823(0x160)],current.setor);
  const duplicate=S.impPerd.some(item=>item.h===fingerprint||(item.h===legacy&&item.setor===current.setor&&(item.arq||'')===(current.arq||'')));
  if(duplicate)return window.stAlert('Esta planilha já foi importada para este setor. Nada foi alterado.');
  const importId=uid();
