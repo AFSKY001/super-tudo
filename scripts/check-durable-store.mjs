@@ -1,0 +1,88 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { create } = require('./durable-store.js');
+
+function memoryAdapter() {
+  const records = new Map();
+  let sequence = Promise.resolve();
+  return {
+    records,
+    read(owner) { return Promise.resolve(records.get(owner) || null); },
+    commit(record) {
+      const write = sequence.then(() => {
+        const revision = (records.get(record.owner)?.revision || 0) + 1;
+        records.set(record.owner, structuredClone({ ...record, revision }));
+        return revision;
+      });
+      sequence = write.catch(() => {});
+      return write;
+    }
+  };
+}
+
+const state = { notes: [{ id: 'n1', text: 'rascunho' }], settings: { theme: 'dark' } };
+const syncMeta = { owner: 'org-a:user-1', revisions: {}, queue: [{ client_id: 'op-1' }], conflicts: {} };
+
+test('grava e recupera estado completo junto com a fila', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  const revision = await store.save('org-a:user-1', state, syncMeta);
+  const restored = await store.load('org-a:user-1');
+  assert.equal(revision, 1);
+  assert.deepEqual(restored.state, state);
+  assert.deepEqual(restored.syncMeta, syncMeta);
+  assert.equal(restored.revision, 1);
+});
+
+test('serializa gravações concorrentes e mantém revisão crescente', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  const results = await Promise.all([
+    store.save('org-a:user-1', { value: 1 }, syncMeta),
+    store.save('org-a:user-1', { value: 2 }, syncMeta),
+    store.save('org-a:user-1', { value: 3 }, syncMeta)
+  ]);
+  assert.deepEqual(results, [1, 2, 3]);
+  assert.equal((await store.load('org-a:user-1')).state.value, 3);
+});
+
+test('isola snapshots entre empresas e usuários', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  await store.save('org-a:user-1', { company: 'a' }, syncMeta);
+  await store.save('org-b:user-1', { company: 'b' }, { ...syncMeta, owner: 'org-b:user-1' });
+  assert.equal((await store.load('org-a:user-1')).state.company, 'a');
+  assert.equal((await store.load('org-b:user-1')).state.company, 'b');
+  assert.equal(await store.load('org-c:user-1'), null);
+});
+
+test('rejeita identidade divergente e fila inválida sem gravar', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  await assert.rejects(
+    store.save('org-a:user-1', state, { ...syncMeta, owner: 'org-b:user-1' }),
+    /outra identidade/
+  );
+  await assert.rejects(
+    store.save('org-a:user-1', state, { owner: 'org-a:user-1', queue: {} }),
+    /Fila de sincronização inválida/
+  );
+  assert.equal(adapter.records.size, 0);
+});
+
+test('falha de gravação não envenena a fila de gravações seguintes', async () => {
+  let fail = true;
+  const adapter = {
+    read: async () => null,
+    commit: async record => {
+      if (fail) { fail = false; throw new Error('quota'); }
+      return 7;
+    }
+  };
+  const store = create(adapter);
+  await assert.rejects(store.save('org-a:user-1', state, syncMeta), /quota/);
+  assert.equal(await store.save('org-a:user-1', state, syncMeta), 7);
+});
