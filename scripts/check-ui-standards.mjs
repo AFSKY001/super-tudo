@@ -15,7 +15,6 @@ const [html, rules, agent, sw, packageJson, packageLock, routine] = await Promis
   read('routine.js')
 ]);
 
-requireCheck(html.includes('openAppDiagnostics') && html.includes('refreshAppDiagnostics') && html.includes("configMenuCard('diag','Diagnóstico do aparelho'") && html.includes('navigator.storage.estimate') && html.includes('Nenhum dado será apagado ou enviado.'), 'Settings diagnostics must be a real read-only local inspection without destructive actions.');
 const pkg = JSON.parse(packageJson);
 const lock = JSON.parse(packageLock);
 const sourceVersion = html.match(/const APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
@@ -28,6 +27,8 @@ const localDateHelper = localDateStart >= 0 && localDateEnd > localDateStart ? h
 const requireCheck = (condition, message) => {
   if (!condition) failures.push(message);
 };
+
+requireCheck(html.includes('openAppDiagnostics') && html.includes('refreshAppDiagnostics') && html.includes("configMenuCard('diag','Diagnóstico do aparelho'") && html.includes('navigator.storage.estimate') && html.includes('Nenhum dado será apagado ou enviado.'), 'Settings diagnostics must be a real read-only local inspection without destructive actions.');
 
 requireCheck(/^\d+\.\d+\.\d+$/.test(String(pkg.version || '')), 'package.json must contain a semantic application version.');
 requireCheck(html.includes("'trf':{'n':'Transformação'") && !html.includes("'trf'!==_0x24d848") && html.includes('Restauração de Transformação de produtos'), 'Transformação must remain available in Registro > Lançamentos with its preserved form and release note.');
