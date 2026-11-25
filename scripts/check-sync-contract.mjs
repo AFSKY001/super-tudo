@@ -49,6 +49,7 @@ const checks = [
   ['falha ao atualizar a nuvem atualiza o indicador para erro', /async function runSyncStatusAction\(\)[\s\S]*?catch\(error\)\{[\s\S]{0,180}syncLastError=String\(error\?\.message/],
   ['diálogo de sincronização fica acima das camadas globais', /zIndex:'2147483001'/],
   ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
+  ['rotina pessoal materializa checklists atribuídos antes de montar a lista do funcionário', /const myT=\([^)]*\)=>\{ensureAssignedChecklistsInRotinas\(\);const/],
   ['atividades pessoais da Rotina usam a permissão específica r:rot', /\['pt','r:rot'\]/],
   ['marcações concluídas da Rotina usam a permissão específica r:rot', /syncAddObject\([^;]{0,100}'done','r:rot'/],
   ['modelos e atribuições de Rotina entram na sincronização multiempresa', /\['routineModels','r:rot'\],\['routineAssignments','r:rot'\]/],
