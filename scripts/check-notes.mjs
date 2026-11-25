@@ -23,6 +23,8 @@ check(notes.trimEnd().endsWith('})(window);')&&notes.includes("root.__ST_NOTES_M
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
 check(notes.includes('function createChecklist()')&&notes.includes('selected.split(/\\n+/)')&&notes.includes('nt-check-item')&&notes.includes('data-checked'),'selected note text must convert into persistent, individually toggleable checklist items.');
 check(notes.includes('nt-palette')&&notes.includes('data-note-color')&&notes.includes('state.paletteOpen')&&notes.includes('function setColor(color)'),'note color selection must use the editor palette and persist the selected color.');
+check(notes.includes('initDrawingCanvas')&&notes.includes('pointerdown')&&notes.includes('toDataURL(\'image/png\')')&&notes.includes('safeImageSrc'),'freehand drawings must be inserted as sanitized PNG images and persisted with the note.');
+check(html.includes('.nt-draw-panel')&&html.includes('#nt-draw-canvas')&&html.includes('.nt-drawing-image'),'drawing canvas must be responsive and styled in the note editor.');
 check(notes.includes('nt-select-mode')&&notes.includes('nt-make-checklist')&&notes.includes('selectionRange()'),'checklist conversion must require an explicit text selection and user action.');
 check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-check-item[data-checked="true"]'),'checklist and palette controls must follow the note editor design system.');
 
