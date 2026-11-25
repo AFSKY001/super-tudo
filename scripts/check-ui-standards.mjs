@@ -15,6 +15,7 @@ const [html, rules, agent, sw, packageJson, packageLock, routine] = await Promis
   read('routine.js')
 ]);
 
+requireCheck(html.includes('openAppDiagnostics') && html.includes('refreshAppDiagnostics') && html.includes("configMenuCard('diag','Diagnóstico do aparelho'") && html.includes('navigator.storage.estimate') && html.includes('Nenhum dado será apagado ou enviado.'), 'Settings diagnostics must be a real read-only local inspection without destructive actions.');
 const pkg = JSON.parse(packageJson);
 const lock = JSON.parse(packageLock);
 const sourceVersion = html.match(/const APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
