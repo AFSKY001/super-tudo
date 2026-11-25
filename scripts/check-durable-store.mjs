@@ -111,6 +111,37 @@ test('leitura aguarda gravação pendente na mesma instância', async () => {
 });
 
 
+
+test('serializa leitura iniciada antes de gravações imediatas', async () => {
+  let releaseFirstRead;
+  let reads = 0;
+  let record = null;
+  const adapter = {
+    read: async () => {
+      reads += 1;
+      if (reads === 1) {
+        return new Promise(resolve => { releaseFirstRead = () => resolve(record); });
+      }
+      return record;
+    },
+    commit: async (next, expectedRevision) => {
+      const current = Number(record && record.revision) || 0;
+      if (current !== expectedRevision) throw new Error('Snapshot alterado em outra aba.');
+      record = structuredClone({ ...next, revision: current + 1 });
+      return current + 1;
+    }
+  };
+  const store = create(adapter);
+  const loading = store.load('org-a:user-1');
+  const firstSave = store.save('org-a:user-1', { value: 1 }, syncMeta);
+  await Promise.resolve();
+  assert.equal(reads, 1);
+  releaseFirstRead();
+  assert.equal(await loading, null);
+  assert.equal(await firstSave, 1);
+  assert.equal(await store.save('org-a:user-1', { value: 2 }, syncMeta), 2);
+});
+
 test('impede que uma aba sobrescreva snapshot mais recente de outra', async () => {
   const adapter = memoryAdapter();
   const tabA = create(adapter);
