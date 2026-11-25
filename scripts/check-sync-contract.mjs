@@ -25,6 +25,7 @@ const syncConcurrencyMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
+  ['baseline só avança depois que a fila offline é persistida', /\}\),syncPersist\(\)&&\(syncBaseline=_0x5dcfe8\),syncFlush\(\);/],
   ['falha ao persistir a fila é exibida como erro e não é silenciosa', /function syncPersist\(\)[\s\S]{0,900}syncLastError=message[\s\S]{0,250}return false/],
   ['envio exige persistência confirmada da fila antes de transmitir', /async function syncFlushRun\(\)[\s\S]{0,500}syncMeta\.queue\.some\(op=>!op.status\)&&!syncPersist\(\)\)return false/],
   ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\[\['tmod',S\.tmod\],\['routineModels',S\.routineModels\]\][\s\S]{0,500}targets\.has/],
