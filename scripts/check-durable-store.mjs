@@ -93,6 +93,24 @@ test('exige proprietário explícito nos metadados', async () => {
   assert.equal(adapter.records.size, 0);
 });
 
+test('rejeita metadados de sincronização incompletos ou com tipos inválidos', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  const invalidMetadata = [
+    { ...syncMeta, revisions: [] },
+    { ...syncMeta, revisions: null },
+    { ...syncMeta, conflicts: [] },
+    { ...syncMeta, conflicts: null }
+  ];
+  for (const metadata of invalidMetadata) {
+    await assert.rejects(
+      store.save('org-a:user-1', state, metadata),
+      /Revisões de sincronização inválidas|Conflitos de sincronização inválidos/
+    );
+  }
+  assert.equal(adapter.records.size, 0);
+});
+
 test('leitura aguarda gravação pendente na mesma instância', async () => {
   let release;
   const adapter = {
