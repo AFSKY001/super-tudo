@@ -76,7 +76,7 @@ test('rejeita identidade divergente e fila inválida sem gravar', async () => {
     /outra identidade/
   );
   await assert.rejects(
-    async () => store.save('org-a:user-1', state, { owner: 'org-a:user-1', queue: {} }),
+    async () => store.save('org-a:user-1', state, { owner: 'org-a:user-1', revisions: {}, queue: {}, conflicts: {} }),
     /Fila de sincronização inválida/
   );
   assert.equal(adapter.records.size, 0);
@@ -87,7 +87,7 @@ test('exige proprietário explícito nos metadados', async () => {
   const adapter = memoryAdapter();
   const store = create(adapter);
   await assert.rejects(
-    async () => store.save('org-a:user-1', state, { owner: 'org-a:user-1', revisions: {}, queue: [], conflicts: {} }),
+    async () => store.save('org-a:user-1', state, { revisions: {}, queue: [], conflicts: {} }),
     /outra identidade/
   );
   assert.equal(adapter.records.size, 0);
