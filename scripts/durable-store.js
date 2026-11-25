@@ -99,8 +99,8 @@
             }
           };
           request.onsuccess = function () { resolve(request.result); };
-          request.onerror = function () { reject(request.error || new Error('Falha ao abrir armazenamento local.')); };
-          request.onblocked = function () { reject(new Error('Atualização do armazenamento local bloqueada por outra aba.')); };
+          request.onerror = function () { databasePromise = null; reject(request.error || new Error('Falha ao abrir armazenamento local.')); };
+          request.onblocked = function () { databasePromise = null; reject(new Error('Atualização do armazenamento local bloqueada por outra aba.')); };
         });
       }
       return databasePromise;
