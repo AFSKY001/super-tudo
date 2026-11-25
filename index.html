@@ -52,7 +52,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:5px 4px;text-align:left}
 .dd{position:fixed;top:calc(58px + env(safe-area-inset-top,0px));right:max(12px,calc(50% - 368px));z-index:21;box-shadow:0 10px 30px color-mix(in srgb,var(--fundo) 30%,transparent);animation:pop .18s ease both;transform-origin:top right}.sheet{max-width:760px;margin:0 auto;max-height:88vh;overflow:auto}.dim{animation:fd .2s both}
 .cols{display:flex;gap:6px;align-items:flex-end;height:112px}.cols>div{flex:1;min-width:18px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:2px;font-size:11px}.cols i{width:100%;display:block;border-radius:6px 6px 2px 2px}.cols span{color:var(--mu)}
 .stk{display:flex;height:26px;border-radius:9px;overflow:hidden;gap:2px}.stk i{display:flex;align-items:center;justify-content:center;color:var(--texto-inverso);font:700 12px system-ui;font-style:normal}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
+
 
 /* Ajustes de navegação e cronograma */
 .month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:8px 0}
@@ -265,7 +265,6 @@ header h1,header p::before{display:none}header p{margin:0;font-size:22px;font-we
 
 
 body{padding-bottom:112px}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(700px 420px at 90% -8%,color-mix(in srgb,var(--cor-primaria) 14%,transparent),transparent 65%),radial-gradient(640px 420px at -10% 2%,color-mix(in srgb,var(--cor-primaria) 16%,transparent),transparent 65%)}
 .logo,.lgt{background:var(--grad-brand);color:var(--texto-inverso);box-shadow:var(--glow);border-radius:12px}
 .dots{border:0;border-radius:14px;box-shadow:var(--sh1)}
 h2{font-size:16px;margin:24px 4px 10px}
@@ -450,7 +449,6 @@ button.ibtn-del{background:transparent;color:var(--cor-erro);border:1px solid va
 
 /* Camadas e navegação */
 .dd,.nbx{animation:st-menu-in 180ms var(--ease-enter) both;transform-origin:top right}
-.sheet{overscroll-behavior:contain}
 .dim{animation:st-fade-in 180ms ease-out both}
 .balloon{animation:st-modal-in 200ms var(--ease-enter) both}
 details[open]>:not(summary){animation:st-rise-in 180ms var(--ease-enter) both}
@@ -490,7 +488,6 @@ nav button .ni{transition:transform 180ms var(--ease-emphasis)}
 
 
 body{font-family:var(--fn);font-size:14px;line-height:1.45;padding-bottom:92px}
-body::before{display:none}
 header{gap:10px;padding:14px 16px 6px}
 header h1{font-size:16px;letter-spacing:-.15px}
 header p{font-size:12px;color:var(--mu)}
@@ -628,18 +625,7 @@ nav button.on .ni{transform:none}
 }
 
 
-/* ==========================================================
-   SISTEMA DE MOVIMENTO NATIVO — Super Tudo
-   Movimento curto, funcional e sem efeitos decorativos.
-   ========================================================== */
-:root{
-  --dur-fast:150ms;
-  
-  
-  --ease-out:cubic-bezier(0.2,0.8,0.2,1);
-  
-  
-}
+
 
 
 /
@@ -664,7 +650,6 @@ body{
   letter-spacing:-.005em;
   padding-bottom:112px!important;
 }
-body::before{display:none!important}
 *{-webkit-tap-highlight-color:transparent}
 button,input,select,textarea{font-family:var(--fn)!important}
 button{color:inherit}
@@ -1020,7 +1005,6 @@ details[open]>summary{margin-bottom:10px}
   nav button.on .nl{font-weight:780!important}
   header{padding:12px clamp(22px,3vw,42px)!important}
   main{padding:28px clamp(22px,3vw,42px) 40px!important}
-  .page-shell{max-width:1440px!important}
   .sheet{
     left:calc(var(--sb) + 18px)!important;
     right:24px!important;
@@ -1249,22 +1233,17 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
 .dashboard-home>div:not(.row){grid-column:span 6;min-width:0}
 .dashboard-home>.row{grid-column:1/-1;min-width:0}
 .dashboard-home h2{margin:8px 2px 10px;font-size:clamp(14px,1.4vw,17px);letter-spacing:-.025em}
-.dashboard-home .c{
-  min-width:0;
-  border:1px solid var(--bd);
-  border-radius:16px;
-  box-shadow:0 5px 18px color-mix(in srgb,var(--cor-primaria) 6%,transparent);
-  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
-}
+@media(prefers-reduced-motion:reduce){.dashboard-home .c,.dashboard-home .bar i,.dashboard-home .cols i,.dashboard-home svg:not(.ic) .st-line-series,.dashboard-home svg:not(.ic) .st-chart-area,.dashboard-home .skeleton,.dashboard-home .skel,.dashboard-home .loading-placeholder{animation:none!important;transition:none!important}}
+.dashboard-home .c{min-width:0}
 .dashboard-home .big{font-size:clamp(23px,3vw,32px);letter-spacing:-.045em}
 .dashboard-home .mu{line-height:1.45}
 @media(hover:hover){.dashboard-home .c[onclick]:hover{border-color:color-mix(in srgb,var(--pr) 34%,var(--bd));box-shadow:0 9px 24px color-mix(in srgb,var(--cor-primaria) 9%,transparent)}}
 @media(max-width:680px){
   .dashboard-home{grid-template-columns:minmax(0,1fr);gap:11px}
   .dashboard-home>div:not(.row),.dashboard-home>.row{grid-column:1/-1}
-  .dashboard-home .c{border-radius:14px;padding:14px!important}
+
 }
-@media(prefers-reduced-motion:reduce){.dashboard-home .c{transition:none!important}}
+
 
 /* Acabamento visual dos componentes — etapa isolada */
 .page-content .c{
@@ -1379,7 +1358,6 @@ select{min-height:var(--ui-field-height)}
   --ui-motion-panel:200ms;
   --ui-motion-fast:160ms;
   --ui-motion:220ms;
-  --ui-motion-slow:300ms;
   --ui-motion-ease:cubic-bezier(.2,.8,.2,1);
   --ui-radius-control:14px;
   --ui-radius-card:19px;
@@ -1808,7 +1786,7 @@ input[type="checkbox"]:focus-visible,input[type="radio"]:focus-visible{box-shado
 #app.an>*{animation:st-screen-enter-forward 140ms var(--st-motion-ease) both;animation-delay:0s}
 #app.an.dl>*{animation:st-screen-enter-back 140ms var(--st-motion-ease) both;animation-delay:0s}
 /* SUPER TUDO — sistema global de movimento v9 */
-:root{--st-motion-fast:120ms;--st-motion-base:180ms;--st-motion-enter:170ms;--st-motion-sheet:200ms;--st-motion-ease:cubic-bezier(.2,.8,.25,1);--st-motion-spring:cubic-bezier(.2,.9,.25,1);--st-glass-bg:color-mix(in srgb,var(--cd) 88%,transparent);--st-glass-border:color-mix(in srgb,var(--bd) 78%,transparent)}
+:root{--st-motion-fast:120ms;--st-motion-base:180ms;--st-motion-enter:170ms;--st-motion-ease:cubic-bezier(.2,.8,.25,1);--st-motion-spring:cubic-bezier(.2,.9,.25,1);--st-glass-bg:color-mix(in srgb,var(--cd) 88%,transparent);--st-glass-border:color-mix(in srgb,var(--bd) 78%,transparent)}
 @property --st-progress{syntax:"<percentage>";inherits:false;initial-value:0%}
 #app.st-screen-transition>:first-child{animation:st-screen-enter var(--st-motion-enter) var(--st-motion-spring) both}
 @keyframes st-screen-enter{from{opacity:1;transform:translate3d(8px,0,0)}to{opacity:1;transform:translate3d(0,0,0)}}
@@ -1824,7 +1802,7 @@ details[open]>:not(summary){animation:st-screen-enter 140ms var(--st-motion-ease
 #app button:disabled,#sh button:disabled,#stDialogLayer button:disabled{cursor:not-allowed}
 .st-ripple-host{position:relative;isolation:isolate}.st-ripple-layer{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;z-index:1}.st-ripple-layer i{position:absolute;width:12px;height:12px;border-radius:50%;background:currentColor;opacity:.18;transform:translate(-50%,-50%) scale(0);animation:st-ripple-wave 520ms ease-out forwards}.st-ripple-host>:not(.st-ripple-layer):not(.sr-only):not(.notification-count){position:relative;z-index:2}
 @keyframes st-ripple-wave{to{opacity:0;transform:translate(-50%,-50%) scale(15)}}
-.sheet{background:var(--st-glass-bg);border:1px solid var(--st-glass-border);border-bottom:0;-webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25);transform-origin:bottom center}
+.sheet{background:var(--st-glass-bg);border:1px solid var(--st-glass-border);border-bottom:0;-webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25)}
 
 
 
@@ -1837,8 +1815,8 @@ details[open]>:not(summary){animation:st-screen-enter 140ms var(--st-motion-ease
 .st-check-ring::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--cd)}.st-check-ring span{position:relative;z-index:1;font-size:10px;font-weight:800;color:var(--tx)}
 .st-check-label{flex:1;min-width:0;font-size:12px;color:var(--mu)}.st-check-value{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
 .st-check-progress.is-complete{border-color:color-mix(in srgb,var(--ok) 40%,var(--bd));background:color-mix(in srgb,var(--ok) 7%,var(--cd))}
-.st-check-progress.is-complete .st-check-ring span{font-size:0}.st-check-progress.is-complete .st-check-ring span::after{content:"✓";display:block;font-size:15px;animation:st-check-pop 380ms var(--st-motion-spring) both}
-@keyframes st-check-pop{from{opacity:0;transform:scale(.35) rotate(-35deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.st-check-progress.is-complete .st-check-ring span{font-size:0}.st-check-progress.is-complete .st-check-ring span::after{content:"✓";display:block;font-size:15px;animation:st-check-complete-pop 380ms var(--st-motion-spring) both}
+@keyframes st-check-complete-pop{from{opacity:0;transform:scale(.35) rotate(-35deg)}to{opacity:1;transform:scale(1) rotate(0)}}
 .st-confetti-layer{position:fixed;inset:0;z-index:9999;overflow:hidden;pointer-events:none}.st-confetti-piece{position:absolute;top:-14px;width:7px;height:11px;border-radius:2px;opacity:0;animation:st-confetti-fall 1.45s cubic-bezier(.2,.65,.35,1) forwards}
 @keyframes st-confetti-fall{0%{opacity:0;transform:translate3d(0,-8px,0) rotate(0)}12%{opacity:1}100%{opacity:0;transform:translate3d(var(--st-dx),105vh,0) rotate(var(--st-rot))}}
 .dashboard-home .c{box-shadow:var(--ui-shadow-card,var(--sh1));transition:box-shadow var(--st-motion-base) ease,border-color var(--st-motion-base) ease,transform 140ms var(--st-motion-ease)}.dashboard-home .c:focus-within{border-color:color-mix(in srgb,var(--pr) 35%,var(--bd))}
@@ -1878,8 +1856,12 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
   nav button.on .ni{transform:scale(1.08)!important}
   nav button .nl{transition:opacity 180ms ease,color 180ms ease!important}
 }
-@media(prefers-reduced-motion:reduce){
-  @media(max-width:1023px){nav::before{transition:transform 180ms ease,width 180ms ease!important}nav button .ni,nav button .nl{transition-duration:120ms!important}}
+@media(prefers-reduced-motion:reduce) and (max-width:1023px){
+  nav::before,nav button,nav button .ni,nav button .nl{
+    transition:none!important;
+    animation:none!important;
+    will-change:auto!important;
+  }
 }
 
 /* Movimento único e global das janelas: arraste físico e fundo sincronizado. */
