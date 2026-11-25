@@ -25,7 +25,7 @@
   setTheme:value=>{if(['auto','light','dark'].includes(value))save(THEME_KEY,value)},
   setMotion:value=>{if(['auto','reduce'].includes(value))save(MOTION_KEY,value)}
  };
- window.closeAppearanceSettings=()=>{const host=document.getElementById('sh');if(host)host.innerHTML='';if(window.__stAppearanceEsc){document.removeEventListener('keydown',window.__stAppearanceEsc);window.__stAppearanceEsc=null}const trigger=window.__stAppearanceTrigger;window.__stAppearanceTrigger=null;if(trigger&&trigger.isConnected)trigger.focus()};
+ window.closeAppearanceSettings=()=>{const host=document.getElementById('sh');host?.querySelector('.st-pref-overlay')?.remove();if(window.__stAppearanceEsc){document.removeEventListener('keydown',window.__stAppearanceEsc);window.__stAppearanceEsc=null}const trigger=window.__stAppearanceTrigger;window.__stAppearanceTrigger=null;if(trigger&&trigger.isConnected)trigger.focus()};
  window.openAppearanceSettings=()=>{
   const host=document.getElementById('sh');if(!host)return;
   window.__stAppearanceTrigger=document.activeElement;
@@ -33,7 +33,8 @@
   window.__stAppearanceEsc=event=>{if(event.key==='Escape'){event.preventDefault();window.closeAppearanceSettings();return}if(event.key==='Tab'){const dialog=host.querySelector('[role="dialog"]');if(!dialog)return;const items=[...dialog.querySelectorAll('button:not([disabled]),select:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])')];if(!items.length)return;const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}}};
   document.addEventListener('keydown',window.__stAppearanceEsc);
   const theme=window.stPrefs.getTheme(),motion=window.stPrefs.getMotion();
-  host.innerHTML='<div class="ov dim" onclick="closeAppearanceSettings()" aria-hidden="true"></div>'+
+  host.querySelector('.st-pref-overlay')?.remove();
+  host.insertAdjacentHTML('beforeend','<div class="st-pref-overlay"><div class="ov dim" onclick="closeAppearanceSettings()" aria-hidden="true"></div>'+
    '<section class="sheet st-pref-sheet" role="dialog" aria-modal="true" aria-labelledby="st-pref-title">'+
     '<div class="c"><div class="row sp"><h2 id="st-pref-title">Aparência e acessibilidade</h2><button type="button" class="bt g" onclick="closeAppearanceSettings()" aria-label="Fechar">Fechar</button></div>'+
     '<p class="mu">Preferências salvas somente neste aparelho.</p>'+
@@ -47,7 +48,7 @@
      '<option value="auto" '+(motion==='auto'?'selected':'')+'>Seguir acessibilidade do aparelho</option>'+
      '<option value="reduce" '+(motion==='reduce'?'selected':'')+'>Reduzir animações</option></select>'+
     '<p class="mu st-pref-note">As alterações são aplicadas imediatamente. O modo automático respeita as preferências do sistema.</p></div>'+
-   '</section>';
+   '</section></div>');
   const first=host.querySelector('#st-pref-theme');if(first)first.focus();
  };
  apply();
