@@ -152,13 +152,9 @@ button,.c,.day{transition:transform var(--dur-f),background var(--dur),color var
 .dsel-o.on,.dsel-o:active{background:var(--bd)}
 
 /* =====================================================================
-   REDESIGN v4 — identidade visual Super Tudo (camada por cima do CSS atual)
+   REDESIGN — base compartilhada de componentes Super Tudo
    Tokens → base → navegação → componentes → janelas → responsivo
    ===================================================================== */
-:root{--pr:var(--cor-primaria);--on:var(--superficie);--vi:var(--cor-destaque);--prs:var(--cor-primaria-suave);--ac:var(--cor-alerta);--bg:var(--fundo);--tx:var(--texto);--mu:var(--texto-suave);--bd:var(--borda);--sf:var(--superficie-2);--ok:var(--cor-sucesso);--no:var(--cor-erro);--wa:var(--cor-alerta);--oks:var(--cor-sucesso-suave);--nos:var(--cor-erro-suave);--was:var(--cor-alerta-suave);
---fn:"Inter","Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
---r-s:8px;--r-m:10px;--r-l:14px;--rad:10px;--rad-sheet:16px;
---sh1:0 1px 2px color-mix(in srgb,var(--cor-primaria) 5%,transparent);--sh2:0 8px 24px color-mix(in srgb,var(--cor-primaria) 10%,transparent);--sb:240px}
 
 
 
@@ -263,11 +259,9 @@ header h1,header p::before{display:none}header p{margin:0;font-size:22px;font-we
 @media(max-width:1023px){header p{margin-left:42px}}
 
 /* =====================================================================
-   TEMA SUAVE (v5) — cartões amplos, sombras suaves, degradê azul-violeta,
+   TEMA SUAVE — componentes, cartões e navegação em pílula.
    menu em pílula. Inspirado nas referências enviadas.
    ===================================================================== */
-:root{--pr:var(--cor-primaria);--vi:var(--cor-destaque);--prs:var(--cor-primaria-suave);--grad:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria) 100%);--bg:var(--superficie-2);--cd:var(--superficie);--tx:var(--texto);--mu:var(--texto-suave);--bd:var(--borda);--sf:var(--superficie-2);--r-s:12px;--r-m:16px;--r-l:22px;--rad:22px;--sb:256px;
---sh1:0 2px 6px color-mix(in srgb,var(--cor-primaria) 6%,transparent),0 8px 22px color-mix(in srgb,var(--cor-primaria) 8%,transparent);--sh2:0 4px 10px color-mix(in srgb,var(--cor-primaria) 8%,transparent),0 18px 40px color-mix(in srgb,var(--cor-primaria) 16%,transparent);--glow:0 6px 16px color-mix(in srgb,var(--cor-primaria) 35%,transparent)}
 
 
 body{padding-bottom:112px}
@@ -490,19 +484,9 @@ nav button .ni{transition:transform 180ms var(--ease-emphasis)}
 
 
 /* =====================================================================
-   SUPER TUDO — POLIMENTO CORPORATIVO v1
+   SUPER TUDO — componentes e layout corporativo.
    Camada visual CSS-only: preserva estrutura, fluxos e componentes.
    ===================================================================== */
-:root{
-  --pr:var(--cor-info);--on:var(--superficie);--vi:var(--cor-destaque);--ac:var(--cor-alerta);--prs:var(--cor-info-suave);
-  --grad:var(--cor-info);--bg:var(--superficie-2);--cd:var(--superficie);--tx:var(--texto);--mu:var(--texto-suave);
-  --bd:var(--borda);--sf:var(--superficie-2);--ok:var(--cor-sucesso);--no:var(--cor-erro);--wa:var(--cor-alerta);
-  --oks:var(--cor-sucesso-suave);--nos:var(--cor-erro-suave);--was:var(--cor-alerta-suave);
-  --r-s:7px;--r-m:9px;--r-l:11px;--rad:10px;--rad-sheet:14px;
-  --sh1:0 1px 2px color-mix(in srgb,var(--cor-primaria) 5%,transparent);--sh2:0 5px 16px color-mix(in srgb,var(--cor-primaria) 9%,transparent);
-  --glow:none;--fn:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
-  color-scheme:light;
-}
 
 
 body{font-family:var(--fn);font-size:14px;line-height:1.45;padding-bottom:92px}
@@ -602,19 +586,8 @@ nav button.on .ni{transform:none}
 }
 
 
-/* Ajuste solicitado: identidade azul e navegação inferior sem caixas */
-:root{
- --pr:var(--cor-primaria);--on:var(--superficie);--vi:var(--cor-destaque);--ac:var(--cor-alerta);--prs:var(--cor-primaria-suave);
- --grad:var(--cor-primaria);--sf:var(--superficie-2);
-}
 
 
-/* Correção visual solicitada: azul em toda a identidade e menu inferior flutuante */
-:root{
- --pr:var(--cor-primaria)!important;--vi:var(--cor-destaque)!important;--ac:var(--cor-alerta)!important;
- --prs:var(--cor-primaria-suave)!important;--grad:linear-gradient(135deg,var(--cor-primaria) 0%,var(--cor-primaria) 100%)!important;
- --glow:0 5px 14px color-mix(in srgb,var(--cor-primaria) 22%,transparent)!important;
-}
 
 
 @media(max-width:1023px){
