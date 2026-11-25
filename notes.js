@@ -5,7 +5,7 @@ const bridge=root.__ST_ROUTINE_BRIDGE__;
 if(!bridge){root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing';return;}
 const S=bridge.S,V=bridge.V,supa=bridge.supa,can=bridge.can,esc=bridge.esc;
 const $=id=>root.document.getElementById(id);
-const state={tab:'minhas',color:'',search:'',notes:[],loading:false,error:'',editor:null,readOnly:false,mode:'write',paletteOpen:false,timer:null,saving:false,dirty:false,channel:null,saveChain:Promise.resolve(),lastUpdated:null};
+const state={tab:'minhas',color:'',search:'',notes:[],loading:false,error:'',editor:null,readOnly:false,mode:'write',paletteOpen:false,drawOpen:false,timer:null,saving:false,dirty:false,channel:null,saveChain:Promise.resolve(),lastUpdated:null};
 const colors={amarelo:'#FFF1A6',rosa:'#FFD1E2',azul:'#C9E7FF',verde:'#D2F1CC',laranja:'#FFE0BD',lilas:'#E8D9FF',cinza:'#E7EAF0'};
 const textColors={vermelho:'#A51D2D',azul:'#124F9B',verde:'#176334',roxo:'#5B278A'};
 const markColors={amarelo:'#FFE16A',verde:'#B8E8A8',rosa:'#FFBFD5',azul:'#B8DFFF'};
@@ -22,7 +22,7 @@ const canEdit=n=>!!n&&(isOwner(n)?canCreate():!!n.shared&&canModerate());
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 const escHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const textOf=html=>{const d=new DOMParser().parseFromString(String(html||''),'text/html');return d.body.textContent||'';};
-const allowedTags=new Set(['B','STRONG','I','EM','U','MARK','UL','OL','LI','BR','DIV','P','SPAN']);
+const allowedTags=new Set(['B','STRONG','I','EM','U','MARK','UL','OL','LI','BR','DIV','P','SPAN','IMG']);
 const classOk=/^(tc-(vermelho|azul|verde|roxo)|mk-(amarelo|verde|rosa|azul)|nt-check-item|checked|nt-checklist)$/;
 function sanitize(html){
  const doc=new DOMParser().parseFromString(String(html||''),'text/html');
@@ -30,6 +30,8 @@ function sanitize(html){
   if(child.nodeType===3)continue;
   if(child.nodeType!==1){child.remove();continue;}
   if(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','TEMPLATE'].includes(child.tagName)){child.remove();continue;}
+  const safeImageSrc=child.tagName==='IMG'&&String(child.getAttribute('src')||'').length<900000&&/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(child.getAttribute('src')||'')?child.getAttribute('src'):null;
+  if(child.tagName==='IMG'&&!safeImageSrc){child.remove();continue;}
   walk(child);
   if(!allowedTags.has(child.tagName)){child.replaceWith(...child.childNodes);continue;}
   const classes=(child.tagName==='SPAN'||child.tagName==='UL')?[...child.classList].filter(c=>classOk.test(c)):[];
@@ -37,6 +39,7 @@ function sanitize(html){
   [...child.attributes].forEach(a=>child.removeAttribute(a.name));
   if(classes.length)child.className=classes.join(' ');
   if(checked==='true'||checked==='false')child.setAttribute('data-checked',checked);
+  if(safeImageSrc)child.setAttribute('src',safeImageSrc);
  }};
  walk(doc.body);return doc.body.innerHTML;
 }
@@ -89,7 +92,7 @@ function render(){
 function editorHtml(){
  const n=state.editor,readOnly=state.readOnly,canToggleShare=!n.id||isOwner(n),body=sanitize(n.body||'');
  const palette=Object.keys(colors).map(c=>'<button type="button" class="nt-palette-swatch '+(n.color===c?'on':'')+'" data-note-color="'+c+'" aria-label="'+c+'" aria-pressed="'+(n.color===c)+'" style="--nt-dot:'+colors[c]+'"><span></span>'+c+'</button>').join('');
- return '<section class="nt-editor" data-color="'+escHtml(n.color||'amarelo')+'" style="--nt-bg:'+noteColor(n)+'"><header class="nt-editor-head"><button type="button" class="nt-back" onclick="window.stNotesBack()">‹ Voltar</button><span id="nt-status" aria-live="polite">'+(state.saving?'Salvando…':n.id?'Salvo ✓':'')+'</span><button type="button" class="nt-done" onclick="window.stNotesBack()">Concluir</button></header><div class="nt-editor-tools" '+(readOnly?'hidden':'')+'><button type="button" id="nt-select-mode" class="'+(state.mode==='select'?'on':'')+'" aria-pressed="'+(state.mode==='select')+'">☑ Selecionar</button><button type="button" id="nt-palette-open" aria-expanded="'+state.paletteOpen+'"><span class="nt-current-color" style="--nt-dot:'+colors[n.color||'amarelo']+'"></span> Cor da nota</button></div><div id="nt-palette" class="nt-palette" '+(state.paletteOpen?'':'hidden')+'><div class="nt-palette-head"><strong>Cor da nota</strong><button type="button" id="nt-palette-close" aria-label="Fechar">×</button></div><div class="nt-palette-grid" role="group" aria-label="Escolher cor">'+palette+'</div></div><div id="nt-select-hint" class="nt-select-hint" '+(state.mode==='select'?'':'hidden')+'>Selecione uma ou mais linhas do texto e transforme em checklist.<button type="button" id="nt-make-checklist">✓ Criar checklist</button></div><div id="nt-toolbar" class="nt-toolbar" '+(readOnly?'hidden':'')+'><button type="button" data-cmd="bold" aria-label="Negrito"><b>B</b></button><button type="button" data-cmd="italic" aria-label="Itálico"><i>I</i></button><button type="button" data-cmd="underline" aria-label="Sublinhado"><u>U</u></button><button type="button" data-cmd="insertUnorderedList" aria-label="Lista">•</button><span></span>'+Object.keys(textColors).map(c=>'<button type="button" class="nt-format-color" style="--nt-format:'+textColors[c]+'" data-class="tc-'+c+'" aria-label="Texto '+c+'">A</button>').join('')+'<span></span>'+Object.keys(markColors).map(c=>'<button type="button" class="nt-format-mark" style="--nt-format:'+markColors[c]+'" data-class="mk-'+c+'" aria-label="Marca-texto '+c+'">A</button>').join('')+'<button type="button" data-clear aria-label="Limpar formatação">Tx</button></div><input id="nt-title" class="nt-title" maxlength="120" placeholder="Título" value="'+escHtml(n.title||'')+'" '+(readOnly?'readonly':'')+'><div id="nt-body" class="nt-body" contenteditable="'+(!readOnly)+'" role="textbox" aria-label="Texto da nota" aria-multiline="true" data-placeholder="Escreva sua anotação…">'+body+'</div><div class="nt-editor-footer"><label class="nt-share"><input id="nt-share" type="checkbox" '+(n.shared?'checked':'')+' '+(readOnly||!canToggleShare?'disabled':'')+' onchange="window.stNotesShare(this.checked)"><span>Compartilhar com a equipe</span></label><span class="mu">'+(n.author_name?escHtml(n.author_name)+' · ':'')+dateLabel(n.updated_at||n.created_at)+'</span></div>'+(readOnly?'<p class="nt-readonly">Esta nota foi compartilhada com você. Somente o autor ou um moderador pode editá-la.</p>':'')+'</section>';
+ return '<section class="nt-editor" data-color="'+escHtml(n.color||'amarelo')+'" style="--nt-bg:'+noteColor(n)+'"><header class="nt-editor-head"><button type="button" class="nt-back" onclick="window.stNotesBack()">‹ Voltar</button><span id="nt-status" aria-live="polite">'+(state.saving?'Salvando…':n.id?'Salvo ✓':'')+'</span><button type="button" class="nt-done" onclick="window.stNotesBack()">Concluir</button></header><div class="nt-editor-tools" '+(readOnly?'hidden':'')+'><button type="button" id="nt-select-mode" class="'+(state.mode==='select'?'on':'')+'" aria-pressed="'+(state.mode==='select')+'">☑ Selecionar</button><button type="button" id="nt-draw-open" class="'+(state.drawOpen?'on':'')+'" aria-expanded="'+state.drawOpen+'">✎ Desenhar</button><button type="button" id="nt-palette-open" aria-expanded="'+state.paletteOpen+'"><span class="nt-current-color" style="--nt-dot:'+colors[n.color||'amarelo']+'"></span> Cor da nota</button></div><div id="nt-palette" class="nt-palette" '+(state.paletteOpen?'':'hidden')+'><div class="nt-palette-head"><strong>Cor da nota</strong><button type="button" id="nt-palette-close" aria-label="Fechar">×</button></div><div class="nt-palette-grid" role="group" aria-label="Escolher cor">'+palette+'</div></div><div id="nt-select-hint" class="nt-select-hint" '+(state.mode==='select'?'':'hidden')+'>Selecione uma ou mais linhas do texto e transforme em checklist.<button type="button" id="nt-make-checklist">✓ Criar checklist</button></div><div id="nt-draw-panel" class="nt-draw-panel" '+(state.drawOpen?'':'hidden')+'><div class="nt-draw-head"><strong>Desenhe na nota</strong><span>Use o dedo ou o mouse</span></div><canvas id="nt-draw-canvas" aria-label="Área para desenhar"></canvas><div class="nt-draw-actions"><button type="button" id="nt-draw-clear">Limpar</button><button type="button" id="nt-draw-cancel">Cancelar</button><button type="button" id="nt-draw-save">Inserir desenho</button></div></div><div id="nt-toolbar" class="nt-toolbar" '+(readOnly?'hidden':'')+'><button type="button" data-cmd="bold" aria-label="Negrito"><b>B</b></button><button type="button" data-cmd="italic" aria-label="Itálico"><i>I</i></button><button type="button" data-cmd="underline" aria-label="Sublinhado"><u>U</u></button><button type="button" data-cmd="insertUnorderedList" aria-label="Lista">•</button><span></span>'+Object.keys(textColors).map(c=>'<button type="button" class="nt-format-color" style="--nt-format:'+textColors[c]+'" data-class="tc-'+c+'" aria-label="Texto '+c+'">A</button>').join('')+'<span></span>'+Object.keys(markColors).map(c=>'<button type="button" class="nt-format-mark" style="--nt-format:'+markColors[c]+'" data-class="mk-'+c+'" aria-label="Marca-texto '+c+'">A</button>').join('')+'<button type="button" data-clear aria-label="Limpar formatação">Tx</button></div><input id="nt-title" class="nt-title" maxlength="120" placeholder="Título" value="'+escHtml(n.title||'')+'" '+(readOnly?'readonly':'')+'><div id="nt-body" class="nt-body" contenteditable="'+(!readOnly)+'" role="textbox" aria-label="Texto da nota" aria-multiline="true" data-placeholder="Escreva sua anotação…">'+body+'</div><div class="nt-editor-footer"><label class="nt-share"><input id="nt-share" type="checkbox" '+(n.shared?'checked':'')+' '+(readOnly||!canToggleShare?'disabled':'')+' onchange="window.stNotesShare(this.checked)"><span>Compartilhar com a equipe</span></label><span class="mu">'+(n.author_name?escHtml(n.author_name)+' · ':'')+dateLabel(n.updated_at||n.created_at)+'</span></div>'+(readOnly?'<p class="nt-readonly">Esta nota foi compartilhada com você. Somente o autor ou um moderador pode editá-la.</p>':'')+'</section>';
 }
 function bindEditor(){
  const title=$('nt-title'),body=$('nt-body'),toolbar=$('nt-toolbar');
@@ -99,6 +102,11 @@ function bindEditor(){
  body.addEventListener('paste',e=>{if(state.readOnly)return;e.preventDefault();const text=e.clipboardData?.getData('text/plain')||'';document.execCommand('insertText',false,text);});
  if(toolbar){toolbar.addEventListener('pointerdown',e=>{if(e.target.closest('button'))e.preventDefault();});toolbar.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.cmd)command(b.dataset.cmd);else if(b.dataset.class)applyClass(b.dataset.class);else if(b.hasAttribute('data-clear'))clearFormat();});}
  const selectMode=$('nt-select-mode'),makeChecklist=$('nt-make-checklist'),paletteOpen=$('nt-palette-open'),paletteClose=$('nt-palette-close'),palette=$('nt-palette'),hint=$('nt-select-hint');
+ const drawOpen=$('nt-draw-open'),drawPanel=$('nt-draw-panel'),drawCanvas=$('nt-draw-canvas'),drawClear=$('nt-draw-clear'),drawCancel=$('nt-draw-cancel'),drawSave=$('nt-draw-save');
+ drawOpen?.addEventListener('click',()=>{state.drawOpen=!state.drawOpen;if(drawPanel)drawPanel.hidden=!state.drawOpen;drawOpen.setAttribute('aria-expanded',String(state.drawOpen));if(state.drawOpen)initDrawingCanvas(drawCanvas);});
+ drawClear?.addEventListener('click',()=>{const ctx=drawCanvas?.getContext('2d');if(ctx){ctx.clearRect(0,0,drawCanvas.width,drawCanvas.height);delete drawCanvas.dataset.hasInk;}});
+ drawCancel?.addEventListener('click',()=>{state.drawOpen=false;if(drawPanel)drawPanel.hidden=true;drawOpen?.classList.remove('on');drawOpen?.setAttribute('aria-expanded','false');});
+ drawSave?.addEventListener('click',()=>{if(!drawCanvas||!drawCanvas.dataset.hasInk)return notify('Faça um desenho antes de inserir.');const img=document.createElement('img');img.src=drawCanvas.toDataURL('image/png');img.alt='Desenho da anotação';img.className='nt-drawing-image';body.append(document.createElement('br'),img,document.createElement('br'));state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();state.drawOpen=false;if(drawPanel)drawPanel.hidden=true;drawOpen?.classList.remove('on');drawOpen?.setAttribute('aria-expanded','false');});
  selectMode?.addEventListener('click',()=>{state.mode=state.mode==='select'?'write':'select';if(hint)hint.hidden=state.mode!=='select';selectMode.classList.toggle('on',state.mode==='select');selectMode.setAttribute('aria-pressed',String(state.mode==='select'));});
  makeChecklist?.addEventListener('click',createChecklist);
  paletteOpen?.addEventListener('click',()=>{state.paletteOpen=!state.paletteOpen;if(palette)palette.hidden=!state.paletteOpen;paletteOpen.setAttribute('aria-expanded',String(state.paletteOpen));});
@@ -109,6 +117,18 @@ function bindEditor(){
  body.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveNow();}});
  const viewport=root.visualViewport;
  if(viewport){const update=()=>document.documentElement.style.setProperty('--nt-kb',Math.max(0,root.innerHeight-viewport.height-viewport.offsetTop)+'px');viewport.addEventListener('resize',update);viewport.addEventListener('scroll',update);update();}
+}
+function initDrawingCanvas(canvas){
+ if(!canvas||canvas.dataset.ready)return;
+ canvas.width=1200;canvas.height=480;canvas.dataset.ready='true';
+ const ctx=canvas.getContext('2d');if(!ctx)return;
+ ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#202938';ctx.lineWidth=7;
+ let drawing=false;
+ const point=e=>{const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height};};
+ canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture?.(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x+.1,p.y+.1);ctx.stroke();canvas.dataset.hasInk='true';});
+ canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke();});
+ const finish=()=>{if(!drawing)return;drawing=false;ctx.closePath();};
+ canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);canvas.addEventListener('lostpointercapture',finish);
 }
 function createChecklist(){
  const body=$('nt-body'),range=selectionRange();if(!body||!range||range.collapsed)return notify('Selecione o texto que deseja transformar em checklist.');
@@ -164,7 +184,7 @@ async function openEditor(id){
  state.readOnly=!!n&&!canEdit(n);state.dirty=false;state.lastUpdated=n?.updated_at||null;state.menu=false;render();
 }
 async function back(){
- if(state.editor){clearTimeout(state.timer);if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return false;}}state.editor=null;state.readOnly=false;state.mode='write';state.paletteOpen=false;}
+ if(state.editor){clearTimeout(state.timer);if(state.dirty){const saved=await saveNow();if(saved===false||state.dirty){notify('A nota ainda não foi salva. Mantenha o editor aberto e tente novamente quando a conexão estiver estável.');return false;}}state.editor=null;state.readOnly=false;state.mode='write';state.paletteOpen=false;state.drawOpen=false;}
  state.menu=false;render();await loadNotes();return true;
 }
 async function mutate(id,fields){
@@ -190,7 +210,7 @@ function subscribe(){
 }
 function open(){
  if(!canView())return notify('Você não tem permissão para acessar o Bloco de notas.');
- V.tab='reg';V.rs='notes';V.reg=null;state.tab='minhas';state.search='';state.color='';state.editor=null;state.menu=false;state.mode='write';state.paletteOpen=false;bridge.R();subscribe();loadNotes();
+ V.tab='reg';V.rs='notes';V.reg=null;state.tab='minhas';state.search='';state.color='';state.editor=null;state.menu=false;state.mode='write';state.paletteOpen=false;state.drawOpen=false;bridge.R();subscribe();loadNotes();
 }
 async function backToRegistry(){const saved=await back();if(saved===false)return;if(state.channel){supa.removeChannel(state.channel);state.channel=null;}V.rs='home';V.reg=null;bridge.R();}
 function setTab(tab){state.tab=tab;state.search='';state.color='';state.menu=false;loadNotes();}
