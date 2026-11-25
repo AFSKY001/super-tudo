@@ -9,6 +9,46 @@
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#245BE8">
+<script>
+(()=>{'use strict';
+ const THEME_KEY='st_tema',MOTION_KEY='st_mov';
+ const read=(key,fallback)=>{try{return localStorage.getItem(key)||fallback}catch(_){return fallback}};
+ const apply=()=>{
+  const root=document.documentElement,theme=read(THEME_KEY,'auto'),motion=read(MOTION_KEY,'auto');
+  if(theme==='light'||theme==='dark')root.setAttribute('data-theme',theme);else root.removeAttribute('data-theme');
+  if(motion==='reduce')root.setAttribute('data-motion','reduce');else root.removeAttribute('data-motion');
+ };
+ const save=(key,value)=>{try{localStorage.setItem(key,value)}catch(_){}apply()};
+ window.stPrefs={
+  getTheme:()=>read(THEME_KEY,'auto'),
+  getMotion:()=>read(MOTION_KEY,'auto'),
+  setTheme:value=>{if(['auto','light','dark'].includes(value))save(THEME_KEY,value)},
+  setMotion:value=>{if(['auto','reduce'].includes(value))save(MOTION_KEY,value)}
+ };
+ window.closeAppearanceSettings=()=>{const host=document.getElementById('sh');if(host)host.innerHTML=''};
+ window.openAppearanceSettings=()=>{
+  const host=document.getElementById('sh');if(!host)return;
+  const theme=window.stPrefs.getTheme(),motion=window.stPrefs.getMotion();
+  host.innerHTML='<div class="ov dim" onclick="closeAppearanceSettings()" aria-hidden="true"></div>'+
+   '<section class="sheet st-pref-sheet" role="dialog" aria-modal="true" aria-labelledby="st-pref-title">'+
+    '<div class="c"><div class="row sp"><h2 id="st-pref-title">Aparência e acessibilidade</h2><button type="button" class="bt g" onclick="closeAppearanceSettings()" aria-label="Fechar">Fechar</button></div>'+
+    '<p class="mu">Preferências salvas somente neste aparelho.</p>'+
+    '<label class="st-pref-label" for="st-pref-theme">Tema</label>'+
+    '<select id="st-pref-theme" class="st-pref-control" onchange="window.stPrefs.setTheme(this.value)">'+
+     '<option value="auto" '+(theme==='auto'?'selected':'')+'>Automático — seguir o aparelho</option>'+
+     '<option value="light" '+(theme==='light'?'selected':'')+'>Claro</option>'+
+     '<option value="dark" '+(theme==='dark'?'selected':'')+'>Escuro</option></select>'+
+    '<label class="st-pref-label" for="st-pref-motion">Animações</label>'+
+    '<select id="st-pref-motion" class="st-pref-control" onchange="window.stPrefs.setMotion(this.value)">'+
+     '<option value="auto" '+(motion==='auto'?'selected':'')+'>Seguir acessibilidade do aparelho</option>'+
+     '<option value="reduce" '+(motion==='reduce'?'selected':'')+'>Reduzir animações</option></select>'+
+    '<p class="mu st-pref-note">As alterações são aplicadas imediatamente. O modo automático respeita as preferências do sistema.</p></div>'+
+   '</section>';
+  const first=host.querySelector('#st-pref-theme');if(first)first.focus();
+ };
+ apply();
+})();
+</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Super Tudo">
@@ -1190,6 +1230,12 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
 #bl:focus-visible{outline:2px solid var(--pr)!important;outline-offset:3px!important}
 #bn{top:1px!important;right:1px!important;min-width:17px!important;height:17px!important;line-height:17px!important}
 .config-menu{padding-bottom:12px}
+.st-pref-sheet{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+.st-pref-label{display:block;margin:16px 0 6px;color:var(--tx);font:700 13px/1.35 system-ui}
+.st-pref-control{display:block;width:100%;min-height:46px;padding:10px 12px;border:1px solid var(--bd);border-radius:12px;background:var(--cd);color:var(--tx);font:14px system-ui}
+.st-pref-control:focus-visible{outline:2px solid var(--pr);outline-offset:2px}
+.st-pref-note{margin:12px 0 2px;font-size:12px}
+html[data-motion="reduce"] *,html[data-motion="reduce"] *::before,html[data-motion="reduce"] *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 .config-menu-group{margin-top:20px}
 .config-menu-group h3{margin:0 2px 9px!important;color:var(--tx);font:700 13px/1.3 var(--fn);letter-spacing:.01em}
 .config-menu-card{min-height:82px!important;padding:12px!important;gap:10px!important}
@@ -2508,6 +2554,7 @@ function rConfig(){
  ];
  const admin=[];
  const system=[];
+ if(V.me)system.push(configMenuCard('appearance','Aparência e acessibilidade','Tema e movimento deste aparelho','openAppearanceSettings()'));
  if(V.me)system.push(configMenuCard('notify','Sons e notificações','Personalize os avisos neste aparelho',"window.stNotificationSound&&window.stNotificationSound.open(V.cloudIdentity?.id||V.me?.id)"));
  if(canImp())system.push(configMenuCard('hist','Histórico de atualizações','Consulte novidades e versões','openUpdateHistory()'));
  if(V.me&&['master','admin','gerente'].includes(V.me.role))system.push(configMenuCard('bug-sync','Sincronizar relatórios de erros','Enviar relatórios pendentes ao GitHub','retryPendingBugReports()'));
