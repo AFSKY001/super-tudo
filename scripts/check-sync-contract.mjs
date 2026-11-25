@@ -29,7 +29,7 @@ const checks = [
   ['persistência não sobrescreve uma fila cuja leitura falhou', /function syncPersist\(\)\{if\(syncStorageLoadFailed\)return false/],
   ['pull e envio ficam bloqueados quando a fila local não pôde ser carregada', /async function syncFlushRun\(\)\{[^}]{0,120}if\(syncStorageLoadFailed\)return false[\s\S]{0,100}async function syncBlockedQueueUI|async function pullCloudTeamRun\(\)\{[^}]{0,160}if\(syncStorageLoadFailed\)throw/],
   ['baseline só avança depois que a fila offline é persistida', /\}\),syncPersist\(\)&&\(syncBaseline=_0x5dcfe8\),syncFlush\(\);/],
-  ['pull não avança baseline se houver fila pendente sem persistência confirmada', /syncReady=!0x0,\(syncPersist\(\)\|\|!syncMeta\.queue\.length\)&&\(syncBaseline=syncRows\(S\)\)/],
+  ['pull não libera baseline se a persistência do snapshot recebido falhar', /if\(!syncPersist\(\)\)throw new Error\(syncLastError[\s\S]{0,180}syncReady=!0x0;syncBaseline=syncRows\(S\)/],
   ['pull exige persistência local antes de receber dados da nuvem', /async function pullCloudTeamRun\(\)[\s\S]{0,500}if\(!syncPersist\(\)\)throw new Error\(syncLastError/],
   ['pull só libera syncReady e baseline depois de persistir o snapshot recebido', /syncMeta\['lastSync'\]=[\s\S]{0,500}if\(!syncPersist\(\)\)throw new Error\(syncLastError[\s\S]{0,180}syncReady=!0x0;syncBaseline=syncRows\(S\)/],
   ['aviso local não redefine baseline e não esconde alterações pendentes', /function syncLocalNotice\([\s\S]{0,1500}syncApplying=!0x1,V\['me'\]&&R\(\)/],
