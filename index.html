@@ -2203,6 +2203,16 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 .nt-palette-swatch.on{border-color:#1d4f91;box-shadow:0 0 0 1px #1d4f91;color:#1d4f91}
 .nt-select-hint{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 10px;padding:10px 11px;border:1px solid #1d4f9128;border-radius:12px;background:#ffffffa8;color:#344054;font:500 11px/1.4 system-ui}
 .nt-select-hint button{min-height:36px;padding:7px 11px;border:0;border-radius:10px;background:#1d4f91;color:white;font:650 11px system-ui}
+.nt-draw-panel{margin:0 0 10px;padding:11px;border:1px solid #20293820;border-radius:15px;background:#ffffffd9;box-shadow:0 7px 20px #17202f14;animation:nt-fade .16s ease both}
+.nt-draw-panel[hidden]{display:none}
+.nt-draw-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:5px;margin-bottom:8px;color:#263244;font:650 12px system-ui}
+.nt-draw-head span{color:#667085;font:500 10px system-ui}
+#nt-draw-canvas{display:block;width:100%;height:210px;border:1px dashed #34405455;border-radius:10px;background:linear-gradient(#ffffffb8,#ffffffb8),repeating-linear-gradient(0deg,transparent 0 27px,#34405412 28px 29px);touch-action:none;cursor:crosshair}
+.nt-draw-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:9px}
+.nt-draw-actions button{min-height:38px;padding:7px 11px;border:1px solid #20293820;border-radius:10px;background:#ffffffb8;color:#344054;font:650 11px system-ui}
+.nt-draw-actions #nt-draw-save{border-color:#1d4f91;background:#1d4f91;color:white}
+.nt-body .nt-drawing-image{display:block;max-width:100%;max-height:380px;height:auto;object-fit:contain;margin:8px 0;border-radius:8px}
+
 .nt-toolbar{position:sticky;top:0;bottom:auto;margin-top:0;margin-bottom:8px}
 .nt-body .nt-checklist{padding-left:0;list-style:none}
 .nt-body .nt-checklist li{display:flex;align-items:flex-start;gap:9px;margin:7px 0;list-style:none}
