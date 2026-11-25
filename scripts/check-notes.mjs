@@ -24,6 +24,8 @@ check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',tabl
 check(notes.includes('function createChecklist()')&&notes.includes('selected.split(/\\n+/)')&&notes.includes('nt-check-item')&&notes.includes('data-checked'),'selected note text must convert into persistent, individually toggleable checklist items.');
 check(notes.includes('nt-palette')&&notes.includes('data-note-color')&&notes.includes('state.paletteOpen')&&notes.includes('function setColor(color)'),'note color selection must use the editor palette and persist the selected color.');
 check(notes.includes('initDrawingCanvas')&&notes.includes('pointerdown')&&notes.includes('toDataURL(\'image/png\')')&&notes.includes('safeImageSrc'),'freehand drawings must be inserted as sanitized PNG images and persisted with the note.');
+check(notes.includes("child.tagName==='IMG'&&c==='nt-drawing-image'")&&notes.includes("if(alt)child.setAttribute('alt',alt)")&&html.includes('.nt-body .nt-drawing-image'),'sanitized drawing images must retain responsive styling and alternative text.');
+check(notes.includes("setAttribute('role','checkbox')")&&notes.includes("setAttribute('aria-checked',item.dataset.checked)")&&notes.includes("e.key==='Enter'||e.key===' '")&&notes.includes("addEventListener('pointerdown',e=>e.preventDefault())"),'checklist toggles must preserve mobile selection and support keyboard accessibility.');
 check(notes.includes('MAX_NOTE_BODY_LENGTH=400000')&&notes.includes('length<380000')&&notes.includes('canvas.width=900;canvas.height=360'),'drawing payload and note body limits must allow normal sketches without unbounded data URLs.');
 check(html.includes('.nt-draw-panel')&&html.includes('#nt-draw-canvas')&&html.includes('.nt-drawing-image'),'drawing canvas must be responsive and styled in the note editor.');
 check(notes.includes('nt-select-mode')&&notes.includes('nt-make-checklist')&&notes.includes('selectionRange()'),'checklist conversion must require an explicit text selection and user action.');
@@ -54,4 +56,4 @@ check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.n
 check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
 check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+43+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+45+' verificações)');
