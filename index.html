@@ -1361,22 +1361,16 @@ header h1{font-size:16px!important;letter-spacing:-.035em!important}
 .dashboard-home>div:not(.row){grid-column:span 6;min-width:0}
 .dashboard-home>.row{grid-column:1/-1;min-width:0}
 .dashboard-home h2{margin:8px 2px 10px;font-size:clamp(14px,1.4vw,17px);letter-spacing:-.025em}
-.dashboard-home .c{
-  min-width:0;
-  border:1px solid var(--bd);
-  border-radius:16px;
-  box-shadow:0 5px 18px color-mix(in srgb,var(--cor-primaria) 6%,transparent);
-  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
-}
+.dashboard-home .c{min-width:0}
 .dashboard-home .big{font-size:clamp(23px,3vw,32px);letter-spacing:-.045em}
 .dashboard-home .mu{line-height:1.45}
 @media(hover:hover){.dashboard-home .c[onclick]:hover{border-color:color-mix(in srgb,var(--pr) 34%,var(--bd));box-shadow:0 9px 24px color-mix(in srgb,var(--cor-primaria) 9%,transparent)}}
 @media(max-width:680px){
   .dashboard-home{grid-template-columns:minmax(0,1fr);gap:11px}
   .dashboard-home>div:not(.row),.dashboard-home>.row{grid-column:1/-1}
-  .dashboard-home .c{border-radius:14px;padding:14px!important}
+
 }
-@media(prefers-reduced-motion:reduce){.dashboard-home .c{transition:none!important}}
+
 
 /* Acabamento visual dos componentes — etapa isolada */
 .page-content .c{
@@ -1958,6 +1952,7 @@ details[open]>:not(summary){animation:st-screen-enter 140ms var(--st-motion-ease
 .dashboard-home .cols i{transform-origin:bottom center;animation:st-chart-column-grow 680ms var(--st-motion-spring) both}@keyframes st-chart-column-grow{from{transform:scaleY(0);opacity:.45}to{transform:scaleY(1);opacity:1}}
 .dashboard-home svg:not(.ic) .st-line-series{stroke-dasharray:var(--st-line-length);stroke-dashoffset:var(--st-line-length);animation:st-line-draw 850ms var(--st-motion-spring) both}@keyframes st-line-draw{to{stroke-dashoffset:0}}
 .dashboard-home svg:not(.ic) .st-chart-area{opacity:0;animation:st-chart-area-in 700ms ease 180ms both}@keyframes st-chart-area-in{to{opacity:.18}}
+@media(prefers-reduced-motion:reduce){.dashboard-home .c{transition:none!important}}
 .skeleton,.skel,.loading-placeholder{border-radius:12px;background:linear-gradient(105deg,var(--sf) 25%,color-mix(in srgb,var(--cd) 72%,var(--pr)) 45%,var(--sf) 65%);background-size:220% 100%;animation:st-skeleton-shimmer 1.25s linear infinite}
 @keyframes st-skeleton-shimmer{from{background-position:100% 0}to{background-position:-120% 0}}
 .empty-state,.empty,.state-empty{text-align:center;color:var(--mu);padding:24px 14px}.empty-state .ic,.empty .ic,.state-empty .ic{width:30px;height:30px;margin:0 auto 8px;color:var(--pr)}
