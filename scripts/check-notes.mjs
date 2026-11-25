@@ -47,6 +47,7 @@ check(notes.includes('state.draftConflict=!!n&&(!draft.baseUpdatedAt||draft.base
 check(notes.includes('if(state.draftConflict){await persistDraft();notify(')&&notes.includes('state.draftConflict=false;'),'a stale local draft must remain recoverable while allowing the user to leave the editor safely.');
 
 check(notes.includes("supa.removeChannel(state.channel)")&&notes.includes("function backToRegistry()"),'Realtime subscription must be released when leaving the notes module.');
+check(html.includes('SWIPE_TARGET=null')&&html.includes("const swipeBlock='.nt-editor,.nt-toolbar")&&html.includes("SWIPE_TARGET&&SWIPE_TARGET.closest(swipeBlock)"),'global tab swipes must be ignored when a gesture starts or ends inside the notes editor, formatting toolbar, or interactive controls.');
 check(notes.includes('root.stNotesBack=()=>state.editor?back():backToRegistry()')&&notes.includes('if(saved===false)return'),'editor navigation must return to the board and keep the editor open if saving fails.');
 check(notes.includes("state.tab==='lixeira'")&&notes.includes("30*86400000")&&notes.includes('stNotesRestore'),'trash must support restore and 30-day cleanup.');
 check(sql.includes('org_id uuid not null')&&sql.includes('enable row level security')&&sql.includes('notas_select')&&sql.includes('notas_insert')&&sql.includes('notas_update')&&sql.includes('notas_delete'),'notes SQL must enforce tenant-scoped RLS for all operations.');
