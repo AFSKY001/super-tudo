@@ -291,3 +291,56 @@ test('IndexedDB real persiste snapshot e bloqueia gravação obsoleta entre inst
   const latest = await storeA.load(owner);
   assert.equal(latest.state.notes[0].text, 'versão nova');
 });
+
+
+test('falha de leitura inicial não envenena operações seguintes', async () => {
+  let failRead = true;
+  const records = new Map();
+  const adapter = {
+    read: async owner => {
+      if (failRead) {
+        failRead = false;
+        throw new Error('falha temporária de leitura');
+      }
+      return records.get(owner) || null;
+    },
+    commit: async (record, expectedRevision) => {
+      const current = records.get(record.owner);
+      const revision = current ? current.revision : 0;
+      if (revision !== expectedRevision) throw new Error('Snapshot alterado em outra aba.');
+      records.set(record.owner, structuredClone({ ...record, revision: revision + 1 }));
+      return revision + 1;
+    }
+  };
+  const store = create(adapter);
+  await assert.rejects(
+    store.save('org-a:user-1', state, syncMeta),
+    /falha temporária de leitura/
+  );
+  assert.equal(await store.save('org-a:user-1', state, syncMeta), 1);
+  assert.equal((await store.load('org-a:user-1')).revision, 1);
+});
+
+test('falha de load não bloqueia leitura ou gravação posterior', async () => {
+  let failRead = true;
+  const records = new Map();
+  const adapter = {
+    read: async owner => {
+      if (failRead) {
+        failRead = false;
+        throw new Error('leitura interrompida');
+      }
+      return records.get(owner) || null;
+    },
+    commit: async (record, expectedRevision) => {
+      const revision = records.get(record.owner)?.revision || 0;
+      if (revision !== expectedRevision) throw new Error('Snapshot alterado em outra aba.');
+      records.set(record.owner, structuredClone({ ...record, revision: revision + 1 }));
+      return revision + 1;
+    }
+  };
+  const store = create(adapter);
+  await assert.rejects(store.load('org-a:user-1'), /leitura interrompida/);
+  assert.equal(await store.save('org-a:user-1', state, syncMeta), 1);
+  assert.equal((await store.load('org-a:user-1')).revision, 1);
+});
