@@ -828,7 +828,7 @@ O fluxo de diagnóstico reutiliza o diálogo global do aplicativo, respeita os t
 
 ## 14. Paleta global semântica — versão 3.74.18
 
-A identidade de cores da interface passa a ser controlada por uma única camada de tokens CSS no final do CSS principal. Os nomes legados (--bg, --cd, --tx, --mu, --bd, --sf, --pr, --on, --ac, --ok, --no, --wa, --oks, --nos, --was, --grad, --sh1 e --sh2) permanecem apenas como aliases de compatibilidade para evitar reescrever componentes e módulos funcionais.
+A identidade de cores da interface passa a ser controlada por uma única camada de tokens CSS no final do CSS principal. Os aliases legados são mantidos no bloco `SISTEMA VISUAL 2026`, enquanto os valores primitivos por tema ficam no bloco final `PALETA GLOBAL`; não criar novos blocos `:root` intermediários. As camadas históricas redundantes anteriores foram removidas em uma limpeza controlada. Os nomes legados (--bg, --cd, --tx, --mu, --bd, --sf, --pr, --on, --ac, --ok, --no, --wa, --oks, --nos, --was, --grad, --sh1 e --sh2) permanecem apenas como aliases de compatibilidade para evitar reescrever componentes e módulos funcionais.
 
 ### Tokens oficiais
 
