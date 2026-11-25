@@ -1949,8 +1949,8 @@ details[open]>:not(summary){animation:st-screen-enter 140ms var(--st-motion-ease
 .st-check-ring::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--cd)}.st-check-ring span{position:relative;z-index:1;font-size:10px;font-weight:800;color:var(--tx)}
 .st-check-label{flex:1;min-width:0;font-size:12px;color:var(--mu)}.st-check-value{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--tx)}
 .st-check-progress.is-complete{border-color:color-mix(in srgb,var(--ok) 40%,var(--bd));background:color-mix(in srgb,var(--ok) 7%,var(--cd))}
-.st-check-progress.is-complete .st-check-ring span{font-size:0}.st-check-progress.is-complete .st-check-ring span::after{content:"✓";display:block;font-size:15px;animation:st-check-pop 380ms var(--st-motion-spring) both}
-@keyframes st-check-pop{from{opacity:0;transform:scale(.35) rotate(-35deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.st-check-progress.is-complete .st-check-ring span{font-size:0}.st-check-progress.is-complete .st-check-ring span::after{content:"✓";display:block;font-size:15px;animation:st-check-complete-pop 380ms var(--st-motion-spring) both}
+@keyframes st-check-complete-pop{from{opacity:0;transform:scale(.35) rotate(-35deg)}to{opacity:1;transform:scale(1) rotate(0)}}
 .st-confetti-layer{position:fixed;inset:0;z-index:9999;overflow:hidden;pointer-events:none}.st-confetti-piece{position:absolute;top:-14px;width:7px;height:11px;border-radius:2px;opacity:0;animation:st-confetti-fall 1.45s cubic-bezier(.2,.65,.35,1) forwards}
 @keyframes st-confetti-fall{0%{opacity:0;transform:translate3d(0,-8px,0) rotate(0)}12%{opacity:1}100%{opacity:0;transform:translate3d(var(--st-dx),105vh,0) rotate(var(--st-rot))}}
 .dashboard-home .c{box-shadow:var(--ui-shadow-card,var(--sh1));transition:box-shadow var(--st-motion-base) ease,border-color var(--st-motion-base) ease,transform 140ms var(--st-motion-ease)}.dashboard-home .c:focus-within{border-color:color-mix(in srgb,var(--pr) 35%,var(--bd))}
