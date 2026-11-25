@@ -31,7 +31,7 @@ const checks = [
   ['baseline só avança depois que a fila offline é persistida', /\}\),syncPersist\(\)&&\(syncBaseline=_0x5dcfe8\),syncFlush\(\);/],
   ['pull não avança baseline se houver fila pendente sem persistência confirmada', /syncReady=!0x0,\(syncPersist\(\)\|\|!syncMeta\.queue\.length\)&&\(syncBaseline=syncRows\(S\)\)/],
   ['pull exige persistência local antes de receber dados da nuvem', /async function pullCloudTeamRun\(\)[\s\S]{0,500}if\(!syncPersist\(\)\)throw new Error\(syncLastError/],
-  ['pull só libera syncReady e baseline depois de persistir o snapshot recebido', /if\(!syncPersist\(\)\)throw new Error\(syncLastError[\s\S]{0,180}syncReady=!0x0;syncBaseline=syncRows\(S\)/],
+  ['pull só libera syncReady e baseline depois de persistir o snapshot recebido', /syncMeta\['lastSync'\]=[\s\S]{0,500}if\(!syncPersist\(\)\)throw new Error\(syncLastError[\s\S]{0,180}syncReady=!0x0;syncBaseline=syncRows\(S\)/],
   ['aviso local não redefine baseline e não esconde alterações pendentes', /function syncLocalNotice\([\s\S]{0,1500}syncApplying=!0x1,V\['me'\]&&R\(\)/],
   ['resolução de conflito na nuvem só redefine baseline após persistir metadados', /syncPersist\(\)&&\(syncBaseline=syncRows\(S\)\)/],
   ['falha ao persistir a fila é exibida como erro e não é silenciosa', /function syncPersist\(\)[\s\S]{0,900}syncLastError=message[\s\S]{0,250}return false/],
