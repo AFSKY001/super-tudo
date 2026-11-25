@@ -105,15 +105,35 @@
       if (!databasePromise) {
         databasePromise = new Promise(function (resolve, reject) {
           const request = indexedDB.open(DB_NAME, 1);
+          let settled = false;
           request.onupgradeneeded = function () {
             const db = request.result;
             if (!db.objectStoreNames.contains(STORE_NAME)) {
               db.createObjectStore(STORE_NAME, { keyPath: 'owner' });
             }
           };
-          request.onsuccess = function () { resolve(request.result); };
-          request.onerror = function () { databasePromise = null; reject(request.error || new Error('Falha ao abrir armazenamento local.')); };
-          request.onblocked = function () { databasePromise = null; reject(new Error('Atualização do armazenamento local bloqueada por outra aba.')); };
+          request.onsuccess = function () {
+            const db = request.result;
+            if (settled) { db.close(); return; }
+            settled = true;
+            db.onversionchange = function () {
+              db.close();
+              databasePromise = null;
+            };
+            resolve(db);
+          };
+          request.onerror = function () {
+            if (settled) return;
+            settled = true;
+            databasePromise = null;
+            reject(request.error || new Error('Falha ao abrir armazenamento local.'));
+          };
+          request.onblocked = function () {
+            if (settled) return;
+            settled = true;
+            databasePromise = null;
+            reject(new Error('Atualização do armazenamento local bloqueada por outra aba.'));
+          };
         });
       }
       return databasePromise;
