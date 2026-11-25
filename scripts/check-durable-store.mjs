@@ -168,3 +168,33 @@ test('falha de gravação não envenena a fila de gravações seguintes', async 
   await assert.rejects(store.save('org-a:user-1', state, syncMeta), /quota/);
   assert.equal(await store.save('org-a:user-1', state, syncMeta), 1);
 });
+
+test('preserva snapshot incompatível sem substituí-lo durante a leitura', async () => {
+  const adapter = memoryAdapter();
+  const original = { format: 99, owner: 'org-a:user-1', revision: 7, payload: 'preservar' };
+  adapter.records.set('org-a:user-1', structuredClone(original));
+  const store = create(adapter);
+  await assert.rejects(
+    store.load('org-a:user-1'),
+    /incompatível ou corrompido/
+  );
+  assert.deepEqual(adapter.records.get('org-a:user-1'), original);
+});
+
+test('não sobrescreve snapshot existente com identidade interna divergente', async () => {
+  const adapter = memoryAdapter();
+  const original = {
+    format: 1,
+    owner: 'org-a:user-1',
+    revision: 4,
+    state: { protected: true },
+    syncMeta: { owner: 'org-b:user-1', queue: [] }
+  };
+  adapter.records.set('org-a:user-1', structuredClone(original));
+  const store = create(adapter);
+  await assert.rejects(
+    store.save('org-a:user-1', state, syncMeta),
+    /outra identidade/
+  );
+  assert.deepEqual(adapter.records.get('org-a:user-1'), original);
+});
