@@ -1,0 +1,40 @@
+name: Notes module contract
+
+on:
+  push:
+    branches:
+      - fix/notas-limpeza-visualviewport-20261125
+  pull_request:
+    branches:
+      - feature/notas-selecao-paleta
+    paths:
+      - 'notes.js'
+      - 'scripts/check-notes.mjs'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'supabase/migrations/*notes*.sql'
+      - '.github/workflows/notes-contract.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notes-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check notes module contract
+        run: npm run check:notes
