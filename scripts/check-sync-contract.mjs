@@ -26,6 +26,7 @@ const syncConcurrencyMigration = fs.readFileSync(
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
   ['fila local inválida ou ilegível pausa a sincronização sem descartar o conteúdo', /function syncUseIdentity\([\s\S]{0,1800}syncStorageLoadFailed=!0x0[\s\S]{0,500}Os dados salvos foram preservados[\s\S]{0,300}if\(!syncStorageLoadFailed\)syncPersist\(\)/],
+  ['valor armazenado null ou vazio é tratado como fila inválida, não como ausência de fila', /const _0xrawSyncMeta=localStorage\.getItem\('st_cloud_sync_v1:'\+_0x25e5d5\);if\(null!==_0xrawSyncMeta\)\{const _0xe0b15c=JSON\[[^\]]+\]\(_0xrawSyncMeta\);if\(!_0xe0b15c\|\|/],
   ['persistência não sobrescreve uma fila cuja leitura falhou', /function syncPersist\(\)\{if\(syncStorageLoadFailed\)return false/],
   ['pull e envio ficam bloqueados quando a fila local não pôde ser carregada', /async function syncFlushRun\(\)\{[^}]{0,120}if\(syncStorageLoadFailed\)return false[\s\S]{0,100}async function syncBlockedQueueUI|async function pullCloudTeamRun\(\)\{[^}]{0,160}if\(syncStorageLoadFailed\)throw/],
   ['baseline só avança depois que a fila offline é persistida', /\}\),syncPersist\(\)&&\(syncBaseline=_0x5dcfe8\),syncFlush\(\);/],
