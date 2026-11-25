@@ -480,6 +480,8 @@ try {
 
 
 requireCheck(html.includes("const THEME_KEY='st_tema',MOTION_KEY='st_mov'") && html.includes("setTheme:value=>{if(['auto','light','dark'].includes(value))") && html.includes("setMotion:value=>{if(['auto','reduce'].includes(value))"), 'Per-device appearance preferences must validate supported theme and motion values before saving.');
+requireCheck(html.includes('function filterConfigMenu(value)') && html.includes('id="config-menu-search"') && html.includes('oninput="filterConfigMenu(this.value)"'), 'Settings search must filter existing menu cards locally without introducing remote requests.');
+requireCheck(html.includes('.config-menu-group[hidden],.config-menu-card[hidden]{display:none!important}'), 'Settings search must hide empty groups and restore them when the query is cleared.');
 requireCheck(html.indexOf("THEME_KEY='st_tema'")>=0 && html.indexOf("THEME_KEY='st_tema'")<html.indexOf('<style>'), 'Theme and motion preferences must be applied before styles to avoid a visible theme flash.');
 requireCheck(html.includes("configMenuCard('appearance','Aparência e acessibilidade'") && html.includes("REG_MENU_ICON_PATHS['appearance']"), 'Appearance and accessibility must be reachable from Settings with a registered icon.');
 requireCheck(html.includes('html[data-motion="reduce"] *') && html.includes('.st-pref-control:focus-visible'), 'Manual reduced motion and visible keyboard focus must be supported by the appearance controls.');
