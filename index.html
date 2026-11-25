@@ -25,9 +25,13 @@
   setTheme:value=>{if(['auto','light','dark'].includes(value))save(THEME_KEY,value)},
   setMotion:value=>{if(['auto','reduce'].includes(value))save(MOTION_KEY,value)}
  };
- window.closeAppearanceSettings=()=>{const host=document.getElementById('sh');if(host)host.innerHTML=''};
+ window.closeAppearanceSettings=()=>{const host=document.getElementById('sh');if(host)host.innerHTML='';if(window.__stAppearanceEsc){document.removeEventListener('keydown',window.__stAppearanceEsc);window.__stAppearanceEsc=null}const trigger=window.__stAppearanceTrigger;window.__stAppearanceTrigger=null;if(trigger&&trigger.isConnected)trigger.focus()};
  window.openAppearanceSettings=()=>{
   const host=document.getElementById('sh');if(!host)return;
+  window.__stAppearanceTrigger=document.activeElement;
+  if(window.__stAppearanceEsc)document.removeEventListener('keydown',window.__stAppearanceEsc);
+  window.__stAppearanceEsc=event=>{if(event.key==='Escape'){event.preventDefault();window.closeAppearanceSettings()}};
+  document.addEventListener('keydown',window.__stAppearanceEsc);
   const theme=window.stPrefs.getTheme(),motion=window.stPrefs.getMotion();
   host.innerHTML='<div class="ov dim" onclick="closeAppearanceSettings()" aria-hidden="true"></div>'+
    '<section class="sheet st-pref-sheet" role="dialog" aria-modal="true" aria-labelledby="st-pref-title">'+
