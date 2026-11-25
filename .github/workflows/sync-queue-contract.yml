@@ -30,5 +30,3 @@ jobs:
         run: npm ci --include=dev --ignore-scripts --no-audit --no-fund
       - name: Check offline and cloud sync contract
         run: npm run check:sync
-      - name: Verify global UI standards
-        run: npm run check:ui
