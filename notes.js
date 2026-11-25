@@ -32,6 +32,7 @@ function sanitize(html){
   if(child.nodeType!==1){child.remove();continue;}
   if(['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','TEMPLATE'].includes(child.tagName)){child.remove();continue;}
   const safeImageSrc=child.tagName==='IMG'&&String(child.getAttribute('src')||'').length<380000&&/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(child.getAttribute('src')||'')?child.getAttribute('src'):null;
+  const safeImageAlt=child.tagName==='IMG'?String(child.getAttribute('alt')||'').slice(0,120):'';
   if(child.tagName==='IMG'&&!safeImageSrc){child.remove();continue;}
   walk(child);
   if(!allowedTags.has(child.tagName)){child.replaceWith(...child.childNodes);continue;}
@@ -40,7 +41,7 @@ function sanitize(html){
   [...child.attributes].forEach(a=>child.removeAttribute(a.name));
   if(classes.length)child.className=classes.join(' ');
   if(checked==='true'||checked==='false'){child.setAttribute('data-checked',checked);child.setAttribute('role','checkbox');child.setAttribute('tabindex','0');child.setAttribute('aria-checked',checked);child.setAttribute('aria-label','Marcar tarefa');}
-  if(safeImageSrc){child.setAttribute('src',safeImageSrc);const alt=String(child.getAttribute('alt')||'').slice(0,120);if(alt)child.setAttribute('alt',alt);}
+  if(safeImageSrc){child.setAttribute('src',safeImageSrc);if(safeImageAlt)child.setAttribute('alt',safeImageAlt);}
  }};
  walk(doc.body);return doc.body.innerHTML;
 }
