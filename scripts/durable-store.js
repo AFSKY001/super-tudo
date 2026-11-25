@@ -42,15 +42,17 @@
     }
 
     let writes = Promise.resolve();
+    const revisions = new Map();
 
     function load(owner) {
       const key = validateOwner(owner);
       return writes.then(function () { return adapter.read(key); }).then(function (record) {
-        if (record == null) return null;
+        if (record == null) { revisions.set(key, 0); return null; }
         if (!validObject(record) || record.format !== FORMAT || record.owner !== key) {
           throw new Error('Snapshot local incompatível ou corrompido; os dados foram preservados.');
         }
         validateSnapshot(record, key);
+        revisions.set(key, Number(record.revision) || 0);
         return {
           owner: key,
           revision: Number(record.revision) || 0,
@@ -72,8 +74,19 @@
         state: snapshot.state,
         syncMeta: snapshot.syncMeta
       };
-      const operation = writes.then(function () {
-        return adapter.commit(record);
+      const operation = writes.then(async function () {
+        if (!revisions.has(key)) {
+          const current = await adapter.read(key);
+          if (current != null && (!validObject(current) || current.format !== FORMAT || current.owner !== key)) {
+            throw new Error('Snapshot local incompatível ou corrompido; os dados foram preservados.');
+          }
+          if (current != null) validateSnapshot(current, key);
+          revisions.set(key, Number(current && current.revision) || 0);
+        }
+        const expectedRevision = revisions.get(key);
+        const revision = await adapter.commit(record, expectedRevision);
+        revisions.set(key, revision);
+        return revision;
       });
       writes = operation.catch(function () {});
       return operation;
@@ -121,15 +134,22 @@
       });
     }
 
-    function commit(record) {
+    function commit(record, expectedRevision) {
       return database().then(function (db) {
         return new Promise(function (resolve, reject) {
           const tx = db.transaction(STORE_NAME, 'readwrite');
           const store = tx.objectStore(STORE_NAME);
           const request = store.get(record.owner);
           let revision = 0;
+          let conflict = null;
           request.onsuccess = function () {
-            revision = (Number(request.result && request.result.revision) || 0) + 1;
+            const currentRevision = Number(request.result && request.result.revision) || 0;
+            if (currentRevision !== expectedRevision) {
+              conflict = new Error('Snapshot alterado em outra aba. Recarregue os dados antes de salvar novamente.');
+              try { tx.abort(); } catch (_) {}
+              return;
+            }
+            revision = currentRevision + 1;
             store.put(Object.assign({}, record, { revision: revision }));
           };
           request.onerror = function () {
@@ -138,7 +158,7 @@
           };
           tx.oncomplete = function () { resolve(revision); };
           tx.onerror = function () { reject(tx.error || new Error('Falha ao gravar snapshot local.')); };
-          tx.onabort = function () { reject(tx.error || new Error('Gravação local cancelada.')); };
+          tx.onabort = function () { reject(conflict || tx.error || new Error('Gravação local cancelada.')); };
         });
       });
     }
