@@ -2192,7 +2192,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 .nt-editor-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;color:#344054;font-size:10px}
 .nt-share{display:flex;align-items:center;gap:8px;margin:0;color:#263244;font-size:12px}
 .nt-share input{width:20px;height:20px;margin:0;accent-color:var(--cor-primaria)}
-.nt-toolbar{position:sticky;bottom:var(--nt-kb,0px);z-index:5;display:flex;align-items:center;gap:4px;overflow-x:auto;margin:8px -5px -4px;padding:5px;border:1px solid #ffffffa8;border-radius:15px;background:#ffffffd9;box-shadow:0 5px 18px #17202f20;backdrop-filter:blur(14px)}
+.nt-toolbar{position:sticky;bottom:var(--nt-kb,0px);z-index:5;display:flex;align-items:center;gap:4px;overflow-x:auto;touch-action:pan-x;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;margin:8px -5px -4px;padding:5px;border:1px solid #ffffffa8;border-radius:15px;background:#ffffffd9;box-shadow:0 5px 18px #17202f20;backdrop-filter:blur(14px)}
 .nt-toolbar[hidden]{display:none}
 .nt-toolbar button{flex:0 0 42px;width:42px;height:42px;min-width:42px;min-height:42px;border:0;border-radius:10px;background:transparent;color:#263244;font:600 15px system-ui}
 .nt-toolbar button:active{background:#17202f14}
@@ -2222,6 +2222,9 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 @keyframes nt-crumple{to{opacity:0;transform:translateY(22px) rotate(12deg) scale(.72)}}
 body.nt-editing nav{display:none}
 body.nt-editing{padding-bottom:env(safe-area-inset-bottom,0px)}
+html:has(body.nt-editing){overscroll-behavior-x:none}
+body.nt-editing{overflow-x:hidden;overscroll-behavior-x:none}
+body.nt-editing .nt-editor{overflow-x:clip;overscroll-behavior-x:contain}
 body.nt-editing .nt-editor{min-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
 
 
