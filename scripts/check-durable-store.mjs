@@ -73,6 +73,41 @@ test('rejeita identidade divergente e fila inválida sem gravar', async () => {
   assert.equal(adapter.records.size, 0);
 });
 
+
+test('exige proprietário explícito nos metadados', async () => {
+  const adapter = memoryAdapter();
+  const store = create(adapter);
+  await assert.rejects(
+    store.save('org-a:user-1', state, { queue: [] }),
+    /outra identidade/
+  );
+  assert.equal(adapter.records.size, 0);
+});
+
+test('leitura aguarda gravação pendente na mesma instância', async () => {
+  let release;
+  const adapter = {
+    record: null,
+    read: async () => adapter.record,
+    commit: record => new Promise(resolve => {
+      release = () => {
+        adapter.record = structuredClone({ ...record, revision: 1 });
+        resolve(1);
+      };
+    })
+  };
+  const store = create(adapter);
+  const saving = store.save('org-a:user-1', state, syncMeta);
+  const loading = store.load('org-a:user-1');
+  await Promise.resolve();
+  assert.equal(typeof release, 'function');
+  release();
+  await saving;
+  const restored = await loading;
+  assert.deepEqual(restored.state, state);
+  assert.equal(restored.revision, 1);
+});
+
 test('falha de gravação não envenena a fila de gravações seguintes', async () => {
   let fail = true;
   const adapter = {
