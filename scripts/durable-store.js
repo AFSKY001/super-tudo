@@ -31,8 +31,14 @@
     if (snapshot.syncMeta.owner !== owner) {
       throw new Error('O snapshot pertence a outra identidade.');
     }
+    if (!validObject(snapshot.syncMeta.revisions)) {
+      throw new TypeError('Revisões de sincronização inválidas.');
+    }
     if (!Array.isArray(snapshot.syncMeta.queue)) {
       throw new TypeError('Fila de sincronização inválida.');
+    }
+    if (!validObject(snapshot.syncMeta.conflicts)) {
+      throw new TypeError('Conflitos de sincronização inválidos.');
     }
   }
 
