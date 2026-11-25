@@ -21,6 +21,17 @@ check(html.includes("))+(isFullAccess()||can('r:notes')")&&html.includes("</butt
 check(html.includes('data-st-notes-fallback')&&html.includes('window.stNotesOpen=fallback')&&html.includes('script.onerror')&&html.includes('script.onload'),'notes access must recover when the module did not register its global open handler.');
 check(notes.trimEnd().endsWith('})(window);')&&notes.includes("root.__ST_NOTES_MODULE_READY__=true")&&notes.includes("root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing'"),'notes module must expose an explicit initialization status.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
+check(notes.includes('function createChecklist()')&&notes.includes('selected.split(/\\n+/)')&&notes.includes('nt-check-item')&&notes.includes('data-checked'),'selected note text must convert into persistent, individually toggleable checklist items.');
+check(notes.includes('nt-palette')&&notes.includes('data-note-color')&&notes.includes('state.paletteOpen')&&notes.includes('function setColor(color)'),'note color selection must use the editor palette and persist the selected color.');
+check(notes.includes('initDrawingCanvas')&&notes.includes('pointerdown')&&notes.includes('toDataURL(\'image/png\')')&&notes.includes('safeImageSrc'),'freehand drawings must be inserted as sanitized PNG images and persisted with the note.');
+check(notes.includes("child.tagName==='IMG'&&c==='nt-drawing-image'")&&notes.includes("const safeImageAlt=child.tagName==='IMG'")&&notes.includes("if(safeImageAlt)child.setAttribute('alt',safeImageAlt)")&&html.includes('.nt-body .nt-drawing-image'),'sanitized drawing images must retain responsive styling and alternative text.');
+check(notes.includes("setAttribute('role','checkbox')")&&notes.includes("setAttribute('aria-checked',item.dataset.checked)")&&notes.includes("e.key==='Enter'||e.key===' '")&&notes.includes("addEventListener('pointerdown',e=>e.preventDefault())"),'checklist toggles must preserve mobile selection and support keyboard accessibility.');
+check(notes.includes('MAX_NOTE_BODY_LENGTH=400000')&&notes.includes('length<380000')&&notes.includes('canvas.width=900;canvas.height=360'),'drawing payload and note body limits must allow normal sketches without unbounded data URLs.');
+check(html.includes('.nt-draw-panel')&&html.includes('#nt-draw-canvas')&&html.includes('.nt-drawing-image'),'drawing canvas must be responsive and styled in the note editor.');
+check(notes.includes('nt-select-mode')&&notes.includes('nt-make-checklist')&&notes.includes('selectionRange()'),'checklist conversion must require an explicit text selection and user action.');
+check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-check-item[data-checked="true"]'),'checklist and palette controls must follow the note editor design system.');
+check(html.includes('.nt-empty-icon.nt-empty-note-float{animation:nt-note-float 3s ease-in-out infinite}')&&html.includes('@keyframes nt-note-float')&&html.includes('.nt-empty-note-float{animation:none!important}')&&notes.includes("state.tab==='minhas'?'nt-empty-note-float':''"),'the personal empty-state note icon must float gently and respect reduced-motion preferences.');
+
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick="window.stNotes')&&notes.includes('oninput="window.stNotes')&&html.includes('onclick="window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
 check(!notes.includes('appendTileToGrid')&&((html.match(/data-notes-tile/g)||[]).length===1),'notes tile must have one insertion path only.');
@@ -46,4 +57,4 @@ check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.n
 check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
 check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+36+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+46+' verificações)');

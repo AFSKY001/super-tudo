@@ -104,6 +104,9 @@ requireCheck(html.includes('M10 2.8h4') && html.includes('cy="11.7" r="3.1"'), '
 
 const requiredPatterns = [
   ['primary color token', /--cor-primaria\s*:\s*#0066cc/i],
+  ['control border token', /--borda-controle\s*:\s*#778397/i],
+  ['dark control border token', /--borda-controle\s*:\s*#71819a/i],
+  ['form controls use accessible border token', /input:not\(\[type=\"checkbox\"\]\):not\(\[type=\"radio\"\]\):not\(\[type=\"range\"\]\),\s*select,textarea\s*\{[^}]*border:\s*1px solid var\(--borda-controle\)/s],
   ['background token', /--fundo\s*:\s*#f5f6f8/i],
   ['dark theme tokens', /:root\[data-theme=["']dark["']\]/i],
   ['reduced-motion support', /prefers-reduced-motion\s*:\s*reduce/i],
@@ -125,7 +128,7 @@ const requiredPatterns = [
   ['global motion enter token', /--ui-motion-enter\s*:\s*170ms/i],
   ['global navigation active indicator', /nav button\.on::after\s*\{[^}]*width:\s*18px/s],
   ['global field focus feedback', /input\[type="checkbox"\]:focus-visible[\s\S]*box-shadow:/s],
-  ['global reduced-motion contract', /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*nav::before\{transition:transform 180ms ease,width 180ms ease!important\}/s],
+  ['mobile reduced-motion contract', /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*and\s*\(max-width:\s*1023px\)\s*\{\s*nav::before,nav button,nav button \.ni,nav button \.nl\s*\{\s*transition:none!important;\s*animation:none!important;\s*will-change:auto!important;/s],
   ['navigation compact labels', /'Painel'.*'Rotina'.*'Avaliar'.*'Progresso'.*'Equipe'.*'Registro'.*'Ajustes'/s],
   ['navigation selected pill', /nav button\.on\s*\{[^}]*background:var\(--prs\)!important/s],
   ['navigation current page semantics', /aria-current=/],
@@ -143,10 +146,14 @@ for (const [label, pattern] of requiredPatterns) {
 const styleContent = html.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i)?.[1] || '';
 const paletteStart = styleContent.indexOf('/* PALETA GLOBAL');
 const scriptContent = html.slice(html.indexOf('</style>') + 8);
+const keyframeNames = [...styleContent.matchAll(/@keyframes\s+([-\w]+)/g)].map(match => match[1]);
+const uniqueKeyframeNames = new Set(keyframeNames);
+requireCheck(uniqueKeyframeNames.size === keyframeNames.length, 'CSS keyframe names must be globally unique to prevent animation definitions from overriding each other.');
+
 const semanticColorTokens = [
   '--cor-primaria:', '--cor-primaria-hover:', '--cor-primaria-suave:',
   '--cor-sucesso:', '--cor-sucesso-suave:', '--cor-alerta:', '--cor-alerta-suave:',
-  '--cor-erro:', '--cor-erro-suave:', '--cor-info:', '--cor-info-suave:',
+  '--cor-erro:', '--cor-erro-suave:', '--cor-info:', '--cor-info-suave:', '--borda-controle:',
   '--fundo:', '--superficie:', '--superficie-2:', '--borda:',
   '--texto:', '--texto-suave:', '--texto-desabilitado:', '--sombra:', '--vidro:'
 ];

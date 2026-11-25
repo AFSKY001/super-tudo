@@ -35,6 +35,8 @@ jobs:
         run: npm run check:sync
       - name: Verify global UI standards
         run: npm run check:ui
+      - name: Check loss import CSV parsing and duplicate fingerprints
+        run: npm run check:imports
       - name: Check routine domain and recurrence
         run: npm run check:routine
       - name: Check Service Worker offline and HTTP fallback
@@ -83,6 +85,17 @@ jobs:
             exit 1
           fi
           npx wrangler deploy --config wrangler.jsonc
+      - name: Deploy isolated Cloudflare Preview for pull request
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: d5c42f7e3b18d14a12db0610b88eb8c9
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Configure the CLOUDFLARE_API_TOKEN repository secret with Workers Scripts Write permission."
+            exit 1
+          fi
+          npx wrangler preview --config wrangler.jsonc --name super-tudo-notas-teste --message "PR #${{ github.event.pull_request.number }} - ${GITHUB_SHA}" --json
       - name: Upload protected distribution
         uses: actions/upload-artifact@v7
         with:
