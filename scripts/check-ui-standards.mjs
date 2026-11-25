@@ -146,6 +146,10 @@ for (const [label, pattern] of requiredPatterns) {
 const styleContent = html.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i)?.[1] || '';
 const paletteStart = styleContent.indexOf('/* PALETA GLOBAL');
 const scriptContent = html.slice(html.indexOf('</style>') + 8);
+const keyframeNames = [...styleContent.matchAll(/@keyframes\s+([-\w]+)/g)].map(match => match[1]);
+const uniqueKeyframeNames = new Set(keyframeNames);
+requireCheck(uniqueKeyframeNames.size === keyframeNames.length, 'CSS keyframe names must be globally unique to prevent animation definitions from overriding each other.');
+
 const semanticColorTokens = [
   '--cor-primaria:', '--cor-primaria-hover:', '--cor-primaria-suave:',
   '--cor-sucesso:', '--cor-sucesso-suave:', '--cor-alerta:', '--cor-alerta-suave:',
