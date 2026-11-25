@@ -11,9 +11,11 @@ function memoryAdapter() {
   return {
     records,
     read(owner) { return Promise.resolve(records.get(owner) || null); },
-    commit(record) {
+    commit(record, expectedRevision) {
       const write = sequence.then(() => {
-        const revision = (records.get(record.owner)?.revision || 0) + 1;
+        const currentRevision = records.get(record.owner)?.revision || 0;
+        if (currentRevision !== expectedRevision) throw new Error('Snapshot alterado em outra aba.');
+        const revision = currentRevision + 1;
         records.set(record.owner, structuredClone({ ...record, revision }));
         return revision;
       });
@@ -108,13 +110,28 @@ test('leitura aguarda gravação pendente na mesma instância', async () => {
   assert.equal(restored.revision, 1);
 });
 
+
+test('impede que uma aba sobrescreva snapshot mais recente de outra', async () => {
+  const adapter = memoryAdapter();
+  const tabA = create(adapter);
+  const tabB = create(adapter);
+  await tabA.save('org-a:user-1', { value: 'versão A' }, syncMeta);
+  await tabB.load('org-a:user-1');
+  await tabA.save('org-a:user-1', { value: 'versão A2' }, syncMeta);
+  await assert.rejects(
+    tabB.save('org-a:user-1', { value: 'versão antiga B' }, syncMeta),
+    /outra aba/
+  );
+  assert.equal((await tabA.load('org-a:user-1')).state.value, 'versão A2');
+});
+
 test('falha de gravação não envenena a fila de gravações seguintes', async () => {
   let fail = true;
   const adapter = {
     read: async () => null,
-    commit: async record => {
+    commit: async (record, expectedRevision) => {
       if (fail) { fail = false; throw new Error('quota'); }
-      return 7;
+      return expectedRevision + 1;
     }
   };
   const store = create(adapter);
