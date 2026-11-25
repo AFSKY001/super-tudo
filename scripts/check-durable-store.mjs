@@ -433,3 +433,28 @@ test('falha de load não bloqueia leitura ou gravação posterior', async () => 
   assert.equal(await store.save('org-a:user-1', state, syncMeta), 1);
   assert.equal((await store.load('org-a:user-1')).revision, 1);
 });
+
+test('IndexedDB fecha conexão antiga quando outra aba solicita upgrade de versão', async t => {
+  if (!globalThis.indexedDB || typeof globalThis.indexedDB.open !== 'function') {
+    t.skip('IndexedDB não está disponível neste runtime.');
+    return;
+  }
+  const adapter = require('./durable-store.js').createIndexedDbAdapter(globalThis.indexedDB);
+  await adapter.read('ci-versionchange:' + process.pid);
+  const upgrade = await new Promise((resolve, reject) => {
+    const request = globalThis.indexedDB.open('st-app-durable-v1', 2);
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains('versionchange-probe')) {
+        request.result.createObjectStore('versionchange-probe');
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error('Upgrade ficou bloqueado inesperadamente.'));
+  });
+  upgrade.close();
+  await assert.rejects(
+    adapter.read('ci-versionchange:' + process.pid),
+    error => error && (error.name === 'VersionError' || /version/i.test(error.message))
+  );
+});
