@@ -6,9 +6,10 @@
   "scripts": {
     "build:protected": "node scripts/build-protected.mjs",
     "check:ui": "node scripts/check-ui-standards.mjs",
-    "build:deploy": "npm run check:ui && npm run check:imports && npm run check:navigation && npm run check:notification-sounds && npm run check:notification-reliability && npm run check:sync && npm run check:routine && npm run check:service-worker && npm run check:pickers && npm run check:recipes && npm run check:notes && npm run build:protected",
+    "build:deploy": "npm run check:ui && npm run check:durable-store && npm run check:imports && npm run check:navigation && npm run check:notification-sounds && npm run check:notification-reliability && npm run check:sync && npm run check:routine && npm run check:service-worker && npm run check:pickers && npm run check:recipes && npm run check:notes && npm run build:protected",
     "deploy": "npm run build:deploy && wrangler deploy",
     "check:sync": "node scripts/check-sync-contract.mjs",
+    "check:durable-store": "node --test scripts/check-durable-store.mjs",
     "check:routine": "node scripts/check-routine.mjs",
     "check:service-worker": "node scripts/check-service-worker.mjs",
     "check:pickers": "node scripts/check-pickers.mjs",

@@ -1,0 +1,33 @@
+name: Durable local snapshot contract
+
+on:
+  push:
+    branches:
+      - feat/durable-local-snapshot-prototype-20261125
+  pull_request:
+    branches:
+      - fix/sync-queue-persistence-guard-20261125
+
+permissions:
+  contents: read
+
+concurrency:
+  group: durable-store-contract-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Install isolated IndexedDB test implementation
+        run: npm install --no-save --package-lock=false fake-indexeddb@6
+      - name: Run durable snapshot contract tests with IndexedDB enabled
+        env:
+          DURABLE_STORE_REQUIRE_INDEXEDDB: '1'
+        run: node --import=fake-indexeddb/auto --test scripts/check-durable-store.mjs
