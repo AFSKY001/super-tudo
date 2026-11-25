@@ -169,7 +169,21 @@
           let revision = 0;
           let conflict = null;
           request.onsuccess = function () {
-            const currentRevision = Number(request.result && request.result.revision) || 0;
+            const current = request.result || null;
+            if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
+              conflict = new Error('Revisão local esperada inválida; gravação bloqueada.');
+              try { tx.abort(); } catch (_) {}
+              return;
+            }
+            if (current != null) {
+              try { validateRecord(current, record.owner); }
+              catch (error) {
+                conflict = error;
+                try { tx.abort(); } catch (_) {}
+                return;
+              }
+            }
+            const currentRevision = current ? current.revision : 0;
             if (currentRevision !== expectedRevision) {
               conflict = new Error('Snapshot alterado em outra aba. Recarregue os dados antes de salvar novamente.');
               try { tx.abort(); } catch (_) {}
