@@ -30,6 +30,7 @@ check(notes.includes('MAX_NOTE_BODY_LENGTH=400000')&&notes.includes('length<3800
 check(html.includes('.nt-draw-panel')&&html.includes('#nt-draw-canvas')&&html.includes('.nt-drawing-image'),'drawing canvas must be responsive and styled in the note editor.');
 check(notes.includes('nt-select-mode')&&notes.includes('nt-make-checklist')&&notes.includes('selectionRange()'),'checklist conversion must require an explicit text selection and user action.');
 check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-check-item[data-checked="true"]'),'checklist and palette controls must follow the note editor design system.');
+check(html.includes('.nt-empty-icon.nt-empty-note-float{animation:nt-note-float 3s ease-in-out infinite}')&&html.includes('@keyframes nt-note-float')&&html.includes('.nt-empty-note-float{animation:none!important}')&&notes.includes("state.tab==='minhas'?'nt-empty-note-float':''"),'the personal empty-state note icon must float gently and respect reduced-motion preferences.');
 
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick="window.stNotes')&&notes.includes('oninput="window.stNotes')&&html.includes('onclick="window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
