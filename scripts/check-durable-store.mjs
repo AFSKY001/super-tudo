@@ -87,7 +87,7 @@ test('exige proprietário explícito nos metadados', async () => {
   const adapter = memoryAdapter();
   const store = create(adapter);
   await assert.rejects(
-    async () => store.save('org-a:user-1', state, { queue: [] }),
+    async () => store.save('org-a:user-1', state, { owner: 'org-a:user-1', revisions: {}, queue: [], conflicts: {} }),
     /outra identidade/
   );
   assert.equal(adapter.records.size, 0);
@@ -104,7 +104,7 @@ test('rejeita metadados de sincronização incompletos ou com tipos inválidos',
   ];
   for (const metadata of invalidMetadata) {
     await assert.rejects(
-      store.save('org-a:user-1', state, metadata),
+      async () => store.save('org-a:user-1', state, metadata),
       /Revisões de sincronização inválidas|Conflitos de sincronização inválidos/
     );
   }
