@@ -40,6 +40,8 @@ const checks = [
   ['flush interrompe o lote se não persistir exclusão local obsoleta', /syncMeta\['queue'\]\[_0x4b2dbd\(0xfb\)\]\(_0x54cb25,0x1\),syncPersistOrThrow\('Não foi possível salvar a remoção da exclusão local\.'\);continue/],
   ['flush interrompe envios seguintes se não persistir confirmação do servidor', /syncMeta\['queue'\]\[_0x4b2dbd\(0xfb\)\]\(_0x54cb25,0x1\),syncPersistOrThrow\('O servidor confirmou o envio/],
   ['flush interrompe lote se não persistir estado de conflito', /syncPersistOrThrow\('Não foi possível salvar o conflito recebido do servidor\.'\),syncLocalNotice/],
+  ['flush sempre libera o bloqueio de execução mesmo após erro', /finally\{syncBusy=!0x1;syncPersist\(\);\}/],
+  ['gravação posterior só limpa o erro específico de armazenamento, sem ocultar falha de rede ou RPC', /if\(syncLastError===message\)syncLastError='';return true;\}catch\(error\)\{syncLastError=message/],
   ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\[\['tmod',S\.tmod\],\['routineModels',S\.routineModels\]\][\s\S]{0,500}targets\.has/],
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só é removido depois de checklist com itens e salvamento confirmado', /if\(!converted\)return false;[\s\S]*?S\[module\]=S\[module\]\.filter[\s\S]*?if\(!save\(\)\)/],
