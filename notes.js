@@ -213,6 +213,7 @@ function subscribe(){
 }
 function open(){
  if(!canView())return notify('Você não tem permissão para acessar o Bloco de notas.');
+ cleanupViewport();
  V.tab='reg';V.rs='notes';V.reg=null;state.tab='minhas';state.search='';state.color='';state.editor=null;state.menu=false;state.mode='write';state.paletteOpen=false;state.drawOpen=false;bridge.R();subscribe();loadNotes();
 }
 async function backToRegistry(){const saved=await back();if(saved===false)return;if(state.channel){supa.removeChannel(state.channel);state.channel=null;}V.rs='home';V.reg=null;bridge.R();}
