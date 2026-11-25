@@ -243,3 +243,26 @@ test('adaptador IndexedDB valida revisão e snapshot atual antes do compare-and-
   assert.match(commitBody, /validateRecord\(current, record\.owner\)/);
   assert.ok(commitBody.indexOf('validateRecord(current, record.owner)') < commitBody.indexOf('currentRevision !== expectedRevision'));
 });
+
+test('IndexedDB real persiste snapshot e bloqueia gravação obsoleta entre instâncias', async t => {
+  if (!globalThis.indexedDB || typeof globalThis.indexedDB.open !== 'function') {
+    t.skip('IndexedDB nativo indisponível neste runtime.');
+    return;
+  }
+  const owner = 'ci-indexeddb:' + process.pid + ':' + Date.now() + ':' + Math.random().toString(36).slice(2);
+  const adapterA = require('./durable-store.js').createIndexedDbAdapter(globalThis.indexedDB);
+  const adapterB = require('./durable-store.js').createIndexedDbAdapter(globalThis.indexedDB);
+  const storeA = create(adapterA);
+  const storeB = create(adapterB);
+  const firstState = { notes: [{ id: 'idb-1', text: 'persistido' }] };
+  await storeA.save(owner, firstState, { ...syncMeta, owner });
+  const stale = await storeB.load(owner);
+  assert.deepEqual(stale.state, firstState);
+  await storeA.save(owner, { notes: [{ id: 'idb-1', text: 'versão nova' }] }, { ...syncMeta, owner });
+  await assert.rejects(
+    storeB.save(owner, { notes: [{ id: 'idb-1', text: 'versão obsoleta' }] }, { ...syncMeta, owner }),
+    /outra aba/
+  );
+  const latest = await storeA.load(owner);
+  assert.equal(latest.state.notes[0].text, 'versão nova');
+});
