@@ -28,6 +28,13 @@ function memoryAdapter() {
 const state = { notes: [{ id: 'n1', text: 'rascunho' }], settings: { theme: 'dark' } };
 const syncMeta = { owner: 'org-a:user-1', revisions: {}, queue: [{ client_id: 'op-1' }], conflicts: {} };
 
+test('CI exige IndexedDB habilitado para não aceitar testes ignorados', () => {
+  if (process.env.DURABLE_STORE_REQUIRE_INDEXEDDB === '1') {
+    assert.ok(globalThis.indexedDB && typeof globalThis.indexedDB.open === 'function',
+      'fake-indexeddb deveria estar carregado neste job.');
+  }
+});
+
 test('grava e recupera estado completo junto com a fila', async () => {
   const adapter = memoryAdapter();
   const store = create(adapter);
