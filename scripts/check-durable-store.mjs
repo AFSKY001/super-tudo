@@ -319,6 +319,38 @@ test('IndexedDB real persiste snapshot e bloqueia gravação obsoleta entre inst
 
 
 
+test('IndexedDB aborta transação sem deixar snapshot parcial e permite nova gravação', async t => {
+  if (!globalThis.indexedDB || !globalThis.IDBObjectStore) {
+    t.skip('IndexedDB não está disponível neste runtime.');
+    return;
+  }
+  const owner = 'ci-abort:' + process.pid + ':' + Date.now() + ':' + Math.random().toString(36).slice(2);
+  const adapter = require('./durable-store.js').createIndexedDbAdapter(globalThis.indexedDB);
+  const store = create(adapter);
+  const prototype = globalThis.IDBObjectStore.prototype;
+  const originalPut = prototype.put;
+  let abortNextWrite = true;
+  prototype.put = function (...args) {
+    if (abortNextWrite && this.transaction && this.transaction.mode === 'readwrite') {
+      abortNextWrite = false;
+      this.transaction.abort();
+      return undefined;
+    }
+    return originalPut.apply(this, args);
+  };
+  try {
+    await assert.rejects(
+      store.save(owner, { partial: true }, { ...syncMeta, owner }),
+      /cancelada|AbortError|aborted/i
+    );
+  } finally {
+    prototype.put = originalPut;
+  }
+  assert.equal(await adapter.read(owner), null);
+  assert.equal(await store.save(owner, { recovered: true }, { ...syncMeta, owner }), 1);
+  assert.deepEqual((await store.load(owner)).state, { recovered: true });
+});
+
 test('IndexedDB preserva registro corrompido e bloqueia leitura e gravação', async t => {
   if (!globalThis.indexedDB || typeof globalThis.indexedDB.open !== 'function') {
     t.skip('IndexedDB não está disponível neste runtime.');
