@@ -1636,7 +1636,7 @@ button:disabled{cursor:not-allowed}
 input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 select,textarea{
   min-height:44px;
-  border:1px solid var(--bd);
+  border:1px solid var(--borda-controle);
   border-radius:var(--ui-radius-control);
   background:var(--cd);
   color:var(--tx);
@@ -1778,7 +1778,7 @@ select:disabled,
 textarea:disabled{
   background:var(--sf)!important;
   color:var(--mu)!important;
-  border-color:var(--bd)!important;
+  border-color:var(--borda-controle)!important;
   cursor:not-allowed!important;
   opacity:.72;
 }
@@ -2037,6 +2037,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 /* PALETA GLOBAL — tokens únicos Super Tudo */
 :root{
  --cor-primaria:#0066CC;--cor-primaria-hover:#0057B8;--cor-primaria-suave:color-mix(in srgb,var(--cor-primaria) 12%,transparent);
+ --borda-controle:#778397;
  --cor-sucesso:#1B6E2F;--cor-sucesso-suave:color-mix(in srgb,var(--cor-sucesso) 12%,transparent);
  --cor-alerta:#995700;--cor-alerta-suave:color-mix(in srgb,var(--cor-alerta) 12%,transparent);
  --cor-erro:#C62828;--cor-erro-suave:color-mix(in srgb,var(--cor-erro) 12%,transparent);
@@ -2052,6 +2053,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 }
 :root[data-theme="dark"]{
  --cor-primaria:#8AB4F8;--cor-primaria-hover:#A6C7FF;--cor-primaria-suave:color-mix(in srgb,var(--cor-primaria) 16%,transparent);
+ --borda-controle:#71819A;
  --cor-sucesso:#5BCB8D;--cor-sucesso-suave:color-mix(in srgb,var(--cor-sucesso) 16%,transparent);
  --cor-alerta:#F0B65A;--cor-alerta-suave:color-mix(in srgb,var(--cor-alerta) 16%,transparent);
  --cor-erro:#FF7B72;--cor-erro-suave:color-mix(in srgb,var(--cor-erro) 16%,transparent);
@@ -2063,6 +2065,7 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 @media(prefers-color-scheme:dark){
  :root:not([data-theme="light"]){
   --cor-primaria:#8AB4F8;--cor-primaria-hover:#A6C7FF;--cor-primaria-suave:color-mix(in srgb,var(--cor-primaria) 16%,transparent);
+ --borda-controle:#71819A;
   --cor-sucesso:#5BCB8D;--cor-sucesso-suave:color-mix(in srgb,var(--cor-sucesso) 16%,transparent);
   --cor-alerta:#F0B65A;--cor-alerta-suave:color-mix(in srgb,var(--cor-alerta) 16%,transparent);
   --cor-erro:#FF7B72;--cor-erro-suave:color-mix(in srgb,var(--cor-erro) 16%,transparent);
