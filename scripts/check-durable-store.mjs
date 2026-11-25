@@ -234,3 +234,12 @@ test('isola os dados salvos e restaurados de mutações externas', async () => {
   const again = await store.load('org-a:user-1');
   assert.equal(again.state.nested.value, 'original');
 });
+
+test('adaptador IndexedDB valida revisão e snapshot atual antes do compare-and-set', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('./durable-store.js', import.meta.url), 'utf8');
+  const commitBody = source.slice(source.indexOf('function commit(record, expectedRevision)'));
+  assert.match(commitBody, /Number\.isSafeInteger\(expectedRevision\)/);
+  assert.match(commitBody, /validateRecord\(current, record\.owner\)/);
+  assert.ok(commitBody.indexOf('validateRecord(current, record.owner)') < commitBody.indexOf('currentRevision !== expectedRevision'));
+});
