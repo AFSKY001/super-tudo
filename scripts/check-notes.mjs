@@ -30,6 +30,7 @@ check(notes.includes('MAX_NOTE_BODY_LENGTH=400000')&&notes.includes('length<3800
 check(html.includes('.nt-draw-panel')&&html.includes('#nt-draw-canvas')&&html.includes('.nt-drawing-image'),'drawing canvas must be responsive and styled in the note editor.');
 check(notes.includes('nt-select-mode')&&notes.includes('nt-make-checklist')&&notes.includes('selectionRange()'),'checklist conversion must require an explicit text selection and user action.');
 check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-check-item[data-checked="true"]'),'checklist and palette controls must follow the note editor design system.');
+check(html.includes('.nt-empty-icon.nt-empty-note-float{animation:nt-note-float 3s ease-in-out infinite}')&&html.includes('@keyframes nt-note-float')&&html.includes('.nt-empty-note-float{animation:none!important}')&&notes.includes("state.tab==='minhas'?'nt-empty-note-float':''"),'the personal empty-state note icon must float gently and respect reduced-motion preferences.');
 
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick="window.stNotes')&&notes.includes('oninput="window.stNotes')&&html.includes('onclick="window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
@@ -56,4 +57,4 @@ check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.n
 check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
 check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+45+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+46+' verificações)');
