@@ -35,6 +35,8 @@ jobs:
         run: npm run check:sync
       - name: Verify global UI standards
         run: npm run check:ui
+      - name: Check loss import CSV parsing and duplicate fingerprints
+        run: npm run check:imports
       - name: Check routine domain and recurrence
         run: npm run check:routine
       - name: Check Service Worker offline and HTTP fallback
