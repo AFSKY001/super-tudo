@@ -25,8 +25,8 @@ const syncConcurrencyMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
-  ['falha ao persistir a fila é exibida como erro e não é silenciosa', /function syncPersist\\(\\)[\\s\\S]{0,900}syncPersistenceFailed=true[\\s\\S]{0,300}syncLastError=message[\\s\\S]{0,250}return false/],
-  ['envio exige persistência confirmada da fila antes de transmitir', /async function syncFlushRun\\(\\)[\\s\\S]{0,500}syncMeta\\.queue\\.some\\(op=>!op.status\\)&&!syncPersist\\(\\)\\)return false/],
+  ['falha ao persistir a fila é exibida como erro e não é silenciosa', /function syncPersist\(\)[\s\S]{0,900}syncPersistenceFailed=true[\s\S]{0,300}syncLastError=message[\s\S]{0,250}return false/],
+  ['envio exige persistência confirmada da fila antes de transmitir', /async function syncFlushRun\(\)[\s\S]{0,500}syncMeta\.queue\.some\(op=>!op.status\)&&!syncPersist\(\)\)return false/],
   ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\[\['tmod',S\.tmod\],\['routineModels',S\.routineModels\]\][\s\S]{0,500}targets\.has/],
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só é removido depois de checklist com itens e salvamento confirmado', /if\(!converted\)return false;[\s\S]*?S\[module\]=S\[module\]\.filter[\s\S]*?if\(!save\(\)\)/],
