@@ -198,3 +198,25 @@ test('não sobrescreve snapshot existente com identidade interna divergente', as
   );
   assert.deepEqual(adapter.records.get('org-a:user-1'), original);
 });
+
+test('rejeita revisão inválida e preserva o snapshot original', async () => {
+  const adapter = memoryAdapter();
+  const original = {
+    format: 1,
+    owner: 'org-a:user-1',
+    revision: -3,
+    state: { protected: true },
+    syncMeta
+  };
+  adapter.records.set('org-a:user-1', structuredClone(original));
+  const store = create(adapter);
+  await assert.rejects(
+    store.load('org-a:user-1'),
+    /incompatível ou corrompido/
+  );
+  await assert.rejects(
+    store.save('org-a:user-1', state, syncMeta),
+    /incompatível ou corrompido/
+  );
+  assert.deepEqual(adapter.records.get('org-a:user-1'), original);
+});
