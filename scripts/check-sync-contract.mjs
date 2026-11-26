@@ -167,14 +167,14 @@ if (failedPermissions.length) {
 }
 
 const routinePermissionChecks = [
-  ['leitura da Rotina limita executor/liderança', /can_read_routine_record[\\s\\S]*?team_lead_members[\\s\\S]*?has_perm_for_org\\('r:eqp'/i],
-  ['gravação valida atribuição, atividade e identidade determinística', /can_write_routine_record[\\s\\S]*?routineAssignments[\\s\\S]*?routineModels[\\s\\S]*?p_record_id = concat/i],
-  ['trigger protege gravações feitas por RPC SECURITY DEFINER', /guard_routine_app_record_write[\\s\\S]*?before insert or update on public\\.app_records/i],
-  ['leitura por tipo chama helper sem recursão', /create or replace function public\\.can_read_kind_for_org[\\s\\S]*?else public\\.has_perm_for_org\\(k,p_org_id\\)/i],
-  ['tipo r:rot exige permissão específica', /when k='r:rot' then public\\.has_perm_for_org\\('r:rot',p_org_id\\)/i],
+  ['leitura da Rotina limita executor/liderança', /can_read_routine_record[\s\S]*?team_lead_members[\s\S]*?has_perm_for_org\('r:eqp'/i],
+  ['gravação valida atribuição, atividade e identidade determinística', /can_write_routine_record[\s\S]*?routineAssignments[\s\S]*?routineModels[\s\S]*?p_record_id = concat/i],
+  ['trigger protege gravações feitas por RPC SECURITY DEFINER', /guard_routine_app_record_write[\s\S]*?before insert or update on public\.app_records/i],
+  ['leitura por tipo não chama a si própria', /create or replace function public\.can_read_kind_for_org[\s\S]*?else public\.has_perm_for_org\(k,p_org_id\)/i],
+  ['tipo r:rot exige permissão específica', /when k='r:rot' then public\.has_perm_for_org\('r:rot',p_org_id\)/i],
 ];
 const routineMigrationChecks = [
-  ['migração de checklists atribuídos roda mesmo após rotina-v1', routineSource.indexOf('routine-assigned-checklists-v2') >= 0 && routineSource.indexOf('routine-assigned-checklists-v2') < routineSource.indexOf("S.migrations.includes('routine-v1')")],
+  ['migração de checklists atribuídos roda mesmo após routine-v1', routineSource.indexOf('routine-assigned-checklists-v2') >= 0 && routineSource.indexOf('routine-assigned-checklists-v2') < routineSource.indexOf("S.migrations.includes('routine-v1')")],
   ['checklists legados leem itens separados por pipe', /typeof c\?\.i==='string'\?c\.i\.split\('\|'\)/.test(routineSource)],
   ['checklists duplicados usam assinatura estável', /legacySignature:suffix/.test(routineSource)],
   ['pessoa com rotina recebe permissão de menu r:rot', /grantRoutinePermission\(pid\)/.test(routineSource)],
