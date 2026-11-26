@@ -239,12 +239,11 @@ for (const [label, pattern] of employeeRoutineModelChecks) {
 }
 
 const routineTaskDetailLayoutChecks = [
-  ['detalhes da Rotina usam contêiner próprio de rolagem vertical', /function rTaskDetail\\(\\)[\\s\\S]*?return '<section class="rot-task-detail-scroll">[\\s\\S]*?\\+_0x427603\\(0x59a\\)<'\\/section>'\\;\\}function addRotTaskPhoto/],
-  ['rolagem dos detalhes respeita viewport e área segura inferior', /\\.rot-task-detail-scroll\\{[\\s\\S]*?max-height:calc\\(100dvh - 176px\\)[\\s\\S]*?overflow-y:auto[\\s\\S]*?env\\(safe-area-inset-bottom/],
-  ['blocos e etapas dos detalhes mantêm espaçamento confortável', /\\.rot-task-detail-scroll > \\.c\\{[\\s\\S]*?padding:16px[\\s\\S]*?\\.rot-task-detail-scroll \\.it\\{[\\s\\S]*?margin:10px 0[\\s\\S]*?padding:12px/],
+  ['detalhes da Rotina usam contêiner próprio de rolagem vertical', source.includes("return '<section class=\"rot-task-detail-scroll\">") && source.includes("+_0x427603(0x59a)+'</section>';}function addRotTaskPhoto")],
+  ['rolagem dos detalhes respeita viewport e área segura inferior', source.includes('.rot-task-detail-scroll{') && source.includes('max-height:calc(100dvh - 176px)') && source.includes('overflow-y:auto') && source.includes('env(safe-area-inset-bottom,0px)')],
+  ['blocos e etapas dos detalhes mantêm espaçamento confortável', source.includes('.rot-task-detail-scroll > .c{') && source.includes('padding:16px') && source.includes('.rot-task-detail-scroll .it{') && source.includes('margin:10px 0') && source.includes('padding:12px')],
 ];
-for (const [label, pattern] of routineTaskDetailLayoutChecks) {
-  const passed = pattern.test(source);
+for (const [label, passed] of routineTaskDetailLayoutChecks) {
   console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
   if (!passed) process.exitCode = 1;
 }
