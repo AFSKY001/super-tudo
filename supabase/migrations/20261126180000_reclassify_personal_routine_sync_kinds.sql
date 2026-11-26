@@ -312,13 +312,7 @@ grant execute on function public.sync_pull(timestamptz, uuid) to authenticated;
 
 revoke all on function public.guard_personal_routine_sync_write() from public, anon, authenticated;
 
--- Undo (only BEFORE new r:rot writes are created after this migration):
--- drop trigger if exists app_records_guard_personal_routine_sync_write on public.app_records;
--- drop function if exists public.guard_personal_routine_sync_write();
--- update public.app_records set kind = 'r:cro'
---  where module = 'pt' and kind = 'r:rot';
--- update public.app_records set kind = 'r:cro'
---  where module = 'done' and kind = 'r:rot'
---    and cardinality(string_to_array(record_id, '|')) >= 3;
--- If any new/updated per-person rows were written after this migration,
--- reconcile them individually; do not run the undo blindly.
+-- Undo is provided separately at:
+-- supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql
+-- It restores sync_pull before removing the scoped-read helper and trigger.
+-- Run it only before new per-person pt/done writes have occurred.
