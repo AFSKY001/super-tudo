@@ -39,7 +39,7 @@ begin
         and me.org_id = new.org_id
         and me.active = true
         and p.active = true
-        and public.has_perm_for_org('r:rot', new.org_id)
+        and (me.role in ('admin', 'gerente') or public.has_perm_for_org('r:rot', new.org_id))
         and (
           me.role in ('admin', 'gerente')
           or v_person_id = me.team_member_id
@@ -83,7 +83,7 @@ begin
         and me.org_id = new.org_id
         and me.active = true
         and p.active = true
-        and public.has_perm_for_org('r:rot', new.org_id)
+        and (me.role in ('admin', 'gerente') or public.has_perm_for_org('r:rot', new.org_id))
         and (
           me.role in ('admin', 'gerente')
           or v_person_id = me.team_member_id
@@ -159,7 +159,7 @@ select case
           and me.active = true
           and p.active = true
           and me.role = 'encarregado'
-          and public.has_perm_for_org('r:rot', p_org_id)
+          and (me.role in ('admin', 'gerente') or public.has_perm_for_org('r:rot', p_org_id))
           and public.has_perm_for_org('r:eqp', p_org_id)
           and coalesce(a.data->'value'->>'executorId', a.data->>'executorId')
               = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
@@ -185,7 +185,7 @@ select case
         and me.org_id = p_org_id
         and me.active = true
         and p.active = true
-        and public.has_perm_for_org('r:rot', p_org_id)
+        and (me.role in ('admin', 'gerente') or public.has_perm_for_org('r:rot', p_org_id))
         and (
           me.role in ('admin', 'gerente')
           or coalesce(p_data->>'pid', p_data->'value'->>'pid') = me.team_member_id
@@ -213,7 +213,7 @@ select case
         and me.org_id = p_org_id
         and me.active = true
         and p.active = true
-        and public.has_perm_for_org('r:rot', p_org_id)
+        and (me.role in ('admin', 'gerente') or public.has_perm_for_org('r:rot', p_org_id))
         and (
           me.role in ('admin', 'gerente')
           or split_part(p_record_id, '|', 3) = me.team_member_id
@@ -234,6 +234,8 @@ select case
   when p_module in ('routineModels', 'routineAssignments') then
     p_kind = 'r:cro'
     and public.can_read_kind_for_org(p_kind, p_record_id, p_org_id)
+
+  when p_module = 'done' and p_kind = 'r:rot' then false
 
   when p_module = 'done' and p_kind = 'r:cro' then
     public.can_read_kind_for_org(p_kind, p_record_id, p_org_id)
