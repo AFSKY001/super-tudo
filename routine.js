@@ -95,8 +95,7 @@ function migrate(){
   person.perm=[...person.perm,'r:rot'];return true;
  };
  const assignedChecklistMigration='routine-assigned-checklists-v2';
- if(!S.migrations.includes(assignedChecklistMigration)){
-  let added=false;
+ let added=false;
   Object.entries(CK||{}).forEach(([ckid,checklist])=>{
    const pid=String(checklist?.p||'').trim(),name=String(checklist?.n||'').trim();
    if(!pid||!who(pid)||!name)return;
@@ -130,9 +129,8 @@ function migrate(){
    }
    if(grantRoutinePermission(pid))added=true;
   });
-  S.migrations.push(assignedChecklistMigration);
+  if(!S.migrations.includes(assignedChecklistMigration)){S.migrations.push(assignedChecklistMigration);added=true;}
   if(added)save();
- }
  if(S.migrations.includes('routine-v1'))return;
  const recurrenceFor=days=>{const mapped=Core.legacyWeekdays(days);return{type:'weekly',days:mapped.length?mapped:[0,1,2,3,4,5,6]};};
  const activityFrom=(item,turn,index,source)=>{
@@ -290,10 +288,10 @@ async function complete(id){const o=db().occurrences[id];if(!o||!canSee(o.execut
 const oldMenu=rMenuCore;if(typeof oldMenu==='function')rMenuCore=function(){if(V.sh==='routine-editor'||V.sh==='routine-photo'){$('mn').innerHTML='';$('sh').innerHTML=V.sh==='routine-editor'?editorSheet():photoSheet();return;}return oldMenu();};bridge.rMenuCore=rMenuCore;
 bridge.rCroMain=todayScreen;bridge.rRotReg=modelPage;bridge.rCroReg=modelPage;bridge.rRot=todayScreen;bridge.rRotEmp=todayScreen;bridge.ptHTML=personSection;
 root.rtNew=newModel;root.rtEdit=editModel;root.rtCopy=duplicateModel;root.rtArchive=archiveModel;root.rtAdd=addActivity;root.rtRemove=removeActivity;root.rtChooseChecklist=chooseChecklist;root.rtImportChecklist=importChecklist;root.rtCopyActivities=copyActivities;root.rtSave=saveModel;root.rtAssign=assign;root.rtExtra=extra;root.rtEnd=endAssignment;root.rtDone=complete;root.rtDismiss=dismiss;root.rtOpenFn=id=>FUNCOES[id]?.abrir?.();root.rtPhoto=viewPhoto;root.rtPhotoClose=closePhoto;
-root.rtGenerateDay=generateDay;root.rtSyncFunctions=syncFunctions;
+root.rtGenerateDay=generateDay;root.rtSyncFunctions=syncFunctions;root.rtMigrate=migrate;
 migrate();generateDay();syncFunctions();
 const originalRender=R;let rendering=false;if(typeof originalRender==='function'){R=function(){if(!rendering){rendering=true;try{generateDay();syncFunctions();}finally{rendering=false;}}return originalRender.apply(this,arguments);};bridge.R=R;}
-root.addEventListener('focus',()=>{generateDay();syncFunctions();});root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden){generateDay();syncFunctions();}});
+root.addEventListener('focus',()=>{generateDay();syncFunctions();});root.addEventListener('st:cloud-sync-ready',()=>{migrate();generateDay();syncFunctions();});root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden){generateDay();syncFunctions();}});
 function scheduleLocalMidnight(){const now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);root.setTimeout(()=>{generateDay();syncFunctions();scheduleLocalMidnight();},Math.max(1000,next.getTime()-now.getTime()));}scheduleLocalMidnight();
 
 /* Fichas técnicas de receitas da padaria — extensão de Lançamentos */
