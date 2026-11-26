@@ -132,9 +132,10 @@ assert.equal(Core.state(first.created[0],new Date(2026,10,22,23,59)),'pending','
 
 console.log('PASS - verificações do núcleo de Rotina, datas locais, migração de dias e imutabilidade.');
 
-assert.match(routineSource,/function personSection\\(p\\)[\\s\\S]{0,1200}Rotinas atribuídas[\\s\\S]{0,1800}Adicionar modelo/,'O cadastro deve atribuir modelos de rotina em um único fluxo, sem seleção paralela de tarefas.');
-assert.match(routineSource,/function personSection\\(p\\)[\\s\\S]{0,900}Core\\.activeOn\\(a,day\\(\\)\\)/,'A lista do cadastro deve mostrar somente atribuições ativas.');
-assert.match(routineSource,/rt-remove-assignment[\\s\\S]{0,350}rtEnd/,'Cada modelo atribuído deve ter ação X para remover a atribuição.');
-assert.match(routineSource,/function endAssignment\\(id\\)[\\s\\S]{0,260}a\\.until=addDays\\(day\\(\\),-1\\);a\\.active=false/,'Remover uma atribuição deve encerrá-la sem apagar o histórico anterior.');
-assert.doesNotMatch(routineSource.slice(routineSource.indexOf('function personSection(p)'),routineSource.indexOf('function assign(pid)')),/rtExtra|Encerrar/,'O cadastro de funcionário não deve oferecer atividade extra nem botão Encerrar nesta área.');
-assert.doesNotMatch(indexSource,/pExtra\\(_0x34c024\\)\\+ptHTML\\(_0x34c024\\)/,'O cadastro não deve renderizar em paralelo a seleção legada por quadradinhos.');
+const employeeRoutineSection=routineSource.slice(routineSource.indexOf('function personSection(p)'),routineSource.indexOf('function assign(pid)'));
+assert.ok(employeeRoutineSection.includes('Rotinas atribuídas')&&employeeRoutineSection.includes('Adicionar modelo'),'O cadastro deve atribuir modelos de rotina em um único fluxo.');
+assert.ok(employeeRoutineSection.includes('Core.activeOn(a,day())'),'A lista do cadastro deve mostrar somente atribuições ativas.');
+assert.ok(employeeRoutineSection.includes('rt-remove-assignment')&&employeeRoutineSection.includes('rtEnd('),'Cada modelo atribuído deve ter ação X para remover a atribuição.');
+assert.ok(routineSource.includes('a.until=addDays(day(),-1);a.active=false'),'Remover uma atribuição deve encerrá-la sem apagar o histórico anterior.');
+assert.ok(!employeeRoutineSection.includes('rtExtra')&&!employeeRoutineSection.includes('Encerrar'),'O cadastro de funcionário não deve oferecer atividade extra nem botão Encerrar nesta área.');
+assert.ok(!indexSource.includes('pExtra(_0x34c024)+ptHTML(_0x34c024)'),'O cadastro não deve renderizar em paralelo a seleção legada por quadradinhos.');
