@@ -73,6 +73,7 @@ const checks = [
   ['cliente reconhece o fluxo restrito de encarregado em cfg:team', /'encarregado'===_0xrole&&_0x3c2060\['includes'\]\('r:eqp'\)/],
 
   ['salvamento local aciona a fila', /syncApplying\|\|syncQueueChanges\(\)/],
+  ['alterações locais de Rotina sem permissão são enfileiradas para bloqueio visível, não descartadas silenciosamente', /!syncCanWrite\(_0x552b7f\[_0x2e0bc4\(0x53a\)\]\)&&'r:rot'!==_0x552b7f\[_0x2e0bc4\(0x53a\)\]/],
   ['fila contém identificador idempotente por operação', /'client_id':syncUuid\(\)/],
   ['envio usa RPC sync_push', /supa\['rpc'\]\('sync_push'/],
   ['cliente Supabase usa fetch customizado somente para RPCs de sincronização', /global':\{'fetch':supaSyncFetch\}/],
