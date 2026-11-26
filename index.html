@@ -2757,7 +2757,8 @@ function accHTML(){
           ? snapshot.itemIndexes
           : snapshotItems.map((_, index) => index))
       : modelItems.map((item, index) => item && String(item)[0] !== '#' ? index : null).filter(index => index !== null);
-    const photoRequired = snapshot ? !!snapshot.photoRequired : !!(model && model.ph);
+    const photoFlag = model && model.ph;
+    const photoRequired = snapshot ? !!snapshot.photoRequired : (photoFlag === true || photoFlag === 1 || ['true','1','sim','required','obrigatoria'].includes(String(photoFlag || '').trim().toLowerCase()));
     const answers = run.a || {};
     const answeredCount = itemIndexes.filter(index =>
       Object.prototype.hasOwnProperty.call(answers, index) &&
