@@ -11,6 +11,13 @@ assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCron
 assert.match(routineSource,/function modelPage\(\)[\s\S]{0,700}V\.rotChecklistHub=true;R\(\)[\s\S]{0,100}Modelos de checklist/,'A tela de modelos precisa manter o acesso aos modelos de checklist.');
 assert.match(indexSource,/get rRotChecklistHub\(\)\{return rRotChecklistHub\},get migrateCronogramaModelsToChecklists\(\)\{return migrateCronogramaModelsToChecklists\}/,'O bridge deve expor a migração e a tela de modelos de checklist.');
 assert.match(indexSource,/function rRotChecklistHub\(\)\{if\(V\.ce\)return rCe\(\);return/,'Ao editar um modelo, a tela de modelos deve encaminhar para o editor selecionado em vez de reapresentar a lista.');
+assert.match(indexSource,/employeeRoutineModelSelect[\\s\\S]{0,1200}addEmployeeRoutineModel/,'O cadastro de pessoa deve permitir escolher um único modelo e adicioná-lo à lista.');
+assert.match(indexSource,/function addEmployeeRoutineModel\\(\\)[\\s\\S]{0,1800}function removeEmployeeRoutineModel/,'A seleção de modelos deve permitir adicionar e retirar itens sem recarregar o cadastro.');
+assert.match(indexSource,/function removeEmployeeRoutineModel[\\s\\S]{0,1300}input\\.remove\\(\\)/,'Retirar um modelo da seleção deve remover também seu valor enviado ao salvamento.');
+assert.match(indexSource,/source===?'employee-profile-model'[\\s\\S]{0,500}ckModels[\\s\\S]{0,300}archivedAt/,'Excluir uma atribuição criada pelo cadastro deve desmarcar o modelo e arquivar a atribuição, preservando histórico.');
+assert.match(indexSource,/selectedModels=new Set\\(_0x40cc98\\['ckModels'\\]\\)[\\s\\S]{0,700}row\\['archivedAt'\\]=today\\(\\)/,'Salvar o cadastro deve arquivar atribuições de modelos que foram retiradas da seleção.');
+assert.match(indexSource,/row\\.mid===mid&&!row\\.archivedAt[\\s\\S]{0,300}hadArchived[\\s\\S]{0,500}hadArchived\\?'-'\\+uid\\(\\)/,'Reatribuir um modelo arquivado deve criar uma nova atribuição sem sobrescrever o histórico anterior.');
+
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,2600}toLocaleDateString\('pt-BR'/,'A tela de Rotina deve apresentar a data em formato local legível.');
 assert.match(routineSource,/overdue=items\.filter\(x=>Core\.state\(x\)==='overdue'\)\.length/,'O resumo diário deve contabilizar atividades atrasadas pelo estado calculado.');
 assert.match(routineSource,/pending=items\.filter\(x=>Core\.state\(x\)==='pending'\)\.length/,'O resumo diário deve distinguir atividades pendentes das atrasadas.');
