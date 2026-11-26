@@ -70,16 +70,16 @@ function installRoutineStyles(){
  if(!root.document||$('st-routine-checkbox-styles'))return;
  const style=root.document.createElement('style');style.id='st-routine-checkbox-styles';
  style.textContent=`
- .rt-task-row{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:68px}
- .rt-task-check{width:28px;height:28px;min-width:28px;border:2px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--texto-inverso);display:grid;place-items:center;font:800 19px/1 system-ui;padding:0;touch-action:manipulation}
+ .rt-task-row{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:68px;transition:background .25s ease,border-color .25s ease}\n .rt-task-row.is-completing{background:color-mix(in srgb,var(--ok) 9%,var(--cd));border-color:color-mix(in srgb,var(--ok) 38%,var(--bd))}\n .rt-task-row.is-unchecking{background:color-mix(in srgb,var(--ok) 5%,var(--cd));border-color:var(--bd)}
+ .rt-task-check{position:relative;isolation:isolate;width:28px;height:28px;min-width:28px;border:2px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--texto-inverso);display:grid;place-items:center;font:800 19px/1 system-ui;padding:0;touch-action:manipulation;transition:background .25s ease,border-color .25s ease,transform .25s cubic-bezier(.2,.8,.2,1)}\n .rt-task-check::after{content:"";position:absolute;inset:-5px;border:2px solid var(--ok);border-radius:10px;opacity:0;pointer-events:none}\n .rt-task-row.is-completing .rt-task-check{animation:rt-check-pop .42s cubic-bezier(.2,.8,.2,1) both}\n .rt-task-row.is-completing .rt-task-check::after{animation:rt-check-wave .95s ease-out 2 both}\n .rt-task-row.is-unchecking .rt-task-check::after{animation:rt-uncheck-wave .72s ease-out both}
  .rt-task-check.is-checked{background:var(--ok);border-color:var(--ok)}
  .rt-task-check:disabled{opacity:.65}
  .rt-task-open{flex:1;min-width:0;min-height:46px;border:0;background:transparent;color:var(--tx);display:flex;align-items:center;gap:10px;text-align:left;padding:0;touch-action:manipulation}
  .rt-task-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
- .rt-task-copy b{overflow-wrap:anywhere;font-size:14px}
+ .rt-task-copy b{position:relative;display:inline-block;align-self:flex-start;max-width:100%;overflow-wrap:anywhere;font-size:14px}\n .rt-task-row.is-completing .rt-task-copy b::after{content:"";position:absolute;left:0;top:54%;width:100%;height:2px;border-radius:2px;background:var(--ok);transform:scaleX(0);transform-origin:left center;animation:rt-paper-strike 2s cubic-bezier(.2,.8,.2,1) forwards}\n .rt-task-row.is-completing .rt-task-copy b{color:var(--tx);transition:color .3s ease}
  .rt-task-status{font-size:11px;font-weight:700;color:var(--mu);white-space:nowrap}
  .rt-task-status.is-late{color:var(--no)}.rt-task-status.is-done{color:var(--ok)}
- .rt-task-chevron{font-size:25px;line-height:1;color:var(--mu)}
+ .rt-task-chevron{font-size:25px;line-height:1;color:var(--mu)}\n @keyframes rt-check-pop{0%{transform:scale(.82)}55%{transform:scale(1.16)}100%{transform:scale(1)}}\n @keyframes rt-check-wave{0%{transform:scale(.65);opacity:.7}100%{transform:scale(1.85);opacity:0}}\n @keyframes rt-uncheck-wave{0%{transform:scale(.7);opacity:.55}100%{transform:scale(1.9);opacity:0}}\n @keyframes rt-paper-strike{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}\n @media(prefers-reduced-motion:reduce){.rt-task-row,.rt-task-check{transition:none!important}.rt-task-row.is-completing .rt-task-copy b::after{animation:none;transform:scaleX(1)}.rt-task-row.is-completing .rt-task-check,.rt-task-row.is-completing .rt-task-check::after,.rt-task-row.is-unchecking .rt-task-check::after{animation:none!important}}
  .rt-details-sheet{display:flex;flex-direction:column;gap:12px;padding:12px 16px calc(20px + env(safe-area-inset-bottom,0px));}
  .rt-sheet-head{align-items:flex-start}.rt-sheet-head h3{margin:4px 0 0;font-size:19px;overflow-wrap:anywhere}
  .rt-sheet-kicker{font-size:10px;letter-spacing:1px;font-weight:800;color:var(--mu)}
@@ -349,9 +349,9 @@ function card(o){
  const st=Core.state(o),s=o.snapshot,master=typeof isFullAccess==='function'&&isFullAccess();
  const allowed=!master&&canSee(o.executorId)&&st!=='dismissed'&&!o.viaSystem;
  const checked=o.status==='done',status=st==='overdue'?'Atrasada':st==='dismissed'?'Dispensada':checked?'Concluída':'';
- return '<article class="c rt-task-row"><button type="button" class="rt-task-check '+(checked?'is-checked':'')+'" '+(!allowed?'disabled':'')+' aria-label="'+(checked?'Desmarcar ':'Marcar ')+e(s.title)+'" aria-checked="'+(checked?'true':'false')+'" role="checkbox" onclick="rtToggle(\''+e(o.id)+'\')">'+(checked?'<span aria-hidden="true">✓</span>':'')+'</button><button type="button" class="rt-task-open" onclick="rtDetails(\''+e(o.id)+'\')"><span class="rt-task-copy"><b>'+e(s.title)+'</b><span class="mu">'+(s.time?'Até '+e(s.time):'Sem horário definido')+'</span></span>'+(status?'<span class="rt-task-status '+(st==='overdue'?'is-late':checked?'is-done':'')+'">'+e(status)+'</span>':'')+'<span class="rt-task-chevron" aria-hidden="true">›</span></button></article>';
+ return '<article class="c rt-task-row" data-routine-id="'+e(o.id)+'"><button type="button" class="rt-task-check '+(checked?'is-checked':'')+'" '+(!allowed?'disabled':'')+' aria-label="'+(checked?'Desmarcar ':'Marcar ')+e(s.title)+'" aria-checked="'+(checked?'true':'false')+'" role="checkbox" onclick="rtToggle(\''+e(o.id)+'\')">'+(checked?'<span aria-hidden="true">✓</span>':'')+'</button><button type="button" class="rt-task-open" onclick="rtDetails(\''+e(o.id)+'\')"><span class="rt-task-copy"><b>'+e(s.title)+'</b><span class="mu">'+(s.time?'Até '+e(s.time):'Sem horário definido')+'</span></span>'+(status?'<span class="rt-task-status '+(st==='overdue'?'is-late':checked?'is-done':'')+'">'+e(status)+'</span>':'')+'<span class="rt-task-chevron" aria-hidden="true">›</span></button></article>';
 }
-function openDetails(id,needsPhoto=false){const o=db().occurrences[id];if(!o)return;V.rtDetailId=id;V.rtDetailNeedsPhoto=!!needsPhoto;V.sh='routine-details';rMenu();}
+function refreshTaskRow(id,motion){\n const o=db().occurrences[id];if(!o)return false;\n const rows=[...root.document.querySelectorAll('.rt-task-row[data-routine-id]')],row=rows.find(node=>node.dataset.routineId===String(id));\n if(!row)return false;\n row.outerHTML=card(o);\n const updated=[...root.document.querySelectorAll('.rt-task-row[data-routine-id]')].find(node=>node.dataset.routineId===String(id));\n if(updated&&motion){updated.classList.add(motion);const check=updated.querySelector('.rt-task-check');if(check)check.setAttribute('aria-checked',o.status==='done'?'true':'false');}\n return true;\n}\nfunction openDetails(id,needsPhoto=false){const o=db().occurrences[id];if(!o)return;V.rtDetailId=id;V.rtDetailNeedsPhoto=!!needsPhoto;V.sh='routine-details';rMenu();}
 function closeDetails(){V.rtDetailId='';V.rtDetailNeedsPhoto=false;V.sh=0;rMenu();}
 function detailsSheet(){
  const o=db().occurrences[V.rtDetailId];if(!o)return '';
@@ -374,14 +374,14 @@ async function complete(id){
  const o=db().occurrences[id];if(!o||!canSee(o.executorId)||o.status==='done'||o.status==='dismissed'||o.viaSystem)return;
  const file=$('rt-photo-'+id)?.files?.[0]||null;
  if(o.snapshot.photo==='required'&&!file&&!o.photoId){openDetails(id,true);return;}
- try{if(file)o.photoId=await savePhoto(file);const me=V.me||V.cloudIdentity||{},mid=me.id||me.team_member_id||'';Object.assign(o,{status:'done',madeAt:Date.now(),madeBy:mid||'unknown',madeByName:who(mid)?.n||me.n||me.name||'Usuário atual',viaSystem:false,updatedAt:Date.now()});save();if(V.sh==='routine-details'){V.sh=0;V.rtDetailId='';V.rtDetailNeedsPhoto=false;}R();}
+ try{if(file)o.photoId=await savePhoto(file);const me=V.me||V.cloudIdentity||{},mid=me.id||me.team_member_id||'';Object.assign(o,{status:'done',madeAt:Date.now(),madeBy:mid||'unknown',madeByName:who(mid)?.n||me.n||me.name||'Usuário atual',viaSystem:false,updatedAt:Date.now()});save();if(V.sh==='routine-details'){V.sh=0;V.rtDetailId='';V.rtDetailNeedsPhoto=false;}if(!refreshTaskRow(id,'is-completing'))R();}
  catch(err){root.stAlert(err.message||'Não foi possível concluir.');}
 }
 async function undoComplete(id){
  const o=db().occurrences[id];if(!o||o.status!=='done'||o.viaSystem||!canSee(o.executorId)||typeof isFullAccess==='function'&&isFullAccess())return;
  const photoId=o.photoId;Object.assign(o,{status:'pending',madeAt:null,madeBy:null,madeByName:'',viaSystem:false,photoId:null,updatedAt:Date.now()});
  try{if(photoId)await deletePhoto(photoId);}catch(err){console.warn('Não foi possível remover a foto local da marcação desfeita.',err);}
- save();if(V.sh==='routine-details'){V.sh=0;V.rtDetailId='';V.rtDetailNeedsPhoto=false;}R();
+ save();if(V.sh==='routine-details'){V.sh=0;V.rtDetailId='';V.rtDetailNeedsPhoto=false;}if(!refreshTaskRow(id,'is-unchecking'))R();
 }
 async function toggleComplete(id){
  const o=db().occurrences[id];if(!o||!canSee(o.executorId)||typeof isFullAccess==='function'&&isFullAccess()||o.status==='dismissed'||o.viaSystem)return;
