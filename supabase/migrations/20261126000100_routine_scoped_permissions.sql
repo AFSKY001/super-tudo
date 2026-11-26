@@ -12,7 +12,7 @@ with target as (
   from public.app_records r
   where r.org_id = p_org_id
     and r.record_id = p_record_id
-    and r.module in ('routineModels','routineAssignments','routineOccurrences')
+    and r.module = 'routineOccurrences'
     and r.deleted_at is null
 ),
 executors as (
@@ -117,9 +117,57 @@ set search_path = ''
 as $$
   select case
     when p_kind = 'r:rot' then public.can_read_routine_record(p_record_id, p_org_id)
+    when p_kind = 'r:cro' and exists (
+      select 1 from public.app_records r
+      where r.org_id = p_org_id and r.record_id = p_record_id
+        and r.module in ('routineModels','routineAssignments')
+        and r.deleted_at is null
+    ) then public.can_read_routine_record(p_record_id, p_org_id)
     else public.can_read_kind_for_org(p_kind, p_record_id, p_org_id)
   end;
 $$;
+
+-- sync_push é SECURITY DEFINER e não aplica diretamente as políticas RLS.
+-- O wrapper valida o par módulo/tipo antes de encaminhar ao mecanismo transacional existente.
+alter function public.sync_push(jsonb, uuid) rename to sync_push_internal;
+revoke all on function public.sync_push_internal(jsonb, uuid) from public, anon, authenticated;
+
+create or replace function public.sync_push(p_ops jsonb, p_org_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_op jsonb;
+  v_module text;
+  v_kind text;
+begin
+  if auth.uid() is null then raise exception 'não autenticado'; end if;
+  if p_ops is null or jsonb_typeof(p_ops) <> 'array' then
+    raise exception 'p_ops deve ser um array jsonb';
+  end if;
+  for v_op in select * from jsonb_array_elements(p_ops)
+  loop
+    v_module := v_op->>'module';
+    v_kind := v_op->>'kind';
+    if v_module in ('routineModels','routineAssignments') then
+      if v_kind <> 'r:cro' or not public.can_write_routine_record(v_module, v_op->>'record_id', v_op->'data', p_org_id) then
+        raise exception 'permissão insuficiente para administrar modelos/atribuições de Rotina';
+      end if;
+    elsif v_module = 'routineOccurrences' then
+      if v_kind <> 'r:rot' or not public.can_write_routine_record(v_module, v_op->>'record_id', v_op->'data', p_org_id) then
+        raise exception 'permissão insuficiente para marcar esta ocorrência de Rotina';
+      end if;
+    elsif v_kind = 'r:rot' then
+      raise exception 'tipo r:rot reservado aos registros da Rotina';
+    end if;
+  end loop;
+  return public.sync_push_internal(p_ops, p_org_id);
+end;
+$;
+
+grant execute on function public.sync_push(jsonb, uuid) to authenticated;
 
 drop policy if exists app_records_insert on public.app_records;
 create policy app_records_insert on public.app_records
@@ -130,10 +178,10 @@ with check (
   and kind is not null
   and (
     (kind = 'r:rot'
-      and module in ('routineModels','routineAssignments','routineOccurrences')
+      and module = 'routineOccurrences'
       and public.can_write_routine_record(module, record_id, data, org_id))
     or
-    (not (kind = 'r:rot' and module in ('routineModels','routineAssignments','routineOccurrences'))
+    (not (kind = 'r:rot' and module = 'routineOccurrences')
       and private.can_write_kind_for_org(kind, org_id))
   )
 );
@@ -145,10 +193,10 @@ using (
   private.is_active_org_member(org_id)
   and (
     (kind = 'r:rot'
-      and module in ('routineModels','routineAssignments','routineOccurrences')
+      and module = 'routineOccurrences'
       and public.can_write_routine_record(module, record_id, data, org_id))
     or
-    (not (kind = 'r:rot' and module in ('routineModels','routineAssignments','routineOccurrences'))
+    (not (kind = 'r:rot' and module = 'routineOccurrences')
       and private.can_write_kind_for_org(kind, org_id))
   )
 )
@@ -157,10 +205,10 @@ with check (
   and updated_by = (select auth.uid())
   and (
     (kind = 'r:rot'
-      and module in ('routineModels','routineAssignments','routineOccurrences')
+      and module = 'routineOccurrences'
       and public.can_write_routine_record(module, record_id, data, org_id))
     or
-    (not (kind = 'r:rot' and module in ('routineModels','routineAssignments','routineOccurrences'))
+    (not (kind = 'r:rot' and module = 'routineOccurrences')
       and private.can_write_kind_for_org(kind, org_id))
   )
 );
