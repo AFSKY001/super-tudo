@@ -67,7 +67,7 @@ const checks = [
   ['modelos de checklist atribuídos no cadastro do funcionário continuam materializados', /employee\.ckModels[\s\S]{0,700}cloneChecklistModel/],
   ['estilo de seleção de modelos do funcionário permanece no CSS compartilhado', /\.employee-checklist-model-option\{display:flex;gap:10px;align-items:center;margin:8px 0\}/],
   ['atividades pessoais da Rotina usam a permissão específica r:rot', /\['pt','r:rot'\]/],
-  ['marcações concluídas da Rotina usam a permissão específica r:rot', /syncAddObject\([^;]{0,100}'done','r:rot'/],
+  ['marcações concluídas da Rotina usam r:rot para chaves pessoais e r:cro para chaves globais', /function syncAddDone\(map,values\)[\s\S]{0,350}id\.split\('\|'\)\.length>=3\?'r:rot':'r:cro'/],
   ['modelos e atribuições de Rotina permanecem restritos a r:cro; ocorrências usam r:rot', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
   ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:rot'/],
   ['cliente aplica modelos, atribuições e ocorrências recebidos da nuvem', /'routineModels'!==_0x3419a0&&'routineAssignments'!==_0x3419a0[\s\S]{0,1100}'routineOccurrences'===_0x3419a0/],
