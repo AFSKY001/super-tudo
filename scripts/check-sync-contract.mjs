@@ -172,6 +172,7 @@ const routinePermissionChecks = [
   ['trigger protege gravações feitas por RPC SECURITY DEFINER', /guard_routine_app_record_write[\s\S]*?before insert or update on public\.app_records/i],
   ['leitura por tipo não chama a si própria', /create or replace function public\.can_read_kind_for_org[\s\S]*?else public\.has_perm_for_org\(k,p_org_id\)/i],
   ['tipo r:rot exige permissão específica', /when k='r:rot' then public\.has_perm_for_org\('r:rot',p_org_id\)/i],
+  ['funções auxiliares não são RPC públicas', /revoke all on function public\.can_read_routine_record[\s\S]*?from public, anon, authenticated[\s\S]*?revoke all on function public\.can_write_routine_record[\s\S]*?from public, anon, authenticated[\s\S]*?revoke all on function public\.guard_routine_app_record_write[\s\S]*?from public, anon, authenticated/i],
 ];
 const routineMigrationChecks = [
   ['migração de checklists atribuídos roda mesmo após routine-v1', routineSource.indexOf('routine-assigned-checklists-v2') >= 0 && routineSource.indexOf('routine-assigned-checklists-v2') < routineSource.indexOf("S.migrations.includes('routine-v1')")],
