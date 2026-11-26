@@ -45,6 +45,7 @@ const expanded=Core.expandChecklistItems({
  turns:['Abertura','Fechamento'],photo:'required',mandatory:true,
  recurrence:{type:'daily'},time:'08:00',source:{checklistId:'ck-test'}
 });
+assert.ok(routineSource.indexOf('const expandChecklistItems=')<routineSource.indexOf('const Core={'),'O expansor precisa ser inicializado antes de ser exportado pelo núcleo.');
 assert.equal(expanded.length,6,'Cada item do checklist deve virar uma atividade separada em cada turno.');
 assert.deepEqual(expanded.map(item=>item.title),[
  'Conferir validade','Organizar gôndola','Verificar etiquetas',
