@@ -2420,7 +2420,14 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
  const normalize=value=>String(value??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
  const safe=value=>String(value??'').replace(/[^a-zA-Z0-9_-]/g,'_');
  const sources=[['tmod',S.tmod],['routineModels',S.routineModels]];
- const found=sources.flatMap(([module,models])=>models.filter(model=>targets.has(normalize(model?.n||model?.name||model?.title||model?.nome))).map(model=>({module,model})));
+ const found=sources.flatMap(([module,models])=>models.filter(model=>{
+  const assignedChecklistModel=module==='routineModels'&&(
+   String(model?.id||'').startsWith('legacy-assigned-checklist-')||
+   Array.isArray(model?.legacyChecklistIds)||
+   (Array.isArray(model?.activities)&&model.activities.some(activity=>activity?.source?.type==='legacy-assigned-checklist-item'))
+  );
+  return !assignedChecklistModel&&targets.has(normalize(model?.n||model?.name||model?.title||model?.nome));
+ }).map(model=>({module,model})));
  if(!found.length)return false;
  const before={tmod:[...S.tmod],routineModels:[...S.routineModels],migrations:[...S.migrations]};
  const ckBefore=Object.fromEntries(Object.entries(CK).map(([id,model])=>[id,model&&typeof model==='object'?{...model,l:Array.isArray(model.l)?[...model.l]:model.l,t:Array.isArray(model.t)?[...model.t]:model.t}:model]));
@@ -3171,8 +3178,22 @@ async function syncBlockedQueueUI(){
       for(const op of readOnly){
         const server=records.find(row=>row&&row.module===op.module&&String(row.record_id)===String(op.record_id));
         const local=syncRows(S).get(op.key);
+        const serverData={...(server?.data||{}),id:String(op.record_id)};
+        const isLegacyAssignedChecklist=op.module==='routineModels'&&op.deleted&&op.status==='forbidden'&&String(op.record_id).startsWith('legacy-assigned-checklist-');
+        const serverConfirmsAssignedChecklist=isLegacyAssignedChecklist&&server&&!server.deleted_at&&server.kind==='r:cro'&&Array.isArray(server.data?.legacyChecklistIds)&&server.data.legacyChecklistIds.length>0&&Array.isArray(server.data?.activities)&&server.data.activities.some(activity=>activity?.source?.type==='legacy-assigned-checklist-item');
+        if(serverConfirmsAssignedChecklist&&!local){
+          syncApplying=true;
+          try{syncApplyRecord(server);save();}
+          finally{syncApplying=false;}
+          const restored=syncRows(S).get(op.key);
+          if(restored&&syncCanon(restored.data)===syncCanon(serverData)){
+            syncMeta.queue=syncMeta.queue.filter(item=>item!==op);
+            syncMeta.revisions[op.key]=Number(server.revision)||syncMeta.revisions[op.key]||0;
+            delete syncMeta.conflicts[op.key];
+            continue;
+          }
+        }
         if(!server||server.deleted_at||!local)continue;
-        const serverData={...(server.data||{}),id:String(op.record_id)};
         if(syncCanon(local.data)!==syncCanon(serverData))continue;
         syncMeta.queue=syncMeta.queue.filter(item=>item!==op);
         syncMeta.revisions[op.key]=Number(server.revision)||syncMeta.revisions[op.key]||0;
