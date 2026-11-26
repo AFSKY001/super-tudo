@@ -41,7 +41,7 @@ select exists (
     and p.active = true
     and (
       me.role in ('admin','gerente')
-      or exists (
+      or (public.has_perm_for_org('r:rot', p_org_id) and exists (
         select 1 from executors e
         where e.executor_id = me.team_member_id
            or exists (
@@ -52,10 +52,10 @@ select exists (
                and me.role = 'encarregado'
                and public.has_perm_for_org('r:eqp', p_org_id)
            )
-      )
+      ))
     )
 );
-$$;
+$;
 
 create or replace function public.can_write_routine_record(
   p_module text, p_record_id text, p_data jsonb, p_org_id uuid
