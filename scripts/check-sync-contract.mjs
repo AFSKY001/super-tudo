@@ -34,6 +34,8 @@ const checks = [
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só é removido depois de checklist com itens e salvamento confirmado', /if\(!converted\)return false;[\s\S]*?S\[module\]=S\[module\]\.filter[\s\S]*?if\(!save\(\)\)/],
   ['migração processa apenas modelos-alvo com atividades reconhecidas', /targets\.has\(normalize\(model\?\.n[\s\S]*?const titles=extractItems\(model\);[\s\S]*?if\(!name\|\|!titles\.length\)continue/],
+  ['migração não converte nem remove modelos legítimos de checklist atribuído', /const assignedChecklistModel=module==='routineModels'&&\([\s\S]{0,450}legacy-assigned-checklist-item[\s\S]{0,250}return !assignedChecklistModel&&targets\.has/],
+  ['exclusão legada recusada é descartada somente quando uma exclusão autorizada mais recente existe na nuvem', /const isLegacyAssignedChecklist=op\.module==='routineModels'[\s\S]{0,700}serverConfirmsAuthorizedDeletion[\s\S]{0,400}Number\(server\.revision\)>Number\(op\.base_revision\|\|0\)[\s\S]{0,350}syncMeta\.queue=syncMeta\.queue\.filter\(item=>item!==op\)/],
   ['migração enfileira exclusão explícita na fonte correta', /syncMeta\.queue\.push\(\{key,module,record_id:modelId,kind:'r:cro',deleted:true/],
   ['migração não sobrescreve conflitos de exclusão pendentes', /if\(pending\?\.status==='conflict'\)continue/],
   ['migração legada não envia exclusão de modelos de Rotina por perfis sem gestão', /const canManageRoutineModels=\['master','admin','gerente'\]\.includes\(V\.cloudIdentity\.role\)[\s\S]{0,650}op\.deleted&&op\.status==='forbidden'[\s\S]{0,250}syncBaseline=syncRows\(S\)/],
@@ -126,7 +128,7 @@ const checks = [
   ['migração atualiza nome e itens dos modelos já convertidos', /if\(existing\.n!==name\)[\s\S]*?if\(existing\.i!==titles\.join\('\|'\)\)[\s\S]*?if\(!Array\.isArray\(existing\.l\)/],
 
   ['modelos e atribuições de Rotina são somente leitura para encarregados e funcionários', /\['routineModels','routineAssignments'\]\.includes\(_0x552b7f\.module\)&&!\['master','admin','gerente'\]\.includes\(\(V\.cloudIdentity\|\|\{\}\)\.role\)/],
-  ['operações recusadas de modelos de Rotina são reconciliadas com o snapshot da nuvem antes de limpar a fila', /async function syncBlockedQueueUI\(\)[\s\S]{0,1800}supa\.rpc\('sync_pull'[\s\S]{0,1200}syncCanon\(local\.data\)!==syncCanon\(serverData\)/],
+  ['operações recusadas de modelos de Rotina são reconciliadas com o snapshot da nuvem antes de limpar a fila', /async function syncBlockedQueueUI\(\)[\s\S]{0,5000}supa\.rpc\('sync_pull'[\s\S]{0,3000}syncCanon\(local\.data\)!==syncCanon\(serverData\)/],
   ['aviso de envio bloqueado reaparece após consulta à nuvem', /syncBlockedNoticeShown[\s\S]{0,600}syncBlockedQueueUI\(\)/],
 ];
 
