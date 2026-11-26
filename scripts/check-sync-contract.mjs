@@ -27,6 +27,10 @@ const routinePermissionMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261126000100_routine_scoped_permissions.sql'),
   'utf8',
 );
+const legacyTombstoneReadMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126123000_allow_owner_read_legacy_checklist_tombstone.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -172,6 +176,21 @@ for (const [label, pattern] of permissionChecks) {
 }
 if (failedPermissions.length) {
   console.error('Falhas nas proteções de permissão da sincronização: ' + failedPermissions.join('; '));
+  process.exitCode = 1;
+}
+
+const tombstoneMigrationChecks = [
+  ['Supabase permite leitura do tombstone somente para o encarregado dono do checklist legado', /when k='r:cro'[\s\S]*?r\.module='routineModels'[\s\S]*?r\.deleted_at is not null[\s\S]*?om\.role='encarregado'[\s\S]*?substring\(p_record_id from[\s\S]*?has_perm_for_org\('r:rot',p_org_id\)[\s\S]*?has_perm_for_org\('r:eqp',p_org_id\)/i.test(legacyTombstoneReadMigration)],
+  ['migration de tombstone não altera funções nem gatilhos de escrita', !/create or replace function public\.(can_write_kind_for_org|can_write_routine_record)|create trigger|update public\.app_records|insert into public\.app_records/i.test(legacyTombstoneReadMigration)],
+  ['tombstone só libera confirmação sem conteúdo e mantém a regra de exclusão por revisão', /and r\.deleted_at is not null[\s\S]*?then true/i.test(legacyTombstoneReadMigration)],
+];
+const failedTombstoneMigration = [];
+for (const [label, passed] of tombstoneMigrationChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedTombstoneMigration.push(label);
+}
+if (failedTombstoneMigration.length) {
+  console.error('Falhas na leitura restrita de tombstones: ' + failedTombstoneMigration.join('; '));
   process.exitCode = 1;
 }
 
