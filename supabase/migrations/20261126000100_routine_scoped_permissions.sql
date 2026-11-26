@@ -1,5 +1,7 @@
--- Super Tudo: permissões segregadas para Rotina
--- Modelos/atribuições: somente administração. Ocorrências: próprio executor ou líder autorizado.
+-- Super Tudo: permissões segregadas para Rotina.
+-- Mantém as RPCs de sincronização existentes e protege app_records mesmo quando
+-- a gravação vem de sync_push (SECURITY DEFINER).
+
 create or replace function public.can_read_routine_record(p_record_id text, p_org_id uuid)
 returns boolean
 language sql
@@ -16,19 +18,19 @@ with target as (
     and r.deleted_at is null
 ),
 executors as (
-  select t.data->>'executorId' as executor_id
+  select coalesce(t.data->'value'->>'executorId', t.data->>'executorId') as executor_id
   from target t where t.module = 'routineAssignments'
   union all
   select coalesce(t.data->'value'->>'executorId', t.data->>'executorId')
   from target t where t.module = 'routineOccurrences'
   union all
-  select a.data->>'executorId'
+  select coalesce(a.data->'value'->>'executorId', a.data->>'executorId')
   from target t
   join public.app_records a
     on a.org_id = p_org_id
    and a.module = 'routineAssignments'
    and a.deleted_at is null
-   and a.data->>'modelId' = t.record_id
+   and coalesce(a.data->'value'->>'modelId', a.data->>'modelId') = t.record_id
   where t.module = 'routineModels'
 )
 select exists (
@@ -41,18 +43,23 @@ select exists (
     and p.active = true
     and (
       me.role in ('admin','gerente')
-      or (public.has_perm_for_org('r:rot', p_org_id) and exists (
-        select 1 from executors e
-        where e.executor_id = me.team_member_id
-           or exists (
-             select 1 from public.team_lead_members tlm
-             where tlm.org_id = p_org_id
-               and tlm.leader_team_member_id = me.team_member_id
-               and tlm.member_team_member_id = e.executor_id
-               and me.role = 'encarregado'
+      or (
+        public.has_perm_for_org('r:rot', p_org_id)
+        and exists (
+          select 1 from executors e
+          where e.executor_id = me.team_member_id
+             or (
+               me.role = 'encarregado'
                and public.has_perm_for_org('r:eqp', p_org_id)
-           )
-      ))
+               and exists (
+                 select 1 from public.team_lead_members tlm
+                 where tlm.org_id = p_org_id
+                   and tlm.leader_team_member_id = me.team_member_id
+                   and tlm.member_team_member_id = e.executor_id
+               )
+             )
+        )
+      )
     )
 );
 $$;
@@ -80,154 +87,163 @@ select case
     select 1
     from public.org_members me
     join public.profiles p on p.id = me.user_id
+    join public.app_records a
+      on a.org_id = p_org_id
+     and a.module = 'routineAssignments'
+     and a.record_id = coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId')
+     and a.deleted_at is null
+    join public.app_records m
+      on m.org_id = p_org_id
+     and m.module = 'routineModels'
+     and m.record_id = coalesce(a.data->'value'->>'modelId', a.data->>'modelId')
+     and m.deleted_at is null
     where me.user_id = auth.uid()
       and me.org_id = p_org_id
       and me.active = true and p.active = true
       and public.has_perm_for_org('r:rot', p_org_id)
+      and coalesce(a.data->'value'->>'executorId', a.data->>'executorId')
+          = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
+      and p_record_id = concat(
+        coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId'), '|',
+        coalesce(p_data->'value'->>'activityId', p_data->>'activityId'), '|',
+        coalesce(p_data->'value'->>'date', p_data->>'date')
+      )
+      and coalesce(p_data->'value'->'snapshot'->>'modelId', p_data->'snapshot'->>'modelId')
+          = coalesce(a.data->'value'->>'modelId', a.data->>'modelId')
       and exists (
-        select 1 from public.app_records a
-        where a.org_id = p_org_id
-          and a.module = 'routineAssignments'
-          and a.record_id = coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId')
-          and a.deleted_at is null
-          and a.data->>'executorId' = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
-          and p_record_id = concat(
-            coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId'), '|',
-            coalesce(p_data->'value'->>'activityId', p_data->>'activityId'), '|',
-            coalesce(p_data->'value'->>'date', p_data->>'date')
-          )
+        select 1
+        from jsonb_array_elements(coalesce(
+          m.data->'value'->'activities',
+          m.data->'activities',
+          '[]'::jsonb
+        )) as activity_row(activity)
+        where activity_row.activity->>'id' = coalesce(p_data->'value'->>'activityId', p_data->>'activityId')
+      )
+      and (
+        coalesce(a.data->'value'->>'executorId', a.data->>'executorId') = me.team_member_id
+        or (
+          me.role = 'encarregado'
+          and public.has_perm_for_org('r:eqp', p_org_id)
           and exists (
-            select 1
-            from public.app_records m
-            where m.org_id = p_org_id
-              and m.module = 'routineModels'
-              and m.record_id = a.data->>'modelId'
-              and m.deleted_at is null
-              and coalesce(p_data->'value'->'snapshot'->>'modelId', p_data->'snapshot'->>'modelId') = a.data->>'modelId'
-              and exists (
-                select 1
-                from jsonb_array_elements(coalesce(m.data->'activities', '[]'::jsonb)) activity
-                where activity->>'id' = coalesce(p_data->'value'->>'activityId', p_data->>'activityId')
-              )
+            select 1 from public.team_lead_members tlm
+            where tlm.org_id = p_org_id
+              and tlm.leader_team_member_id = me.team_member_id
+              and tlm.member_team_member_id =
+                coalesce(a.data->'value'->>'executorId', a.data->>'executorId')
           )
-          and (
-            a.data->>'executorId' = me.team_member_id
-            or exists (
-              select 1 from public.team_lead_members tlm
-              where tlm.org_id = p_org_id
-                and tlm.leader_team_member_id = me.team_member_id
-                and tlm.member_team_member_id = a.data->>'executorId'
-                and me.role = 'encarregado'
-                and public.has_perm_for_org('r:eqp', p_org_id)
-            )
-          )
+        )
       )
   )
   else false
 end;
 $$;
 
-create or replace function private.can_read_kind_for_org(p_kind text, p_record_id text, p_org_id uuid)
+create or replace function public.guard_routine_app_record_write()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.module in ('routineModels','routineAssignments') then
+    if new.kind <> 'r:cro'
+       or not public.can_write_routine_record(new.module, new.record_id, new.data, new.org_id) then
+      raise exception 'permissão insuficiente para administrar modelos/atribuições de Rotina'
+        using errcode = '42501';
+    end if;
+  elsif new.module = 'routineOccurrences' then
+    if new.kind <> 'r:rot'
+       or not public.can_write_routine_record(new.module, new.record_id, new.data, new.org_id) then
+      raise exception 'permissão insuficiente para marcar esta ocorrência de Rotina'
+        using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists app_records_guard_routine_write on public.app_records;
+create trigger app_records_guard_routine_write
+before insert or update on public.app_records
+for each row execute function public.guard_routine_app_record_write();
+
+create or replace function public.can_read_kind_for_org(k text, p_record_id text, p_org_id uuid)
 returns boolean
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select case
-    when p_kind = 'r:rot' then public.can_read_routine_record(p_record_id, p_org_id)
-    when p_kind = 'r:cro' and exists (
-      select 1 from public.app_records r
-      where r.org_id = p_org_id and r.record_id = p_record_id
-        and r.module in ('routineModels','routineAssignments')
-        and r.deleted_at is null
-    ) then public.can_read_routine_record(p_record_id, p_org_id)
-    else public.can_read_kind_for_org(p_kind, p_record_id, p_org_id)
-  end;
-$$;
-
--- sync_push é SECURITY DEFINER e não aplica diretamente as políticas RLS.
--- O wrapper valida o par módulo/tipo antes de encaminhar ao mecanismo transacional existente.
-alter function public.sync_push(jsonb, uuid) rename to sync_push_internal;
-revoke all on function public.sync_push_internal(jsonb, uuid) from public, anon, authenticated;
-
-create or replace function public.sync_push(p_ops jsonb, p_org_id uuid)
-returns jsonb
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  v_op jsonb;
-  v_module text;
-  v_kind text;
-begin
-  if auth.uid() is null then raise exception 'não autenticado'; end if;
-  if p_ops is null or jsonb_typeof(p_ops) <> 'array' then
-    raise exception 'p_ops deve ser um array jsonb';
-  end if;
-  for v_op in select * from jsonb_array_elements(p_ops)
-  loop
-    v_module := v_op->>'module';
-    v_kind := v_op->>'kind';
-    if v_module in ('routineModels','routineAssignments') then
-      if v_kind <> 'r:cro' or not public.can_write_routine_record(v_module, v_op->>'record_id', v_op->'data', p_org_id) then
-        raise exception 'permissão insuficiente para administrar modelos/atribuições de Rotina';
-      end if;
-    elsif v_module = 'routineOccurrences' then
-      if v_kind <> 'r:rot' or not public.can_write_routine_record(v_module, v_op->>'record_id', v_op->'data', p_org_id) then
-        raise exception 'permissão insuficiente para marcar esta ocorrência de Rotina';
-      end if;
-    elsif v_kind = 'r:rot' then
-      raise exception 'tipo r:rot reservado aos registros da Rotina';
-    end if;
-  end loop;
-  return public.sync_push_internal(p_ops, p_org_id);
+select case
+ when k='r:rot' then public.can_read_routine_record(p_record_id,p_org_id)
+ when k='r:cro' and exists (
+   select 1 from public.app_records r
+   where r.org_id=p_org_id and r.record_id=p_record_id
+     and r.module in ('routineModels','routineAssignments')
+     and r.deleted_at is null
+ ) then public.can_read_routine_record(p_record_id,p_org_id)
+ when k in ('r:pdc','r:conf') then public.has_perm_for_org(k,p_org_id) or exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente','subgerente','supervisor','encarregado') and om.active=true and p.active=true)
+ when k='cfg:team' then exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true)
+  or exists (
+   select 1 from public.org_members om
+   join public.profiles p on p.id=om.user_id
+   where om.user_id=auth.uid() and om.org_id=p_org_id and om.team_member_id=p_record_id
+     and p_record_id is not null and om.active=true and p.active=true)
+  or (p_record_id is not null and exists (
+   select 1 from public.team_lead_members tlm
+   join public.org_members om on om.org_id=tlm.org_id and om.team_member_id=tlm.leader_team_member_id
+   join public.profiles p on p.id=om.user_id
+   where tlm.org_id=p_org_id and tlm.member_team_member_id=p_record_id and om.user_id=auth.uid()
+     and om.role='encarregado' and public.has_perm_for_org('r:eqp',p_org_id) and om.active=true and p.active=true))
+ when k in ('cfg:sectors','cfg:roles') then public.has_perm_for_org('r:set',p_org_id) or exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true)
+ when k='cfg:checklists' then public.has_perm_for_org('r:ck',p_org_id) or exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true)
+ when k='cfg:tasks' then public.has_perm_for_org('r:cro',p_org_id) or exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true)
+ when k in ('cfg:equipment','r:eqp') then public.has_perm_for_org('r:eqp',p_org_id) or public.has_perm_for_org('l:temp',p_org_id) or exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true)
+ when left(coalesce(k,''),4)='cfg:' then exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role='admin' and om.active=true and p.active=true)
+ when exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true) then true
+ when left(coalesce(k,''),2)='l:' then public.has_perm_for_org(k,p_org_id) or public.has_perm_for_org('r:'||substring(k from 3),p_org_id)
+ else public.has_perm_for_org(k,p_org_id)
 end;
 $$;
 
-grant execute on function public.sync_push(jsonb, uuid) to authenticated;
-
-drop policy if exists app_records_insert on public.app_records;
-create policy app_records_insert on public.app_records
-for insert to authenticated
-with check (
-  private.is_active_org_member(org_id)
-  and created_by = (select auth.uid())
-  and kind is not null
-  and (
-    (kind = 'r:rot'
-      and module = 'routineOccurrences'
-      and public.can_write_routine_record(module, record_id, data, org_id))
-    or
-    (not (kind = 'r:rot' and module = 'routineOccurrences')
-      and private.can_write_kind_for_org(kind, org_id))
-  )
-);
-
-drop policy if exists app_records_update on public.app_records;
-create policy app_records_update on public.app_records
-for update to authenticated
-using (
-  private.is_active_org_member(org_id)
-  and (
-    (kind = 'r:rot'
-      and module = 'routineOccurrences'
-      and public.can_write_routine_record(module, record_id, data, org_id))
-    or
-    (not (kind = 'r:rot' and module = 'routineOccurrences')
-      and private.can_write_kind_for_org(kind, org_id))
-  )
-)
-with check (
-  private.is_active_org_member(org_id)
-  and updated_by = (select auth.uid())
-  and (
-    (kind = 'r:rot'
-      and module = 'routineOccurrences'
-      and public.can_write_routine_record(module, record_id, data, org_id))
-    or
-    (not (kind = 'r:rot' and module = 'routineOccurrences')
-      and private.can_write_kind_for_org(kind, org_id))
-  )
-);
+create or replace function public.can_write_kind_for_org(k text, p_org_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+select case
+ when k='r:rot' then public.has_perm_for_org('r:rot',p_org_id)
+ when k in ('r:pdc','r:conf') then public.has_perm_for_org(k,p_org_id) or exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente','subgerente','supervisor','encarregado') and om.active=true and p.active=true)
+ when k='cfg:team' then exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true)
+ when left(coalesce(k,''),4)='cfg:' then exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role='admin' and om.active=true and p.active=true)
+ when exists (
+  select 1 from public.org_members om join public.profiles p on p.id=om.user_id
+  where om.user_id=auth.uid() and om.org_id=p_org_id and om.role in ('admin','gerente') and om.active=true and p.active=true) then true
+ when k='r:eqp' then public.has_perm_for_org('r:eqp',p_org_id) or public.has_perm_for_org('l:temp',p_org_id)
+ else public.has_perm_for_org(k,p_org_id)
+end;
+$$;
