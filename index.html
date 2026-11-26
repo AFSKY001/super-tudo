@@ -3149,7 +3149,7 @@ async function syncResolveConflictsUI(){
   }
   syncStatusUpdate();
 }
-async async function syncBlockedQueueUI(){
+async function syncBlockedQueueUI(){
   let blocked=(syncMeta.queue||[]).filter(op=>op.status&&op.status!=='conflict');
   if(!blocked.length)return;
   const readOnly=blocked.filter(op=>['routineModels','routineAssignments'].includes(op.module));
