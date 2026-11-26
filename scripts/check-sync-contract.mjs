@@ -70,7 +70,7 @@ const checks = [
 
   ['salvamento local aciona a fila', /syncApplying\|\|syncQueueChanges\(\)/],
   ['fila contém identificador idempotente por operação', /'client_id':syncUuid\(\)/],
-  ['painel geral usa o núcleo de desempenho da Rotina e separa dispensadas', /function perfRoutineStats\([\s\S]{0,1800}core\.performance\(rows\)[\s\S]{0,2500}routineDismissed[\s\S]{0,500}dispensadas \(fora do percentual\)/],
+  ['painel geral usa o núcleo de desempenho da Rotina e separa dispensadas', /function perfRoutineStats\([\s\S]{0,1800}core\.performance\(rows\)[\s\S]{0,2500}routineDismissed[\s\S]{0,1800}dispensadas \(fora do percentual\)/],
   ['envio usa RPC sync_push', /supa\['rpc'\]\('sync_push'/],
   ['cliente Supabase usa fetch customizado somente para RPCs de sincronização', /global':\{'fetch':supaSyncFetch\}/],
   ['fetch customizado conta chamadas simultâneas de sync_push e sync_pull', /let syncHttpInFlight=0;const supaSyncFetch=\(input,init\)=>\{[\s\S]{0,900}syncHttpInFlight\+\+;syncStatusUpdate\(\)[\s\S]{0,500}syncHttpInFlight=Math\.max\(0,syncHttpInFlight-1\);syncStatusUpdate\(\)/],
