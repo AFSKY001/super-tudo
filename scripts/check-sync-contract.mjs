@@ -177,6 +177,17 @@ if (failedPermissions.length) {
   process.exitCode = 1;
 }
 
+const legacyRoutineSqlChecks = [
+  ['migration mantém validação de IDs legados, snapshots completos e atividades por turno', /legacySignature[\\s\\S]*?checklistSnapshot[\\s\\S]*?legacy-assigned-activity-[\\s\\S]*?jsonb_array_length/, personalRoutineWriteScopeMigration],
+  ['rollback restaura a validação legada anterior à restrição de papéis', /legacySignature[\\s\\S]*?checklistSnapshot[\\s\\S]*?legacy-assigned-activity-[\\s\\S]*?jsonb_array_length/, personalRoutineWriteScopeRollback],
+  ['migration preserva a restrição Master/admin sem remover compatibilidade legada', /me\\.role <> 'admin'[\\s\\S]{0,180}public\\.has_perm_for_org\\('r:rot'/, personalRoutineWriteScopeMigration],
+];
+for (const [label, pattern, target] of legacyRoutineSqlChecks) {
+  const passed = pattern.test(target);
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) process.exitCode = 1;
+}
+
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
 for (let index = 0; index < inlineScripts.length; index++) {
