@@ -370,12 +370,20 @@ async function endAssignment(id){
   if(o.assignmentId!==a.id||o.date<today||o.status!=='pending')continue;
   Object.assign(o,{status:'dismissed',dismissedAt:Date.now(),dismissedBy:actorId,dismissedByName:actorName,note:'Atribuição removida do cadastro do funcionário.',updatedAt:Date.now()});
  }
- save();R();
+ try{
+  if(typeof root.stPersistRoutineAssignment==='function')await root.stPersistRoutineAssignment(a);
+  else save();
+ }catch(error){
+  console.error('Falha ao confirmar remoção da Rotina na nuvem:',error);
+  root.stAlert('A rotina foi removida neste aparelho, mas a nuvem ainda não confirmou a alteração. Ela ficará pendente de sincronização. Motivo: '+String(error?.message||error||'falha desconhecida'));
+  R();return;
+ }
+ R();
 }
 function currentPerson(){return who(V.me?.id||V.cloudIdentity?.team_member_id||'');}
 function visibleTeam(){const p=currentPerson();return p&&typeof teamOf==='function'?teamOf(p):[];}
 function canSee(id){if(typeof isFullAccess==='function'&&isFullAccess())return true;const p=currentPerson();return!!p&&(String(p.id)===String(id)||visibleTeam().some(x=>String(x.id)===String(id)));}
-function list(ids){return Object.values(db().occurrences).filter(o=>o.date===day()&&o.status!=='dismissed'&&ids.includes(String(o.executorId))).sort((a,b)=>(Core.state(a)==='overdue'?-1:0)-(Core.state(b)==='overdue'?-1:0)||Core.hm(a.snapshot.time)-Core.hm(b.snapshot.time));}
+function list(ids){const assignments=new Map(db().assignments.map(a=>[String(a.id),a]));return Object.values(db().occurrences).filter(o=>{if(o.date!==day()||o.status==='dismissed'||!ids.includes(String(o.executorId)))return false;const assignment=assignments.get(String(o.assignmentId));return !assignment||Core.activeOn(assignment,day())||o.status==='done';}).sort((a,b)=>(Core.state(a)==='overdue'?-1:0)-(Core.state(b)==='overdue'?-1:0)||Core.hm(a.snapshot.time)-Core.hm(b.snapshot.time));}
 function card(o){
  const st=Core.state(o),s=o.snapshot,master=typeof isFullAccess==='function'&&isFullAccess();
  const allowed=!master&&canSee(o.executorId)&&st!=='dismissed'&&!o.viaSystem;
