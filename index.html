@@ -2374,7 +2374,27 @@ function watchCloudAuth(){
   syncAuthSubscription=subscription;
 }
 watchCloudAuth();
-const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['stringify'](S)),syncApplying||syncQueueChanges(),!0x0;}catch(_0x6d1e5e){return window.stAlert('Não\x20foi\x20possível\x20salvar\x20neste\x20aparelho.\x20Nada\x20foi\x20gravado.'),!0x1;}};function activateOrgStorage(orgId,companySlug){
+const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['stringify'](S)),syncApplying||syncQueueChanges(),!0x0;}catch(_0x6d1e5e){return window.stAlert('Não\x20foi\x20possível\x20salvar\x20neste\x20aparelho.\x20Nada\x20foi\x20gravado.'),!0x1;}};
+window.stPersistRoutineAssignment=async function(assignment){
+ const id=String(assignment&&assignment.id||'');
+ if(!id)throw new Error('Identificador da atribuição ausente.');
+ const key='routineAssignments|'+id;
+ if(!save())throw new Error('Não foi possível salvar a alteração neste aparelho.');
+ let operation=syncMeta.queue.find(item=>item.key===key);
+ if(!operation){
+  const row=syncRows(S).get(key);
+  if(!row)throw new Error('A atribuição não foi encontrada na fila de dados.');
+  const revision=syncMeta.revisions[key];
+  if(revision==null)throw new Error('A versão da atribuição na nuvem ainda não foi confirmada. Tente novamente com a conexão ativa.');
+  operation={key,module:'routineAssignments',record_id:id,kind:'r:cro',deleted:false,client_id:syncUuid(),status:''};
+  syncMeta.queue.push(operation);
+  syncPersist();
+ }
+ if(operation.status)throw new Error('A alteração está bloqueada para revisão: '+operation.status);
+ await syncFlush();
+ if(syncMeta.queue.some(item=>item.key===key))throw new Error('A nuvem ainda não confirmou a remoção. Verifique o indicador de sincronização e tente novamente.');
+ return true;
+};function activateOrgStorage(orgId,companySlug){
  const id=String(orgId||'').trim();
  if(!id)return false;
  const targetKey='supertudo-cloud-v1:org:'+id;
