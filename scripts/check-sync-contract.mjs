@@ -199,7 +199,10 @@ for (const [label, required, target] of legacyRoutineSqlChecks) {
 const personalRoutineClassificationChecks = [
   ['migration reclassifica apenas atividades pessoais pt para r:rot', /module = 'pt'[\\s\\S]*?kind = 'r:cro'[\\s\\S]*?set kind = 'r:rot'/, personalRoutineClassificationMigration],
   ['migration reclassifica apenas done pessoais com três ou mais segmentos', /module = 'done'[\\s\\S]*?kind = 'r:cro'[\\s\\S]*?cardinality\\(string_to_array\\(record_id, '\\|'\\)\\) >= 3[\\s\\S]*?set kind = 'r:rot'/, personalRoutineClassificationMigration],
-  ['migration mantém modelos, atribuições e checklists fora da reclassificação', [/module = 'pt'/, /module = 'done'/, /routineModels/, /routineAssignments/].every((pattern, index) => index < 2 ? pattern.test(personalRoutineClassificationMigration) : !/update public\\.app_records[\\s\\S]{0,120}module = '\\w+'[\\s\\S]{0,100}set kind = 'r:rot'[\\s\\S]{0,80}module = '(?:routineModels|routineAssignments|ck|runs)'/.test(personalRoutineClassificationMigration)), personalRoutineClassificationMigration],
+  ['migration limita a reclassificação aos módulos pt e done', (() => {
+    const targets = [...personalRoutineClassificationMigration.matchAll(/where module = '([^']+)'/g)].map(([, module]) => module);
+    return targets.length === 2 && targets.includes('pt') && targets.includes('done');
+  })(), personalRoutineClassificationMigration],
   ['leitura scoped filtra rotina pessoal por usuário e equipe', /create or replace function public\\.can_read_sync_record_for_org[\\s\\S]*?public\\.has_perm_for_org\\('r:eqp', p_org_id\\)/, personalRoutineClassificationMigration],
   ['sync_pull usa a nova função de leitura scoped', /public\\.can_read_sync_record_for_org\\(module, kind, record_id, data, v_org\\)/, personalRoutineClassificationMigration],
   ['rollback restaura sync_pull antes de remover helper de leitura', /create or replace function public\\.sync_pull[\\s\\S]*?public\\.can_read_kind_for_org\\(kind, record_id, v_org\\)[\\s\\S]*?drop function if exists public\\.can_read_sync_record_for_org/i, personalRoutineClassificationRollback],
