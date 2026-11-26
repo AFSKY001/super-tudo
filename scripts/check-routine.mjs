@@ -149,6 +149,10 @@ const rerunOldDay=Core.generate(historicalDb,'2026-11-25');
 assert.equal(rerunOldDay.created.length,0,'A geração repetida não pode duplicar ocorrência histórica.');
 assert.equal(rerunOldDay.updated.length,0,'A geração histórica não pode alterar snapshot de ocorrência já existente.');
 assert.equal(historicalDb.occurrences[completedId].snapshot.title,'Snapshot histórico original','O histórico concluído deve permanecer imutável.');
+const endedAssignmentDb={models:historicalDb.models,assignments:[{id:'ended',modelId:'m1',executorId:'p1',active:false,from:'2026-10-01',until:'2026-11-25'}],occurrences:{}};
+assert.equal(Core.generate(endedAssignmentDb,'2026-11-25').created.length,1,'Atribuição encerrada deve manter geração histórica até a data final.');
+assert.equal(Core.generate(endedAssignmentDb,'2026-11-26').created.length,0,'Atribuição encerrada não pode gerar ocorrências após a data final.');
+
 
 assert.deepEqual(Core.progress([{status:'done',snapshot:{mandatory:true,viaSystem:true}},{status:'done',snapshot:{mandatory:true}}]),{done:2,total:2,pct:100},'Conclusões automáticas e manuais contam uma vez por ocorrência.');
 assert.match(routineSource,/const progress=items=>\{[\s\S]{0,500}o\.snapshot\?\.mandatory!==false[\s\S]{0,250}status==='done'/,'O cálculo deve centralizar a regra de obrigatoriedade e conclusão.');
