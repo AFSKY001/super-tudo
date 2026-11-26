@@ -36,6 +36,9 @@ const checks = [
   ['migração processa apenas modelos-alvo com atividades reconhecidas', /targets\.has\(normalize\(model\?\.n[\s\S]*?const titles=extractItems\(model\);[\s\S]*?if\(!name\|\|!titles\.length\)continue/],
   ['migração enfileira exclusão explícita na fonte correta', /syncMeta\.queue\.push\(\{key,module,record_id:modelId,kind:'r:cro',deleted:true/],
   ['migração não sobrescreve conflitos de exclusão pendentes', /if\(pending\?\.status==='conflict'\)continue/],
+  ['migração legada não envia exclusão de modelos de Rotina por perfis sem gestão', /const canManageRoutineModels=\['master','admin','gerente'\]\.includes\(V\.cloudIdentity\.role\)[\s\S]{0,650}op\.deleted&&op\.status==='forbidden'[\s\S]{0,250}syncBaseline=syncRows\(S\)/],
+  ['migração mantém exclusões remotas somente para Master e Gerência', /\}else\{\s*let queued=false;[\s\S]{0,1400}syncFlush\(\)\.catch/],
+
   ['migração transmite exclusões enfileiradas', /if\(queued\)\{syncPersist\(\);syncFlush\(\)\.catch/],
   ['migração extrai e deduplica títulos das atividades', /const extractItems=model=>[\s\S]*?const titles=extractItems\(model\);[\s\S]*?if\(!name\|\|!titles\.length\)continue/],
   ['gerador antigo não recria modelos de cronograma', /function migFix\(\)[\s\S]{0,300}fixmodels-2026[\s\S]{0,100}save\(\)/],
