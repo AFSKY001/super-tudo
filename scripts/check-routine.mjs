@@ -137,5 +137,6 @@ assert.ok(employeeRoutineSection.includes('Rotinas atribuídas')&&employeeRoutin
 assert.ok(employeeRoutineSection.includes('Core.activeOn(a,day())'),'A lista do cadastro deve mostrar somente atribuições ativas.');
 assert.ok(employeeRoutineSection.includes('rt-remove-assignment')&&employeeRoutineSection.includes('rtEnd('),'Cada modelo atribuído deve ter ação X para remover a atribuição.');
 assert.ok(routineSource.includes('a.until=addDays(day(),-1);a.active=false'),'Remover uma atribuição deve encerrá-la sem apagar o histórico anterior.');
+assert.ok(routineSource.includes("o.status!=='pending'")&&routineSource.includes("status:'dismissed'")&&routineSource.includes("Atribuição removida do cadastro do funcionário."),'A remoção deve dispensar apenas ocorrências futuras pendentes, preservando as concluídas e o histórico passado.');
 assert.ok(!employeeRoutineSection.includes('rtExtra')&&!employeeRoutineSection.includes('Encerrar'),'O cadastro de funcionário não deve oferecer atividade extra nem botão Encerrar nesta área.');
 assert.ok(!indexSource.includes('pExtra(_0x34c024)+ptHTML(_0x34c024)'),'O cadastro não deve renderizar em paralelo a seleção legada por quadradinhos.');
