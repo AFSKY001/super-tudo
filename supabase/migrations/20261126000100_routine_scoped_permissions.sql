@@ -247,3 +247,9 @@ select case
  else public.has_perm_for_org(k,p_org_id)
 end;
 $$;
+
+-- Helpers are internal only: policies and the SECURITY DEFINER RPC invoke them
+-- as their owner; they must not be exposed as callable PostgREST RPCs.
+revoke all on function public.can_read_routine_record(text, uuid) from public, anon, authenticated;
+revoke all on function public.can_write_routine_record(text, text, jsonb, uuid) from public, anon, authenticated;
+revoke all on function public.guard_routine_app_record_write() from public, anon, authenticated;
