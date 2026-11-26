@@ -39,6 +39,25 @@ assert.match(routineSource,/teamIds=master\?\(S\.team\|\|\[\]\)\.filter\(x=>!x\.
 
 
 
+const expanded=Core.expandChecklistItems({
+ idPrefix:'legacy-checklist-test',title:'Abertura da loja',description:'Checklist atribuído no cadastro.',
+ steps:['Conferir validade','Organizar gôndola','Verificar etiquetas'],
+ turns:['Abertura','Fechamento'],photo:'required',mandatory:true,
+ recurrence:{type:'daily'},time:'08:00',source:{checklistId:'ck-test'}
+});
+assert.equal(expanded.length,6,'Cada item do checklist deve virar uma atividade separada em cada turno.');
+assert.deepEqual(expanded.map(item=>item.title),[
+ 'Conferir validade','Organizar gôndola','Verificar etiquetas',
+ 'Conferir validade','Organizar gôndola','Verificar etiquetas'
+]);
+assert.ok(expanded.every(item=>item.steps.length===0),'A atividade individual não deve renderizar o checklist inteiro como lista interna.');
+assert.ok(expanded.every(item=>item.checklistSnapshot.length===1),'Cada atividade deve preservar somente seu próprio item no snapshot.');
+assert.equal(new Set(expanded.map(item=>item.id)).size,6,'Cada item/turno precisa de ID determinístico e exclusivo.');
+assert.ok(expanded.every(item=>item.photo==='required'&&item.mandatory),'Cada item deve preservar as regras de foto e obrigatoriedade do checklist.');
+assert.match(routineSource,/legacyActivities\.flatMap\(activity=>expandChecklistItems/,'Modelos já migrados precisam ser convertidos para atividades individuais.');
+assert.match(routineSource,/occurrence\.status==='pending'&&String\(occurrence\.date\)>=day\(\)\)delete D\.occurrences/,'Somente ocorrências pendentes atuais/futuras do cartão antigo devem ser regeneradas.');
+assert.match(routineSource,/source:\{\.\.\.source,type:'legacy-assigned-checklist-item'\}/,'As novas atividades devem ser identificadas para a migração não se repetir.');
+
 const assignment={id:'assign-1',modelId:'model-1',executorId:'person-1',verifierId:'leader-1',from:'2026-11-22',active:true};
 const activity={id:'activity-1',title:'Conferir setor',mandatory:true,photo:'required',time:'08:15',recurrence:{type:'weekly',days:[1,2,3,4,5]}};
 const model={id:'model-1',name:'Rotina do repositor',activities:[activity]};
