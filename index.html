@@ -3057,6 +3057,19 @@ async function syncResolveConflictsUI(){
       continue;
     }
     const local=syncRows(S).get(key)||null;
+    const equivalentResult={
+      status:'conflict',
+      server_revision:Number(server.revision),
+      server_data:server.data,
+      server_deleted_at:server.deleted_at||null
+    };
+    if(syncRoutineCreateEquivalent(pending,local,equivalentResult,pending.base_revision??null)){
+      syncMeta.queue=syncMeta.queue.filter(op=>op!==pending);
+      syncMeta.revisions[key]=Number(server.revision);
+      delete syncMeta.conflicts[key];
+      syncPersist();
+      continue;
+    }
     const choice=await syncConflictDialog(key,server,'',local,pending);
     if(choice==='later')break;
     if(choice==='local'){
