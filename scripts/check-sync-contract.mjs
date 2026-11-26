@@ -22,6 +22,14 @@ const syncConcurrencyMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261123165349_serialize_sync_push_per_org.sql'),
   'utf8',
 );
+const routineKindMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126180000_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
+const routineKindRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -49,8 +57,19 @@ const checks = [
   ['falha ao atualizar a nuvem atualiza o indicador para erro', /async function runSyncStatusAction\(\)[\s\S]*?catch\(error\)\{[\s\S]{0,180}syncLastError=String\(error\?\.message/],
   ['diálogo de sincronização fica acima das camadas globais', /zIndex:'2147483001'/],
   ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
-  ['modelos e atribuições de Rotina entram na sincronização multiempresa', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
-  ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:cro'/],
+  ['fila local antiga normaliza pt e separa done individual do Cronograma sem trocar o client_id', /for\(const op of syncMeta\['queue'\]\|\|\[\]\)if\(op&&!op\['status'\]\)\{const parts=String\(op\['record_id'\]\|\|''\)\.split\('\|'\)\.length;[\s\S]{0,300}else if\('done'===op\['module'\]&&parts<3&&'r:rot'===op\['kind'\]\)op\['kind'\]='r:cro'/],
+  ['marcações de Cronograma e de Rotina recebem permissões distintas conforme a chave', /function syncAddDone\(map,values\)[\s\S]{0,350}id\.split\('\|'\)\.length>=3\?'r:rot':'r:cro'/],
+  ['Encarregado não grava a marcação global de duas partes do Cronograma ao concluir atividade', /S\['done'\]\[_0x247c0f\]=!0x0,\(!V\['cloudIdentity'\]\|\|'encarregado'!==V\['cloudIdentity'\]\['role'\]\)&&\(S\['done'\]\[_0x43c94c\['d'\]\+'\\|'\+_0x43c94c\['i'\]\]=!0x0\)/],
+  ['criação repetida de ocorrência só é reconciliada quando o conteúdo é equivalente, ignorando apenas timestamps locais', /function syncRoutineCreateEquivalent\(op,record,result,baseRevision\)[\s\S]{0,900}delete value\.createdAt;delete value\.updatedAt;[\s\S]{0,250}syncCanon\(normalize\(local\)\)===syncCanon\(normalize\(server\)\)/],
+  ['conflito de criação equivalente de ocorrência é tratado como sucesso idempotente', /syncRoutineCreateEquivalent\(_0x2b4c27,_0x19c7ed,_0x1134c5,_0x335e74\)/],
+  ['reconciliação idempotente avança para a revisão atual da nuvem', /Number\(_0x1134c5\['revision'\]\|\|_0x1134c5\['server_revision'\]\)/],
+  ['rotina pessoal materializa checklists atribuídos antes de montar a lista do funcionário', /const myT=\([^)]*\)=>\{ensureAssignedChecklistsInRotinas\(\);const/],
+  ['modelos de checklist atribuídos no cadastro do funcionário continuam materializados', /employee\.ckModels[\s\S]{0,700}cloneChecklistModel/],
+  ['estilo de seleção de modelos do funcionário permanece no CSS compartilhado', /\.employee-checklist-model-option\{display:flex;gap:10px;align-items:center;margin:8px 0\}/],
+  ['atividades pessoais da Rotina usam a permissão específica r:rot', /\['pt','r:rot'\]/],
+  ['marcações concluídas da Rotina usam a permissão específica r:rot', /syncAddObject\([^;]{0,100}'done','r:rot'/],
+  ['modelos e atribuições de Rotina permanecem restritos a r:cro; ocorrências usam r:rot', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
+  ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:rot'/],
   ['cliente aplica modelos, atribuições e ocorrências recebidos da nuvem', /'routineModels'!==_0x3419a0&&'routineAssignments'!==_0x3419a0[\s\S]{0,1100}'routineOccurrences'===_0x3419a0/],
   ['cliente reconhece o fluxo restrito de encarregado em cfg:team', /'encarregado'===_0xrole&&_0x3c2060\['includes'\]\('r:eqp'\)/],
 
@@ -138,6 +157,15 @@ const concurrencyChecks = [
   ['migração preserva a assinatura multiempresa da RPC', syncConcurrencyMigration.includes("public.sync_push(jsonb,uuid)")],
   ['migração falha se não reconhecer a estrutura ativa', syncConcurrencyMigration.includes('Não foi possível localizar o início do processamento da fila')],
   ['migração verifica o bloqueio após a substituição', syncConcurrencyMigration.includes('O bloqueio transacional de sync_push não foi instalado')],
+  ['migração reclassifica pt e somente done individual de r:cro para r:rot', routineKindMigration.includes("where module = 'pt'") && routineKindMigration.includes("where module = 'done'") && routineKindMigration.includes("cardinality(string_to_array(record_id, '|')) >= 3") && routineKindMigration.includes("and kind = 'r:cro'")],
+  ['migração documenta desfazer somente antes de novas gravações', routineKindMigration.includes('supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql') && routineKindRollback.includes('ONLY before any new per-person pt/done writes')],
+  ['migração mantém done de duas partes no Cronograma legado', routineKindMigration.includes("cardinality(string_to_array(record_id, '|')) >= 3") && routineKindMigration.includes("module = 'done'")],
+  ['migração protege escrita pessoal por funcionário/equipe', routineKindMigration.includes('guard_personal_routine_sync_write') && routineKindMigration.includes('team_lead_members') && routineKindMigration.includes("new.module in ('pt', 'done')")],
+  ['migração restringe leitura de ocorrências, atividades pessoais e marcações à equipe autorizada', routineKindMigration.includes('can_read_sync_record_for_org') && routineKindMigration.includes('public.can_read_sync_record_for_org(module, kind, record_id, data, v_org)') && routineKindMigration.includes("me.role = 'encarregado'")],
+  ['leitura de ocorrências compara o ID real e inclui o próprio executor e a equipe autorizada', routineKindMigration.includes("p_record_id = coalesce(p_data->'value'->>'id', p_data->>'id')") && routineKindMigration.includes("coalesce(p_data->'value'->>'executorId', p_data->>'executorId') = me.team_member_id") && routineKindMigration.includes('team_lead_members')],
+  ['migração falha fechada para chave global done com r:rot', routineKindMigration.includes("when p_module = 'done' and p_kind = 'r:rot' then false")],
+  ['reversão restaura permissões e tipos de done antes da remoção dos filtros', routineKindRollback.includes("module = 'done'") && routineKindRollback.includes("cardinality(string_to_array(record_id, '|')) >= 3") && routineKindRollback.includes('drop trigger if exists app_records_guard_personal_routine_sync_write')],
+  ['reversão restaura sync_pull antes de remover o filtro de leitura', routineKindRollback.includes('public.can_read_kind_for_org(kind, record_id, v_org)') && routineKindRollback.includes('drop function if exists public.can_read_sync_record_for_org')],
 ];
 const failedConcurrency = [];
 for (const [label, passed] of concurrencyChecks) {
