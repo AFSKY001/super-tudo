@@ -66,6 +66,40 @@ const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
 const S=bridge.S,V=bridge.V,CK=bridge.CK,person=bridge.person,teamOf=bridge.teamOf,isFullAccess=bridge.isFullAccess,migFix=bridge.migFix,save=bridge.save,today=bridge.today,esc=bridge.esc,rConf=bridge.rConf,rMov=bridge.rMov,rPdc=bridge.rPdc,rAvaReg=bridge.rAvaReg,rRegLanc=bridge.rRegLanc,LANC_KEYS=bridge.LANC_KEYS,FS=bridge.FS,RSEC=bridge.RSEC;
 let R=bridge.R,rMenu=bridge.rMenu,rMenuCore=bridge.rMenuCore;
 const $=id=>root.document.getElementById(id),e=v=>esc(String(v??'')),Pickers=root.SuperTudoPickers;
+function installRoutineStyles(){
+ if(!root.document||$('st-routine-checkbox-styles'))return;
+ const style=root.document.createElement('style');style.id='st-routine-checkbox-styles';
+ style.textContent=`
+ .rt-task-row{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:68px}
+ .rt-task-check{width:28px;height:28px;min-width:28px;border:2px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--texto-inverso);display:grid;place-items:center;font:800 19px/1 system-ui;padding:0;touch-action:manipulation}
+ .rt-task-check.is-checked{background:var(--ok);border-color:var(--ok)}
+ .rt-task-check:disabled{opacity:.65}
+ .rt-task-open{flex:1;min-width:0;min-height:46px;border:0;background:transparent;color:var(--tx);display:flex;align-items:center;gap:10px;text-align:left;padding:0;touch-action:manipulation}
+ .rt-task-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+ .rt-task-copy b{overflow-wrap:anywhere;font-size:14px}
+ .rt-task-status{font-size:11px;font-weight:700;color:var(--mu);white-space:nowrap}
+ .rt-task-status.is-late{color:var(--no)}.rt-task-status.is-done{color:var(--ok)}
+ .rt-task-chevron{font-size:25px;line-height:1;color:var(--mu)}
+ .rt-details-sheet{display:flex;flex-direction:column;gap:12px;padding:12px 16px calc(20px + env(safe-area-inset-bottom,0px));}
+ .rt-sheet-head{align-items:flex-start}.rt-sheet-head h3{margin:4px 0 0;font-size:19px;overflow-wrap:anywhere}
+ .rt-sheet-kicker{font-size:10px;letter-spacing:1px;font-weight:800;color:var(--mu)}
+ .rt-detail-status{align-self:flex-start;padding:5px 10px;border-radius:99px;background:var(--sf);font-size:12px;font-weight:700}
+ .rt-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .rt-detail-block{min-width:0;padding:11px;border:1px solid var(--bd);border-radius:12px;background:var(--sf)}
+ .rt-detail-block>b{display:block;font-size:14px;margin-top:3px}
+ .rt-detail-block>p{margin:6px 0 0;font-size:13px;overflow-wrap:anywhere}
+ .rt-detail-block ul{margin:8px 0 0;padding-left:20px;font-size:13px}
+ .rt-detail-block li+li{margin-top:5px}
+ .rt-photo-warning{padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--wa) 14%,var(--cd));border:1px solid var(--wa);font-size:13px}
+ .rt-photo-pick{display:inline-flex;align-items:center;min-height:42px;margin-top:8px}
+ .rt-photo-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important}
+ .rt-detail-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:4px}
+ .rt-detail-actions .bt{min-height:44px}
+ @media(max-width:380px){.rt-task-status{font-size:10px}.rt-detail-grid{gap:6px}.rt-detail-block{padding:9px}}
+ `;
+ root.document.head.appendChild(style);
+}
+installRoutineStyles();
 const uid=()=>root.crypto?.randomUUID?root.crypto.randomUUID():'rt-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
 const day=()=>typeof today==='function'?today():localDate(),dayValue=v=>Core.dateValue(v),touch=o=>(o.updatedAt=Date.now(),o);
 const db=()=>{S.routineModels=Array.isArray(S.routineModels)?S.routineModels:[];S.routineAssignments=Array.isArray(S.routineAssignments)?S.routineAssignments:[];S.routineOccurrences=S.routineOccurrences&&typeof S.routineOccurrences==='object'?S.routineOccurrences:{};S.migrations=Array.isArray(S.migrations)?S.migrations:[];return{models:S.routineModels,assignments:S.routineAssignments,occurrences:S.routineOccurrences};};
@@ -336,7 +370,7 @@ async function dismiss(id){const o=db().occurrences[id];if(!o||!canSee(o.executo
 async function complete(id){
  const o=db().occurrences[id];if(!o||!canSee(o.executorId)||o.status==='done'||o.status==='dismissed'||o.viaSystem)return;
  const file=$('rt-photo-'+id)?.files?.[0]||null;
- if(o.snapshot.photo==='required'&&!file&&!o.photoId){openDetails(id,true);return root.stAlert('Esta atividade exige uma foto antes de concluir.');}
+ if(o.snapshot.photo==='required'&&!file&&!o.photoId){openDetails(id,true);return;}
  try{if(file)o.photoId=await savePhoto(file);const me=V.me||V.cloudIdentity||{},mid=me.id||me.team_member_id||'';Object.assign(o,{status:'done',madeAt:Date.now(),madeBy:mid||'unknown',madeByName:who(mid)?.n||me.n||me.name||'Usuário atual',viaSystem:false,updatedAt:Date.now()});save();if(V.sh==='routine-details'){V.sh=0;V.rtDetailId='';V.rtDetailNeedsPhoto=false;}R();}
  catch(err){root.stAlert(err.message||'Não foi possível concluir.');}
 }
