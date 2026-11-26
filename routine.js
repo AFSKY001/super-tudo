@@ -87,6 +87,8 @@ function installRoutineStyles(){
  .rt-task-chevron{font-size:25px;line-height:1;color:var(--mu)}\n @keyframes rt-check-pop{0%{transform:scale(.82)}55%{transform:scale(1.16)}100%{transform:scale(1)}}\n @keyframes rt-check-wave{0%{transform:scale(.65);opacity:.7}100%{transform:scale(1.85);opacity:0}}\n @keyframes rt-uncheck-wave{0%{transform:scale(.7);opacity:.55}100%{transform:scale(1.9);opacity:0}}\n @keyframes rt-paper-strike{0%{text-decoration-color:transparent;text-decoration-thickness:0}100%{text-decoration-color:var(--ok);text-decoration-thickness:2px}}\n @media(prefers-reduced-motion:reduce){.rt-task-row,.rt-task-check{transition:none!important}.rt-task-row.is-completing .rt-task-copy b{animation:none;text-decoration-color:var(--ok);text-decoration-thickness:2px}.rt-task-row.is-completing .rt-task-check,.rt-task-row.is-completing .rt-task-check::after,.rt-task-row.is-unchecking .rt-task-check::after{animation:none!important}}
  .rt-details-sheet{display:flex;flex-direction:column;align-items:stretch;gap:14px;box-sizing:border-box;width:100%;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - 8px)!important;overflow-y:auto!important;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 16px calc(24px + env(safe-area-inset-bottom,0px));}
  .rt-details-sheet>*{flex:0 0 auto;min-width:0}
+ /* O gerenciador global envolve o conteúdo em .sheet-body; é esse filho que precisa crescer e rolar. */
+ .rt-details-sheet>.sheet-body{flex:1 1 auto;min-height:0;width:100%;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
  .rt-sheet-head{align-items:flex-start;gap:12px}.rt-sheet-head>div{min-width:0;flex:1}.rt-sheet-head h3{margin:4px 0 0;font-size:19px;line-height:1.3;overflow-wrap:anywhere}
  .rt-sheet-kicker{font-size:10px;letter-spacing:1px;font-weight:800;color:var(--mu)}
  .rt-detail-status{align-self:flex-start;max-width:100%;padding:7px 12px;border-radius:99px;background:var(--sf);font-size:12px;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
@@ -102,6 +104,7 @@ function installRoutineStyles(){
  .rt-photo-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important}
  .rt-detail-actions{display:flex;gap:10px;flex-wrap:wrap;padding:6px 0 max(4px,env(safe-area-inset-bottom,0px))}
  .rt-detail-actions .bt{flex:1 1 140px;min-height:46px;white-space:normal}
+ @media(max-width:1023px){.rt-details-sheet{--sheet-extra:0px;--extra:0px;top:auto!important;bottom:0!important;max-height:calc(100dvh - env(safe-area-inset-top,0px))!important;max-height:calc(100svh - env(safe-area-inset-top,0px))!important}.rt-details-sheet>.sheet-body{flex:1 1 auto;min-height:0}}
  @media(max-width:420px){.rt-details-sheet{gap:12px;padding-left:14px;padding-right:14px}.rt-detail-grid{gap:8px}.rt-detail-block{min-height:68px;padding:11px}.rt-detail-block>b{font-size:13px}.rt-sheet-head h3{font-size:18px}}
  @media(min-width:700px){.rt-details-sheet{max-height:calc(94dvh - 8px)!important;padding:18px 22px calc(24px + env(safe-area-inset-bottom,0px))}.rt-detail-grid{gap:12px}.rt-detail-block{padding:14px 16px}}
  `;
