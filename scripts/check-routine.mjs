@@ -14,6 +14,12 @@ assert.match(routineSource,/const photoRequired=checklist\.ph===true\|\|checklis
 assert.match(routineSource,/function card\(o\)[\s\S]{0,1800}role="checkbox"[\s\S]{0,700}rtDetails/,'A lista de Rotina deve usar um checkbox individual e abrir detalhes ao tocar na atividade.');
 assert.match(routineSource,/function detailsSheet\(\)[\s\S]{0,6000}data-sheet[\s\S]{0,2500}Horário limite[\s\S]{0,1200}Foto na conclusão/,'Os detalhes devem abrir em uma janela inferior arrastável com horário e regra de foto.');
 assert.match(routineSource,/async function undoComplete[\s\S]{0,800}status:'pending'[\s\S]{0,500}deletePhoto/,'Desmarcar uma conclusão manual deve voltar para pendente e limpar a comprovação associada.');
+assert.match(routineSource,/async function savePhoto\(file,occurrenceId\)[\s\S]{0,1500}stRoutinePhotoUpload\(path,blob\)[\s\S]{0,300}return\{id,path\}/,'A comprovação deve ser comprimida, enviada ao Storage e associada à ocorrência.');
+assert.match(routineSource,/photoId:null,photoPath:null/,'Novas ocorrências devem iniciar sem caminho de foto na nuvem.');
+assert.match(routineSource,/async function viewPhoto\(id\)[\s\S]{0,900}stRoutinePhotoUrl\(o\.photoPath\)/,'A foto deve poder ser aberta pela nuvem em outro aparelho quando não houver cache local.');
+assert.match(indexSource,/window\.stRoutinePhotoUpload=async function\(path,blob\)[\s\S]{0,900}storage\.from\('rotinas-evidencias'\)\.upload/,'O upload deve usar o bucket privado de evidências da Rotina.');
+assert.match(indexSource,/window\.stRoutinePhotoUrl=async function\(path\)[\s\S]{0,700}createSignedUrl\(path,3600\)/,'A leitura da foto deve usar URL assinada temporária.');
+assert.match(indexSource,/window\.stRoutinePhotoDelete=async function\(path\)[\s\S]{0,700}storage\.from\('rotinas-evidencias'\)\.remove/,'A exclusão da comprovação deve remover o objeto remoto associado.');
 assert.match(routineSource,/function installRoutineStyles[\s\S]{0,9000}rt-task-check[\s\S]{0,5000}rt-paper-strike[\s\S]{0,2500}rt-details-sheet/,'A lista deve ter ondas no checkbox e risco animado na legenda.');
 assert.match(routineSource,/function refreshTaskRow\(id,motion\)[\s\S]{0,900}row\.outerHTML=card\(o\)/,'Marcar e desmarcar devem atualizar somente a linha da atividade, sem redesenhar a tela inteira.');
 assert.match(routineSource,/rt-paper-strike 2s/,'O risco da atividade concluída deve ser desenhado em aproximadamente dois segundos.');
