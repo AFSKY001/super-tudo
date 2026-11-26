@@ -120,7 +120,8 @@ function migrate(){
     model=touch({id:modelId,name,description:'Migrado automaticamente do checklist atribuído ao funcionário.',legacyId:String(ckid),legacyChecklistIds:[String(ckid)],legacySignature:suffix,activities,createdAt:Date.now()});
     D.models.push(model);added=true;
    }else{
-    model.legacyChecklistIds=Array.from(new Set([...(model.legacyChecklistIds||[]),String(ckid)]));
+    const oldIds=Array.isArray(model.legacyChecklistIds)?model.legacyChecklistIds:[];
+    if(!oldIds.includes(String(ckid))){model.legacyChecklistIds=[...oldIds,String(ckid)];added=true;}
    }
    const assignmentId='legacy-assigned-checklist-assignment-'+pid+'-'+suffix;
    if(!assignmentIds.has(assignmentId)){
