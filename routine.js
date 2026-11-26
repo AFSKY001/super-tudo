@@ -60,7 +60,7 @@ const who=id=>typeof person==='function'?person(id):(S.team||[]).find(p=>String(
 const whoName=id=>who(id)?.n||'Pessoa não encontrada';
 const supervisor=id=>(S.team||[]).find(p=>(p.lead||[]).map(String).includes(String(id)));
 const clone=o=>JSON.parse(JSON.stringify(o));
-const checklistItems=c=>{const raw=Array.isArray(c?.l)?c.l:Array.isArray(c?.i)?c.i:typeof c?.i==='string'?c.i.split('|'):[];return raw.filter(x=>x&&String(x)[0]!=='#').map(String);};
+const checklistItems=c=>{const raw=Array.isArray(c?.l)&&c.l.length?c.l:Array.isArray(c?.i)?c.i:typeof c?.i==='string'?c.i.split('|'):[];return raw.filter(x=>x&&String(x)[0]!=='#').map(String);};
 function recordDay(r){const v=r&&(r.data||r.d||r.date||r.createdAt);return Core.dateValue(v);}
 function recordForPerson(rows,d,pid,pattern){const p=who(pid),name=String(p?.n||'').trim().toLocaleLowerCase(),uniqueName=!!name&&(S.team||[]).filter(x=>String(x.n||'').trim().toLocaleLowerCase()===name).length===1;return(Array.isArray(rows)?rows:[]).some(r=>{if(!r||recordDay(r)!==d)return false;if(pattern&&!pattern.test(String(r.arq||r.src||r.tipo||r.t||'')))return false;const owners=[r.pid,r.executorId,r.responsavelId,r.by,r.resp,r.r,r.rid].filter(x=>x!=null).map(String);return owners.includes(String(pid))||uniqueName&&owners.some(owner=>owner.trim().toLocaleLowerCase()===name);});}
 const defs=[
