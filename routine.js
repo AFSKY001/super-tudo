@@ -351,7 +351,7 @@ function endAssignment(id){const a=db().assignments.find(x=>x.id===id);if(!a)ret
 function currentPerson(){return who(V.me?.id||V.cloudIdentity?.team_member_id||'');}
 function visibleTeam(){const p=currentPerson();return p&&typeof teamOf==='function'?teamOf(p):[];}
 function canSee(id){if(typeof isFullAccess==='function'&&isFullAccess())return true;const p=currentPerson();return!!p&&(String(p.id)===String(id)||visibleTeam().some(x=>String(x.id)===String(id)));}
-function list(ids){return Object.values(db().occurrences).filter(o=>o.date===day()&&ids.includes(String(o.executorId))).sort((a,b)=>(Core.state(a)==='overdue'?-1:0)-(Core.state(b)==='overdue'?-1:0)||Core.hm(a.snapshot.time)-Core.hm(b.snapshot.time));}
+function list(ids){return Object.values(db().occurrences).filter(o=>o.date===day()&&o.status!=='dismissed'&&ids.includes(String(o.executorId))).sort((a,b)=>(Core.state(a)==='overdue'?-1:0)-(Core.state(b)==='overdue'?-1:0)||Core.hm(a.snapshot.time)-Core.hm(b.snapshot.time));}
 function card(o){
  const st=Core.state(o),s=o.snapshot,master=typeof isFullAccess==='function'&&isFullAccess();
  const allowed=!master&&canSee(o.executorId)&&st!=='dismissed'&&!o.viaSystem;
