@@ -156,10 +156,12 @@ const concurrencyChecks = [
   ['migração falha se não reconhecer a estrutura ativa', syncConcurrencyMigration.includes('Não foi possível localizar o início do processamento da fila')],
   ['migração verifica o bloqueio após a substituição', syncConcurrencyMigration.includes('O bloqueio transacional de sync_push não foi instalado')],
   ['migração reclassifica pt e somente done individual de r:cro para r:rot', routineKindMigration.includes("where module = 'pt'") && routineKindMigration.includes("where module = 'done'") && routineKindMigration.includes("cardinality(string_to_array(record_id, '|')) >= 3") && routineKindMigration.includes("and kind = 'r:cro'")],
-  ['migração documenta desfazer somente antes de novas gravações', routineKindMigration.includes('Undo (only BEFORE new r:rot writes are created after this migration)')],
+  ['migração documenta desfazer somente antes de novas gravações', routineKindMigration.includes('supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql') && routineKindRollback.includes('ONLY before any new per-person pt/done writes')],
   ['migração mantém done de duas partes no Cronograma legado', routineKindMigration.includes("cardinality(string_to_array(record_id, '|')) >= 3") && routineKindMigration.includes("module = 'done'")],
   ['migração protege escrita pessoal por funcionário/equipe', routineKindMigration.includes('guard_personal_routine_sync_write') && routineKindMigration.includes('team_lead_members') && routineKindMigration.includes("new.module in ('pt', 'done')")],
   ['migração restringe leitura de ocorrências, atividades pessoais e marcações à equipe autorizada', routineKindMigration.includes('can_read_sync_record_for_org') && routineKindMigration.includes('public.can_read_sync_record_for_org(module, kind, record_id, data, v_org)') && routineKindMigration.includes("me.role = 'encarregado'")],
+  ['migração falha fechada para chave global done com r:rot', routineKindMigration.includes("when p_module = 'done' and p_kind = 'r:rot' then false")],
+  ['reversão restaura permissões e tipos de done antes da remoção dos filtros', routineKindRollback.includes("module = 'done'") && routineKindRollback.includes("cardinality(string_to_array(record_id, '|')) >= 3") && routineKindRollback.includes('drop trigger if exists app_records_guard_personal_routine_sync_write')],
   ['reversão restaura sync_pull antes de remover o filtro de leitura', routineKindRollback.includes('public.can_read_kind_for_org(kind, record_id, v_org)') && routineKindRollback.includes('drop function if exists public.can_read_sync_record_for_org')],
 ];
 const failedConcurrency = [];
