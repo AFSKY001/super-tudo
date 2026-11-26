@@ -131,6 +131,9 @@ assert.equal(completed.snapshot.title,'Conferir setor');
 
 assert.equal(Core.activeOn({...assignment,until:'2026-11-22'},'2026-11-23'),false,'Atribuição encerrada não gera no dia seguinte.');
 assert.equal(Core.activeOn(assignment,'2026-11-23'),true);
+assert.equal(Core.assignmentValidOn({assignmentId:'ended',date:'2026-11-25'},[{id:'ended',active:false,from:'2026-10-01',until:'2026-11-25'}]),true,'Relatório deve preservar ocorrências até a data final da atribuição encerrada.');
+assert.equal(Core.assignmentValidOn({assignmentId:'ended',date:'2026-11-26'},[{id:'ended',active:false,from:'2026-10-01',until:'2026-11-25'}]),false,'Relatório não pode contar ocorrências posteriores ao encerramento.');
+assert.equal(Core.assignmentValidOn({assignmentId:'active',date:'2026-11-26'},[{id:'active',active:true,from:'2026-11-26'}]),true,'Relatório deve contar ocorrências da atribuição ativa.');
 
 const performanceRows=[
  {status:'done',snapshot:{mandatory:true}},
