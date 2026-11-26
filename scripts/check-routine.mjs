@@ -22,7 +22,7 @@ assert.match(indexSource,/window\.stRoutinePhotoUpload=async function\(path,blob
 assert.match(indexSource,/window\.stRoutinePhotoUrl=async function\(path\)[\s\S]{0,700}createSignedUrl\(path,3600\)/,'A leitura da foto deve usar URL assinada temporária.');
 assert.match(indexSource,/window\.stRoutinePhotoDelete=async function\(path\)[\s\S]{0,700}storage\.from\('rotinas-evidencias'\)\.remove/,'A exclusão da comprovação deve remover o objeto remoto associado.');
 assert.match(routinePhotoPolicySource,/public\.can_read_routine_record\([\s\S]{0,180}split_part\(name, '\/', 3\)/,'A leitura de fotos deve seguir a autorização de leitura da ocorrência da Rotina.');
-assert.match(routinePhotoPolicySource,/public\.can_write_routine_photo_path\([\s\S]{0,260}has_perm_for_org\('r:rot'/,'O upload e a exclusão devem exigir permissão de Rotina e atribuição compatível.');
+assert.match(routinePhotoPolicySource,/create or replace function public\.can_write_routine_photo_path[\s\S]{0,1200}has_perm_for_org\('r:rot'/,'O upload e a exclusão devem exigir permissão de Rotina e atribuição compatível.');
 assert.match(routinePhotoPolicySource,/drop policy if exists rotinas_evidencias_select_org[\s\S]{0,500}create policy rotinas_evidencias_select_routine_access/,'As políticas antigas, abertas a qualquer membro da empresa, devem ser substituídas.');
 assert.match(routineSource,/function installRoutineStyles[\s\S]{0,9000}rt-task-check[\s\S]{0,5000}rt-paper-strike[\s\S]{0,2500}rt-details-sheet/,'A lista deve ter ondas no checkbox e risco animado na legenda.');
 assert.match(routineSource,/function refreshTaskRow\(id,motion\)[\s\S]{0,900}row\.outerHTML=card\(o\)/,'Marcar e desmarcar devem atualizar somente a linha da atividade, sem redesenhar a tela inteira.');
