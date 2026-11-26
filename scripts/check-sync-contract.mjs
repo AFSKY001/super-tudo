@@ -5,6 +5,7 @@ import { parse } from 'acorn';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const routineSource = fs.readFileSync(path.join(root, 'routine.js'), 'utf8');
 
 const syncPushMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261118164535_restrict_team_member_management_to_owner.sql'),
@@ -172,6 +173,22 @@ const routinePermissionChecks = [
   ['leitura por tipo chama helper sem recursão', /create or replace function public\\.can_read_kind_for_org[\\s\\S]*?else public\\.has_perm_for_org\\(k,p_org_id\\)/i],
   ['tipo r:rot exige permissão específica', /when k='r:rot' then public\\.has_perm_for_org\\('r:rot',p_org_id\\)/i],
 ];
+const routineMigrationChecks = [
+  ['migração de checklists atribuídos roda mesmo após rotina-v1', routineSource.indexOf('routine-assigned-checklists-v2') >= 0 && routineSource.indexOf('routine-assigned-checklists-v2') < routineSource.indexOf("S.migrations.includes('routine-v1')")],
+  ['checklists legados leem itens separados por pipe', /typeof c\?\.i==='string'\?c\.i\.split\('\|'\)/.test(routineSource)],
+  ['checklists duplicados usam assinatura estável', /legacySignature:suffix/.test(routineSource)],
+  ['pessoa com rotina recebe permissão de menu r:rot', /grantRoutinePermission\(pid\)/.test(routineSource)],
+  ['atribuição manual também habilita o menu de Rotina', /function assign\(pid\)[\s\S]*?person\.perm\.includes\('r:rot'\)/.test(routineSource)],
+];
+const failedRoutineMigration = [];
+for (const [label, passed] of routineMigrationChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedRoutineMigration.push(label);
+}
+if (failedRoutineMigration.length) {
+  console.error('Falhas na migração de checklists atribuídos: ' + failedRoutineMigration.join('; '));
+  process.exitCode = 1;
+}
 const failedRoutinePermissions = [];
 for (const [label, pattern] of routinePermissionChecks) {
   const passed = pattern.test(routinePermissionMigration);
