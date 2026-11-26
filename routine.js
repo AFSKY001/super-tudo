@@ -292,7 +292,7 @@ root.rtNew=newModel;root.rtEdit=editModel;root.rtCopy=duplicateModel;root.rtArch
 root.rtGenerateDay=generateDay;root.rtSyncFunctions=syncFunctions;root.rtMigrate=migrate;
 migrate();generateDay();syncFunctions();
 const originalRender=R;let rendering=false;if(typeof originalRender==='function'){R=function(){if(!rendering){rendering=true;try{generateDay();syncFunctions();}finally{rendering=false;}}return originalRender.apply(this,arguments);};bridge.R=R;}
-root.addEventListener('focus',()=>{generateDay();syncFunctions();});root.addEventListener('st:cloud-sync-ready',()=>{migrate();generateDay();syncFunctions();});root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden){generateDay();syncFunctions();}});
+root.addEventListener('focus',()=>{generateDay();syncFunctions();});root.addEventListener('st:cloud-sync-ready',()=>{migrate();generateDay();syncFunctions();});if(root.__ST_CLOUD_SYNC_READY__){migrate();generateDay();syncFunctions();}root.document.addEventListener('visibilitychange',()=>{if(!root.document.hidden){generateDay();syncFunctions();}});
 function scheduleLocalMidnight(){const now=new Date(),next=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,5);root.setTimeout(()=>{generateDay();syncFunctions();scheduleLocalMidnight();},Math.max(1000,next.getTime()-now.getTime()));}scheduleLocalMidnight();
 
 /* Fichas técnicas de receitas da padaria — extensão de Lançamentos */
