@@ -2500,6 +2500,15 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
   }
  }
  if(syncReady&&V.cloudIdentity&&syncMeta&&Array.isArray(syncMeta.queue)){
+  const canManageRoutineModels=['master','admin','gerente'].includes(V.cloudIdentity.role);
+  if(!canManageRoutineModels){
+   const migratedKeys=new Set(completed.map(({module,modelId})=>module+'|'+modelId));
+   const beforeQueue=syncMeta.queue.length;
+   syncMeta.queue=syncMeta.queue.filter(op=>!(migratedKeys.has(op.key)&&['routineModels','routineAssignments'].includes(op.module)&&op.deleted&&op.status==='forbidden'));
+   for(const key of migratedKeys)delete syncMeta.conflicts[key];
+   syncBaseline=syncRows(S);
+   if(syncMeta.queue.length!==beforeQueue||migratedKeys.size){syncPersist();syncStatusUpdate();}
+  }else{
   let queued=false;
   for(const {module,modelId} of completed){
    const key=module+'|'+modelId;
@@ -2512,6 +2521,7 @@ const save=()=>{S['ck']=snap();try{return localStorage['setItem'](K,JSON['string
    queued=true;
   }
   if(queued){syncPersist();syncFlush().catch(error=>console.warn('Não foi possível sincronizar a remoção dos cronogramas convertidos:',error));}
+  }
  }
  return true;
 }
