@@ -149,28 +149,26 @@ select case
         select 1
         from public.org_members me
         join public.profiles p on p.id = me.user_id
-        join public.app_records a
-          on a.org_id = p_org_id
-         and a.module = 'routineAssignments'
-         and a.record_id = coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId')
-         and a.deleted_at is null
         where me.user_id = auth.uid()
           and me.org_id = p_org_id
           and me.active = true
           and p.active = true
           and me.role = 'encarregado'
-          and (me.role in ('admin', 'gerente') or public.has_perm_for_org('r:rot', p_org_id))
+          and public.has_perm_for_org('r:rot', p_org_id)
           and public.has_perm_for_org('r:eqp', p_org_id)
-          and coalesce(a.data->'value'->>'executorId', a.data->>'executorId')
-              = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
+          and p_record_id = concat(
+            coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId'), '|',
+            coalesce(p_data->'value'->>'activityId', p_data->>'activityId'), '|',
+            coalesce(p_data->'value'->>'date', p_data->>'date')
+          )
           and (
-            coalesce(a.data->'value'->>'executorId', a.data->>'executorId') = me.team_member_id
+            coalesce(p_data->'value'->>'executorId', p_data->>'executorId') = me.team_member_id
             or exists (
               select 1
               from public.team_lead_members tlm
               where tlm.org_id = p_org_id
                 and tlm.leader_team_member_id = me.team_member_id
-                and tlm.member_team_member_id = coalesce(a.data->'value'->>'executorId', a.data->>'executorId')
+                and tlm.member_team_member_id = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
             )
           )
       )
