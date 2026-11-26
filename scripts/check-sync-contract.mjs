@@ -197,9 +197,9 @@ for (const [label, required, target] of legacyRoutineSqlChecks) {
 }
 
 const personalRoutineDismissalChecks = [
-  ['migration inicial preserva dispensa automática restrita ao encerrar atribuição', /elsif new\\.module = 'routineOccurrences'[\\s\\S]*?pg_trigger_depth\\(\\) > 1[\\s\\S]*?old\\.module = 'routineOccurrences'[\\s\\S]*?= 'pending'[\\s\\S]*?= 'dismissed'[\\s\\S]*?a\\.module = 'routineAssignments'[\\s\\S]*?= 'false'[\\s\\S]*?return new;/, personalRoutineClassificationMigration],
-  ['migration de permissões preserva dispensa automática restrita ao encerrar atribuição', /elsif new\\.module = 'routineOccurrences'[\\s\\S]*?pg_trigger_depth\\(\\) > 1[\\s\\S]*?old\\.module = 'routineOccurrences'[\\s\\S]*?= 'pending'[\\s\\S]*?= 'dismissed'[\\s\\S]*?a\\.module = 'routineAssignments'[\\s\\S]*?= 'false'[\\s\\S]*?return new;/, personalRoutineWriteScopeMigration],
-  ['rollback restaura dispensa automática restrita ao encerrar atribuição', /elsif new\\.module = 'routineOccurrences'[\\s\\S]*?pg_trigger_depth\\(\\) > 1[\\s\\S]*?old\\.module = 'routineOccurrences'[\\s\\S]*?= 'pending'[\\s\\S]*?= 'dismissed'[\\s\\S]*?a\\.module = 'routineAssignments'[\\s\\S]*?= 'false'[\\s\\S]*?return new;/, personalRoutineWriteScopeRollback],
+  ['migration inicial preserva dispensa automática restrita ao encerrar atribuição', /elsif new\.module = 'routineOccurrences'[\s\S]*?pg_trigger_depth\(\) > 1[\s\S]*?old\.module = 'routineOccurrences'[\s\S]*?= 'pending'[\s\S]*?= 'dismissed'[\s\S]*?a\.module = 'routineAssignments'[\s\S]*?= 'false'[\s\S]*?return new;/, personalRoutineClassificationMigration],
+  ['migration de permissões preserva dispensa automática restrita ao encerrar atribuição', /elsif new\.module = 'routineOccurrences'[\s\S]*?pg_trigger_depth\(\) > 1[\s\S]*?old\.module = 'routineOccurrences'[\s\S]*?= 'pending'[\s\S]*?= 'dismissed'[\s\S]*?a\.module = 'routineAssignments'[\s\S]*?= 'false'[\s\S]*?return new;/, personalRoutineWriteScopeMigration],
+  ['rollback restaura dispensa automática restrita ao encerrar atribuição', /elsif new\.module = 'routineOccurrences'[\s\S]*?pg_trigger_depth\(\) > 1[\s\S]*?old\.module = 'routineOccurrences'[\s\S]*?= 'pending'[\s\S]*?= 'dismissed'[\s\S]*?a\.module = 'routineAssignments'[\s\S]*?= 'false'[\s\S]*?return new;/, personalRoutineWriteScopeRollback],
 ];
 for (const [label, pattern, target] of personalRoutineDismissalChecks) {
   const passed = pattern.test(target);
