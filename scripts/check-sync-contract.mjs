@@ -166,7 +166,7 @@ if (failedConcurrency.length) {
 
 const failedPermissions = [];
 for (const [label, pattern] of permissionChecks) {
-  const target = label.includes('Rotina') || label.includes('Cronograma') || label.includes('rollback da nova restrição') ? personalRoutineWriteScopeMigration + '\n' + personalRoutineWriteScopeRollback : label.includes('migração de leitura') ? teamReadMigration : label.includes('RPC multiempresa') ? tenantSyncMigration : syncPushMigration;
+  const target = label.includes('Rotina') || label.includes('Cronograma') || label.includes('gravação pessoal') || label.includes('rollback da nova restrição') ? personalRoutineWriteScopeMigration + '\n' + personalRoutineWriteScopeRollback : label.includes('migração de leitura') ? teamReadMigration : label.includes('RPC multiempresa') ? tenantSyncMigration : syncPushMigration;
   const passed = pattern.test(target);
   console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
   if (!passed) failedPermissions.push(label);
