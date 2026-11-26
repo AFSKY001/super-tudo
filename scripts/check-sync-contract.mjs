@@ -52,7 +52,7 @@ const checks = [
   ['rotina pessoal materializa checklists atribuídos antes de montar a lista do funcionário', /const myT=\([^)]*\)=>\{ensureAssignedChecklistsInRotinas\(\);const/],
   ['atividades pessoais da Rotina usam a permissão específica r:rot', /\['pt','r:rot'\]/],
   ['marcações concluídas da Rotina usam a permissão específica r:rot', /syncAddObject\([^;]{0,100}'done','r:rot'/],
-  ['modelos e atribuições de Rotina entram na sincronização multiempresa', /\['routineModels','r:rot'\],\['routineAssignments','r:rot'\]/],
+  ['modelos e atribuições de Rotina permanecem restritos a r:cro; ocorrências usam r:rot', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
   ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:rot'/],
   ['cliente aplica modelos, atribuições e ocorrências recebidos da nuvem', /'routineModels'!==_0x3419a0&&'routineAssignments'!==_0x3419a0[\s\S]{0,1100}'routineOccurrences'===_0x3419a0/],
   ['cliente reconhece o fluxo restrito de encarregado em cfg:team', /'encarregado'===_0xrole&&_0x3c2060\['includes'\]\('r:eqp'\)/],
