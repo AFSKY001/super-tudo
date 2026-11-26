@@ -153,22 +153,20 @@ select case
           and me.org_id = p_org_id
           and me.active = true
           and p.active = true
-          and me.role = 'encarregado'
           and public.has_perm_for_org('r:rot', p_org_id)
-          and public.has_perm_for_org('r:eqp', p_org_id)
-          and p_record_id = concat(
-            coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId'), '|',
-            coalesce(p_data->'value'->>'activityId', p_data->>'activityId'), '|',
-            coalesce(p_data->'value'->>'date', p_data->>'date')
-          )
+          and p_record_id = coalesce(p_data->'value'->>'id', p_data->>'id')
           and (
             coalesce(p_data->'value'->>'executorId', p_data->>'executorId') = me.team_member_id
-            or exists (
-              select 1
-              from public.team_lead_members tlm
-              where tlm.org_id = p_org_id
-                and tlm.leader_team_member_id = me.team_member_id
-                and tlm.member_team_member_id = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
+            or (
+              me.role = 'encarregado'
+              and public.has_perm_for_org('r:eqp', p_org_id)
+              and exists (
+                select 1
+                from public.team_lead_members tlm
+                where tlm.org_id = p_org_id
+                  and tlm.leader_team_member_id = me.team_member_id
+                  and tlm.member_team_member_id = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
+              )
             )
           )
       )
