@@ -183,6 +183,7 @@ const routinePermissionChecks = [
 ];
 const routineMigrationChecks = [
   ['migração de checklists atribuídos roda mesmo após routine-v1', routineSource.indexOf('routine-assigned-checklists-v2') >= 0 && routineSource.indexOf('routine-assigned-checklists-v2') < routineSource.indexOf("S.migrations.includes('routine-v1')")],
+  ['migração de checklists atribuídos só cria ou altera modelos e atribuições com acesso de gestão', /const assignedChecklistMigration='routine-assigned-checklists-v2';[\s\S]{0,180}if\(typeof isFullAccess==='function'&&isFullAccess\(\)\)\{[\s\S]{0,700}Object\.entries\(CK\|\|\{\}\)\.forEach/.test(routineSource)],
   ['migração de checklists é reexecutável após a hidratação da nuvem', routineSource.indexOf('Object.entries(CK||{})', routineSource.indexOf('routine-assigned-checklists-v2')) < routineSource.indexOf("if(S.migrations.includes('routine-v1'))return") && source.includes("window.dispatchEvent(new Event('st:cloud-sync-ready'))")],
   ['checklists legados leem itens separados por pipe', /typeof c\?\.i==='string'\?c\.i\.split\('\|'\)/.test(routineSource)],
   ['checklists duplicados usam assinatura estável', /legacySignature:suffix/.test(routineSource)],
