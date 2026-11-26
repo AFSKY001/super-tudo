@@ -64,6 +64,8 @@ const checks = [
   ['conflito de criação equivalente de ocorrência é tratado como sucesso idempotente', /syncRoutineCreateEquivalent\(_0x2b4c27,_0x19c7ed,_0x1134c5,_0x335e74\)/],
   ['reconciliação idempotente avança para a revisão atual da nuvem', /Number\(_0x1134c5\['revision'\]\|\|_0x1134c5\['server_revision'\]\)/],
   ['rotina pessoal materializa checklists atribuídos antes de montar a lista do funcionário', /const myT=\([^)]*\)=>\{ensureAssignedChecklistsInRotinas\(\);const/],
+  ['modelos de checklist atribuídos no cadastro do funcionário continuam materializados', /employee\.ckModels[\s\S]{0,700}cloneChecklistModel/],
+  ['estilo de seleção de modelos do funcionário permanece no CSS compartilhado', /\.employee-checklist-model-option\{display:flex;gap:10px;align-items:center;margin:8px 0\}/],
   ['atividades pessoais da Rotina usam a permissão específica r:rot', /\['pt','r:rot'\]/],
   ['marcações concluídas da Rotina usam a permissão específica r:rot', /syncAddObject\([^;]{0,100}'done','r:rot'/],
   ['modelos e atribuições de Rotina permanecem restritos a r:cro; ocorrências usam r:rot', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
