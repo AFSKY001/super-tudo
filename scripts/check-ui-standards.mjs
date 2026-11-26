@@ -1,3 +1,4 @@
+import { parse } from 'acorn';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
@@ -45,9 +46,9 @@ requireCheck(routine.includes('const dateValue=') && routine.includes('dayValue=
 requireCheck(routine.includes('function readPhoto(id)') && routine.includes('function photoSheet()') && routine.includes('root.rtPhoto=viewPhoto') && routine.includes('Ver foto'), 'Routine photo evidence must be viewable from its IndexedDB photo record.');
 requireCheck(routine.includes('st-check-ring') && routine.includes('const done=rows.filter(o=>o.status===\'done\').length,pct=Math.round(done/rows.length*100)'), 'Routine team view must show each person’s progress using the shared progress ring.');
 requireCheck(routine.includes('uniqueName=!!name') && routine.includes('owners.some(owner=>owner.trim().toLocaleLowerCase()===name)'), 'Automatic routine completion must not match ambiguous duplicate employee names.');
-requireCheck(routine.includes('const active=Core.activeOn(a,day())') && routine.includes('Core.activeOn(a,day())))return root.stAlert(\'Esse modelo já está atribuído.\')'), 'Routine assignments must respect their from/until validity dates in the person profile and duplicate check.');
+requireCheck(routine.includes('a=>String(a.executorId)===pid&&Core.activeOn(a,day())') && routine.includes('Core.activeOn(a,day())))return root.stAlert(\'Esse modelo já está atribuído.\')'), 'Routine assignments must respect their from/until validity dates in the person profile and duplicate check.');
 
-try { new Function(routine); console.log('PASS - sintaxe do módulo externo de Rotina'); } catch (error) { failures.push('routine.js must have valid JavaScript syntax: ' + error.message); }
+try { parse(routine,{ecmaVersion:'latest'}); new Function(routine); console.log('PASS - sintaxe do módulo externo de Rotina'); } catch (error) { failures.push('routine.js must have valid JavaScript syntax: ' + error.message + (error.loc?' at '+error.loc.line+':'+error.loc.column:'')); }
 requireCheck(!!localDateHelper && localDateHelper.includes('getFullYear()') && localDateHelper.includes('getMonth()') && localDateHelper.includes('getDate()') && !localDateHelper.includes('toISOString'), 'Date-only calendar helper must use local date fields instead of UTC ISO conversion.');
 
 const deleteAllMatch = html.match(/async function ntDeleteAll\(\)\{[\s\S]*?\}\s*function buy\(/);

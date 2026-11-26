@@ -70,7 +70,7 @@ function installRoutineStyles(){
  if(!root.document||$('st-routine-checkbox-styles'))return;
  const style=root.document.createElement('style');style.id='st-routine-checkbox-styles';
  style.textContent=`
- .rt-task-row{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:68px;transition:background .25s ease,border-color .25s ease}\n .rt-task-row.is-completing{background:color-mix(in srgb,var(--ok) 9%,var(--cd));border-color:color-mix(in srgb,var(--ok) 38%,var(--bd))}\n .rt-task-row.is-unchecking{background:color-mix(in srgb,var(--ok) 5%,var(--cd));border-color:var(--bd)}
+ .rt-assigned-model-copy{min-width:0;flex:1}\n .rt-task-row{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:68px;transition:background .25s ease,border-color .25s ease}\n .rt-task-row.is-completing{background:color-mix(in srgb,var(--ok) 9%,var(--cd));border-color:color-mix(in srgb,var(--ok) 38%,var(--bd))}\n .rt-task-row.is-unchecking{background:color-mix(in srgb,var(--ok) 5%,var(--cd));border-color:var(--bd)}
  .rt-task-check{position:relative;isolation:isolate;width:28px;height:28px;min-width:28px;border:2px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--texto-inverso);display:grid;place-items:center;font:800 19px/1 system-ui;padding:0;touch-action:manipulation;transition:background .25s ease,border-color .25s ease,transform .25s cubic-bezier(.2,.8,.2,1)}\n .rt-task-check::after{content:"";position:absolute;inset:-5px;border:2px solid var(--ok);border-radius:10px;opacity:0;pointer-events:none}\n .rt-task-row.is-completing .rt-task-check{animation:rt-check-pop .42s cubic-bezier(.2,.8,.2,1) both}\n .rt-task-row.is-completing .rt-task-check::after{animation:rt-check-wave .95s ease-out 2 both}\n .rt-task-row.is-unchecking .rt-task-check::after{animation:rt-uncheck-wave .72s ease-out both}
  .rt-task-check.is-checked{background:var(--ok);border-color:var(--ok)}
  .rt-task-check:disabled{opacity:.65}
@@ -344,10 +344,34 @@ function importChecklist(){before();const c=CK[V.rtChecklist];if(!c)return;const
 function copyActivities(){before();const m=db().models.find(x=>x.id===$('rt-copy-source')?.value);if(!m)return;V.rtDraft.activities.push(...clone(m.activities).map(a=>({...a,id:uid()})));rMenu();}
 function saveModel(){readDraft();const d=V.rtDraft;if(!d?.name)return root.stAlert('Informe o nome do modelo.');if(!d.activities.length||d.activities.some(a=>!a.title))return root.stAlert('Informe o título de todas as atividades.');if(d.activities.some(a=>a.recurrence.type==='weekly'&&!a.recurrence.days?.length||a.recurrence.type==='monthly'&&!a.recurrence.days?.length||a.recurrence.type==='date'&&!a.recurrence.date||a.recurrence.type==='dates'&&!a.recurrence.dates?.length||['daily','weekly','monthly'].includes(a.recurrence.type)&&(!a.recurrence.startDate||a.recurrence.count!==undefined&&(!Number.isInteger(Number(a.recurrence.count))||Number(a.recurrence.count)<1)||a.recurrence.endDate!==undefined&&!parseDate(a.recurrence.endDate))))return root.stAlert('Complete as regras de recorrência.');const list=db().models,id=d.id==='new'?'rtm-'+uid():d.id,old=list.find(x=>x.id===id),m=touch({...d,id,activities:d.activities.map(a=>({...a,updatedAt:Date.now()})),createdAt:old?.createdAt||Date.now(),archivedAt:null});if(old)Object.assign(old,m);else list.push(m);refreshPending(m);if(V.rtExtraTarget)db().assignments.push(touch({id:'rta-'+uid(),modelId:id,executorId:String(V.rtExtraTarget),from:day(),until:null,active:true,source:'manual-extra'}));V.rtDraft=null;V.rtExtraTarget='';V.sh=0;save();rMenu();R();}
 function archiveModel(id){const m=db().models.find(x=>x.id===id);if(!m)return;Promise.resolve(root.stConfirm('Arquivar o modelo? O histórico será preservado.')).then(ok=>{if(!ok)return;m.archivedAt=day();touch(m);db().assignments.filter(a=>a.modelId===id).forEach(a=>{a.active=false;touch(a);});save();R();});}
-function personSection(p){const pid=String(p.id),leader=supervisor(pid),assignments=db().assignments.filter(a=>String(a.executorId)===pid),rows=assignments.map(a=>{const active=Core.activeOn(a,day());return'<div class="it"><div><b>'+e(db().models.find(m=>m.id===a.modelId)?.name||'Modelo indisponível')+'</b><div class="mu">'+(active?'Ativa':'Encerrada')+' · responsável '+e(leader?.n||'Liderança não definida em Dados')+'</div></div>'+(active?'<button class="bt d" onclick="rtEnd(\''+e(a.id)+'\')">Encerrar</button>':'')+'</div>';}).join('');return'<div class="c"><div class="row sp"><b>Rotinas</b><button class="bt g" onclick="rtExtra(\''+e(pid)+'\')">+ Atividade extra</button></div>'+(rows||'<p class="mu">Nenhuma rotina atribuída.</p>')+'<label>Modelo<select id="rt-assign-'+e(pid)+'"><option value="">Selecione</option>'+db().models.filter(m=>!m.archivedAt).map(m=>'<option value="'+e(m.id)+'">'+e(m.name)+'</option>').join('')+'</select></label>'+(leader?'<p class="mu">👑 Responsável definido em Dados: '+e(leader.n)+'</p>':'<p class="mu">Defina o líder e os subordinados em Dados para compartilhar a responsabilidade.</p>')+'<button class="bt" onclick="rtAssign(\''+e(pid)+'\')">Atribuir rotina</button></div>'; }
+function personSection(p){
+ const pid=String(p.id),leader=supervisor(pid);
+ const assignments=db().assignments.filter(a=>String(a.executorId)===pid&&Core.activeOn(a,day()));
+ const rows=assignments.map(a=>{
+  const model=db().models.find(m=>String(m.id)===String(a.modelId));
+  return '<div class="it rt-assigned-model"><div class="rt-assigned-model-copy"><b>'+e(model?.name||'Modelo indisponível')+'</b><div class="mu">Rotina atribuída · responsável '+e(leader?.n||'Liderança não definida em Dados')+'</div></div><button type="button" class="bt d rt-remove-assignment" aria-label="Remover '+e(model?.name||'rotina')+'" title="Remover rotina" onclick="rtEnd(\''+e(a.id)+'\')">×</button></div>';
+ }).join('');
+ const models=db().models.filter(m=>!m.archivedAt);
+ return '<div class="c"><div class="row sp"><b>Rotinas atribuídas</b><span class="mu">'+assignments.length+' modelo(s)</span></div>'+
+ (rows||'<p class="mu">Nenhum modelo atribuído. Escolha um modelo abaixo para adicionar.</p>')+
+ '<div class="u-mt8"><label>Modelo de rotina<select id="rt-assign-'+e(pid)+'"><option value="">Selecione um modelo</option>'+models.map(m=>'<option value="'+e(m.id)+'">'+e(m.name)+'</option>').join('')+'</select></label>'+
+ '<button type="button" class="bt u-mt6" onclick="rtAssign(\''+e(pid)+'\')">+ Adicionar modelo</button></div>'+
+ (leader?'<p class="mu u-mt8">👑 Responsável definido em Dados: '+e(leader.n)+'</p>':'<p class="mu u-mt8">Defina o líder e os subordinados em Dados para compartilhar a responsabilidade.</p>')+
+ '</div>';
+}
 function assign(pid){const mid=$('rt-assign-'+pid)?.value;if(!mid)return root.stAlert('Escolha um modelo.');if(db().assignments.some(a=>a.modelId===mid&&String(a.executorId)===pid&&Core.activeOn(a,day())))return root.stAlert('Esse modelo já está atribuído.');db().assignments.push(touch({id:'rta-'+uid(),modelId:mid,executorId:pid,from:day(),until:null,active:true,source:'person-profile'}));const person=who(pid);if(person){person.perm=Array.isArray(person.perm)?person.perm:[];if(!person.perm.includes('r:rot'))person.perm=[...person.perm,'r:rot'];}save();R();}
 function extra(pid){V.rtExtraTarget=pid;V.rtDraft={id:'new',name:'Atividade extra - '+whoName(pid),description:'Atividade individual adicional.',activities:[defaults()]};V.sh='routine-editor';rMenu();}
-function endAssignment(id){const a=db().assignments.find(x=>x.id===id);if(!a)return;a.until=addDays(day(),-1);a.active=false;touch(a);save();R();}
+async function endAssignment(id){
+ const a=db().assignments.find(x=>x.id===id);if(!a||!Core.activeOn(a,day()))return;
+ if(typeof root.stConfirm==='function'){const confirmed=await root.stConfirm('Remover este modelo do cadastro da pessoa? As atividades já concluídas e o histórico serão preservados.',{title:'Remover rotina'});if(!confirmed)return;}
+ const today=day(),me=V.me||V.cloudIdentity||{},actorId=me.id||me.team_member_id||'system',actorName=me.n||me.name||'Gestor';
+ a.until=addDays(today,-1);a.active=false;touch(a);
+ for(const o of Object.values(db().occurrences)){
+  if(o.assignmentId!==a.id||o.date<today||o.status!=='pending')continue;
+  Object.assign(o,{status:'dismissed',dismissedAt:Date.now(),dismissedBy:actorId,dismissedByName:actorName,note:'Atribuição removida do cadastro do funcionário.',updatedAt:Date.now()});
+ }
+ save();R();
+}
 function currentPerson(){return who(V.me?.id||V.cloudIdentity?.team_member_id||'');}
 function visibleTeam(){const p=currentPerson();return p&&typeof teamOf==='function'?teamOf(p):[];}
 function canSee(id){if(typeof isFullAccess==='function'&&isFullAccess())return true;const p=currentPerson();return!!p&&(String(p.id)===String(id)||visibleTeam().some(x=>String(x.id)===String(id)));}
