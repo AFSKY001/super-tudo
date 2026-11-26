@@ -145,6 +145,7 @@ assert.deepEqual(Core.progress([{status:'done',snapshot:{mandatory:true,viaSyste
 assert.match(routineSource,/const progress=items=>\{[\s\S]{0,500}o\.snapshot\?\.mandatory!==false[\s\S]{0,250}status==='done'/,'O cálculo deve centralizar a regra de obrigatoriedade e conclusão.');
 assert.match(routineSource,/overall=Core\.progress\(items\)/,'O indicador geral deve usar o mesmo cálculo padronizado.');
 assert.match(routineSource,/personProgress=Core\.progress\(rows\)/,'O indicador por funcionário deve usar o mesmo cálculo padronizado.');
+assert.match(routineSource,/personProgress\.pct==null\?'—':progress\+'%'/,'Sem atividades obrigatórias, o cartão da pessoa deve mostrar traço em vez de 0%.');
 assert.match(routineSource,/overall\.total\+' obrigatórias concluídas/,'O total exibido deve informar que a porcentagem considera atividades obrigatórias.');
 
 assert.equal(Core.dateValue('2026-11-23'),'2026-11-23','Data sem horário deve preservar o dia do calendário.');
