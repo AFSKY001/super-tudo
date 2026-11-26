@@ -22,6 +22,10 @@ const syncConcurrencyMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261123165349_serialize_sync_push_per_org.sql'),
   'utf8',
 );
+const routineKindMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126180000_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -49,6 +53,8 @@ const checks = [
   ['falha ao atualizar a nuvem atualiza o indicador para erro', /async function runSyncStatusAction\(\)[\s\S]*?catch\(error\)\{[\s\S]{0,180}syncLastError=String\(error\?\.message/],
   ['diálogo de sincronização fica acima das camadas globais', /zIndex:'2147483001'/],
   ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
+  ['fila local antiga migra pt e done de r:cro para r:rot sem trocar o client_id', /for\(const op of syncMeta\['queue'\]\|\|\[\]\)if\(op&&!op\['status'\]&&\('pt'===op\['module'\]\|\|'done'===op\['module'\]\)&&'r:cro'===op\['kind'\]\)op\['kind'\]='r:rot'/],
+  ['migração converte apenas pt e done existentes de r:cro para r:rot', /update public\.app_records[\s\S]{0,180}set kind = 'r:rot'[\s\S]{0,180}where module in \('pt', 'done'\)[\s\S]{0,80}and kind = 'r:cro'/],
   ['criação repetida de ocorrência só é reconciliada quando o conteúdo é equivalente, ignorando apenas timestamps locais', /function syncRoutineCreateEquivalent\(op,record,result,baseRevision\)[\s\S]{0,900}delete value\.createdAt;delete value\.updatedAt;[\s\S]{0,250}syncCanon\(normalize\(local\)\)===syncCanon\(normalize\(server\)\)/],
   ['conflito de criação equivalente de ocorrência é tratado como sucesso idempotente', /syncRoutineCreateEquivalent\(_0x2b4c27,_0x19c7ed,_0x1134c5,_0x335e74\)/],
   ['reconciliação idempotente avança para a revisão atual da nuvem', /Number\(_0x1134c5\['revision'\]\|\|_0x1134c5\['server_revision'\]\)/],
