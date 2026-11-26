@@ -211,6 +211,37 @@ begin
     end if;
 
   elsif new.module = 'routineOccurrences' then
+    -- Preserve the trusted nested update that dismisses pending occurrences
+    -- after an assignment is ended. The existing routine guard has the same
+    -- narrow exception; this guard must not block it earlier in trigger order.
+    if tg_op = 'UPDATE'
+       and pg_trigger_depth() > 1
+       and old.module = 'routineOccurrences'
+       and coalesce(old.data->'value'->>'status', old.data->>'status') = 'pending'
+       and coalesce(new.data->'value'->>'status', new.data->>'status') = 'dismissed'
+       and coalesce(old.data->'value'->>'assignmentId', old.data->>'assignmentId')
+           = coalesce(new.data->'value'->>'assignmentId', new.data->>'assignmentId')
+       and coalesce(old.data->'value'->>'date', old.data->>'date')
+           = coalesce(new.data->'value'->>'date', new.data->>'date')
+       and (new.data->'value' - 'status' - 'updatedAt' - 'note')
+           = (old.data->'value' - 'status' - 'updatedAt' - 'note')
+       and exists (
+         select 1
+         from public.app_records a
+         where a.org_id = new.org_id
+           and a.module = 'routineAssignments'
+           and a.record_id = coalesce(new.data->'value'->>'assignmentId', new.data->>'assignmentId')
+           and a.deleted_at is null
+           and coalesce(a.data->'value'->>'active', a.data->>'active', 'true') = 'false'
+           and (
+             nullif(coalesce(a.data->'value'->>'until', a.data->>'until'), '') is null
+             or coalesce(new.data->'value'->>'date', new.data->>'date')
+                > coalesce(a.data->'value'->>'until', a.data->>'until')
+           )
+       ) then
+      return new;
+    end if;
+
     if new.kind is distinct from 'r:rot'
        or not public.can_write_routine_record(
          'routineOccurrences', new.record_id, new.data, new.org_id
