@@ -137,7 +137,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_op jsonb;
   v_module text;
@@ -165,7 +165,7 @@ begin
   end loop;
   return public.sync_push_internal(p_ops, p_org_id);
 end;
-$;
+$$;
 
 grant execute on function public.sync_push(jsonb, uuid) to authenticated;
 
