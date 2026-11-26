@@ -105,6 +105,17 @@ begin
       raise exception 'permissão insuficiente para alterar marcação individual da Rotina'
         using errcode = '42501';
     end if;
+
+  elsif new.module = 'routineOccurrences' then
+    -- Reuse the server-side occurrence validator: it checks the assigned
+    -- model/activity, stable occurrence ID, executor and authorized team.
+    if new.kind is distinct from 'r:rot'
+       or not public.can_write_routine_record(
+         'routineOccurrences', new.record_id, new.data, new.org_id
+       ) then
+      raise exception 'permissão insuficiente para alterar ocorrência da Rotina'
+        using errcode = '42501';
+    end if;
   end if;
 
   return new;
@@ -115,7 +126,7 @@ drop trigger if exists app_records_guard_personal_routine_sync_write on public.a
 create trigger app_records_guard_personal_routine_sync_write
 before insert or update on public.app_records
 for each row
-when (new.module in ('pt', 'done'))
+when (new.module in ('pt', 'done', 'routineOccurrences'))
 execute function public.guard_personal_routine_sync_write();
 
 create or replace function public.can_read_sync_record_for_org(
