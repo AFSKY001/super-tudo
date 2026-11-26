@@ -26,6 +26,10 @@ const routineKindMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261126180000_reclassify_personal_routine_sync_kinds.sql'),
   'utf8',
 );
+const routineKindRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -53,7 +57,7 @@ const checks = [
   ['falha ao atualizar a nuvem atualiza o indicador para erro', /async function runSyncStatusAction\(\)[\s\S]*?catch\(error\)\{[\s\S]{0,180}syncLastError=String\(error\?\.message/],
   ['diálogo de sincronização fica acima das camadas globais', /zIndex:'2147483001'/],
   ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
-  ['fila local antiga migra pt e apenas done individual de r:cro para r:rot sem trocar o client_id', /for\(const op of syncMeta\['queue'\]\|\|\[\]\)if\(op&&!op\['status'\]&&'r:cro'===op\['kind'\]&&\('pt'===op\['module'\]\|\|'done'===op\['module'\]&&String\(op\['record_id'\]\|\|''\)\.split\('\|'\)\.length>=3\)\)op\['kind'\]='r:rot'/],
+  ['fila local antiga normaliza pt e separa done individual do Cronograma sem trocar o client_id', /for\(const op of syncMeta\['queue'\]\|\|\[\]\)if\(op&&!op\['status'\]\)\{const parts=String\(op\['record_id'\]\|\|''\)\.split\('\|'\)\.length;[\s\S]{0,300}else if\('done'===op\['module'\]&&parts<3&&'r:rot'===op\['kind'\]\)op\['kind'\]='r:cro'/],
   ['marcações de Cronograma e de Rotina recebem permissões distintas conforme a chave', /function syncAddDone\(map,values\)[\s\S]{0,350}id\.split\('\|'\)\.length>=3\?'r:rot':'r:cro'/],
   ['Encarregado não grava a marcação global de duas partes do Cronograma ao concluir atividade', /S\['done'\]\[_0x247c0f\]=!0x0,\(!V\['cloudIdentity'\]\|\|'encarregado'!==V\['cloudIdentity'\]\['role'\]\)&&\(S\['done'\]\[_0x43c94c\['d'\]\+'\\|'\+_0x43c94c\['i'\]\]=!0x0\)/],
   ['criação repetida de ocorrência só é reconciliada quando o conteúdo é equivalente, ignorando apenas timestamps locais', /function syncRoutineCreateEquivalent\(op,record,result,baseRevision\)[\s\S]{0,900}delete value\.createdAt;delete value\.updatedAt;[\s\S]{0,250}syncCanon\(normalize\(local\)\)===syncCanon\(normalize\(server\)\)/],
@@ -155,6 +159,8 @@ const concurrencyChecks = [
   ['migração documenta desfazer somente antes de novas gravações', routineKindMigration.includes('Undo (only BEFORE new r:rot writes are created after this migration)')],
   ['migração mantém done de duas partes no Cronograma legado', routineKindMigration.includes("cardinality(string_to_array(record_id, '|')) >= 3") && routineKindMigration.includes("module = 'done'")],
   ['migração protege escrita pessoal por funcionário/equipe', routineKindMigration.includes('guard_personal_routine_sync_write') && routineKindMigration.includes('team_lead_members') && routineKindMigration.includes("new.module in ('pt', 'done')")],
+  ['migração restringe leitura de ocorrências, atividades pessoais e marcações à equipe autorizada', routineKindMigration.includes('can_read_sync_record_for_org') && routineKindMigration.includes('public.can_read_sync_record_for_org(module, kind, record_id, data, v_org)') && routineKindMigration.includes("me.role = 'encarregado'")],
+  ['reversão restaura sync_pull antes de remover o filtro de leitura', routineKindRollback.includes('public.can_read_kind_for_org(kind, record_id, v_org)') && routineKindRollback.includes('drop function if exists public.can_read_sync_record_for_org')],
 ];
 const failedConcurrency = [];
 for (const [label, passed] of concurrencyChecks) {
