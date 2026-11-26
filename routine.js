@@ -349,13 +349,13 @@ function personSection(p){
  const assignments=db().assignments.filter(a=>String(a.executorId)===pid&&Core.activeOn(a,day()));
  const rows=assignments.map(a=>{
   const model=db().models.find(m=>String(m.id)===String(a.modelId));
-  return '<div class="it rt-assigned-model"><div class="rt-assigned-model-copy"><b>'+e(model?.name||'Modelo indisponível')+'</b><div class="mu">Rotina atribuída · responsável '+e(leader?.n||'Liderança não definida em Dados')+'</div></div><button type="button" class="bt d rt-remove-assignment" aria-label="Remover '+e(model?.name||'rotina')+'" title="Remover rotina" onclick="rtEnd(\\''+e(a.id)+'\\')">×</button></div>';
+  return '<div class="it rt-assigned-model"><div class="rt-assigned-model-copy"><b>'+e(model?.name||'Modelo indisponível')+'</b><div class="mu">Rotina atribuída · responsável '+e(leader?.n||'Liderança não definida em Dados')+'</div></div><button type="button" class="bt d rt-remove-assignment" aria-label="Remover '+e(model?.name||'rotina')+'" title="Remover rotina" onclick="rtEnd(\''+e(a.id)+'\')">×</button></div>';
  }).join('');
  const models=db().models.filter(m=>!m.archivedAt);
  return '<div class="c"><div class="row sp"><b>Rotinas atribuídas</b><span class="mu">'+assignments.length+' modelo(s)</span></div>'+
  (rows||'<p class="mu">Nenhum modelo atribuído. Escolha um modelo abaixo para adicionar.</p>')+
  '<div class="u-mt8"><label>Modelo de rotina<select id="rt-assign-'+e(pid)+'"><option value="">Selecione um modelo</option>'+models.map(m=>'<option value="'+e(m.id)+'">'+e(m.name)+'</option>').join('')+'</select></label>'+
- '<button type="button" class="bt u-mt6" onclick="rtAssign(\\''+e(pid)+'\\')">+ Adicionar modelo</button></div>'+
+ '<button type="button" class="bt u-mt6" onclick="rtAssign(\''+e(pid)+'\')">+ Adicionar modelo</button></div>'+
  (leader?'<p class="mu u-mt8">👑 Responsável definido em Dados: '+e(leader.n)+'</p>':'<p class="mu u-mt8">Defina o líder e os subordinados em Dados para compartilhar a responsabilidade.</p>')+
  '</div>';
 }
