@@ -70,7 +70,7 @@ function installRoutineStyles(){
  if(!root.document||$('st-routine-checkbox-styles'))return;
  const style=root.document.createElement('style');style.id='st-routine-checkbox-styles';
  style.textContent=`
- .rt-task-row{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:68px;transition:background .25s ease,border-color .25s ease}\n .rt-task-row.is-completing{background:color-mix(in srgb,var(--ok) 9%,var(--cd));border-color:color-mix(in srgb,var(--ok) 38%,var(--bd))}\n .rt-task-row.is-unchecking{background:color-mix(in srgb,var(--ok) 5%,var(--cd));border-color:var(--bd)}
+ .rt-assigned-model-copy{min-width:0;flex:1}\n .rt-task-row{display:flex;align-items:center;gap:12px;padding:10px 12px;min-height:68px;transition:background .25s ease,border-color .25s ease}\n .rt-task-row.is-completing{background:color-mix(in srgb,var(--ok) 9%,var(--cd));border-color:color-mix(in srgb,var(--ok) 38%,var(--bd))}\n .rt-task-row.is-unchecking{background:color-mix(in srgb,var(--ok) 5%,var(--cd));border-color:var(--bd)}
  .rt-task-check{position:relative;isolation:isolate;width:28px;height:28px;min-width:28px;border:2px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--texto-inverso);display:grid;place-items:center;font:800 19px/1 system-ui;padding:0;touch-action:manipulation;transition:background .25s ease,border-color .25s ease,transform .25s cubic-bezier(.2,.8,.2,1)}\n .rt-task-check::after{content:"";position:absolute;inset:-5px;border:2px solid var(--ok);border-radius:10px;opacity:0;pointer-events:none}\n .rt-task-row.is-completing .rt-task-check{animation:rt-check-pop .42s cubic-bezier(.2,.8,.2,1) both}\n .rt-task-row.is-completing .rt-task-check::after{animation:rt-check-wave .95s ease-out 2 both}\n .rt-task-row.is-unchecking .rt-task-check::after{animation:rt-uncheck-wave .72s ease-out both}
  .rt-task-check.is-checked{background:var(--ok);border-color:var(--ok)}
  .rt-task-check:disabled{opacity:.65}
@@ -349,7 +349,7 @@ function personSection(p){
  const assignments=db().assignments.filter(a=>String(a.executorId)===pid&&Core.activeOn(a,day()));
  const rows=assignments.map(a=>{
   const model=db().models.find(m=>String(m.id)===String(a.modelId));
-  return '<div class="it rt-assigned-model"><div style="min-width:0;flex:1"><b>'+e(model?.name||'Modelo indisponível')+'</b><div class="mu">Rotina atribuída · responsável '+e(leader?.n||'Liderança não definida em Dados')+'</div></div><button type="button" class="bt d rt-remove-assignment" aria-label="Remover '+e(model?.name||'rotina')+'" title="Remover rotina" onclick="rtEnd(\\''+e(a.id)+'\\')">×</button></div>';
+  return '<div class="it rt-assigned-model"><div class="rt-assigned-model-copy"><b>'+e(model?.name||'Modelo indisponível')+'</b><div class="mu">Rotina atribuída · responsável '+e(leader?.n||'Liderança não definida em Dados')+'</div></div><button type="button" class="bt d rt-remove-assignment" aria-label="Remover '+e(model?.name||'rotina')+'" title="Remover rotina" onclick="rtEnd(\\''+e(a.id)+'\\')">×</button></div>';
  }).join('');
  const models=db().models.filter(m=>!m.archivedAt);
  return '<div class="c"><div class="row sp"><b>Rotinas atribuídas</b><span class="mu">'+assignments.length+' modelo(s)</span></div>'+
@@ -361,7 +361,7 @@ function personSection(p){
 }
 function assign(pid){const mid=$('rt-assign-'+pid)?.value;if(!mid)return root.stAlert('Escolha um modelo.');if(db().assignments.some(a=>a.modelId===mid&&String(a.executorId)===pid&&Core.activeOn(a,day())))return root.stAlert('Esse modelo já está atribuído.');db().assignments.push(touch({id:'rta-'+uid(),modelId:mid,executorId:pid,from:day(),until:null,active:true,source:'person-profile'}));const person=who(pid);if(person){person.perm=Array.isArray(person.perm)?person.perm:[];if(!person.perm.includes('r:rot'))person.perm=[...person.perm,'r:rot'];}save();R();}
 function extra(pid){V.rtExtraTarget=pid;V.rtDraft={id:'new',name:'Atividade extra - '+whoName(pid),description:'Atividade individual adicional.',activities:[defaults()]};V.sh='routine-editor';rMenu();}
-async async function endAssignment(id){
+async function endAssignment(id){
  const a=db().assignments.find(x=>x.id===id);if(!a||!Core.activeOn(a,day()))return;
  if(typeof root.stConfirm==='function'){const confirmed=await root.stConfirm('Remover este modelo do cadastro da pessoa? As atividades já concluídas e o histórico serão preservados.',{title:'Remover rotina'});if(!confirmed)return;}
  const today=day(),me=V.me||V.cloudIdentity||{},actorId=me.id||me.team_member_id||'system',actorName=me.n||me.name||'Gestor';
