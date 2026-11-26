@@ -45,6 +45,8 @@ jobs:
         run: npm run check:recipes
       - name: Check notes module and security contract
         run: npm run check:notes
+      - name: Check CSV imports and duplicate protection
+        run: npm run check:imports
       - name: Build protected Cloudflare distribution
         run: npm run build:protected
       - name: Validate Cloudflare deployment configuration without publishing
