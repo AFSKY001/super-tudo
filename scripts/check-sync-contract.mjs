@@ -144,7 +144,7 @@ const permissionChecks = [
   ['gravação pessoal exige permissão r:rot e vínculo próprio ou de equipe autorizada', /v_person_id = me\.team_member_id[\s\S]{0,220}me\.role = 'encarregado'[\s\S]{0,160}public\.has_perm_for_org\('r:eqp'/],
   ['ocorrências de Rotina não permitem escrita por Master/admin', /me\.role <> 'admin'[\s\S]{0,180}public\.has_perm_for_org\('r:rot'/],
   ['marcações legadas de Cronograma com duas partes preservam r:cro', /cardinality\(string_to_array\(new\.record_id, '\|'\)\) < 3[\s\S]{0,280}new\.kind is distinct from 'r:cro'/],
-  ['rollback da nova restrição restaura as funções anteriores', /create or replace function public\.can_write_routine_record[\s\S]*?legacySignature[\s\S]*?create or replace function public\.guard_personal_routine_sync_write/],
+  ['rollback da nova restrição restaura as funções anteriores', /create or replace function public\.can_write_routine_record[\s\S]*?legacySignature[\s\S]*?create or replace function public\.guard_personal_routine_sync_write/i],
 
 ];
 
