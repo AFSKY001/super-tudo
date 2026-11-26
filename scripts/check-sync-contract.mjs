@@ -190,6 +190,21 @@ const performanceFormatChecks = [
   ['flag de foto false é normalizada ao carregar checklist da nuvem', /function normalizeCkPhoto\([\s\S]*?String\(raw\)\.trim\(\)\.toLowerCase\(\)/.test(source)],
   ['checklist legado false não exige foto na pontuação', /photoFlag === true \|\| photoFlag === 1 \|\| \['true','1','sim','required','obrigatoria'\]/.test(source)],
 ];
+const performanceIndexChecks = [
+  ['qualidade dos checklists é apresentada separadamente', /function perfExtraMetricsHTML[\s\S]*?Qualidade dos checklists[\s\S]*?Rotinas atribuídas/i.test(source)],
+  ['ocorrências obrigatórias da Rotina são medidas por executor e data', /function perfRoutineStats[\s\S]*?occurrence\.executorId[\s\S]*?occurrence\.date[\s\S]*?occurrence\.status !== 'dismissed'/i.test(source)],
+  ['painel Desempenho apresenta métricas adicionais sem alterar perfIndex', /perfActivityHTML\([^;]+perfExtraMetricsHTML\(/.test(source) && /function perfIndex\([^}]+\}/.test(source)],
+  ['índice síntese informa dimensões e escala de avaliação', /média simples das dimensões disponíveis: cronogramas, checklists completos e avaliações/.test(source)],
+];
+const failedPerformanceIndex = [];
+for (const [label, passed] of performanceIndexChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedPerformanceIndex.push(label);
+}
+if (failedPerformanceIndex.length) {
+  console.error('Falhas na apresentação do Desempenho: ' + failedPerformanceIndex.join('; '));
+  process.exitCode = 1;
+}
 const failedPerformanceFormats = [];
 for (const [label, passed] of performanceFormatChecks) {
   console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
