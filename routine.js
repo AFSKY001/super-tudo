@@ -88,6 +88,7 @@ function migrate(){
  }
  if(S.migrations.includes('routine-v1'))return;
  S.routineMigrationWarnings=Array.isArray(S.routineMigrationWarnings)?S.routineMigrationWarnings:[];
+ const modelMap=new Map(),assignmentIds=new Set(D.assignments.map(a=>a.id));
  const assignedChecklistMigration='routine-assigned-checklists-v1';
  if(!S.migrations.includes(assignedChecklistMigration)){
   let added=false;
@@ -112,7 +113,6 @@ function migrate(){
   S.migrations.push(assignedChecklistMigration);
   if(added)save();
  }
- const modelMap=new Map(),assignmentIds=new Set(D.assignments.map(a=>a.id));
  const recurrenceFor=days=>{const mapped=Core.legacyWeekdays(days);return{type:'weekly',days:mapped.length?mapped:[0,1,2,3,4,5,6]};};
  const activityFrom=(item,turn,index,source)=>{
   const checklist=item.ckid&&CK[item.ckid],steps=checklist?checklistItems(checklist):Array.isArray(item.steps)?item.steps.map(String):[];
