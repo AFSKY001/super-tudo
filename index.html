@@ -3187,7 +3187,8 @@ async function syncResolveConflictsUI(){
   syncStatusUpdate();
 }
 async function syncBlockedQueueUI(){
-  let blocked=(syncMeta.queue||[]).filter(op=>op.status&&op.status!=='conflict');
+  const locallyBlocked=(syncMeta.queue||[]).filter(op=>op.status==='blocked-local');
+  let blocked=(syncMeta.queue||[]).filter(op=>op.status&&op.status!=='conflict'&&op.status!=='blocked-local');
   if(!blocked.length)return;
   const readOnly=blocked.filter(op=>['routineModels','routineAssignments'].includes(op.module));
   if(readOnly.length&&V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine){
@@ -3232,11 +3233,19 @@ async function syncBlockedQueueUI(){
       console.warn('Não foi possível reconciliar registros de Rotina somente para leitura:',error);
     }
   }
-  blocked=(syncMeta.queue||[]).filter(op=>op.status&&op.status!=='conflict');
-  if(!blocked.length){syncStatusUpdate();return;}
+  blocked=(syncMeta.queue||[]).filter(op=>op.status&&op.status!=='conflict'&&op.status!=='blocked-local');
+  if(!blocked.length){
+    syncStatusUpdate();
+    if(locallyBlocked.length){
+      const count=locallyBlocked.length;
+      await syncConflictDialog('',null,count+' alteração(ões) local(is) de Rotina foram bloqueadas no perfil Master antes de serem enviadas. Elas não foram recusadas pela nuvem e continuam preservadas neste aparelho. Para registrar uma atividade, entre com o usuário responsável pela rotina e faça a marcação na tela dele. Não transferimos essas alterações automaticamente entre usuários.');
+    }
+    return;
+  }
   const summary=blocked.slice(0,8).map(op=>op.module+' · '+op.record_id+' ('+op.status+')').join('; ');
   const extra=blocked.length>8?' e mais '+(blocked.length-8)+' registro(s)':'';
-  const message='A nuvem recusou '+blocked.length+' envio(s). Eles continuam preservados neste aparelho e não serão apagados automaticamente. '+summary+extra+'. Para modelos e atribuições de Rotina, somente Master/Gerência pode salvar alterações. As marcações individuais são sincronizadas separadamente. Registros recusados não serão reenviados automaticamente. Verifique os registros com a gerência antes de tentar novamente.';
+  const localNote=locallyBlocked.length?' Além disso, '+locallyBlocked.length+' alteração(ões) de Rotina foram bloqueadas localmente no Master antes do envio; não são recusas da nuvem e continuam preservadas. Faça novas marcações somente com o usuário responsável.':'';
+  const message='A nuvem recusou '+blocked.length+' envio(s). Eles continuam preservados neste aparelho e não serão apagados automaticamente. '+summary+extra+'. Para modelos e atribuições de Rotina, somente Master/Gerência pode salvar alterações. As marcações individuais são sincronizadas separadamente. Registros recusados não serão reenviados automaticamente. Verifique os registros com a gerência antes de tentar novamente.'+localNote;
   await syncConflictDialog('',null,message);
 }
 async function syncWaitForIdle(timeout=15000){
