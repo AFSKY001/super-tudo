@@ -13,6 +13,7 @@ const snap=(m,a)=>({modelId:m.id,modelName:m.name,title:String(a.title||''),desc
 const makeOccurrence=(at,m,a,day,now=Date.now())=>({id:idOf(at.id,a.id,day),assignmentId:at.id,activityId:a.id,executorId:at.executorId,date:day,status:'pending',snapshot:snap(m,a),madeAt:null,madeBy:null,madeByName:'',viaSystem:false,photoId:null,photoPath:null,note:'',createdAt:now,updatedAt:now});
 const state=(o,now=new Date())=>{if(!o)return'pending';if(o.status==='done'||o.status==='dismissed')return o.status;const d=localDate(now);if(o.date<d)return'overdue';if(o.date>d)return'pending';return minutes(now)>hm(o.snapshot.time)?'overdue':'pending';};
 const activeOn=(a,d)=>a&&(!a.from||a.from<=d)&&(!a.until||a.until>=d)&&(a.active!==false||!!a.until&&d<=a.until);
+const assignmentValidOn=(o,assignments)=>{const a=(Array.isArray(assignments)?assignments:[]).find(x=>String(x.id)===String(o?.assignmentId));return !a||activeOn(a,o?.date);};
 const progress=items=>{const planned=(Array.isArray(items)?items:[]).filter(o=>o&&o.status!=='dismissed'&&o.snapshot?.mandatory!==false);const done=planned.filter(o=>o.status==='done').length,total=planned.length;return{done,total,pct:total?Math.round(done/total*100):null};};
 const generate=(db,day,now=Date.now())=>{const created=[],updated=[],models=new Map((db.models||[]).map(m=>[String(m.id),m]));for(const at of db.assignments||[]){if(!activeOn(at,day))continue;const m=models.get(String(at.modelId));if(!m||m.archivedAt)continue;for(const a of m.activities||[]){if(!a.title||!occurs(a.recurrence,day))continue;const id=idOf(at.id,a.id,day),old=(db.occurrences||{})[id];if(!old)created.push(makeOccurrence(at,m,a,day,now));else if(old.status==='pending'&&state(old,new Date(now))==='pending'&&day>=localDate(new Date(now))){const next=snap(m,a);if(JSON.stringify(old.snapshot)!==JSON.stringify(next))updated.push({...old,snapshot:next,updatedAt:now});}}}return{created,updated};};
 const legacyWeekdays=days=>[...new Set((Array.isArray(days)?days:[]).map(Number).filter(day=>Number.isInteger(day)&&day>=0&&day<7).map(day=>(day+1)%7))].sort((a,b)=>a-b);
@@ -60,7 +61,7 @@ const expandChecklistItems=({idPrefix,title,description='',steps=[],turns=[],pho
   recurrence:JSON.parse(JSON.stringify(recurrence)),time,updatedAt:Date.now()
  })));
 };
-const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,generate,progress,legacyWeekdays,expandChecklistItems};
+const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,assignmentValidOn,generate,progress,legacyWeekdays,expandChecklistItems};
 Core.recipes={normalize:recipeNormalize,validate:recipeValidate,ingredient:recipeIngredient};
 root.SuperTudoRoutineCore=Core;if(typeof module!=='undefined'&&module.exports)module.exports=Core;
 const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
@@ -431,8 +432,8 @@ function historyScreen(){
  if(!to||to>todayDate)to=todayDate;
  V.rtHistoryFrom=from;V.rtHistoryTo=to;
  const valid=from<=to,teamIds=(S.team||[]).filter(x=>!x.adm&&/encarregado/i.test(String(x.f||''))).map(x=>String(x.id));
- const teamSet=new Set(teamIds);
- const rows=valid?Object.values(db().occurrences).filter(o=>teamSet.has(String(o.executorId))&&o.date>=from&&o.date<=to&&o.status!=='dismissed'&&o.snapshot?.mandatory!==false):[];
+ const teamSet=new Set(teamIds),assignments=db().assignments;
+ const rows=valid?Object.values(db().occurrences).filter(o=>teamSet.has(String(o.executorId))&&o.date>=from&&o.date<=to&&o.status!=='dismissed'&&o.snapshot?.mandatory!==false&&Core.assignmentValidOn(o,assignments)):[ ];
  const all=Core.progress(rows),people=new Map();
  rows.forEach(o=>{const id=String(o.executorId);if(!people.has(id))people.set(id,[]);people.get(id).push(o);});
  const sorted=[...people].map(([id,items])=>({id,items,progress:Core.progress(items)})).sort((a,b)=>(a.progress.pct??101)-(b.progress.pct??101)||whoName(a.id).localeCompare(whoName(b.id),'pt-BR'));
