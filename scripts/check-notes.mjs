@@ -17,6 +17,8 @@ check(pkg.version===lock.version&&lock.packages?.['']?.version===pkg.version,'pa
 check(html.includes("const APP_VERSION='"+pkg.version+"'")&&html.includes("'v':'"+pkg.version+"'"),'application version and release history must match.');
 check(html.includes("['Bloco de notas',[['r:notes'")&&html.includes("['l:notes'")&&html.includes("['m:notes'"),'notes permissions must be exposed in the existing permission editor.');
 check(html.includes('nt-page')&&html.includes('nt-card')&&html.includes('nt-editor')&&html.includes('prefers-reduced-motion:reduce){.nt-page'),'notes styles must use the shared design tokens and reduced-motion support.');
+check(html.includes('overflow-x:clip;overscroll-behavior-x:contain')&&html.includes('.nt-editor{display:flex;flex-direction:column;min-height:calc(100dvh - 150px);margin:-4px -2px 0;padding:12px 14px;overflow-x:clip;overscroll-behavior-x:contain'),'notes screens must contain horizontal overscroll and prevent accidental sideways navigation.');
+check(html.includes('html:has(.nt-page),html:has(.nt-editor){overscroll-behavior-x:contain}'),'the viewport must contain browser edge-swipe navigation while notes are open.');
 check(html.includes("))+(isFullAccess()||can('r:notes')")&&html.includes("</button>':'')+_0x3ac14e(0x59a)+regMenuVersion()")&&html.includes('data-notes-tile')&&html.includes('Bloco de Notas')&&html.includes('stNotesOpen()'),'notes tile must be inside the registry grid and before its closing tag.');
 check(html.includes('data-st-notes-fallback')&&html.includes('window.stNotesOpen=fallback')&&html.includes('script.onerror')&&html.includes('script.onload'),'notes access must recover when the module did not register its global open handler.');
 check(notes.trimEnd().endsWith('})(window);')&&notes.includes("root.__ST_NOTES_MODULE_READY__=true")&&notes.includes("root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing'"),'notes module must expose an explicit initialization status.');
@@ -28,6 +30,12 @@ check(notes.includes("if(!title&&!textOf(body).trim())")&&notes.includes("setTim
 check(notes.includes("getData('text/plain')")&&notes.includes('function sanitize(html)')&&notes.includes("['SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','TEMPLATE']"),'pasted text and displayed HTML must be sanitized.');
 check(notes.includes("state.lastUpdated")&&notes.includes(".eq('updated_at',state.lastUpdated)"),'note updates must detect stale revisions rather than silently overwrite another device.');
 check(notes.includes('if(!state.dirty)return true;')&&notes.includes('const current=JSON.stringify')&&notes.includes('if(current===snapshot)'),'autosave must preserve edits made while an earlier save is still in flight.');
+check(notes.includes('super-tudo-notes-drafts')&&notes.includes('indexedDB.open')&&notes.includes("createObjectStore('drafts'"),'offline drafts must use persistent IndexedDB storage.');
+check(notes.includes('function persistDraft()')&&notes.includes('function recoverDraft(id)')&&notes.includes('await persistDraft();'),'drafts must be persisted before online save attempts and recoverable after reload.');
+check(notes.includes("state.recoveredDraft=true")&&notes.includes("Rascunho recuperado deste aparelho")&&notes.includes("root.addEventListener('online'"),'recovered drafts must be restored and retried after reconnecting.');
+check(notes.includes('await removeDraft(n.id)')&&notes.includes("removeDraft('new')"),'successfully saved drafts must be removed from local storage.');
+check(notes.includes('baseUpdatedAt:state.lastUpdated')&&notes.includes(".eq('updated_at',state.lastUpdated)"),'recovered drafts must retain optimistic concurrency protection.');
+check(notes.includes("function draftKey(id){return 'draft:'+org()+':'+user()+':")&&notes.includes("(id||'new')"),'local drafts must be isolated by organization, user, and note.');
 check(notes.includes("supa.removeChannel(state.channel)")&&notes.includes("function backToRegistry()"),'Realtime subscription must be released when leaving the notes module.');
 check(notes.includes('root.stNotesBack=()=>state.editor?back():backToRegistry()')&&notes.includes('if(saved===false)return'),'editor navigation must return to the board and keep the editor open if saving fails.');
 check(notes.includes("state.tab==='lixeira'")&&notes.includes("30*86400000")&&notes.includes('stNotesRestore'),'trash must support restore and 30-day cleanup.');
@@ -36,6 +44,10 @@ check(sql.includes("author_id := v_uid")&&sql.includes('new.author_id := old.aut
 check(sql.includes("notas_has_permission('l:notes'")&&sql.includes("notas_has_permission('r:notes'")&&sql.includes("notas_has_permission('m:notes'"),'database policies must enforce create, read, and moderation permissions.');
 check(notes.includes('!!n.shared&&canModerate()')&&notes.includes("n.shared&&(allowed('r:notes')||canModerate())"),'moderators must only see and edit notes explicitly shared with the team.');
 check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOnly||!canToggleShare?'disabled':''"),'only the note author may change its sharing state.');
+check(notes.includes("b.classList.toggle('on',selected)")&&notes.includes("b.setAttribute('aria-checked',String(selected))"),'selected note color must update both visual and accessible selected states.');
+check(!notes.includes('<input <div id="nt-toolbar"')&&notes.includes('</div><div id="nt-toolbar"'),'note editor toolbar markup must remain valid and must not contain a stray input tag.');
+check(notes.indexOf('class="nt-editor-footer"')<notes.indexOf('id="nt-title"'),'note sharing controls must stay above the note content and be immediately accessible.');
+check(notes.indexOf('id="nt-toolbar"')<notes.indexOf('id="nt-title"')&&html.includes('.nt-toolbar{position:sticky;top:0;bottom:auto;'),'formatting controls must stay near the top of the editor and remain accessible while scrolling.');
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
 check(hardening.includes('create schema if not exists private')&&hardening.includes('create or replace function private.notas_has_permission'),'permission helper must live in a non-exposed schema.');
@@ -46,4 +58,4 @@ check(hardening.includes('idx_notas_author_id')&&hardening.includes('on public.n
 check((hardening.match(/private\.notas_has_permission\(/g)||[]).length>=9&&hardening.includes('drop function if exists public.notas_has_permission(text, uuid)'),'all note RLS policies must call the private helper and remove the old public RPC.');
 check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS policies must use initplan-friendly auth.uid calls.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+36+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+47+' verificações)');
