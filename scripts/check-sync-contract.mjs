@@ -34,6 +34,8 @@ const checks = [
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só é removido depois de checklist com itens e salvamento confirmado', /if\(!converted\)return false;[\s\S]*?S\[module\]=S\[module\]\.filter[\s\S]*?if\(!save\(\)\)/],
   ['migração processa apenas modelos-alvo com atividades reconhecidas', /targets\.has\(normalize\(model\?\.n[\s\S]*?const titles=extractItems\(model\);[\s\S]*?if\(!name\|\|!titles\.length\)continue/],
+  ['migração não converte nem remove modelos legítimos de checklist atribuído', /const assignedChecklistModel=module==='routineModels'&&\([\s\S]{0,450}legacy-assigned-checklist-item[\s\S]{0,250}return !assignedChecklistModel&&targets\.has/],
+  ['exclusão legada recusada restaura modelo de checklist a partir do snapshot confirmado da nuvem', /const isLegacyAssignedChecklist=op\.module==='routineModels'[\s\S]{0,900}serverConfirmsAssignedChecklist[\s\S]{0,450}syncApplyRecord\(server\)[\s\S]{0,500}syncCanon\(restored\.data\)===syncCanon\(serverData\)/],
   ['migração enfileira exclusão explícita na fonte correta', /syncMeta\.queue\.push\(\{key,module,record_id:modelId,kind:'r:cro',deleted:true/],
   ['migração não sobrescreve conflitos de exclusão pendentes', /if\(pending\?\.status==='conflict'\)continue/],
   ['migração legada não envia exclusão de modelos de Rotina por perfis sem gestão', /const canManageRoutineModels=\['master','admin','gerente'\]\.includes\(V\.cloudIdentity\.role\)[\s\S]{0,650}op\.deleted&&op\.status==='forbidden'[\s\S]{0,250}syncBaseline=syncRows\(S\)/],
