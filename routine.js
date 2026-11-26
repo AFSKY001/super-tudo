@@ -148,6 +148,7 @@ function migrate(){
  };
  const assignedChecklistMigration='routine-assigned-checklists-v2';
  let added=false;
+ if(typeof isFullAccess==='function'&&isFullAccess()){
   Object.entries(CK||{}).forEach(([ckid,checklist])=>{
    const pid=String(checklist?.p||'').trim(),name=String(checklist?.n||'').trim();
    if(!pid||!who(pid)||!name)return;
@@ -199,6 +200,7 @@ function migrate(){
   });
   if(!S.migrations.includes(assignedChecklistMigration)){S.migrations.push(assignedChecklistMigration);added=true;}
   if(added)save();
+ }
  if(S.migrations.includes('routine-v1'))return;
  const recurrenceFor=days=>{const mapped=Core.legacyWeekdays(days);return{type:'weekly',days:mapped.length?mapped:[0,1,2,3,4,5,6]};};
  const activityFrom=(item,turn,index,source)=>{
