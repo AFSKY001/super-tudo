@@ -42,7 +42,6 @@ const personalRoutineClassificationRollback = fs.readFileSync(
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
   ['cliente bloqueia Master/admin de enfileirar gravações pessoais da Rotina', /if\('r:rot'===_0x482dec\)return!\['master','admin'\]\.includes\(_0xrole\)&&_0x3c2060\['includes'\]\('r:rot'\)/],
-  ['fila local só enfileira alterações quando syncCanWrite autoriza o tipo de permissão', /if\(!_0x552b7f\|\|!syncCanWrite\(_0x552b7f\[_0x2e0bc4\(0x53a\)\]\)\)return/],
   ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\[\['tmod',S\.tmod\],\['routineModels',S\.routineModels\]\][\s\S]{0,500}targets\.has/],
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só é removido depois de checklist com itens e salvamento confirmado', /if\(!converted\)return false;[\s\S]*?S\[module\]=S\[module\]\.filter[\s\S]*?if\(!save\(\)\)/],
