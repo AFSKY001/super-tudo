@@ -43,8 +43,6 @@ const checks = [
   ['migração enfileira exclusão explícita na fonte correta', /syncMeta\.queue\.push\(\{key,module,record_id:modelId,kind:'r:cro',deleted:true/],
   ['migração não sobrescreve conflitos de exclusão pendentes', /if\(pending\?\.status==='conflict'\)continue/],
   ['migração legada não envia exclusão de modelos de Rotina por perfis sem gestão', /const canManageRoutineModels=\['master','admin','gerente'\]\.includes\(V\.cloudIdentity\.role\)[\s\S]{0,650}op\.deleted&&op\.status==='forbidden'[\s\S]{0,250}syncBaseline=syncRows\(S\)/],
-  ['Supabase permite ao encarregado ler somente tombstone de checklist legado atribuído ao próprio perfil', /when k='r:cro'[\s\S]{0,450}r\.module='routineModels'[\s\S]{0,300}r\.deleted_at is not null[\s\S]{0,800}om\.role='encarregado'[\s\S]{0,350}substring\(p_record_id from '\^legacy-assigned-checklist-\(\[\^\-\]\+\)-'\)[\s\S]{0,300}public\.has_perm_for_org\('r:rot',p_org_id\)[\s\S]{0,200}public\.has_perm_for_org\('r:eqp',p_org_id\)/],
-  ['migration de tombstone não altera permissões de escrita nem conteúdo excluído', /when k='r:cro'[\s\S]{0,1600}then true[\s\S]*?\$\$;/],
   ['migração mantém exclusões remotas somente para Master e Gerência', /\}else\{\s*let queued=false;[\s\S]{0,1400}syncFlush\(\)\.catch/],
 
   ['migração transmite exclusões enfileiradas', /if\(queued\)\{syncPersist\(\);syncFlush\(\)\.catch/],
@@ -178,6 +176,21 @@ for (const [label, pattern] of permissionChecks) {
 }
 if (failedPermissions.length) {
   console.error('Falhas nas proteções de permissão da sincronização: ' + failedPermissions.join('; '));
+  process.exitCode = 1;
+}
+
+const tombstoneMigrationChecks = [
+  ['Supabase permite leitura do tombstone somente para o encarregado dono do checklist legado', /when k='r:cro'[\s\S]*?r\.module='routineModels'[\s\S]*?r\.deleted_at is not null[\s\S]*?om\.role='encarregado'[\s\S]*?substring\(p_record_id from[\s\S]*?has_perm_for_org\('r:rot',p_org_id\)[\s\S]*?has_perm_for_org\('r:eqp',p_org_id\)/i.test(legacyTombstoneReadMigration)],
+  ['migration de tombstone não altera funções nem gatilhos de escrita', !/create or replace function public\.(can_write_kind_for_org|can_write_routine_record)|create trigger|update public\.app_records|insert into public\.app_records/i.test(legacyTombstoneReadMigration)],
+  ['tombstone só libera confirmação sem conteúdo e mantém a regra de exclusão por revisão', /and r\.deleted_at is not null[\s\S]*?then true/i.test(legacyTombstoneReadMigration)],
+];
+const failedTombstoneMigration = [];
+for (const [label, passed] of tombstoneMigrationChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedTombstoneMigration.push(label);
+}
+if (failedTombstoneMigration.length) {
+  console.error('Falhas na leitura restrita de tombstones: ' + failedTombstoneMigration.join('; '));
   process.exitCode = 1;
 }
 
