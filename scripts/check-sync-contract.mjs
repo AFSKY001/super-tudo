@@ -166,10 +166,11 @@ if (failedPermissions.length) {
 }
 
 const routinePermissionChecks = [
-  ['migração separa leitura de rotina por executor e liderança', /can_read_routine_record[\s\S]*?team_lead_members[\s\S]*?has_perm_for_org\('r:eqp'/i],
-  ['migração restringe gravação de ocorrência à atribuição real', /can_write_routine_record[\s\S]*?routineAssignments[\s\S]*?routineOccurrences[\s\S]*?p_record_id = concat/i],
-  ['sync_push SECURITY DEFINER valida módulo e permissão antes do RPC interno', /sync_push_internal[\s\S]*?routineModels[\s\S]*?routineAssignments[\s\S]*?routineOccurrences[\s\S]*?can_write_routine_record/i],
-  ['migração mantém modelos e atribuições com permissão administrativa', /p_module in \('routineModels','routineAssignments'\)[\s\S]*?me\.role in \('admin','gerente'\)/i],
+  ['leitura da Rotina limita executor/liderança', /can_read_routine_record[\\s\\S]*?team_lead_members[\\s\\S]*?has_perm_for_org\\('r:eqp'/i],
+  ['gravação valida atribuição, atividade e identidade determinística', /can_write_routine_record[\\s\\S]*?routineAssignments[\\s\\S]*?routineModels[\\s\\S]*?p_record_id = concat/i],
+  ['trigger protege gravações feitas por RPC SECURITY DEFINER', /guard_routine_app_record_write[\\s\\S]*?before insert or update on public\\.app_records/i],
+  ['leitura por tipo chama helper sem recursão', /create or replace function public\\.can_read_kind_for_org[\\s\\S]*?else public\\.has_perm_for_org\\(k,p_org_id\\)/i],
+  ['tipo r:rot exige permissão específica', /when k='r:rot' then public\\.has_perm_for_org\\('r:rot',p_org_id\\)/i],
 ];
 const failedRoutinePermissions = [];
 for (const [label, pattern] of routinePermissionChecks) {
@@ -181,7 +182,6 @@ if (failedRoutinePermissions.length) {
   console.error('Falhas nas permissões específicas da Rotina: ' + failedRoutinePermissions.join('; '));
   process.exitCode = 1;
 }
-
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
 for (let index = 0; index < inlineScripts.length; index++) {
