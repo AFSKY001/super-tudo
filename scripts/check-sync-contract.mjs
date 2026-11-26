@@ -121,6 +121,10 @@ const checks = [
   ['operações recusadas não são reenviadas automaticamente', /não serão reenviados automaticamente/],
   ['modelo convertido fornece a lista de itens exigida pelo renderizador', /CK\[key\]=\{\.\.\.CK\[temporary\][\s\S]{0,180}l:\[\.\.\.titles\]/],
   ['migração atualiza nome e itens dos modelos já convertidos', /if\(existing\.n!==name\)[\s\S]*?if\(existing\.i!==titles\.join\('\|'\)\)[\s\S]*?if\(!Array\.isArray\(existing\.l\)/],
+
+  ['modelos e atribuições de Rotina são somente leitura para encarregados e funcionários', /\['routineModels','routineAssignments'\]\.includes\(_0x552b7f\.module\)&&!\['master','admin','gerente'\]\.includes\(\(V\.cloudIdentity\|\|\{\}\)\.role\)/],
+  ['operações recusadas de modelos de Rotina são reconciliadas com o snapshot da nuvem antes de limpar a fila', /async function syncBlockedQueueUI\(\)[\s\S]{0,1800}supa\.rpc\('sync_pull'[\s\S]{0,1200}syncCanon\(local\.data\)!==syncCanon\(serverData\)/],
+  ['aviso de envio bloqueado reaparece após consulta à nuvem', /syncBlockedNoticeShown[\s\S]{0,600}syncBlockedQueueUI\(\)/],
 ];
 
 const permissionChecks = [
