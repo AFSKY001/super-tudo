@@ -49,12 +49,12 @@ assert.equal(calculated.rows[0].vt,8.5);
 const headerOnly=pimParse('Produto;Descrição;Quantidade;Custo c/ imposto;Motivo');
 assert.deepEqual(JSON.parse(JSON.stringify(headerOnly)),{rows:[],errs:[],total:0});
 
-const invalidQuote=pimParse('Produto;Descrição;Quantidade;Custo c/ imposto;Motivo\\n111;Arroz" tipo 1;1;5,00;Quebra operacional');
+const invalidQuote=pimParse('Produto;Descrição;Quantidade;Custo c/ imposto;Motivo\n111;Arroz" tipo 1;1;5,00;Quebra operacional');
 assert.match(invalidQuote.err,/aspas em posição inválida/);
-const trailingAfterQuote=pimParse('Produto;Descrição;Quantidade;Custo c/ imposto;Motivo\\n111;"Arroz" inválido;1;5,00;Quebra operacional');
+const trailingAfterQuote=pimParse('Produto;Descrição;Quantidade;Custo c/ imposto;Motivo\n111;"Arroz" inválido;1;5,00;Quebra operacional');
 assert.match(trailingAfterQuote.err,/caracteres depois do fechamento/);
 
-const distinctDescriptions=pimParse('Produto;Descrição;Quantidade;Custo c/ imposto;Motivo\\n111;Arroz tipo 1;1;5,00;Quebra operacional\\n111;Arroz tipo 2;1;5,00;Quebra operacional');
+const distinctDescriptions=pimParse('Produto;Descrição;Quantidade;Custo c/ imposto;Motivo\n111;Arroz tipo 1;1;5,00;Quebra operacional\n111;Arroz tipo 2;1;5,00;Quebra operacional');
 assert.equal(distinctDescriptions.rows.length,2);
 assert.equal(distinctDescriptions.errs.length,0);
 
