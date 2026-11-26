@@ -55,7 +55,7 @@ select exists (
       ))
     )
 );
-$;
+$$;
 
 create or replace function public.can_write_routine_record(
   p_module text, p_record_id text, p_data jsonb, p_org_id uuid
