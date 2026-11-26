@@ -12,6 +12,8 @@ assert.match(routineSource,/const checklistItems=c=>\{const raw=Array\.isArray\(
 assert.match(routineSource,/function assign\(pid\)[\s\S]{0,700}person\.perm\.includes\('r:rot'\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
 assert.match(routineSource,/function modelPage\(\)[\s\S]{0,700}V\.rotChecklistHub=true;R\(\)[\s\S]{0,100}Modelos de checklist/,'A tela de modelos precisa manter o acesso aos modelos de checklist.');
 assert.match(indexSource,/migrateCronogramaModelsToChecklists\(\),window\.dispatchEvent\(new Event\('st:cloud-sync-ready'\)\)/,'A Rotina deve repetir a migração depois que os dados da nuvem forem carregados.');
+assert.match(indexSource,/window\.__ST_CLOUD_SYNC_READY__=true,window\.dispatchEvent\(new Event\('st:cloud-sync-ready'\)\)/,'A conclusão da sincronização deve ficar registrada para scripts carregados depois.');
+assert.match(routineSource,/if\(root\.__ST_CLOUD_SYNC_READY__\)\{migrate\(\);generateDay\(\);syncFunctions\(\);\}/,'A migração deve executar mesmo se a hidratação terminar antes de routine.js carregar.');
 assert.match(indexSource,/get rRotChecklistHub\(\)\{return rRotChecklistHub\},get migrateCronogramaModelsToChecklists\(\)\{return migrateCronogramaModelsToChecklists\}/,'O bridge deve expor a migração e a tela de modelos de checklist.');
 assert.match(indexSource,/function rRotChecklistHub\(\)\{if\(V\.ce\)return rCe\(\);return/,'Ao editar um modelo, a tela de modelos deve encaminhar para o editor selecionado em vez de reapresentar a lista.');
 console.log('PASS - integração da conversão de cronogramas com a tela de modelos de checklist.');
