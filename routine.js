@@ -78,7 +78,7 @@ function installRoutineStyles(){
  .rt-task-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
  .rt-task-copy b{position:relative;display:inline-block;align-self:flex-start;max-width:100%;overflow-wrap:anywhere;font-size:14px}\n .rt-task-row.is-completing .rt-task-copy b{color:var(--tx);text-decoration-line:line-through;text-decoration-color:transparent;text-decoration-thickness:2px;text-decoration-skip-ink:none;animation:rt-paper-strike 2s cubic-bezier(.2,.8,.2,1) forwards;transition:color .3s ease}
  .rt-task-status{font-size:11px;font-weight:700;color:var(--mu);white-space:nowrap}
- .rt-task-status.is-late{color:var(--no)}.rt-task-status.is-done{color:var(--ok)}.rt-task-status.is-done{color:var(--tx)}
+ .rt-task-status.is-late{color:var(--no)}.rt-task-status.is-done{color:var(--tx)}
  .rt-person-toggle{width:100%;min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 2px;border:0;background:transparent;color:var(--tx);text-align:left;font:inherit;cursor:pointer}
  .rt-person-toggle:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:8px}
  .rt-person-progress{font-variant-numeric:tabular-nums;font-weight:800;color:var(--tx);white-space:nowrap}
