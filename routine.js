@@ -351,7 +351,16 @@ function card(o){
  const checked=o.status==='done',status=st==='overdue'?'Atrasada':st==='dismissed'?'Dispensada':checked?'Concluída':'';
  return '<article class="c rt-task-row" data-routine-id="'+e(o.id)+'"><button type="button" class="rt-task-check '+(checked?'is-checked':'')+'" '+(!allowed?'disabled':'')+' aria-label="'+(checked?'Desmarcar ':'Marcar ')+e(s.title)+'" aria-checked="'+(checked?'true':'false')+'" role="checkbox" onclick="rtToggle(\''+e(o.id)+'\')">'+(checked?'<span aria-hidden="true">✓</span>':'')+'</button><button type="button" class="rt-task-open" onclick="rtDetails(\''+e(o.id)+'\')"><span class="rt-task-copy"><b>'+e(s.title)+'</b><span class="mu">'+(s.time?'Até '+e(s.time):'Sem horário definido')+'</span></span>'+(status?'<span class="rt-task-status '+(st==='overdue'?'is-late':checked?'is-done':'')+'">'+e(status)+'</span>':'')+'<span class="rt-task-chevron" aria-hidden="true">›</span></button></article>';
 }
-function refreshTaskRow(id,motion){\n const o=db().occurrences[id];if(!o)return false;\n const rows=[...root.document.querySelectorAll('.rt-task-row[data-routine-id]')],row=rows.find(node=>node.dataset.routineId===String(id));\n if(!row)return false;\n row.outerHTML=card(o);\n const updated=[...root.document.querySelectorAll('.rt-task-row[data-routine-id]')].find(node=>node.dataset.routineId===String(id));\n if(updated&&motion){updated.classList.add(motion);const check=updated.querySelector('.rt-task-check');if(check)check.setAttribute('aria-checked',o.status==='done'?'true':'false');}\n return true;\n}\nfunction openDetails(id,needsPhoto=false){const o=db().occurrences[id];if(!o)return;V.rtDetailId=id;V.rtDetailNeedsPhoto=!!needsPhoto;V.sh='routine-details';rMenu();}
+function refreshTaskRow(id,motion){
+ const o=db().occurrences[id];if(!o)return false;
+ const rows=[...root.document.querySelectorAll('.rt-task-row[data-routine-id]')],row=rows.find(node=>node.dataset.routineId===String(id));
+ if(!row)return false;
+ row.outerHTML=card(o);
+ const updated=[...root.document.querySelectorAll('.rt-task-row[data-routine-id]')].find(node=>node.dataset.routineId===String(id));
+ if(updated&&motion){updated.classList.add(motion);const check=updated.querySelector('.rt-task-check');if(check)check.setAttribute('aria-checked',o.status==='done'?'true':'false');}
+ return true;
+}
+function openDetails(id,needsPhoto=false){const o=db().occurrences[id];if(!o)return;V.rtDetailId=id;V.rtDetailNeedsPhoto=!!needsPhoto;V.sh='routine-details';rMenu();}
 function closeDetails(){V.rtDetailId='';V.rtDetailNeedsPhoto=false;V.sh=0;rMenu();}
 function detailsSheet(){
  const o=db().occurrences[V.rtDetailId];if(!o)return '';
