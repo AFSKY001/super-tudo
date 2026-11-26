@@ -91,6 +91,25 @@ select case
           and a.record_id = coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId')
           and a.deleted_at is null
           and a.data->>'executorId' = coalesce(p_data->'value'->>'executorId', p_data->>'executorId')
+          and p_record_id = concat(
+            coalesce(p_data->'value'->>'assignmentId', p_data->>'assignmentId'), '|',
+            coalesce(p_data->'value'->>'activityId', p_data->>'activityId'), '|',
+            coalesce(p_data->'value'->>'date', p_data->>'date')
+          )
+          and exists (
+            select 1
+            from public.app_records m
+            where m.org_id = p_org_id
+              and m.module = 'routineModels'
+              and m.record_id = a.data->>'modelId'
+              and m.deleted_at is null
+              and coalesce(p_data->'value'->'snapshot'->>'modelId', p_data->'snapshot'->>'modelId') = a.data->>'modelId'
+              and exists (
+                select 1
+                from jsonb_array_elements(coalesce(m.data->'activities', '[]'::jsonb)) activity
+                where activity->>'id' = coalesce(p_data->'value'->>'activityId', p_data->>'activityId')
+              )
+          )
           and (
             a.data->>'executorId' = me.team_member_id
             or exists (
