@@ -22,6 +22,10 @@ const syncConcurrencyMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261123165349_serialize_sync_push_per_org.sql'),
   'utf8',
 );
+const routinePermissionMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126000100_routine_scoped_permissions.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -50,7 +54,7 @@ const checks = [
   ['diálogo de sincronização fica acima das camadas globais', /zIndex:'2147483001'/],
   ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
   ['modelos e atribuições de Rotina entram na sincronização multiempresa', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
-  ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:cro'/],
+  ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:rot'/],
   ['cliente aplica modelos, atribuições e ocorrências recebidos da nuvem', /'routineModels'!==_0x3419a0&&'routineAssignments'!==_0x3419a0[\s\S]{0,1100}'routineOccurrences'===_0x3419a0/],
   ['cliente reconhece o fluxo restrito de encarregado em cfg:team', /'encarregado'===_0xrole&&_0x3c2060\['includes'\]\('r:eqp'\)/],
 
@@ -158,6 +162,23 @@ for (const [label, pattern] of permissionChecks) {
 }
 if (failedPermissions.length) {
   console.error('Falhas nas proteções de permissão da sincronização: ' + failedPermissions.join('; '));
+  process.exitCode = 1;
+}
+
+const routinePermissionChecks = [
+  ['migração separa leitura de rotina por executor e liderança', /can_read_routine_record[\s\S]*?team_lead_members[\s\S]*?has_perm_for_org\('r:eqp'/i],
+  ['migração restringe gravação de ocorrência à atribuição real', /can_write_routine_record[\s\S]*?routineAssignments[\s\S]*?routineOccurrences[\s\S]*?p_record_id = concat/i],
+  ['sync_push SECURITY DEFINER valida módulo e permissão antes do RPC interno', /sync_push_internal[\s\S]*?routineModels[\s\S]*?routineAssignments[\s\S]*?routineOccurrences[\s\S]*?can_write_routine_record/i],
+  ['migração mantém modelos e atribuições com permissão administrativa', /p_module in \('routineModels','routineAssignments'\)[\s\S]*?me\.role in \('admin','gerente'\)/i],
+];
+const failedRoutinePermissions = [];
+for (const [label, pattern] of routinePermissionChecks) {
+  const passed = pattern.test(routinePermissionMigration);
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedRoutinePermissions.push(label);
+}
+if (failedRoutinePermissions.length) {
+  console.error('Falhas nas permissões específicas da Rotina: ' + failedRoutinePermissions.join('; '));
   process.exitCode = 1;
 }
 
