@@ -181,9 +181,11 @@ const routineMigrationChecks = [
   ['atribuição manual também habilita o menu de Rotina', /function assign\(pid\)[\s\S]*?person\.perm\.includes\('r:rot'\)/.test(routineSource)],
 ];
 const performanceFormatChecks = [
-  ['pontuação de checklist aceita campo i legado', /const _0xitems=Array\.isArray\(_0x494c5c\?\.l\)\?_0x494c5c\.l:String\(_0x494c5c\?\.i\|\|''\)\.split\('\|'\)/.test(source)],
-  ['percentual de conclusão conta itens do campo i', /String\(_0x504aff\['i'\]\|\|''\)\.split\('\|'\)/.test(source)],
-  ['análise de falhas por setor aceita checklist legado', /_0xlegacyChecklistItems=Array\.isArray\(_0x4390cf\['l'\]\)\?_0x4390cf\['l'\]:String\(_0x4390cf\['i'\]\|\|''\)\.split\('\|'\)/.test(source)],
+  ['pontuação de checklist aceita campo i legado', /const _0xitems=Array\.isArray\(_0x494c5c\?\.l\)&&_0x494c5c\.l\.length\?_0x494c5c\.l:String\(_0x494c5c\?\.i\|\|''\)\.split\('\|'\)/.test(source)],
+  ['percentual de conclusão conta itens do campo i', /String\(model\.i \|\| ''\)\.split\('\|'\)/.test(source)],
+  ['análise de falhas por setor aceita checklist legado', /_0xlegacyChecklistItems=Array\.isArray\(_0x4390cf\['l'\]\)&&_0x4390cf\['l'\]\.length\?_0x4390cf\['l'\]:String\(_0x4390cf\['i'\]\|\|''\)\.split\('\|'\)/.test(source)],
+  ['conclusão do checklist é atribuída apenas ao responsável', /if \(assignedToPerson\) \{\s*total\+\+/.test(source)],
+  ['qualidade do checklist é atribuída separadamente ao avaliado', /if \(evaluatedPerson && typeof sc === 'function'\)/.test(source)],
 ];
 const failedPerformanceFormats = [];
 for (const [label, passed] of performanceFormatChecks) {
