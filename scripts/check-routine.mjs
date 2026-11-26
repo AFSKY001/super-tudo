@@ -17,6 +17,8 @@ assert.match(routineSource,/async function undoComplete[\s\S]{0,800}status:'pend
 assert.match(routineSource,/function installRoutineStyles[\s\S]{0,9000}rt-task-check[\s\S]{0,5000}rt-paper-strike[\s\S]{0,2500}rt-details-sheet/,'A lista deve ter ondas no checkbox e risco animado na legenda.');
 assert.match(routineSource,/function refreshTaskRow\(id,motion\)[\s\S]{0,900}row\.outerHTML=card\(o\)/,'Marcar e desmarcar devem atualizar somente a linha da atividade, sem redesenhar a tela inteira.');
 assert.match(routineSource,/rt-paper-strike 2s/,'O risco da atividade concluída deve ser desenhado em aproximadamente dois segundos.');
+assert.match(routineSource,/text-decoration-line:line-through;text-decoration-color:transparent;text-decoration-thickness:2px;text-decoration-skip-ink:none/,'O risco deve acompanhar todas as linhas do título, inclusive quando a atividade quebra em duas ou mais linhas.');
+assert.doesNotMatch(routineSource,/rt-task-copy b::after/,'O risco não deve usar um pseudo-elemento de largura fixa que corte títulos em múltiplas linhas.');
 assert.match(routineSource,/rt-check-wave \.95s ease-out 2/,'Marcar deve emitir ondas suaves no checkbox.');
 assert.match(routineSource,/rt-uncheck-wave \.72s ease-out/,'Desmarcar deve emitir uma onda verde de saída.');
 assert.match(routineSource,/if\(!refreshTaskRow\(id,'is-completing'\)\)R\(\)/,'A conclusão não deve chamar o render geral quando a linha está visível.');
