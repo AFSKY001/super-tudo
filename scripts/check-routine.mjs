@@ -11,10 +11,10 @@ assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCron
 assert.match(routineSource,/const checklistItems=c=>\{const raw=Array\.isArray\(c\?\.l\)&&c\.l\.length\?c\.l:[\s\S]{0,140}c\.i\.split\('\|'\)/,'Itens legados em formato pipe precisam ser lidos para gerar as atividades.');
 assert.match(routineSource,/function assign\(pid\)[\s\S]{0,700}person\.perm\.includes\('r:rot'\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
 assert.match(routineSource,/const photoRequired=checklist\.ph===true\|\|checklist\.ph===1\|\|\['true','1','sim','required','obrigatoria'\]/,'O texto false no campo legado de foto não pode virar foto obrigatória.');
-assert.match(routineSource,/function card\\(o\\)[\\s\\S]{0,1800}role="checkbox"[\\s\\S]{0,700}rtDetails/,'A lista de Rotina deve usar um checkbox individual e abrir detalhes ao tocar na atividade.');
-assert.match(routineSource,/function detailsSheet\\(\\)[\\s\\S]{0,6000}data-sheet[\\s\\S]{0,2500}Horário limite[\\s\\S]{0,1200}Foto na conclusão/,'Os detalhes devem abrir em uma janela inferior arrastável com horário e regra de foto.');
-assert.match(routineSource,/async function undoComplete[\\s\\S]{0,800}status:'pending'[\\s\\S]{0,500}deletePhoto/,'Desmarcar uma conclusão manual deve voltar para pendente e limpar a comprovação associada.');
-assert.match(routineSource,/function installRoutineStyles[\\s\\S]{0,5000}rt-task-check[\\s\\S]{0,4000}rt-details-sheet/,'A nova lista e a janela de detalhes devem ter estilos próprios.');
+assert.match(routineSource,/function card\(o\)[\s\S]{0,1800}role="checkbox"[\s\S]{0,700}rtDetails/,'A lista de Rotina deve usar um checkbox individual e abrir detalhes ao tocar na atividade.');
+assert.match(routineSource,/function detailsSheet\(\)[\s\S]{0,6000}data-sheet[\s\S]{0,2500}Horário limite[\s\S]{0,1200}Foto na conclusão/,'Os detalhes devem abrir em uma janela inferior arrastável com horário e regra de foto.');
+assert.match(routineSource,/async function undoComplete[\s\S]{0,800}status:'pending'[\s\S]{0,500}deletePhoto/,'Desmarcar uma conclusão manual deve voltar para pendente e limpar a comprovação associada.');
+assert.match(routineSource,/function installRoutineStyles[\s\S]{0,5000}rt-task-check[\s\S]{0,4000}rt-details-sheet/,'A nova lista e a janela de detalhes devem ter estilos próprios.');
 assert.doesNotMatch(routineSource,/Marcar como feita/,'O botão antigo de marcar como feita deve ser removido da lista.');
 
 assert.match(routineSource,/function modelPage\(\)[\s\S]{0,700}V\.rotChecklistHub=true;R\(\)[\s\S]{0,100}Modelos de checklist/,'A tela de modelos precisa manter o acesso aos modelos de checklist.');
