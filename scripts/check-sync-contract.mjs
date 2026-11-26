@@ -27,6 +27,10 @@ const routinePermissionMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261126000100_routine_scoped_permissions.sql'),
   'utf8',
 );
+const legacyTombstoneReadMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126123000_allow_owner_read_legacy_checklist_tombstone.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -39,6 +43,8 @@ const checks = [
   ['migração enfileira exclusão explícita na fonte correta', /syncMeta\.queue\.push\(\{key,module,record_id:modelId,kind:'r:cro',deleted:true/],
   ['migração não sobrescreve conflitos de exclusão pendentes', /if\(pending\?\.status==='conflict'\)continue/],
   ['migração legada não envia exclusão de modelos de Rotina por perfis sem gestão', /const canManageRoutineModels=\['master','admin','gerente'\]\.includes\(V\.cloudIdentity\.role\)[\s\S]{0,650}op\.deleted&&op\.status==='forbidden'[\s\S]{0,250}syncBaseline=syncRows\(S\)/],
+  ['Supabase permite ao encarregado ler somente tombstone de checklist legado atribuído ao próprio perfil', /when k='r:cro'[\s\S]{0,450}r\.module='routineModels'[\s\S]{0,300}r\.deleted_at is not null[\s\S]{0,800}om\.role='encarregado'[\s\S]{0,350}substring\(p_record_id from '\^legacy-assigned-checklist-\(\[\^\-\]\+\)-'\)[\s\S]{0,300}public\.has_perm_for_org\('r:rot',p_org_id\)[\s\S]{0,200}public\.has_perm_for_org\('r:eqp',p_org_id\)/],
+  ['migration de tombstone não altera permissões de escrita nem conteúdo excluído', /when k='r:cro'[\s\S]{0,1600}then true[\s\S]*?\$\$;/],
   ['migração mantém exclusões remotas somente para Master e Gerência', /\}else\{\s*let queued=false;[\s\S]{0,1400}syncFlush\(\)\.catch/],
 
   ['migração transmite exclusões enfileiradas', /if\(queued\)\{syncPersist\(\);syncFlush\(\)\.catch/],
