@@ -187,6 +187,8 @@ const performanceFormatChecks = [
   ['análise de falhas por setor aceita checklist legado', /_0xlegacyChecklistItems=Array\.isArray\(_0x4390cf\['l'\]\)&&_0x4390cf\['l'\]\.length\?_0x4390cf\['l'\]:String\(_0x4390cf\['i'\]\|\|''\)\.split\('\|'\)/.test(source)],
   ['conclusão do checklist é atribuída apenas ao responsável', /if \(assignedToPerson\) \{\s*total\+\+/.test(source)],
   ['qualidade do checklist é atribuída separadamente ao avaliado', /if \(evaluatedPerson && typeof sc === 'function'\)/.test(source)],
+  ['flag de foto false é normalizada ao carregar checklist da nuvem', /function normalizeCkPhoto\([\s\S]*?String\(raw\)\.trim\(\)\.toLowerCase\(\)/.test(source)],
+  ['checklist legado false não exige foto na pontuação', /photoFlag === true \|\| photoFlag === 1 \|\| \['true','1','sim','required','obrigatoria'\]/.test(source)],
 ];
 const failedPerformanceFormats = [];
 for (const [label, passed] of performanceFormatChecks) {
