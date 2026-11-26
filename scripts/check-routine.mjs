@@ -141,6 +141,15 @@ const performanceRows=[
 ];
 assert.deepEqual(Core.progress(performanceRows),{done:2,total:3,pct:67},'O desempenho deve contar somente atividades obrigatórias não dispensadas, incluindo conclusão automática ou manual como uma única conclusão.');
 assert.deepEqual(Core.progress([{status:'done',snapshot:{mandatory:false}}]),{done:0,total:0,pct:null},'Sem atividades obrigatórias, a porcentagem deve ser indisponível e não 0%.');
+const historicalDb={models:[{id:'m1',activities:[{id:'a1',title:'Diária',recurrence:{type:'daily'},mandatory:true}]}],assignments:[{id:'as1',modelId:'m1',executorId:'p1',active:true,from:'2026-10-01'}],occurrences:{}};
+const oldDay=Core.generate(historicalDb,'2026-11-25');
+assert.equal(oldDay.created.length,1,'A geração deve criar ocorrência para dia anterior ainda dentro da janela histórica.');
+const completedId=oldDay.created[0].id;historicalDb.occurrences[completedId]={...oldDay.created[0],status:'done',snapshot:{...oldDay.created[0].snapshot,title:'Snapshot histórico original'}};
+const rerunOldDay=Core.generate(historicalDb,'2026-11-25');
+assert.equal(rerunOldDay.created.length,0,'A geração repetida não pode duplicar ocorrência histórica.');
+assert.equal(rerunOldDay.updated.length,0,'A geração histórica não pode alterar snapshot de ocorrência já existente.');
+assert.equal(historicalDb.occurrences[completedId].snapshot.title,'Snapshot histórico original','O histórico concluído deve permanecer imutável.');
+
 assert.deepEqual(Core.progress([{status:'done',snapshot:{mandatory:true,viaSystem:true}},{status:'done',snapshot:{mandatory:true}}]),{done:2,total:2,pct:100},'Conclusões automáticas e manuais contam uma vez por ocorrência.');
 assert.match(routineSource,/const progress=items=>\{[\s\S]{0,500}o\.snapshot\?\.mandatory!==false[\s\S]{0,250}status==='done'/,'O cálculo deve centralizar a regra de obrigatoriedade e conclusão.');
 assert.match(routineSource,/overall=Core\.progress\(items\)/,'O indicador geral deve usar o mesmo cálculo padronizado.');
