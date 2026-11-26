@@ -44,7 +44,7 @@ requireCheck(/V\.ck=null;V\.ckd=null;V\.rotTask=null;V\.rotTaskContext=null;V\.c
 
 requireCheck(routine.includes('const dateValue=') && routine.includes('dayValue=v=>Core.dateValue(v)') && routine.includes('function recordDay(r){const v=r&&(r.data||r.d||r.date||r.createdAt);return Core.dateValue(v);}'), 'Routine timestamps and legacy dates must be normalized to the local calendar day.');
 requireCheck(routine.includes('function readPhoto(id)') && routine.includes('function photoSheet()') && routine.includes('root.rtPhoto=viewPhoto') && routine.includes('Ver foto'), 'Routine photo evidence must be viewable from its IndexedDB photo record.');
-requireCheck(routine.includes('st-check-ring') && routine.includes('const done=rows.filter(o=>o.status===\'done\').length,pct=Math.round(done/rows.length*100)'), 'Routine team view must show each person’s progress using the shared progress ring.');
+requireCheck(routine.includes('st-check-ring') && routine.includes('personProgress=Core.progress(rows)') && routine.includes('personProgress.pct==null?\'—\':progress+\'%\''), 'Routine team view must show each person’s progress using the shared progress ring.');
 requireCheck(routine.includes('uniqueName=!!name') && routine.includes('owners.some(owner=>owner.trim().toLocaleLowerCase()===name)'), 'Automatic routine completion must not match ambiguous duplicate employee names.');
 requireCheck(routine.includes('a=>String(a.executorId)===pid&&Core.activeOn(a,day())') && routine.includes('Core.activeOn(a,day())))return root.stAlert(\'Esse modelo já está atribuído.\')'), 'Routine assignments must respect their from/until validity dates in the person profile and duplicate check.');
 

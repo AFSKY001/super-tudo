@@ -131,6 +131,23 @@ assert.equal(completed.snapshot.title,'Conferir setor');
 
 assert.equal(Core.activeOn({...assignment,until:'2026-11-22'},'2026-11-23'),false,'Atribuição encerrada não gera no dia seguinte.');
 assert.equal(Core.activeOn(assignment,'2026-11-23'),true);
+
+const performanceRows=[
+ {status:'done',snapshot:{mandatory:true}},
+ {status:'pending',snapshot:{mandatory:true}},
+ {status:'done',snapshot:{mandatory:false}},
+ {status:'dismissed',snapshot:{mandatory:true}},
+ {status:'done',snapshot:{mandatory:true}}
+];
+assert.deepEqual(Core.progress(performanceRows),{done:2,total:3,pct:67},'O desempenho deve contar somente atividades obrigatórias não dispensadas, incluindo conclusão automática ou manual como uma única conclusão.');
+assert.deepEqual(Core.progress([{status:'done',snapshot:{mandatory:false}}]),{done:0,total:0,pct:null},'Sem atividades obrigatórias, a porcentagem deve ser indisponível e não 0%.');
+assert.deepEqual(Core.progress([{status:'done',snapshot:{mandatory:true,viaSystem:true}},{status:'done',snapshot:{mandatory:true}}]),{done:2,total:2,pct:100},'Conclusões automáticas e manuais contam uma vez por ocorrência.');
+assert.match(routineSource,/const progress=items=>\{[\s\S]{0,500}o\.snapshot\?\.mandatory!==false[\s\S]{0,250}status==='done'/,'O cálculo deve centralizar a regra de obrigatoriedade e conclusão.');
+assert.match(routineSource,/overall=Core\.progress\(items\)/,'O indicador geral deve usar o mesmo cálculo padronizado.');
+assert.match(routineSource,/personProgress=Core\.progress\(rows\)/,'O indicador por funcionário deve usar o mesmo cálculo padronizado.');
+assert.match(routineSource,/personProgress\.pct==null\?'—':progress\+'%'/,'Sem atividades obrigatórias, o cartão da pessoa deve mostrar traço em vez de 0%.');
+assert.match(routineSource,/overall\.total\+' obrigatórias concluídas/,'O total exibido deve informar que a porcentagem considera atividades obrigatórias.');
+
 assert.equal(Core.dateValue('2026-11-23'),'2026-11-23','Data sem horário deve preservar o dia do calendário.');
 assert.equal(Core.dateValue('23/11/2026'),'2026-11-23','Data brasileira deve ser normalizada.');
 const instant='2026-11-23T01:30:00Z';
