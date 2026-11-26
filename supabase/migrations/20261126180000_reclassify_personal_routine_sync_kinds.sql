@@ -63,7 +63,7 @@ begin
     end if;
 
   elsif new.module = 'done' then
-    v_person_id := split_part(new.record_id, '|', 3);
+    v_person_id := split_part(new.record_id, '|', cardinality(string_to_array(new.record_id, '|')));
 
     -- Legacy cronograma keys have only date|activity and stay on r:cro.
     if cardinality(string_to_array(new.record_id, '|')) < 3 then
@@ -223,7 +223,7 @@ select case
         and (me.role in ('admin', 'gerente') or public.has_perm_for_org('r:rot', p_org_id))
         and (
           me.role in ('admin', 'gerente')
-          or split_part(p_record_id, '|', 3) = me.team_member_id
+          or split_part(p_record_id, '|', cardinality(string_to_array(p_record_id, '|'))) = me.team_member_id
           or (
             me.role = 'encarregado'
             and public.has_perm_for_org('r:eqp', p_org_id)
@@ -232,7 +232,7 @@ select case
               from public.team_lead_members tlm
               where tlm.org_id = p_org_id
                 and tlm.leader_team_member_id = me.team_member_id
-                and tlm.member_team_member_id = split_part(p_record_id, '|', 3)
+                and tlm.member_team_member_id = split_part(p_record_id, '|', cardinality(string_to_array(p_record_id, '|')))
             )
           )
         )
