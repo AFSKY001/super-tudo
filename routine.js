@@ -86,33 +86,54 @@ function migrate(){
   try{bridge.migrateCronogramaModelsToChecklists();}
   catch(err){console.warn('Conversão dos modelos antigos para checklists:',err);}
  }
- if(S.migrations.includes('routine-v1'))return;
  S.routineMigrationWarnings=Array.isArray(S.routineMigrationWarnings)?S.routineMigrationWarnings:[];
  const modelMap=new Map(),assignmentIds=new Set(D.assignments.map(a=>a.id));
- const assignedChecklistMigration='routine-assigned-checklists-v1';
+ const grantRoutinePermission=pid=>{
+  const person=who(pid);if(!person)return false;
+  person.perm=Array.isArray(person.perm)?person.perm:[];
+  if(person.perm.includes('r:rot'))return false;
+  person.perm=[...person.perm,'r:rot'];return true;
+ };
+ const assignedChecklistMigration='routine-assigned-checklists-v2';
  if(!S.migrations.includes(assignedChecklistMigration)){
   let added=false;
   Object.entries(CK||{}).forEach(([ckid,checklist])=>{
-   const pid=String(checklist?.p||'').trim();
-   if(!pid||!who(pid)||!checklist?.n)return;
-   const modelId='legacy-assigned-checklist-'+pid+'-'+ckid;
-   if(!D.models.some(model=>String(model.id)===modelId)){
-    const steps=checklistItems(checklist);
-    if(!steps.length)return;
-    const activityId='legacy-assigned-activity-'+ckid;
-    const activity=touch({id:activityId,title:String(checklist.n),description:'Checklist atribuído no cadastro do funcionário.',steps:[...steps],checklistSnapshot:[...steps],turns:[],source:{type:'legacy-assigned-checklist',checklistId:String(ckid)},functionId:'',photo:checklist.ph?'required':'none',mandatory:true,recurrence:{type:'daily'},time:'08:00',updatedAt:Date.now()});
-    D.models.push(touch({id:modelId,name:String(checklist.n),description:'Migrado automaticamente do checklist atribuído ao funcionário.',legacyId:String(ckid),activities:[activity],createdAt:Date.now()}));
-    added=true;
+   const pid=String(checklist?.p||'').trim(),name=String(checklist?.n||'').trim();
+   if(!pid||!who(pid)||!name)return;
+   const steps=checklistItems(checklist);
+   if(!steps.length)return;
+   const turns=Array.isArray(checklist.t)?checklist.t.map(String).filter(Boolean):[];
+   const signature=JSON.stringify([pid,name.toLowerCase(),steps,turns,!!checklist.ph]);
+   let hash=2166136261;
+   for(let i=0;i<signature.length;i++)hash=Math.imul(hash^signature.charCodeAt(i),16777619)>>>0;
+   const suffix=hash.toString(36),modelId='legacy-assigned-checklist-'+pid+'-'+suffix;
+   let model=D.models.find(item=>String(item.id)===modelId);
+   if(!model){
+    const activityBase='legacy-assigned-activity-'+suffix;
+    const activities=(turns.length?turns:['']).map((turn,index)=>touch({
+     id:activityBase+(turn?'|turn|'+index:''),
+     title:name+(turn?' — '+turn:''),description:'Checklist atribuído no cadastro do funcionário.',
+     steps:[...steps],checklistSnapshot:[...steps],turns:turn?[turn]:[],
+     source:{type:'legacy-assigned-checklist',checklistId:String(ckid)},
+     functionId:'',photo:checklist.ph?'required':'none',mandatory:true,
+     recurrence:{type:'daily'},time:'08:00',updatedAt:Date.now()
+    }));
+    model=touch({id:modelId,name,description:'Migrado automaticamente do checklist atribuído ao funcionário.',legacyId:String(ckid),legacyChecklistIds:[String(ckid)],legacySignature:suffix,activities,createdAt:Date.now()});
+    D.models.push(model);added=true;
+   }else{
+    model.legacyChecklistIds=Array.from(new Set([...(model.legacyChecklistIds||[]),String(ckid)]));
    }
-   const assignmentId='legacy-assigned-checklist-assignment-'+pid+'-'+ckid;
+   const assignmentId='legacy-assigned-checklist-assignment-'+pid+'-'+suffix;
    if(!assignmentIds.has(assignmentId)){
     D.assignments.push(touch({id:assignmentId,modelId,executorId:pid,from:day(),until:null,active:true,source:'legacy-assigned-checklist'}));
     assignmentIds.add(assignmentId);added=true;
    }
+   if(grantRoutinePermission(pid))added=true;
   });
   S.migrations.push(assignedChecklistMigration);
   if(added)save();
  }
+ if(S.migrations.includes('routine-v1'))return;
  const recurrenceFor=days=>{const mapped=Core.legacyWeekdays(days);return{type:'weekly',days:mapped.length?mapped:[0,1,2,3,4,5,6]};};
  const activityFrom=(item,turn,index,source)=>{
   const checklist=item.ckid&&CK[item.ckid],steps=checklist?checklistItems(checklist):Array.isArray(item.steps)?item.steps.map(String):[];
@@ -255,7 +276,7 @@ function copyActivities(){before();const m=db().models.find(x=>x.id===$('rt-copy
 function saveModel(){readDraft();const d=V.rtDraft;if(!d?.name)return root.stAlert('Informe o nome do modelo.');if(!d.activities.length||d.activities.some(a=>!a.title))return root.stAlert('Informe o título de todas as atividades.');if(d.activities.some(a=>a.recurrence.type==='weekly'&&!a.recurrence.days?.length||a.recurrence.type==='monthly'&&!a.recurrence.days?.length||a.recurrence.type==='date'&&!a.recurrence.date||a.recurrence.type==='dates'&&!a.recurrence.dates?.length||['daily','weekly','monthly'].includes(a.recurrence.type)&&(!a.recurrence.startDate||a.recurrence.count!==undefined&&(!Number.isInteger(Number(a.recurrence.count))||Number(a.recurrence.count)<1)||a.recurrence.endDate!==undefined&&!parseDate(a.recurrence.endDate))))return root.stAlert('Complete as regras de recorrência.');const list=db().models,id=d.id==='new'?'rtm-'+uid():d.id,old=list.find(x=>x.id===id),m=touch({...d,id,activities:d.activities.map(a=>({...a,updatedAt:Date.now()})),createdAt:old?.createdAt||Date.now(),archivedAt:null});if(old)Object.assign(old,m);else list.push(m);refreshPending(m);if(V.rtExtraTarget)db().assignments.push(touch({id:'rta-'+uid(),modelId:id,executorId:String(V.rtExtraTarget),from:day(),until:null,active:true,source:'manual-extra'}));V.rtDraft=null;V.rtExtraTarget='';V.sh=0;save();rMenu();R();}
 function archiveModel(id){const m=db().models.find(x=>x.id===id);if(!m)return;Promise.resolve(root.stConfirm('Arquivar o modelo? O histórico será preservado.')).then(ok=>{if(!ok)return;m.archivedAt=day();touch(m);db().assignments.filter(a=>a.modelId===id).forEach(a=>{a.active=false;touch(a);});save();R();});}
 function personSection(p){const pid=String(p.id),leader=supervisor(pid),assignments=db().assignments.filter(a=>String(a.executorId)===pid),rows=assignments.map(a=>{const active=Core.activeOn(a,day());return'<div class="it"><div><b>'+e(db().models.find(m=>m.id===a.modelId)?.name||'Modelo indisponível')+'</b><div class="mu">'+(active?'Ativa':'Encerrada')+' · responsável '+e(leader?.n||'Liderança não definida em Dados')+'</div></div>'+(active?'<button class="bt d" onclick="rtEnd(\''+e(a.id)+'\')">Encerrar</button>':'')+'</div>';}).join('');return'<div class="c"><div class="row sp"><b>Rotinas</b><button class="bt g" onclick="rtExtra(\''+e(pid)+'\')">+ Atividade extra</button></div>'+(rows||'<p class="mu">Nenhuma rotina atribuída.</p>')+'<label>Modelo<select id="rt-assign-'+e(pid)+'"><option value="">Selecione</option>'+db().models.filter(m=>!m.archivedAt).map(m=>'<option value="'+e(m.id)+'">'+e(m.name)+'</option>').join('')+'</select></label>'+(leader?'<p class="mu">👑 Responsável definido em Dados: '+e(leader.n)+'</p>':'<p class="mu">Defina o líder e os subordinados em Dados para compartilhar a responsabilidade.</p>')+'<button class="bt" onclick="rtAssign(\''+e(pid)+'\')">Atribuir rotina</button></div>'; }
-function assign(pid){const mid=$('rt-assign-'+pid)?.value;if(!mid)return root.stAlert('Escolha um modelo.');if(db().assignments.some(a=>a.modelId===mid&&String(a.executorId)===pid&&Core.activeOn(a,day())))return root.stAlert('Esse modelo já está atribuído.');db().assignments.push(touch({id:'rta-'+uid(),modelId:mid,executorId:pid,from:day(),until:null,active:true,source:'person-profile'}));save();R();}
+function assign(pid){const mid=$('rt-assign-'+pid)?.value;if(!mid)return root.stAlert('Escolha um modelo.');if(db().assignments.some(a=>a.modelId===mid&&String(a.executorId)===pid&&Core.activeOn(a,day())))return root.stAlert('Esse modelo já está atribuído.');db().assignments.push(touch({id:'rta-'+uid(),modelId:mid,executorId:pid,from:day(),until:null,active:true,source:'person-profile'}));const person=who(pid);if(person){person.perm=Array.isArray(person.perm)?person.perm:[];if(!person.perm.includes('r:rot'))person.perm=[...person.perm,'r:rot'];}save();R();}
 function extra(pid){V.rtExtraTarget=pid;V.rtDraft={id:'new',name:'Atividade extra - '+whoName(pid),description:'Atividade individual adicional.',activities:[defaults()]};V.sh='routine-editor';rMenu();}
 function endAssignment(id){const a=db().assignments.find(x=>x.id===id);if(!a)return;a.until=addDays(day(),-1);a.active=false;touch(a);save();R();}
 function currentPerson(){return who(V.me?.id||V.cloudIdentity?.team_member_id||'');}
