@@ -140,3 +140,7 @@ assert.ok(routineSource.includes('a.until=addDays(today,-1);a.active=false'),'Re
 assert.ok(routineSource.includes("o.status!=='pending'")&&routineSource.includes("status:'dismissed'")&&routineSource.includes("Atribuição removida do cadastro do funcionário."),'A remoção deve dispensar apenas ocorrências futuras pendentes, preservando as concluídas e o histórico passado.');
 assert.ok(!employeeRoutineSection.includes('rtExtra')&&!employeeRoutineSection.includes('Encerrar'),'O cadastro de funcionário não deve oferecer atividade extra nem botão Encerrar nesta área.');
 assert.ok(!indexSource.includes('pExtra(_0x34c024)+ptHTML(_0x34c024)'),'O cadastro não deve renderizar em paralelo a seleção legada por quadradinhos.');
+
+assert.match(routineSource,/await root\.stPersistRoutineAssignment\(a\)/,'Remover uma atribuição deve aguardar a confirmação da sincronização antes de informar sucesso.');
+assert.match(indexSource,/window\.stPersistRoutineAssignment=async function\(assignment\)[\s\S]{0,1800}await syncFlush\(\)[\s\S]{0,500}syncMeta\.queue\.some/,'A remoção deve aguardar o envio e verificar se a operação saiu da fila.');
+assert.match(routineSource,/function list\(ids\)[\s\S]{0,700}Core\.activeOn\(assignment,day\(\)\)/,'A tela do funcionário não deve exibir ocorrências pendentes de uma atribuição encerrada.');
