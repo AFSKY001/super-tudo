@@ -51,7 +51,7 @@ assert.match(routineSource,/function canSee\(id\)\{[^}]*visibleTeam\(\)/,'A lide
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,500}teamIds=master\?[\s\S]{0,160}:visibleTeam\(\)\.map/,'A aba Equipe da Rotina deve listar os subordinados da liderança cadastrada em Dados.');
 assert.match(routineSource,/teamIds=master\?\(S\.team\|\|\[\]\)\.filter\(x=>!x\.adm&&\/encarregado\/i\.test\(String\(x\.f\|\|''\)\)\)/,'O painel do Master deve acompanhar somente os encarregados, sem incluir os demais funcionários.');
 assert.match(routineSource,/rt-person-toggle[\s\S]{0,500}V\.rtExpandedPerson===/,'O painel de equipe deve permitir expandir/recolher uma única pessoa por vez.');
-assert.match(routineSource,/rt-person-progress[\s\S]{0,100}completed\+'\/'+total/,'O resumo compacto deve mostrar atividades concluídas sobre o total previsto.');
+assert.match(routineSource,/class="rt-person-progress">'\+completed\+'\/'+total/,'O resumo compacto deve mostrar atividades concluídas sobre o total previsto.');
 assert.match(routineSource,/\.rt-task-status\.is-done\{color:var\(--tx\)\}/,'O status das atividades concluídas deve usar texto branco/neutro, não verde.');
 
 
