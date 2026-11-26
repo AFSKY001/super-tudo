@@ -361,7 +361,19 @@ function personSection(p){
 }
 function assign(pid){const mid=$('rt-assign-'+pid)?.value;if(!mid)return root.stAlert('Escolha um modelo.');if(db().assignments.some(a=>a.modelId===mid&&String(a.executorId)===pid&&Core.activeOn(a,day())))return root.stAlert('Esse modelo já está atribuído.');db().assignments.push(touch({id:'rta-'+uid(),modelId:mid,executorId:pid,from:day(),until:null,active:true,source:'person-profile'}));const person=who(pid);if(person){person.perm=Array.isArray(person.perm)?person.perm:[];if(!person.perm.includes('r:rot'))person.perm=[...person.perm,'r:rot'];}save();R();}
 function extra(pid){V.rtExtraTarget=pid;V.rtDraft={id:'new',name:'Atividade extra - '+whoName(pid),description:'Atividade individual adicional.',activities:[defaults()]};V.sh='routine-editor';rMenu();}
-function endAssignment(id){const a=db().assignments.find(x=>x.id===id);if(!a)return;a.until=addDays(day(),-1);a.active=false;touch(a);save();R();}
+async function endAssignment(id){
+ const a=db().assignments.find(x=>x.id===id);if(!a||!a.active)return;
+ if(typeof root.stConfirm==='function'&&!await root.stConfirm('Remover este modelo do cadastro da pessoa? As atividades já concluídas e o histórico serão preservados.',{title:'Remover rotina'}))return;
+ const today=day(),me=V.me||V.cloudIdentity||{},actorId=me.id||me.team_member_id||'system',actorName=me.n||me.name||'Gestor';
+ a.until=addDays(today,-1);a.active=false;touch(a);
+ let changed=false;
+ for(const o of Object.values(db().occurrences)){
+  if(o.assignmentId!==a.id||o.date<today||o.status!=='pending')continue;
+  Object.assign(o,{status:'dismissed',dismissedAt:Date.now(),dismissedBy:actorId,dismissedByName:actorName,note:'Atribuição removida do cadastro do funcionário.',updatedAt:Date.now()});
+  changed=true;
+ }
+ save();R();
+}
 function currentPerson(){return who(V.me?.id||V.cloudIdentity?.team_member_id||'');}
 function visibleTeam(){const p=currentPerson();return p&&typeof teamOf==='function'?teamOf(p):[];}
 function canSee(id){if(typeof isFullAccess==='function'&&isFullAccess())return true;const p=currentPerson();return!!p&&(String(p.id)===String(id)||visibleTeam().some(x=>String(x.id)===String(id)));}
