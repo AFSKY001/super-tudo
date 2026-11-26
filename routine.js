@@ -102,7 +102,8 @@ function migrate(){
    const steps=checklistItems(checklist);
    if(!steps.length)return;
    const turns=Array.isArray(checklist.t)?checklist.t.map(String).filter(Boolean):[];
-   const signature=JSON.stringify([pid,name.toLowerCase(),steps,turns,!!checklist.ph]);
+   const photoRequired=checklist.ph===true||checklist.ph===1||['true','1','sim','required','obrigatoria'].includes(String(checklist.ph||'').trim().toLowerCase());
+   const signature=JSON.stringify([pid,name.toLowerCase(),steps,turns,photoRequired]);
    let hash=2166136261;
    for(let i=0;i<signature.length;i++)hash=Math.imul(hash^signature.charCodeAt(i),16777619)>>>0;
    const suffix=hash.toString(36),modelId='legacy-assigned-checklist-'+pid+'-'+suffix;
@@ -114,7 +115,7 @@ function migrate(){
      title:name+(turn?' — '+turn:''),description:'Checklist atribuído no cadastro do funcionário.',
      steps:[...steps],checklistSnapshot:[...steps],turns:turn?[turn]:[],
      source:{type:'legacy-assigned-checklist',checklistId:String(ckid)},
-     functionId:'',photo:checklist.ph?'required':'none',mandatory:true,
+     functionId:'',photo:photoRequired?'required':'none',mandatory:true,
      recurrence:{type:'daily'},time:'08:00',updatedAt:Date.now()
     }));
     model=touch({id:modelId,name,description:'Migrado automaticamente do checklist atribuído ao funcionário.',legacyId:String(ckid),legacyChecklistIds:[String(ckid)],legacySignature:suffix,activities,createdAt:Date.now()});
