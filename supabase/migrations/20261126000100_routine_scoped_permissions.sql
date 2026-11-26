@@ -12,7 +12,7 @@ with target as (
   from public.app_records r
   where r.org_id = p_org_id
     and r.record_id = p_record_id
-    and r.module = 'routineOccurrences'
+    and r.module in ('routineModels','routineAssignments','routineOccurrences')
     and r.deleted_at is null
 ),
 executors as (
