@@ -192,3 +192,19 @@ assert.ok(!indexSource.includes('pExtra(_0x34c024)+ptHTML(_0x34c024)'),'O cadast
 assert.match(routineSource,/await root\.stPersistRoutineAssignment\(a\)/,'Remover uma atribuição deve aguardar a confirmação da sincronização antes de informar sucesso.');
 assert.match(indexSource,/window\.stPersistRoutineAssignment=async function\(assignment\)[\s\S]{0,1800}await syncFlush\(\)[\s\S]{0,500}syncMeta\.queue\.some/,'A remoção deve aguardar o envio e verificar se a operação saiu da fila.');
 assert.match(routineSource,/function list\(ids\)[\s\S]{0,700}Core\.activeOn\(assignment,day\(\)\)/,'A tela do funcionário não deve exibir ocorrências pendentes de uma atribuição encerrada.');
+
+
+const performanceBreakdown=Core.performance([
+ {date:'2026-11-24',status:'done',snapshot:{mandatory:true,time:'08:00'}},
+ {date:'2026-11-25',status:'pending',snapshot:{mandatory:true,time:'08:00'}},
+ {date:'2026-11-26',status:'pending',snapshot:{mandatory:true,time:'08:00'}},
+ {date:'2026-11-27',status:'pending',snapshot:{mandatory:true,time:'08:00'}},
+ {date:'2026-11-25',status:'dismissed',snapshot:{mandatory:true,time:'08:00'}},
+ {date:'2026-11-24',status:'done',snapshot:{mandatory:false,time:'08:00'}}
+],new Date(2026,10,26,12,0));
+assert.deepEqual(performanceBreakdown,{done:1,overdue:2,pending:1,dismissed:1,total:4,scheduled:5,pct:25},'O desempenho deve separar concluídas, atrasadas, pendentes e dispensadas; dispensadas ficam fora do denominador e atividades opcionais não entram.');
+assert.deepEqual(Core.performance([{status:'dismissed',date:'2026-11-25',snapshot:{mandatory:true}}],new Date(2026,10,26,12,0)),{done:0,overdue:0,pending:0,dismissed:1,total:0,scheduled:1,pct:null},'Quando todas as atividades forem dispensadas, o percentual deve ser indisponível.');
+assert.match(routineSource,/const performance=\s*\(items,now=new Date\(\)\)=>/,'O núcleo deve centralizar a classificação do desempenho.');
+assert.match(routineSource,/const all=Core\.performance\(rows\)/,'O painel de desempenho deve usar o resumo padronizado.');
+assert.doesNotMatch(routineSource,/o\.status!=='dismissed'&&o\.snapshot\?\.mandatory!==false/,'O histórico não deve filtrar dispensadas antes de calcular seus indicadores.');
+assert.match(routineSource,/all\.overdue[\s\S]{0,200}all\.dismissed/,'O resumo deve exibir atrasadas e dispensadas.');
