@@ -33,6 +33,10 @@ assert.match(routineSource,/const supervisor=id=>\(S\.team\|\|\[\]\)\.find\(p=>\
 assert.match(routineSource,/function personSection\(p\)[\s\S]{0,1500}Responsável definido em Dados/,'O cadastro de Rotinas deve apenas informar o líder definido em Dados, sem permitir escolher outro.');
 assert.doesNotMatch(routineSource,/rt-leader-|Encarregado<select|verifierId/,'Rotinas não deve manter um segundo campo de encarregado/verificador.');
 assert.match(routineSource,/function canSee\(id\)\{[^}]*visibleTeam\(\)/,'A liderança deve acessar as rotinas dos subordinados pela equipe cadastrada em Dados.');
+assert.match(routineSource,/function canMark\(o\)\{[\s\S]{0,700}roles\.some\(role=>role==='master'\|\|role==='admin'\)[\s\S]{0,350}permissions\.includes\('r:rot'\)/,'Somente usuários com r:rot e sem perfil Master/admin podem marcar ocorrências.');
+assert.match(routineSource,/function card\(o\)[\s\S]{0,180}allowed=canMark\(o\)/,'A interface deve ocultar ações de marcar/dispensar para perfis sem autorização.');
+assert.match(routineSource,/async function dismiss\(id\)[\s\S]{0,140}!canMark\(o\)/,'A dispensa também deve validar autorização antes de alterar a ocorrência.');
+assert.match(routineSource,/async function complete\(id\)[\s\S]{0,140}!canMark\(o\)/,'A conclusão deve validar autorização antes de salvar foto ou alterar a ocorrência.');
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,500}teamIds=master\?[\s\S]{0,160}:visibleTeam\(\)\.map/,'A aba Equipe da Rotina deve listar os subordinados da liderança cadastrada em Dados.');
 
 
