@@ -5,6 +5,7 @@ import { parse } from 'acorn';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const routineSource = fs.readFileSync(path.join(root, 'routine.js'), 'utf8');
 
 const syncPushMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261118164535_restrict_team_member_management_to_owner.sql'),
@@ -20,6 +21,10 @@ const teamReadMigration = fs.readFileSync(
 );
 const syncConcurrencyMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261123165349_serialize_sync_push_per_org.sql'),
+  'utf8',
+);
+const routinePermissionMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126000100_routine_scoped_permissions.sql'),
   'utf8',
 );
 
@@ -50,7 +55,7 @@ const checks = [
   ['diálogo de sincronização fica acima das camadas globais', /zIndex:'2147483001'/],
   ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
   ['modelos e atribuições de Rotina entram na sincronização multiempresa', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
-  ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:cro'/],
+  ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:rot'/],
   ['cliente aplica modelos, atribuições e ocorrências recebidos da nuvem', /'routineModels'!==_0x3419a0&&'routineAssignments'!==_0x3419a0[\s\S]{0,1100}'routineOccurrences'===_0x3419a0/],
   ['cliente reconhece o fluxo restrito de encarregado em cfg:team', /'encarregado'===_0xrole&&_0x3c2060\['includes'\]\('r:eqp'\)/],
 
@@ -161,6 +166,74 @@ if (failedPermissions.length) {
   process.exitCode = 1;
 }
 
+const routinePermissionChecks = [
+  ['leitura da Rotina limita executor/liderança', /can_read_routine_record[\s\S]*?team_lead_members[\s\S]*?has_perm_for_org\('r:eqp'/i],
+  ['gravação valida atribuição, atividade e identidade determinística', /can_write_routine_record[\s\S]*?routineAssignments[\s\S]*?routineModels[\s\S]*?p_record_id = concat/i],
+  ['trigger protege gravações feitas por RPC SECURITY DEFINER', /guard_routine_app_record_write[\s\S]*?before insert or update on public\.app_records/i],
+  ['leitura por tipo não chama a si própria', /create or replace function public\.can_read_kind_for_org[\s\S]*?else public\.has_perm_for_org\(k,p_org_id\)/i],
+  ['tipo r:rot exige permissão específica', /when k='r:rot' then public\.has_perm_for_org\('r:rot',p_org_id\)/i],
+  ['funções auxiliares não são RPC públicas', /revoke all on function public\.can_read_routine_record[\s\S]*?from public, anon, authenticated[\s\S]*?revoke all on function public\.can_write_routine_record[\s\S]*?from public, anon, authenticated[\s\S]*?revoke all on function public\.guard_routine_app_record_write[\s\S]*?from public, anon, authenticated/i],
+];
+const routineMigrationChecks = [
+  ['migração de checklists atribuídos roda mesmo após routine-v1', routineSource.indexOf('routine-assigned-checklists-v2') >= 0 && routineSource.indexOf('routine-assigned-checklists-v2') < routineSource.indexOf("S.migrations.includes('routine-v1')")],
+  ['migração de checklists é reexecutável após a hidratação da nuvem', routineSource.indexOf('Object.entries(CK||{})', routineSource.indexOf('routine-assigned-checklists-v2')) < routineSource.indexOf("if(S.migrations.includes('routine-v1'))return") && source.includes("window.dispatchEvent(new Event('st:cloud-sync-ready'))")],
+  ['checklists legados leem itens separados por pipe', /typeof c\?\.i==='string'\?c\.i\.split\('\|'\)/.test(routineSource)],
+  ['checklists duplicados usam assinatura estável', /legacySignature:suffix/.test(routineSource)],
+  ['pessoa com rotina recebe permissão de menu r:rot', /grantRoutinePermission\(pid\)/.test(routineSource)],
+  ['atribuição manual também habilita o menu de Rotina', /function assign\(pid\)[\s\S]*?person\.perm\.includes\('r:rot'\)/.test(routineSource)],
+];
+const performanceFormatChecks = [
+  ['pontuação de checklist aceita campo i legado', /const _0xitems=Array\.isArray\(_0x494c5c\?\.l\)&&_0x494c5c\.l\.length\?_0x494c5c\.l:String\(_0x494c5c\?\.i\|\|''\)\.split\('\|'\)/.test(source)],
+  ['percentual de conclusão conta itens do campo i', /String\(model\.i \|\| ''\)\.split\('\|'\)/.test(source)],
+  ['análise de falhas por setor aceita checklist legado', /_0xlegacyChecklistItems=Array\.isArray\(_0x4390cf\['l'\]\)&&_0x4390cf\['l'\]\.length\?_0x4390cf\['l'\]:String\(_0x4390cf\['i'\]\|\|''\)\.split\('\|'\)/.test(source)],
+  ['conclusão do checklist é atribuída apenas ao responsável', /if \(assignedToPerson\) \{\s*total\+\+/.test(source)],
+  ['qualidade do checklist é atribuída separadamente ao avaliado', /if \(evaluatedPerson && typeof sc === 'function'\)/.test(source)],
+  ['flag de foto false é normalizada ao carregar checklist da nuvem', /function normalizeCkPhoto\([\s\S]*?String\(raw\)\.trim\(\)\.toLowerCase\(\)/.test(source)],
+  ['checklist legado false não exige foto na pontuação', /photoFlag === true \|\| photoFlag === 1 \|\| \['true','1','sim','required','obrigatoria'\]/.test(source)],
+];
+const performanceIndexChecks = [
+  ['qualidade dos checklists é apresentada separadamente', /function perfExtraMetricsHTML[\s\S]*?Qualidade dos checklists[\s\S]*?Rotinas atribuídas/i.test(source)],
+  ['ocorrências obrigatórias da Rotina são medidas por executor e data', /function perfRoutineStats[\s\S]*?occurrence\.executorId[\s\S]*?occurrence\.date[\s\S]*?occurrence\.status !== 'dismissed'/i.test(source)],
+  ['painel Desempenho apresenta métricas adicionais sem alterar perfIndex', /perfActivityHTML\([^;]+perfExtraMetricsHTML\(/.test(source) && /function perfIndex\([^}]+\}/.test(source)],
+  ['índice síntese informa dimensões e escala de avaliação', /média simples das dimensões disponíveis: cronogramas, checklists completos e avaliações/.test(source)],
+];
+const failedPerformanceIndex = [];
+for (const [label, passed] of performanceIndexChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedPerformanceIndex.push(label);
+}
+if (failedPerformanceIndex.length) {
+  console.error('Falhas na apresentação do Desempenho: ' + failedPerformanceIndex.join('; '));
+  process.exitCode = 1;
+}
+const failedPerformanceFormats = [];
+for (const [label, passed] of performanceFormatChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedPerformanceFormats.push(label);
+}
+if (failedPerformanceFormats.length) {
+  console.error('Falhas na normalização dos checklists no Desempenho: ' + failedPerformanceFormats.join('; '));
+  process.exitCode = 1;
+}
+const failedRoutineMigration = [];
+for (const [label, passed] of routineMigrationChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedRoutineMigration.push(label);
+}
+if (failedRoutineMigration.length) {
+  console.error('Falhas na migração de checklists atribuídos: ' + failedRoutineMigration.join('; '));
+  process.exitCode = 1;
+}
+const failedRoutinePermissions = [];
+for (const [label, pattern] of routinePermissionChecks) {
+  const passed = pattern.test(routinePermissionMigration);
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedRoutinePermissions.push(label);
+}
+if (failedRoutinePermissions.length) {
+  console.error('Falhas nas permissões específicas da Rotina: ' + failedRoutinePermissions.join('; '));
+  process.exitCode = 1;
+}
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
 for (let index = 0; index < inlineScripts.length; index++) {

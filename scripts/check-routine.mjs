@@ -7,8 +7,14 @@ import Core from '../routine.js';
 const rootDir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const routineSource=fs.readFileSync(path.join(rootDir,'routine.js'),'utf8');
 const indexSource=fs.readFileSync(path.join(rootDir,'index.html'),'utf8');
-assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,220}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Conversão de cronogramas em checklists precisa rodar mesmo quando a migração de Rotina já existe.');
+assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,2600}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
+assert.match(routineSource,/const checklistItems=c=>\{const raw=Array\.isArray\(c\?\.l\)&&c\.l\.length\?c\.l:[\s\S]{0,140}c\.i\.split\('\|'\)/,'Itens legados em formato pipe precisam ser lidos para gerar as atividades.');
+assert.match(routineSource,/function assign\(pid\)[\s\S]{0,700}person\.perm\.includes\('r:rot'\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
+assert.match(routineSource,/const photoRequired=checklist\.ph===true\|\|checklist\.ph===1\|\|\['true','1','sim','required','obrigatoria'\]/,'O texto false no campo legado de foto não pode virar foto obrigatória.');
 assert.match(routineSource,/function modelPage\(\)[\s\S]{0,700}V\.rotChecklistHub=true;R\(\)[\s\S]{0,100}Modelos de checklist/,'A tela de modelos precisa manter o acesso aos modelos de checklist.');
+assert.match(indexSource,/migrateCronogramaModelsToChecklists\(\),window\.__ST_CLOUD_SYNC_READY__=true,window\.dispatchEvent\(new Event\('st:cloud-sync-ready'\)\)/,'A Rotina deve repetir a migração depois que os dados da nuvem forem carregados.');
+assert.match(indexSource,/window\.__ST_CLOUD_SYNC_READY__=true,window\.dispatchEvent\(new Event\('st:cloud-sync-ready'\)\)/,'A conclusão da sincronização deve ficar registrada para scripts carregados depois.');
+assert.match(routineSource,/if\(root\.__ST_CLOUD_SYNC_READY__\)\{migrate\(\);generateDay\(\);syncFunctions\(\);if\(typeof R==='function'\)R\(\);\}/,'A migração deve executar mesmo se a hidratação terminar antes de routine.js carregar.');
 assert.match(indexSource,/get rRotChecklistHub\(\)\{return rRotChecklistHub\},get migrateCronogramaModelsToChecklists\(\)\{return migrateCronogramaModelsToChecklists\}/,'O bridge deve expor a migração e a tela de modelos de checklist.');
 assert.match(indexSource,/function rRotChecklistHub\(\)\{if\(V\.ce\)return rCe\(\);return/,'Ao editar um modelo, a tela de modelos deve encaminhar para o editor selecionado em vez de reapresentar a lista.');
 console.log('PASS - integração da conversão de cronogramas com a tela de modelos de checklist.');
@@ -29,6 +35,7 @@ assert.match(routineSource,/function personSection\(p\)[\s\S]{0,1500}Responsáve
 assert.doesNotMatch(routineSource,/rt-leader-|Encarregado<select|verifierId/,'Rotinas não deve manter um segundo campo de encarregado/verificador.');
 assert.match(routineSource,/function canSee\(id\)\{[^}]*visibleTeam\(\)/,'A liderança deve acessar as rotinas dos subordinados pela equipe cadastrada em Dados.');
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,500}teamIds=master\?[\s\S]{0,160}:visibleTeam\(\)\.map/,'A aba Equipe da Rotina deve listar os subordinados da liderança cadastrada em Dados.');
+assert.match(routineSource,/teamIds=master\?\(S\.team\|\|\[\]\)\.filter\(x=>!x\.adm&&\/encarregado\/i\.test\(String\(x\.f\|\|''\)\)\)/,'O painel do Master deve acompanhar somente os encarregados, sem incluir os demais funcionários.');
 
 
 
