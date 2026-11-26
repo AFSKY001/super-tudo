@@ -146,13 +146,13 @@ set search_path = ''
 as $$
 begin
   if new.module in ('routineModels','routineAssignments') then
-    if new.kind <> 'r:cro'
+    if new.kind is distinct from 'r:cro'
        or not public.can_write_routine_record(new.module, new.record_id, new.data, new.org_id) then
       raise exception 'permissão insuficiente para administrar modelos/atribuições de Rotina'
         using errcode = '42501';
     end if;
   elsif new.module = 'routineOccurrences' then
-    if new.kind <> 'r:rot'
+    if new.kind is distinct from 'r:rot'
        or not public.can_write_routine_record(new.module, new.record_id, new.data, new.org_id) then
       raise exception 'permissão insuficiente para marcar esta ocorrência de Rotina'
         using errcode = '42501';
