@@ -3180,6 +3180,13 @@ async function syncBlockedQueueUI(){
         const local=syncRows(S).get(op.key);
         const serverData={...(server?.data||{}),id:String(op.record_id)};
         const isLegacyAssignedChecklist=op.module==='routineModels'&&op.deleted&&op.status==='forbidden'&&String(op.record_id).startsWith('legacy-assigned-checklist-');
+        const serverConfirmsAuthorizedDeletion=isLegacyAssignedChecklist&&server?.deleted_at&&Number(server.revision)>Number(op.base_revision||0);
+        if(serverConfirmsAuthorizedDeletion){
+          syncMeta.queue=syncMeta.queue.filter(item=>item!==op);
+          syncMeta.revisions[op.key]=Number(server.revision);
+          delete syncMeta.conflicts[op.key];
+          continue;
+        }
         const serverConfirmsAssignedChecklist=isLegacyAssignedChecklist&&server&&!server.deleted_at&&server.kind==='r:cro'&&Array.isArray(server.data?.legacyChecklistIds)&&server.data.legacyChecklistIds.length>0&&Array.isArray(server.data?.activities)&&server.data.activities.some(activity=>activity?.source?.type==='legacy-assigned-checklist-item');
         if(serverConfirmsAssignedChecklist&&!local){
           syncApplying=true;
