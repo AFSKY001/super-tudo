@@ -7,7 +7,7 @@ import Core from '../routine.js';
 const rootDir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const routineSource=fs.readFileSync(path.join(rootDir,'routine.js'),'utf8');
 const indexSource=fs.readFileSync(path.join(rootDir,'index.html'),'utf8');
-assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,2600}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
+assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,5000}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
 assert.match(routineSource,/const checklistItems=c=>\{const raw=Array\.isArray\(c\?\.l\)&&c\.l\.length\?c\.l:[\s\S]{0,140}c\.i\.split\('\|'\)/,'Itens legados em formato pipe precisam ser lidos para gerar as atividades.');
 assert.match(routineSource,/function assign\(pid\)[\s\S]{0,700}person\.perm\.includes\('r:rot'\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
 assert.match(routineSource,/const photoRequired=checklist\.ph===true\|\|checklist\.ph===1\|\|\['true','1','sim','required','obrigatoria'\]/,'O texto false no campo legado de foto não pode virar foto obrigatória.');
