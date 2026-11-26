@@ -7,7 +7,7 @@ import Core from '../routine.js';
 const rootDir=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const routineSource=fs.readFileSync(path.join(rootDir,'routine.js'),'utf8');
 const indexSource=fs.readFileSync(path.join(rootDir,'index.html'),'utf8');
-assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,2600}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
+assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,5000}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
 assert.match(routineSource,/const checklistItems=c=>\{const raw=Array\.isArray\(c\?\.l\)&&c\.l\.length\?c\.l:[\s\S]{0,140}c\.i\.split\('\|'\)/,'Itens legados em formato pipe precisam ser lidos para gerar as atividades.');
 assert.match(routineSource,/function assign\(pid\)[\s\S]{0,700}person\.perm\.includes\('r:rot'\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
 assert.match(routineSource,/const photoRequired=checklist\.ph===true\|\|checklist\.ph===1\|\|\['true','1','sim','required','obrigatoria'\]/,'O texto false no campo legado de foto não pode virar foto obrigatória.');
@@ -38,6 +38,26 @@ assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,500}teamIds=master\
 assert.match(routineSource,/teamIds=master\?\(S\.team\|\|\[\]\)\.filter\(x=>!x\.adm&&\/encarregado\/i\.test\(String\(x\.f\|\|''\)\)\)/,'O painel do Master deve acompanhar somente os encarregados, sem incluir os demais funcionários.');
 
 
+
+const expanded=Core.expandChecklistItems({
+ idPrefix:'legacy-checklist-test',title:'Abertura da loja',description:'Checklist atribuído no cadastro.',
+ steps:['Conferir validade','Organizar gôndola','Verificar etiquetas'],
+ turns:['Abertura','Fechamento'],photo:'required',mandatory:true,
+ recurrence:{type:'daily'},time:'08:00',source:{checklistId:'ck-test'}
+});
+assert.ok(routineSource.indexOf('const expandChecklistItems=')<routineSource.indexOf('const Core={'),'O expansor precisa ser inicializado antes de ser exportado pelo núcleo.');
+assert.equal(expanded.length,6,'Cada item do checklist deve virar uma atividade separada em cada turno.');
+assert.deepEqual(expanded.map(item=>item.title),[
+ 'Conferir validade','Organizar gôndola','Verificar etiquetas',
+ 'Conferir validade','Organizar gôndola','Verificar etiquetas'
+]);
+assert.ok(expanded.every(item=>item.steps.length===0),'A atividade individual não deve renderizar o checklist inteiro como lista interna.');
+assert.ok(expanded.every(item=>item.checklistSnapshot.length===1),'Cada atividade deve preservar somente seu próprio item no snapshot.');
+assert.equal(new Set(expanded.map(item=>item.id)).size,6,'Cada item/turno precisa de ID determinístico e exclusivo.');
+assert.ok(expanded.every(item=>item.photo==='required'&&item.mandatory),'Cada item deve preservar as regras de foto e obrigatoriedade do checklist.');
+assert.match(routineSource,/legacyActivities\.flatMap\(activity=>expandChecklistItems/,'Modelos já migrados precisam ser convertidos para atividades individuais.');
+assert.match(routineSource,/occurrence\.status==='pending'&&String\(occurrence\.date\)>=day\(\)\)delete D\.occurrences/,'Somente ocorrências pendentes atuais/futuras do cartão antigo devem ser regeneradas.');
+assert.match(routineSource,/source:\{\.\.\.source,type:'legacy-assigned-checklist-item'\}/,'As novas atividades devem ser identificadas para a migração não se repetir.');
 
 const assignment={id:'assign-1',modelId:'model-1',executorId:'person-1',verifierId:'leader-1',from:'2026-11-22',active:true};
 const activity={id:'activity-1',title:'Conferir setor',mandatory:true,photo:'required',time:'08:15',recurrence:{type:'weekly',days:[1,2,3,4,5]}};

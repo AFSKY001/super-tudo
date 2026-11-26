@@ -46,7 +46,20 @@ const recipeValidate=value=>{
 };
 const recipeIngredient=()=>({nome:'',unidade:'',peso:''});
 
-const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,generate,legacyWeekdays};
+const expandChecklistItems=({idPrefix,title,description='',steps=[],turns=[],photo='none',mandatory=true,recurrence={type:'daily'},time='08:00',source={}}={})=>{
+ const items=(Array.isArray(steps)?steps:[]).map(String).filter(step=>step.trim()&&step.trim()[0]!=='#');
+ const shifts=Array.isArray(turns)&&turns.length?turns.map(String):[''];
+ return shifts.flatMap((turn,turnIndex)=>items.map((step,index)=>({
+  id:String(idPrefix)+(turn?'|turn|'+turnIndex:'')+'|item|'+index,
+  title:step,
+  description:[String(description||('Checklist: '+String(title||''))),turn?'Turno: '+turn:''].filter(Boolean).join(' · '),
+  steps:[],checklistSnapshot:[step],turns:turn?[turn]:[],
+  source:{...source,type:'legacy-assigned-checklist-item'},
+  functionId:'',photo,mandatory,
+  recurrence:JSON.parse(JSON.stringify(recurrence)),time,updatedAt:Date.now()
+ })));
+};
+const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,generate,legacyWeekdays,expandChecklistItems};
 Core.recipes={normalize:recipeNormalize,validate:recipeValidate,ingredient:recipeIngredient};
 root.SuperTudoRoutineCore=Core;if(typeof module!=='undefined'&&module.exports)module.exports=Core;
 const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
@@ -107,24 +120,38 @@ function migrate(){
    let hash=2166136261;
    for(let i=0;i<signature.length;i++)hash=Math.imul(hash^signature.charCodeAt(i),16777619)>>>0;
    const suffix=hash.toString(36),modelId='legacy-assigned-checklist-'+pid+'-'+suffix;
+   const assignmentId='legacy-assigned-checklist-assignment-'+pid+'-'+suffix;
    let model=D.models.find(item=>String(item.id)===modelId);
    if(!model){
-    const activityBase='legacy-assigned-activity-'+suffix;
-    const activities=(turns.length?turns:['']).map((turn,index)=>touch({
-     id:activityBase+(turn?'|turn|'+index:''),
-     title:name+(turn?' — '+turn:''),description:'Checklist atribuído no cadastro do funcionário.',
-     steps:[...steps],checklistSnapshot:[...steps],turns:turn?[turn]:[],
-     source:{type:'legacy-assigned-checklist',checklistId:String(ckid)},
-     functionId:'',photo:photoRequired?'required':'none',mandatory:true,
-     recurrence:{type:'daily'},time:'08:00',updatedAt:Date.now()
-    }));
+    const activities=expandChecklistItems({
+     idPrefix:'legacy-assigned-activity-'+suffix,title:name,
+     description:'Checklist atribuído no cadastro do funcionário.',
+     steps,turns,photo:photoRequired?'required':'none',mandatory:true,
+     recurrence:{type:'daily'},time:'08:00',
+     source:{checklistId:String(ckid)}
+    });
     model=touch({id:modelId,name,description:'Migrado automaticamente do checklist atribuído ao funcionário.',legacyId:String(ckid),legacyChecklistIds:[String(ckid)],legacySignature:suffix,activities,createdAt:Date.now()});
     D.models.push(model);added=true;
    }else{
     const oldIds=Array.isArray(model.legacyChecklistIds)?model.legacyChecklistIds:[];
     if(!oldIds.includes(String(ckid))){model.legacyChecklistIds=[...oldIds,String(ckid)];added=true;}
+    const legacyActivities=(model.activities||[]).filter(activity=>activity?.source?.type==='legacy-assigned-checklist'&&Array.isArray(activity.steps)&&activity.steps.length);
+    if(legacyActivities.length){
+     const oldActivityIds=new Set(legacyActivities.map(activity=>String(activity.id)));
+     const migrated=legacyActivities.flatMap(activity=>expandChecklistItems({
+      idPrefix:String(activity.id),title:name,description:activity.description||('Checklist: '+name),
+      steps:activity.steps,turns:activity.turns||turns,photo:activity.photo|| (photoRequired?'required':'none'),
+      mandatory:activity.mandatory!==false,recurrence:activity.recurrence||{type:'daily'},
+      time:activity.time||'08:00',
+      source:{checklistId:String(ckid),originalActivityId:String(activity.id)}
+     }));
+     model.activities=(model.activities||[]).filter(activity=>!oldActivityIds.has(String(activity.id))).concat(migrated);
+     for(const [occurrenceId,occurrence] of Object.entries(D.occurrences)){
+      if(oldActivityIds.has(String(occurrence.activityId))&&String(occurrence.assignmentId)===assignmentId&&occurrence.status==='pending'&&String(occurrence.date)>=day())delete D.occurrences[occurrenceId];
+     }
+     touch(model);added=true;
+    }
    }
-   const assignmentId='legacy-assigned-checklist-assignment-'+pid+'-'+suffix;
    if(!assignmentIds.has(assignmentId)){
     D.assignments.push(touch({id:assignmentId,modelId,executorId:pid,from:day(),until:null,active:true,source:'legacy-assigned-checklist'}));
     assignmentIds.add(assignmentId);added=true;
