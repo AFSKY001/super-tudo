@@ -3178,7 +3178,7 @@ async async function syncBlockedQueueUI(){
   if(!blocked.length){syncStatusUpdate();return;}
   const summary=blocked.slice(0,8).map(op=>op.module+' · '+op.record_id+' ('+op.status+')').join('; ');
   const extra=blocked.length>8?' e mais '+(blocked.length-8)+' registro(s)':'';
-  const message='A nuvem recusou '+blocked.length+' envio(s). Eles continuam preservados neste aparelho e não serão apagados automaticamente. '+summary+extra+'. Para modelos e atribuições de Rotina, somente Master/Gerência pode salvar alterações. As marcações individuais são sincronizadas separadamente. Verifique os registros com a gerência antes de tentar novamente.';
+  const message='A nuvem recusou '+blocked.length+' envio(s). Eles continuam preservados neste aparelho e não serão apagados automaticamente. '+summary+extra+'. Para modelos e atribuições de Rotina, somente Master/Gerência pode salvar alterações. As marcações individuais são sincronizadas separadamente. Registros recusados não serão reenviados automaticamente. Verifique os registros com a gerência antes de tentar novamente.';
   await syncConflictDialog('',null,message);
 }
 async function syncWaitForIdle(timeout=15000){
