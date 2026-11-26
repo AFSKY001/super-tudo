@@ -4,7 +4,7 @@ const checks = [
   ['ocorrências de Rotina não permitem escrita por Master/admin', /when p_module = 'routineOccurrences'[\s\S]{0,1200}me\.role <> 'admin'[\s\S]{0,180}public\.has_perm_for_org\('r:rot'/],
   ['marcações legadas de Cronograma com duas partes preservam r:cro', /cardinality\(string_to_array\(new\.record_id, '\|'\)\) < 3[\s\S]{0,280}new\.kind is distinct from 'r:cro'/],
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
-  ['cliente bloqueia Master/admin de enfileirar gravações pessoais da Rotina', /if\\('r:rot'===_0x482dec\\)return!\\['master','admin'\\]\\.includes\\(_0xrole\\)&&_0x3c2060\\['includes'\\]\\('r:rot'\\)/],
+  ['cliente bloqueia Master/admin de enfileirar gravações pessoais da Rotina', /if\('r:rot'===_0x482dec\)return!\['master','admin'\]\.includes\(_0xrole\)&&_0x3c2060\['includes'\]\('r:rot'\)/],
   ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\[\['tmod',S\.tmod\],\['routineModels',S\.routineModels\]\][\s\S]{0,500}targets\.has/],
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só é removido depois de checklist com itens e salvamento confirmado', /if\(!converted\)return false;[\s\S]*?S\[module\]=S\[module\]\.filter[\s\S]*?if\(!save\(\)\)/],
