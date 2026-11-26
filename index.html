@@ -3189,7 +3189,7 @@ async function syncResolveConflictsUI(){
 async function syncBlockedQueueUI(){
   const locallyBlocked=(syncMeta.queue||[]).filter(op=>op.status==='blocked-local');
   let blocked=(syncMeta.queue||[]).filter(op=>op.status&&op.status!=='conflict'&&op.status!=='blocked-local');
-  if(!blocked.length)return;
+  if(!blocked.length&&!locallyBlocked.length)return;
   const readOnly=blocked.filter(op=>['routineModels','routineAssignments'].includes(op.module));
   if(readOnly.length&&V.cloudIdentity&&typeof navigator!=='undefined'&&navigator.onLine){
     try{
