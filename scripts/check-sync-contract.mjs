@@ -189,7 +189,7 @@ const legacyRoutineSqlChecks = [
   ['migration mantém validação legada de assinatura, snapshot, ID e turnos', ['legacySignature', 'checklistSnapshot', 'legacy-assigned-activity-', 'jsonb_array_length'], personalRoutineWriteScopeMigration],
   ['rollback restaura a validação legada anterior à restrição de papéis', ['legacySignature', 'checklistSnapshot', 'legacy-assigned-activity-', 'jsonb_array_length'], personalRoutineWriteScopeRollback],
   ['migration preserva a restrição Master/admin sem remover compatibilidade legada', ["me.role <> 'admin'", "public.has_perm_for_org('r:rot'"], personalRoutineWriteScopeMigration],
-  ['migration preserva a dispensa automática restrita de ocorrências ao encerrar atribuição', /elsif new\\.module = 'routineOccurrences'[\\s\\S]*?pg_trigger_depth\\(\\) > 1[\\s\\S]*?old\\.module = 'routineOccurrences'[\\s\\S]*?= 'pending'[\\s\\S]*?= 'dismissed'[\\s\\S]*?a\\.module = 'routineAssignments'[\\s\\S]*?= 'false'[\\s\\S]*?return new;/, personalRoutineWriteScopeMigration],
+  ['migration preserva a dispensa automática restrita de ocorrências ao encerrar atribuição', /elsif new\.module = 'routineOccurrences'[\s\S]*?pg_trigger_depth\(\) > 1[\s\S]*?old\.module = 'routineOccurrences'[\s\S]*?= 'pending'[\s\S]*?= 'dismissed'[\s\S]*?a\.module = 'routineAssignments'[\s\S]*?= 'false'[\s\S]*?return new;/, personalRoutineWriteScopeMigration],
 ];
 for (const [label, required, target] of legacyRoutineSqlChecks) {
   const passed = required.every(value => target.includes(value));
