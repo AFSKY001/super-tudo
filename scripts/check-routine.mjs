@@ -206,5 +206,6 @@ assert.deepEqual(performanceBreakdown,{done:1,overdue:2,pending:1,dismissed:1,to
 assert.deepEqual(Core.performance([{status:'dismissed',date:'2026-11-25',snapshot:{mandatory:true}}],new Date(2026,10,26,12,0)),{done:0,overdue:0,pending:0,dismissed:1,total:0,scheduled:1,pct:null},'Quando todas as atividades forem dispensadas, o percentual deve ser indisponível.');
 assert.match(routineSource,/const performance=\s*\(items,now=new Date\(\)\)=>/,'O núcleo deve centralizar a classificação do desempenho.');
 assert.match(routineSource,/const all=Core\.performance\(rows\)/,'O painel de desempenho deve usar o resumo padronizado.');
-assert.doesNotMatch(routineSource,/o\.status!=='dismissed'&&o\.snapshot\?\.mandatory!==false/,'O histórico não deve filtrar dispensadas antes de calcular seus indicadores.');
+const historySource=routineSource.slice(routineSource.indexOf('function historyScreen()'),routineSource.indexOf('function todayScreen()'));
+assert.doesNotMatch(historySource,/o\.status!=='dismissed'/,'O histórico não deve filtrar dispensadas antes de calcular seus indicadores.');
 assert.match(routineSource,/all\.overdue[\s\S]{0,200}all\.dismissed/,'O resumo deve exibir atrasadas e dispensadas.');
