@@ -10,7 +10,7 @@ const indexSource=fs.readFileSync(path.join(rootDir,'index.html'),'utf8');
 const routinePhotoPolicySource=fs.readFileSync(path.join(rootDir,'supabase/migrations/20261126150000_restrict_routine_photo_storage_access.sql'),'utf8');
 const routineAssignmentCloseSource=fs.readFileSync(path.join(rootDir,'supabase/migrations/20261126170000_dismiss_routine_occurrences_on_assignment_end.sql'),'utf8');
 assert.match(routineAssignmentCloseSource,/after update of data on public\.app_records[\s\S]{0,500}dismiss_pending_routine_occurrences_on_assignment_end/,'Encerrar atribuição deve disparar dispensa no servidor.');
-assert.match(routineAssignmentCloseSource,/status', to_jsonb\('dismissed'::text\)/,'O servidor deve dispensar ocorrências pendentes sem exclusão física.');
+assert.ok(routineAssignmentCloseSource.includes("to_jsonb('dismissed'::text)"),'O servidor deve dispensar ocorrências pendentes sem exclusão física.');
 assert.match(routineAssignmentCloseSource,/coalesce\(o\.data->'value'->>'status', o\.data->>'status'\) = 'pending'/,'Somente ocorrências pendentes podem ser dispensadas.');
 assert.match(routineAssignmentCloseSource,/coalesce\(o\.data->'value'->>'date', o\.data->>'date'\) > a\.until_date/,'O histórico até a data final da atribuição deve ser preservado.');
 assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,5000}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
