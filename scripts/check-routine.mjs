@@ -206,6 +206,14 @@ assert.match(indexSource,/window\.stPersistRoutineAssignment=async function\(ass
 assert.match(routineSource,/function list\(ids\)[\s\S]{0,700}Core\.activeOn\(assignment,day\(\)\)/,'A tela do funcionário não deve exibir ocorrências pendentes de uma atribuição encerrada.');
 
 
+
+assert.match(indexSource,/employeeRoutineModelSelect[\s\S]{0,1200}addEmployeeRoutineModel/,'O cadastro de pessoa deve permitir escolher um único modelo e adicioná-lo à lista.');
+assert.match(indexSource,/function addEmployeeRoutineModel\(\)[\s\S]{0,1800}function removeEmployeeRoutineModel/,'A seleção de modelos deve permitir adicionar e retirar itens sem recarregar o cadastro.');
+assert.match(indexSource,/function removeEmployeeRoutineModel[\s\S]{0,1300}input\.remove\(\)/,'Retirar um modelo da seleção deve remover também seu valor enviado ao salvamento.');
+assert.match(indexSource,/\['source'\].{0,20}'employee-profile-model'[\s\S]{0,500}archivedAt/,'Excluir uma atribuição criada pelo cadastro deve desmarcar o modelo e arquivar a atribuição, preservando histórico.');
+assert.match(indexSource,/selectedModels=new Set\(_0x40cc98\['ckModels'\]\)[\s\S]{0,700}row\['archivedAt'\]=today\(\)/,'Salvar o cadastro deve arquivar atribuições de modelos que foram retiradas da seleção.');
+assert.match(indexSource,/row\.mid===mid&&!row\.archivedAt[\s\S]{0,300}hadArchived[\s\S]{0,500}hadArchived\?'-'\+uid\(\)/,'Reatribuir um modelo arquivado deve criar uma nova atribuição sem sobrescrever o histórico anterior.');
+
 const performanceBreakdown=Core.performance([
  {date:'2026-11-24',status:'done',snapshot:{mandatory:true,time:'08:00'}},
  {date:'2026-11-25',status:'pending',snapshot:{mandatory:true,time:'08:00'}},
