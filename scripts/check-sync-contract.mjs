@@ -226,6 +226,28 @@ for (const [label, pattern, target] of personalRoutineClassificationChecks) {
   if (!passed) process.exitCode = 1;
 }
 
+const syncCanWriteMatch = source.match(/function syncCanWrite\\([^)]*\\)\\{[\\s\\S]*?\\}function syncQueueChanges\\(/);
+if (!syncCanWriteMatch) {
+  console.error('FAIL - função syncCanWrite disponível para teste');
+  process.exitCode = 1;
+} else {
+  const syncCanWriteSource = syncCanWriteMatch[0].slice(0, syncCanWriteMatch[0].lastIndexOf('function syncQueueChanges'));
+  const buildSyncCanWrite = new Function('V', '_0x2c2823', syncCanWriteSource + '; return syncCanWrite;');
+  const permissionCases = [
+    ['encarregado com r:rot não grava modelos r:cro', { role: 'encarregado', perm: ['r:rot'] }, 'r:cro', false],
+    ['encarregado com r:rot pode gravar ocorrências r:rot', { role: 'encarregado', perm: ['r:rot'] }, 'r:rot', true],
+    ['Master/admin não pode gravar ocorrências r:rot', { role: 'admin', perm: [] }, 'r:rot', false],
+    ['gerente pode gravar modelos r:cro', { role: 'gerente', perm: [] }, 'r:cro', true],
+  ];
+  for (const [label, identity, kind, expected] of permissionCases) {
+    const canWrite = buildSyncCanWrite({ cloudIdentity: identity }, {});
+    const passed = canWrite(kind) === expected;
+    console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+    if (!passed) process.exitCode = 1;
+  }
+}
+
+// Teste executável das permissões de escrita por tipo
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
 for (let index = 0; index < inlineScripts.length; index++) {
