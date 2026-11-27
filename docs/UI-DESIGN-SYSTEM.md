@@ -2,7 +2,7 @@
 
 **Status:** padrão de referência para todas as telas e atualizações futuras.  
 **Escopo:** aplicação inteira, não apenas Dashboard ou uma área específica.  
-**Base visual observada:** versão 3.73.79 da branch `main`.
+**Base visual observada:** versão 3.74.88 da branch `main`.
 
 Este documento formaliza a direção visual que já existe no aplicativo e estabelece como evoluí-la sem criar padrões paralelos. As regras de contribuição obrigatórias também estão em `/AGENTS.md`.
 
@@ -911,3 +911,17 @@ O Bottom Sheet usa um único controlador delegado no documento, com Pointer Even
 - O estado sincronizando permanece visível por no mínimo 700 ms e a troca para sucesso aguarda o fechamento do ciclo visual. Falhas de Realtime são refletidas como erro, sem remover o polling de segurança existente.
 - O botão permanece compacto em 32 × 32 px para preservar o cabeçalho; a ação atual de revisão de conflitos, consulta à nuvem e tentativa de envio é mantida. Não substituir essa ação por uma recarga genérica de tela.
 - Movimento reduzido remove giro, pop, onda e tremor, mantendo os três estados distinguíveis por ícone e cor.
+
+
+## 15. Contrato global de campos e foco
+
+Os campos de formulário devem reutilizar o bloco global de estilos em `index.html`, sem criar tokens paralelos ou regras isoladas por tela:
+
+- Campos de texto, seleção e área de texto usam altura mínima de 44px.
+- Fundo, texto e borda usam os papéis semânticos globais `--cd`, `--tx` e `--bd`.
+- O raio usa `--ui-radius-control`; o espaçamento interno e a tipografia permanecem uniformes.
+- O foco do teclado deve ser visível por contorno de 2px; o foco de edição usa borda primária e o halo `--ui-focus`.
+- Campos inválidos preservam `aria-invalid`, descrição acessível e mensagem de erro próxima ao controle.
+- Não copiar tokens de branches antigas, como `--borda-controle`, nem redefinir dimensões localmente.
+
+O teste `npm run check:ui` verifica a presença do contrato CSS e dos estados de foco e validação. A alteração desse padrão exige atualização dos testes e validação em tema claro/escuro, celular e desktop.

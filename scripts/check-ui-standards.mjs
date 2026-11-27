@@ -472,6 +472,31 @@ try {
 }
 
 
+// Contrato global dos campos: preservar o padrão existente sem depender de tokens de branches antigas.
+const fieldStyleStart = html.indexOf('/* Campos maiores, foco suave e leitura confortável */');
+const fieldStyleEnd = html.indexOf('/* Janelas, submenus e bottom sheets */', fieldStyleStart);
+const fieldStyle = fieldStyleStart >= 0 && fieldStyleEnd > fieldStyleStart ? html.slice(fieldStyleStart, fieldStyleEnd) : '';
+requireCheck(fieldStyle.includes('min-height:44px') &&
+  fieldStyle.includes('border:1px solid var(--bd)') &&
+  fieldStyle.includes('background:var(--cd)') &&
+  fieldStyle.includes('color:var(--tx)') &&
+  fieldStyle.includes('border-radius:var(--ui-radius-control)'),
+  'Text fields, selects and textareas must share the 44px global field contract and semantic theme tokens.');
+requireCheck(fieldStyle.includes('border-color:var(--pr)') && fieldStyle.includes('box-shadow:var(--ui-focus)'),
+  'Focused editable fields must use the global primary border and focus halo.');
+requireCheck(html.includes('button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{') &&
+  html.includes('outline:2px solid var(--vi)'),
+  'Keyboard focus must remain visible on buttons and form controls.');
+requireCheck(html.includes(':where(input,select,textarea)[aria-invalid="true"]{') &&
+  html.includes('.field-error{color:var(--no);font-weight:600}'),
+  'Invalid fields must retain the shared accessible error state.');
+requireCheck(!html.includes('--borda-controle'),
+  'Do not reintroduce the obsolete --borda-controle token from the historical branch.');
+requireCheck(rules.includes('## 15. Contrato global de campos e foco') &&
+  rules.includes('versão 3.74.88'),
+  'The design-system document must describe the current field contract and current app baseline.');
+
+
 for (const name of Object.keys(ceilings)) {
   requireCheck(
     legacyDialogs[name] <= ceilings[name],
