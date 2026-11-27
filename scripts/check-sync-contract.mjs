@@ -67,11 +67,11 @@ const routineOccurrenceHistoryRollback = fs.readFileSync(
 );
 
 const routineOccurrenceUndoMigration = fs.readFileSync(
-  path.join(root, 'supabase/migrations/20261127190000_allow_authorized_routine_undo.sql'),
+  path.join(root, 'supabase/migrations/20261127190842_allow_authorized_routine_undo.sql'),
   'utf8',
 );
 const routineOccurrenceUndoRollback = fs.readFileSync(
-  path.join(root, 'supabase/rollback/20261127190000_undo_authorized_routine_undo.sql'),
+  path.join(root, 'supabase/rollback/20261127190842_undo_authorized_routine_undo.sql'),
   'utf8',
 );
 
