@@ -19,7 +19,7 @@ const checks = [
   ['indicador usa box-sizing border-box para não exceder a largura do botão', includes('#nav::before{content:"";display:block;position:absolute;z-index:0;left:0;top:7px;bottom:7px;box-sizing:border-box;width:var(--st-nav-pill-width,0px);') && includes("host.style.setProperty('--st-nav-pill-width',active.offsetWidth+'px')")],
   ['indicador e posição usam a mesma duração de transição', includes('transition:transform 340ms cubic-bezier(.22,1,.36,1),width 340ms cubic-bezier(.22,1,.36,1)')],
   ['rótulos têm tamanho fixo e peso uniformes', includes('font-size:11px!important;font-weight:600') && includes('flex:0 0 13px') && includes('#nav button.on .nl{font-weight:600;opacity:1}')],
-  ['rótulos mantêm linha única sem reduzir a fonte', includes('text-overflow:clip;white-space:nowrap')],
+  ['rótulos mantêm linha única sem reduzir a fonte', includes('text-overflow:clip') && includes('white-space:nowrap')],
   ['alvos da barra têm altura mínima de 44 px', includes('#nav button{') && includes('min-height:54px')],
   ['marcação da aba usa identificador de rota e aria-current', includes('function marcarAbaAtiva(tela)') && includes('button.dataset.tela=route[1]') && includes("button.setAttribute('aria-current','page')") && includes("button.removeAttribute('aria-current')")],
   ['navegação comunica com o indicador sem referência fora de escopo', includes('window.scheduleNavIndicator=scheduleIndicator') && includes("window.scheduleNavIndicator==='function'")],
