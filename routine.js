@@ -460,7 +460,7 @@ function closeDetails(){V.rtDetailId='';V.rtDetailNeedsPhoto=false;V.sh=0;rMenu(
 function detailsSheet(){
  const o=db().occurrences[V.rtDetailId];if(!o)return '';
  const s=o.snapshot,st=Core.state(o),fn=FUNCOES[s.functionId],master=typeof isFullAccess==='function'&&isFullAccess();
- const allowed=!master&&canSee(o.executorId)&&st!=='dismissed'&&!o.viaSystem;
+ const allowed=canMark(o)&&st!=='dismissed'&&!o.viaSystem;
  const photoLabel=s.photo==='required'?'Obrigatória':s.photo==='optional'?'Opcional':'Não exigida';
  const recurrence=s.recurrence||{},weekdays=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
  const recurrenceText=recurrence.type==='daily'?'Todos os dias':recurrence.type==='weekly'?'Semanal · '+(recurrence.days||[]).map(day=>weekdays[Number(day)]).filter(Boolean).join(', '):recurrence.type==='monthly'?'Mensal · dia(s) '+(recurrence.days||[]).join(', '):recurrence.type==='date'?'Uma vez · '+(Core.dateValue(recurrence.date)||'data específica'):recurrence.type==='dates'?'Datas específicas · '+(recurrence.dates||[]).map(Core.dateValue).filter(Boolean).join(', '):'Conforme programação';
@@ -564,13 +564,13 @@ async function complete(id){
  catch(err){root.stAlert(err.message||'Não foi possível concluir.');}
 }
 async function undoComplete(id){
- const o=db().occurrences[id];if(!o||o.status!=='done'||o.viaSystem||!canSee(o.executorId)||typeof isFullAccess==='function'&&isFullAccess())return;
+ const o=db().occurrences[id];if(!o||o.status!=='done'||o.viaSystem||!canMark(o))return;
  const photoId=o.photoId,photoPath=o.photoPath;Object.assign(o,{status:'pending',madeAt:null,madeBy:null,madeByName:'',viaSystem:false,photoId:null,photoPath:null,updatedAt:Date.now()});
  try{if(photoId||photoPath)await deletePhoto(photoId,photoPath);}catch(err){console.warn('Não foi possível remover a foto local da marcação desfeita.',err);}
  save();if(V.sh==='routine-details'){V.sh=0;V.rtDetailId='';V.rtDetailNeedsPhoto=false;}if(!refreshTaskRow(id,'is-unchecking'))R();
 }
 async function toggleComplete(id){
- const o=db().occurrences[id];if(!o||!canSee(o.executorId)||typeof isFullAccess==='function'&&isFullAccess()||o.status==='dismissed'||o.viaSystem)return;
+ const o=db().occurrences[id];if(!o||!canMark(o)||o.status==='dismissed'||o.viaSystem)return;
  if(o.status==='done')return undoComplete(id);
  if(o.snapshot.photo==='required'&&!o.photoId&&!o.photoPath){openDetails(id,true);return;}
  return complete(id);
