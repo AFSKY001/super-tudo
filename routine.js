@@ -18,6 +18,9 @@ const progress=items=>{const planned=(Array.isArray(items)?items:[]).filter(o=>o
 const performance= (items,now=new Date())=>{const planned=(Array.isArray(items)?items:[]).filter(o=>o&&o.snapshot?.mandatory!==false);let done=0,overdue=0,pending=0,dismissed=0;for(const o of planned){const status=state(o,now);if(status==='done')done++;else if(status==='dismissed')dismissed++;else if(status==='overdue')overdue++;else pending++;}const total=done+overdue+pending;return{done,overdue,pending,dismissed,total,scheduled:total+dismissed,pct:total?Math.round(done/total*100):null};};
 const generate=(db,day,now=Date.now())=>{const created=[],updated=[],models=new Map((db.models||[]).map(m=>[String(m.id),m]));for(const at of db.assignments||[]){if(!activeOn(at,day))continue;const m=models.get(String(at.modelId));if(!m||m.archivedAt)continue;for(const a of m.activities||[]){if(!a.title||!occurs(a.recurrence,day))continue;const id=idOf(at.id,a.id,day),old=(db.occurrences||{})[id];if(!old)created.push(makeOccurrence(at,m,a,day,now));else if(old.status==='pending'&&state(old,new Date(now))==='pending'&&day>=localDate(new Date(now))){const next=snap(m,a);if(JSON.stringify(old.snapshot)!==JSON.stringify(next))updated.push({...old,snapshot:next,updatedAt:now});}}}return{created,updated};};
 const legacyWeekdays=days=>[...new Set((Array.isArray(days)?days:[]).map(Number).filter(day=>Number.isInteger(day)&&day>=0&&day<7).map(day=>(day+1)%7))].sort((a,b)=>a-b);
+const calendarWeek=date=>{const d=parseDate(date);if(!d)return[];const start=addDays(date,-d.getDay());return Array.from({length:7},(_,index)=>addDays(start,index));};
+const calendarMonthGrid=date=>{const d=parseDate(date);if(!d)return[];const first=localDate(new Date(d.getFullYear(),d.getMonth(),1,12));const start=addDays(first,-parseDate(first).getDay());return Array.from({length:42},(_,index)=>addDays(start,index));};
+const calendarShiftMonth=(date,offset)=>{const d=parseDate(date);if(!d)return'';const target=new Date(d.getFullYear(),d.getMonth()+Number(offset||0),1,12);const last=new Date(target.getFullYear(),target.getMonth()+1,0,12).getDate();target.setDate(Math.min(d.getDate(),last));return localDate(target);};
 
 const recipeNormalize=value=>{
  const source=value&&typeof value==='object'?value:{};
@@ -62,7 +65,7 @@ const expandChecklistItems=({idPrefix,title,description='',steps=[],turns=[],pho
   recurrence:JSON.parse(JSON.stringify(recurrence)),time,updatedAt:Date.now()
  })));
 };
-const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,assignmentValidOn,generate,progress,performance,legacyWeekdays,expandChecklistItems};
+const Core={localDate,dateValue,parseDate,addDays,minutes,hm,idOf,occurs,snap,makeOccurrence,state,activeOn,assignmentValidOn,generate,progress,performance,legacyWeekdays,calendarWeek,calendarMonthGrid,calendarShiftMonth,expandChecklistItems};
 Core.recipes={normalize:recipeNormalize,validate:recipeValidate,ingredient:recipeIngredient};
 root.SuperTudoRoutineCore=Core;if(typeof module!=='undefined'&&module.exports)module.exports=Core;
 const bridge=root.__ST_ROUTINE_BRIDGE__;if(!root.document||!bridge)return;
@@ -88,7 +91,47 @@ function installRoutineStyles(){
  .rt-person-toggle .st-check-ring{flex-basis:34px;width:34px;height:34px}.rt-person-toggle .st-check-ring::before{inset:3px}
  .rt-person-activities{padding-top:10px;border-top:1px solid var(--bd)}
  .rt-task-chevron{font-size:25px;line-height:1;color:var(--mu)}\n @keyframes rt-check-pop{0%{transform:scale(.82)}55%{transform:scale(1.16)}100%{transform:scale(1)}}\n @keyframes rt-check-wave{0%{transform:scale(.65);opacity:.7}100%{transform:scale(1.85);opacity:0}}\n @keyframes rt-uncheck-wave{0%{transform:scale(.7);opacity:.55}100%{transform:scale(1.9);opacity:0}}\n @keyframes rt-paper-strike{0%{text-decoration-color:transparent;text-decoration-thickness:0}100%{text-decoration-color:var(--ok);text-decoration-thickness:2px}}\n @media(prefers-reduced-motion:reduce){.rt-task-row,.rt-task-check{transition:none!important}.rt-task-row.is-completing .rt-task-copy b{animation:none;text-decoration-color:var(--ok);text-decoration-thickness:2px}.rt-task-row.is-completing .rt-task-check,.rt-task-row.is-completing .rt-task-check::after,.rt-task-row.is-unchecking .rt-task-check::after{animation:none!important}}
- .rt-history-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.rt-history-filters label{display:flex;flex-direction:column;gap:6px;color:var(--mu);font-size:12px;font-weight:700}.rt-history-filters input{width:100%;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--cd);color:var(--tx);font:inherit}.rt-history-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}.rt-history-metric{min-width:0;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--cd)}.rt-history-metric b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.rt-history-metric span{display:block;margin-top:3px;color:var(--mu);font-size:11px}.rt-history-person{padding:12px 14px;margin:10px 0;border:1px solid var(--bd);border-radius:14px;background:var(--cd)}.rt-history-person-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.rt-history-person-head>div:first-child{min-width:0}.rt-history-days{display:grid;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)}.rt-history-day{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px}.rt-history-day span:first-child{color:var(--mu)}.rt-history-pct{font-weight:800;font-variant-numeric:tabular-nums}.rt-history-empty{padding:18px;text-align:center;color:var(--mu);border:1px dashed var(--bd);border-radius:12px}@media(max-width:380px){.rt-history-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.rt-history-metric{padding:10px}.rt-history-metric b{font-size:18px}.rt-history-metric span{font-size:10px}}\n .rt-details-sheet{display:flex;flex-direction:column;align-items:stretch;gap:18px;box-sizing:border-box;width:100%;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - 8px)!important;overflow-y:auto!important;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 16px calc(24px + env(safe-area-inset-bottom,0px));}
+ .rt-history-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.rt-history-filters label{display:flex;flex-direction:column;gap:6px;color:var(--mu);font-size:12px;font-weight:700}.rt-history-filters input{width:100%;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--bd);border-radius:10px;background:var(--cd);color:var(--tx);font:inherit}.rt-history-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0}.rt-history-metric{min-width:0;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--cd)}.rt-history-metric b{display:block;font-size:20px;font-variant-numeric:tabular-nums}.rt-history-metric span{display:block;margin-top:3px;color:var(--mu);font-size:11px}.rt-history-person{padding:12px 14px;margin:10px 0;border:1px solid var(--bd);border-radius:14px;background:var(--cd)}.rt-history-person-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.rt-history-person-head>div:first-child{min-width:0}.rt-history-days{display:grid;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)}.rt-history-day{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:13px}.rt-history-day span:first-child{color:var(--mu)}.rt-history-pct{font-weight:800;font-variant-numeric:tabular-nums}.rt-history-empty{padding:18px;text-align:center;color:var(--mu);border:1px dashed var(--bd);border-radius:12px}@media(max-width:380px){.rt-history-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.rt-history-metric{padding:10px}.rt-history-metric b{font-size:18px}.rt-history-metric span{font-size:10px}}\n .rt-calendar{margin:12px 0 14px;padding:14px;border:1px solid var(--bd);border-radius:18px;background:var(--cd);box-shadow:0 4px 14px color-mix(in srgb,var(--fundo) 7%,transparent)}
+ .rt-calendar-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+ .rt-calendar-month{min-width:0;font-size:14px;font-weight:800;text-transform:capitalize}
+ .rt-calendar-head-actions{display:flex;align-items:center;gap:6px}
+ .rt-calendar-head-actions .bt{min-height:38px;padding:0 10px}
+ .rt-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;touch-action:pan-y}
+ .rt-calendar-weekday{padding:3px 0 6px;text-align:center;color:var(--mu);font-size:10px;font-weight:800}
+ .rt-calendar-day{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;min-height:58px;padding:5px 1px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--tx);font:inherit;touch-action:manipulation}
+ .rt-calendar-day:focus-visible{outline:2px solid var(--pr);outline-offset:1px}
+ .rt-calendar-day.is-selected{border-color:color-mix(in srgb,var(--pr) 55%,var(--bd));background:color-mix(in srgb,var(--pr) 13%,var(--cd));color:var(--tx)}
+ .rt-calendar-day.is-today .rt-calendar-number{color:var(--pr);font-weight:900}
+ .rt-calendar-day.is-outside{opacity:.42}
+ .rt-calendar-day.is-selected.is-today{background:color-mix(in srgb,var(--pr) 19%,var(--cd))}
+ .rt-calendar-weekday-name{font-size:10px;line-height:1;color:var(--mu);text-transform:capitalize}
+ .rt-calendar-number{font-size:14px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums}
+ .rt-calendar-dots{display:flex;align-items:center;justify-content:center;gap:3px;height:6px;min-width:6px}
+ .rt-calendar-dot{display:block;width:5px;height:5px;border-radius:50%;background:transparent}
+ .rt-calendar-dot.is-late{background:var(--no)}
+ .rt-calendar-dot.is-pending{background:var(--pr)}
+ .rt-calendar-dot.is-done{background:var(--ok)}
+ .rt-calendar-dot.is-dismissed{background:var(--mu);opacity:.65}
+ .rt-calendar-legend{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:10px;color:var(--mu);font-size:10px}
+ .rt-calendar-legend span{display:inline-flex;align-items:center;gap:5px}
+ .rt-calendar-legend i{width:7px;height:7px;border-radius:50%;display:inline-block}
+ .rt-calendar-legend .late{background:var(--no)}.rt-calendar-legend .pending{background:var(--pr)}.rt-calendar-legend .done{background:var(--ok)}
+ .rt-calendar-sheet{display:flex;flex-direction:column;gap:12px;box-sizing:border-box;width:100%;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - 8px)!important;overflow:hidden;padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+ .rt-calendar-sheet-body{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+ .rt-calendar-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+ .rt-calendar-sheet-head>div{min-width:0}
+ .rt-calendar-sheet-head h3{margin:2px 0 0;font-size:18px;text-transform:capitalize}
+ .rt-calendar-summary{display:flex;gap:8px;flex-wrap:wrap;color:var(--mu);font-size:11px}
+ .rt-calendar-preview{display:flex;align-items:center;gap:12px;min-height:62px;padding:10px 12px;margin:8px 0;border:1px solid var(--bd);border-radius:13px;background:var(--cd)}
+ .rt-calendar-preview-mark{width:10px;height:10px;flex:0 0 10px;border-radius:50%;background:var(--pr)}
+ .rt-calendar-preview-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+ .rt-calendar-preview-copy b{font-size:14px;overflow-wrap:anywhere}
+ .rt-calendar-preview-copy small{color:var(--mu);font-size:11px}
+ .rt-calendar-empty{padding:18px 12px;text-align:center;border:1px dashed var(--bd);border-radius:12px;color:var(--mu);font-size:13px}
+ .rt-calendar-create{width:100%;min-height:46px;margin-top:10px}
+ @media(max-width:380px){.rt-calendar{padding:11px}.rt-calendar-day{min-height:53px}.rt-calendar-head-actions .bt{padding:0 8px;font-size:12px}.rt-calendar-grid{gap:2px}}
+ @media(prefers-reduced-motion:reduce){.rt-calendar-day{transition:none!important}}
+ .rt-details-sheet{display:flex;flex-direction:column;align-items:stretch;gap:18px;box-sizing:border-box;width:100%;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - 8px)!important;overflow-y:auto!important;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 16px calc(24px + env(safe-area-inset-bottom,0px));}
  .rt-details-sheet>*{flex:0 0 auto;min-width:0}
  /* O gerenciador global envolve o conteúdo em .sheet-body; é esse filho que precisa crescer e rolar. */
  .rt-details-sheet>.sheet-body{flex:1 1 auto;min-height:0;width:100%;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
