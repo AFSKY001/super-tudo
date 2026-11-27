@@ -263,7 +263,7 @@ const routineMigrationChecks = [
   ['checklists legados leem itens separados por pipe', /typeof c\?\.i==='string'\?c\.i\.split\('\|'\)/.test(routineSource)],
   ['checklists duplicados usam assinatura estável', /legacySignature:suffix/.test(routineSource)],
   ['pessoa com rotina recebe permissão de menu r:rot', /grantRoutinePermission\(pid\)/.test(routineSource)],
-  ['atribuição manual também habilita o menu de Rotina', /function assign\(pid\)[\s\S]*?person\.perm\.includes\('r:rot'\)/.test(routineSource)],
+  ['atribuição manual também habilita o menu de Rotina', /function assign\(pid\)[\s\S]{0,900}ensureRoutinePermission\(pid\)/.test(routineSource)],
   ['atividades removidas são ocultadas da lista diária sem apagar o histórico', /function list\(ids\)\{[\s\S]{0,900}o\.status==='dismissed'[\s\S]{0,500}Core\.activeOn\(assignment,day\(\)\)/.test(routineSource)],
 ];
 const performanceFormatChecks = [
