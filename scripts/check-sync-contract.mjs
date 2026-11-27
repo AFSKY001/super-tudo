@@ -38,6 +38,14 @@ const personalRoutineClassificationRollback = fs.readFileSync(
   path.join(root, 'supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql'),
   'utf8',
 );
+const internalDefinerRpcMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261127110000_restrict_internal_security_definer_rpc.sql'),
+  'utf8',
+);
+const internalDefinerRpcRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261127110000_undo_restrict_internal_security_definer_rpc.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -222,6 +230,36 @@ const personalRoutineClassificationChecks = [
 ];
 for (const [label, pattern, target] of personalRoutineClassificationChecks) {
   const passed = pattern instanceof RegExp ? pattern.test(target) : pattern;
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) process.exitCode = 1;
+}
+
+const internalDefinerRpcChecks = [
+  ['migration restringe apenas os oito helpers internos com assinaturas exatas', [
+    'public.can_access_team_member(text)',
+    'public.can_read_kind(text, text)',
+    'public.can_write_kind(text)',
+    'public.has_module_access(uuid, text, text)',
+    'public.has_perm(text)',
+    'public.is_admin()',
+    'public.is_org_admin(uuid)',
+    'public.is_org_member(uuid)',
+  ].every(signature => internalDefinerRpcMigration.includes('REVOKE EXECUTE ON FUNCTION ' + signature + ' FROM authenticated;'))],
+  ['migration preserva a RPC de foto usada pelas políticas do Storage', !/REVOKE EXECUTE ON FUNCTION public\\.can_write_routine_photo_path/.test(internalDefinerRpcMigration)],
+  ['migration preserva as RPCs multiempresa usadas pelo cliente', !/REVOKE EXECUTE ON FUNCTION public\\.sync_(push|pull)/.test(internalDefinerRpcMigration)],
+  ['migration não concede acesso a anon nem altera PUBLIC', !/\\b(GRANT|REVOKE)\\s+EXECUTE[\\s\\S]{0,100}\\b(anon|PUBLIC)\\b/i.test(internalDefinerRpcMigration)],
+  ['rollback restaura exatamente os oito grants authenticated', [
+    'public.can_access_team_member(text)',
+    'public.can_read_kind(text, text)',
+    'public.can_write_kind(text)',
+    'public.has_module_access(uuid, text, text)',
+    'public.has_perm(text)',
+    'public.is_admin()',
+    'public.is_org_admin(uuid)',
+    'public.is_org_member(uuid)',
+  ].every(signature => internalDefinerRpcRollback.includes('GRANT EXECUTE ON FUNCTION ' + signature + ' TO authenticated;'))],
+];
+for (const [label, passed] of internalDefinerRpcChecks) {
   console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
   if (!passed) process.exitCode = 1;
 }
