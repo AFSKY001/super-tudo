@@ -226,12 +226,13 @@ for (const [label, pattern, target] of personalRoutineClassificationChecks) {
   if (!passed) process.exitCode = 1;
 }
 
-const syncCanWriteMatch = source.match(/function syncCanWrite\\([^)]*\\)\\{[\\s\\S]*?\\}function syncQueueChanges\\(/);
-if (!syncCanWriteMatch) {
+const syncCanWriteStart = source.indexOf('function syncCanWrite(');
+const syncCanWriteEnd = source.indexOf('function syncQueueChanges(', syncCanWriteStart);
+if (syncCanWriteStart < 0 || syncCanWriteEnd < 0) {
   console.error('FAIL - função syncCanWrite disponível para teste');
   process.exitCode = 1;
 } else {
-  const syncCanWriteSource = syncCanWriteMatch[0].slice(0, syncCanWriteMatch[0].lastIndexOf('function syncQueueChanges'));
+  const syncCanWriteSource = source.slice(syncCanWriteStart, syncCanWriteEnd);
   const buildSyncCanWrite = new Function('V', '_0x2c2823', syncCanWriteSource + '; return syncCanWrite;');
   const permissionCases = [
     ['encarregado com r:rot não grava modelos r:cro', { role: 'encarregado', perm: ['r:rot'] }, 'r:cro', false],
