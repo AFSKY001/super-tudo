@@ -945,3 +945,11 @@ O teste `npm run check:ui` verifica a presença do contrato CSS e dos estados de
 - A alça continua sendo a única área que inicia o gesto; o corpo mantém rolagem nativa independente. O overlay acompanha a expansão sem alterar dados ou sincronização.
 - Setas do teclado alternam os pontos parcial/expandido; Escape fecha e o foco retorna ao acionador quando disponível. Movimento reduzido, inclusive a preferência de Ajustes, remove a mola.
 - A altura expandida permanece em 88%, preservando a alça visível conforme o padrão aprovado anteriormente.
+
+
+## Janelas curtas e fundos aninhados — versão 3.74.96
+
+- O controlador global identifica fundos `.ov.dim` mesmo quando estão dentro de contêineres intermediários, mantendo opacidade, desfoque, clique para fechar e acompanhamento do arraste.
+- Janelas cujo conteúdo é menor que o limite compacto podem ser puxadas para cima sem deslocar a borda inferior: a superfície cresce até o limite expandido, oferece resistência elástica além dele e retorna à altura natural ao soltar.
+- A altura temporária é removida ao concluir, cancelar ou fechar a janela; o conteúdo e a rolagem interna permanecem preservados.
+- O comportamento vale para janelas compartilhadas, inclusive Aparência e acessibilidade e diálogos curtos como senha, sem listeners específicos por tela.
