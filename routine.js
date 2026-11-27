@@ -116,8 +116,9 @@ function installRoutineStyles(){
  .rt-calendar-legend span{display:inline-flex;align-items:center;gap:5px}
  .rt-calendar-legend i{width:7px;height:7px;border-radius:50%;display:inline-block}
  .rt-calendar-legend .late{background:var(--no)}.rt-calendar-legend .pending{background:var(--pr)}.rt-calendar-legend .done{background:var(--ok)}
- .rt-calendar-sheet{display:flex;flex-direction:column;gap:12px;box-sizing:border-box;width:100%;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - 8px)!important;overflow:hidden;padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px))}
-  .rt-calendar-sheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+ .rt-calendar-sheet{display:flex;flex-direction:column;gap:12px;box-sizing:border-box;width:100%;height:min(82dvh,calc(100dvh - env(safe-area-inset-top,0px) - 8px))!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - 8px)!important;overflow:hidden;padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+ .rt-calendar-sheet>*{flex:0 0 auto;min-width:0}
+ .rt-calendar-sheet-body{flex:1 1 0%;height:0;min-height:0;max-height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-gutter:stable;padding-bottom:8px}
  .rt-calendar-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
  .rt-calendar-sheet-head>div{min-width:0}
  .rt-calendar-sheet-head h3{margin:2px 0 0;font-size:18px;text-transform:capitalize}
