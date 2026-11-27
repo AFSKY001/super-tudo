@@ -31,6 +31,30 @@ const legacyTombstoneReadMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261126123000_allow_owner_read_legacy_checklist_tombstone.sql'),
   'utf8',
 );
+const personalRoutineClassificationMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126180000_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
+const personalRoutineClassificationRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
+const personalRoutineWriteScopeMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126193000_enforce_personal_routine_write_scope.sql'),
+  'utf8',
+);
+const personalRoutineWriteScopeRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261126193000_undo_enforce_personal_routine_write_scope.sql'),
+  'utf8',
+);
+const internalDefinerRpcMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261127110000_restrict_internal_security_definer_rpc.sql'),
+  'utf8',
+);
+const internalDefinerRpcRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261127110000_undo_restrict_internal_security_definer_rpc.sql'),
+  'utf8',
+);
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -272,6 +296,22 @@ if (failedRoutinePermissions.length) {
   console.error('Falhas nas permissões específicas da Rotina: ' + failedRoutinePermissions.join('; '));
   process.exitCode = 1;
 }
+
+const personalRoutineSqlChecks = [
+  ['migration reclassifica pt para r:rot e apenas done com três ou mais partes', /where module = 'pt'[\s\S]{0,100}kind = 'r:cro'[\s\S]{0,350}where module = 'done'[\s\S]{0,140}cardinality\(string_to_array\(record_id, '\|'\)\) >= 3/, personalRoutineClassificationMigration],
+  ['migration inicial já bloqueia Master/admin e limita gerente ao próprio vínculo', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineClassificationMigration],
+  ['migration de permissões mantém Master/admin bloqueados e encarregado restrito à equipe', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,350}me\.role = 'encarregado'[\s\S]{0,200}public\.has_perm_for_org\('r:eqp'/, personalRoutineWriteScopeMigration],
+  ['rollback da segunda migration mantém a restrição de escrita pessoal da primeira', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineWriteScopeRollback],
+  ['rollback da classificação alerta sobre novas gravações antes de reverter os kinds', /ONLY before any new per-person pt\/done writes[\s\S]{0,300}drop trigger[\s\S]{0,150}update public\.app_records[\s\S]{0,100}kind = 'r:cro'/, personalRoutineClassificationRollback],
+  ['migração de RPCs não revoga helper usado pelo Storage e rollback restaura os grants', /REVOKE EXECUTE[\s\S]{0,1800}is_org_member[\s\S]{0,300}/, internalDefinerRpcMigration],
+  ['rollback de RPCs restaura execução autenticada dos helpers', /GRANT EXECUTE[\s\S]{0,1200}is_org_member/, internalDefinerRpcRollback],
+];
+for (const [label, pattern, target] of personalRoutineSqlChecks) {
+  const passed = pattern.test(target);
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) process.exitCode = 1;
+}
+
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
 for (let index = 0; index < inlineScripts.length; index++) {
