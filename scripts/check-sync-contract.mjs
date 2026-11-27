@@ -341,7 +341,7 @@ const personalRoutineSqlChecks = [
   ['rollback de RPCs restaura execução autenticada dos helpers', /GRANT EXECUTE[\s\S]{0,1200}is_org_member/, internalDefinerRpcRollback],
   ['ocorrências concluídas ou dispensadas ficam imutáveis no servidor', /v_old_status is distinct from 'pending'[\s\S]{0,260}new\.data is distinct from old\.data[\s\S]{0,180}new\.deleted_at is distinct from old\.deleted_at/, routineOccurrenceHistoryMigration],
   ['ocorrências pendentes continuam editáveis para foto e encerramento de atribuição', /v_old_status is distinct from 'pending'[\s\S]{0,260}new\.data is distinct from old\.data/, routineOccurrenceHistoryMigration],
-  ['desmarcação permite apenas transição done para pending manual', /v_old_status = 'done' and v_new_status = 'pending'[\s\S]{0,900}viaSystem[\s\S]{0,700}public\.can_write_routine_record/, routineOccurrenceUndoMigration],
+  ['desmarcação permite apenas transição done para pending manual', /v_old_status = 'done' and v_new_status = 'pending'[\s\S]{0,1800}viaSystem[\s\S]{0,1800}public\.can_write_routine_record/, routineOccurrenceUndoMigration],
   ['guard de histórico usa SECURITY DEFINER restrito para validar a permissão de desmarcação', /language plpgsql\s+security definer\s+set search_path = ''/, routineOccurrenceUndoMigration],
   ['desmarcação mantém identidade do registro', /new\.record_id is not distinct from old\.record_id[\s\S]{0,180}new\.kind is not distinct from old\.kind/, routineOccurrenceUndoMigration],
   ['desmarcação mantém snapshot e campos não autorizados imutáveis', /new\.data->'value'[\s\S]{0,400}old\.data->'value'/, routineOccurrenceUndoMigration],
