@@ -2,7 +2,7 @@ name: Prepare deployment distribution
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, fix/routine-role-sync-permission-20261126, fix/employee-routine-model-picker-rebased-20261127]
   push:
     branches: [main]
   workflow_dispatch:
@@ -95,7 +95,7 @@ jobs:
             echo "::error::Configure the CLOUDFLARE_API_TOKEN repository secret with Workers Scripts Write permission."
             exit 1
           fi
-          npx wrangler preview --config wrangler.jsonc --name super-tudo-notas-teste --message "PR #${{ github.event.pull_request.number }} - ${GITHUB_SHA}" --json
+          npx wrangler preview --config wrangler.jsonc --name super-tudo-pr${{ github.event.pull_request.number }} --message "PR #${{ github.event.pull_request.number }} - ${GITHUB_SHA}" --json
       - name: Upload protected distribution
         uses: actions/upload-artifact@v7
         with:
