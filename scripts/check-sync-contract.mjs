@@ -298,11 +298,11 @@ for (const [label, passed] of routineTaskDetailLayoutChecks) {
 
 
 const employeeRoutineModelChecks = [
-  ['cadastro de pessoa oferece seletor de modelo e ação Adicionar', /employeeRoutineModelSelect[\\s\\S]{0,1200}addEmployeeRoutineModel/],
-  ['seletor mantém lista removível e valores ocultos para o salvamento', /function addEmployeeRoutineModel\\(\\)[\\s\\S]{0,1800}function removeEmployeeRoutineModel[\\s\\S]{0,1300}input\\.remove\\(\\)/],
-  ['excluir atribuição individual desmarca o modelo e arquiva sem apagar histórico', /employee-profile-model[\\s\\S]{0,500}ckModels[\\s\\S]{0,300}archivedAt/],
-  ['salvar cadastro arquiva modelos removidos da seleção', /selectedModels=new Set\\(_0x40cc98\\['ckModels'\\]\\)[\\s\\S]{0,700}row\\['archivedAt'\\]=today\\(\\)/],
-  ['reatribuir modelo arquivado cria novo registro e preserva o histórico anterior', /row\\.mid===mid&&!row\\.archivedAt[\\s\\S]{0,300}hadArchived[\\s\\S]{0,500}hadArchived\\?'-'\\+uid\\(\\)/],
+  ['cadastro de pessoa oferece seletor de modelo e ação Adicionar', /employeeRoutineModelSelect[\s\S]{0,1200}addEmployeeRoutineModel/],
+  ['seletor mantém lista removível e valores ocultos para o salvamento', /function addEmployeeRoutineModel\(\)[\s\S]{0,1800}function removeEmployeeRoutineModel[\s\S]{0,1300}input\.remove\(\)/],
+  ['excluir atribuição individual desmarca o modelo e arquiva sem apagar histórico', /employee-profile-model[\s\S]{0,500}ckModels[\s\S]{0,300}archivedAt/],
+  ['salvar cadastro arquiva modelos removidos da seleção', /selectedModels=new Set\(_0x40cc98\['ckModels'\]\)[\s\S]{0,700}row\['archivedAt'\]=today\(\)/],
+  ['reatribuir modelo arquivado cria novo registro e preserva o histórico anterior', /row\.mid===mid&&!row\.archivedAt[\s\S]{0,300}hadArchived[\s\S]{0,500}hadArchived\?'-'\+uid\(\)/],
 ];
 for (const [label, pattern] of employeeRoutineModelChecks) {
   const passed = pattern.test(source);
