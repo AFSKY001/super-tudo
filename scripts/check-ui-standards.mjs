@@ -521,6 +521,13 @@ for (const name of Object.keys(ceilings)) {
   );
 }
 
+
+requireCheck(html.indexOf("const THEME_KEY='st_tema'")>0&&html.indexOf("const THEME_KEY='st_tema'")<html.indexOf('<style>'), 'Theme and motion preferences must be applied in the document head before first paint.');
+requireCheck(html.includes("setTheme:value=>{if(['auto','light','dark'].includes(value))save(THEME_KEY,value)}")&&html.includes("setMotion:value=>{if(['auto','reduce'].includes(value))save(MOTION_KEY,value)}"), 'Appearance preferences must validate supported values and persist locally.');
+requireCheck(html.includes("group('Preferências',preferences)")&&html.includes("Aparência e acessibilidade")&&html.includes("openAppearanceSettings()"), 'Ajustes must expose a dedicated appearance and accessibility entry.');
+requireCheck(html.includes("role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"st-pref-title\"")&&html.includes("window.__stAppearanceEsc")&&html.includes("event.key==='Escape'"), 'Appearance settings must provide a labelled modal, Escape close and keyboard focus containment.');
+requireCheck(html.includes(':root[data-theme="dark"]')&&html.includes('@media(prefers-color-scheme:dark)')&&html.includes('html[data-motion="reduce"] *::before'), 'Manual themes must coexist with automatic system theme and reduced-motion preference.');
+
 if (failures.length) {
   console.error('Super Tudo UI standards check failed:');
   for (const failure of failures) console.error('- ' + failure);
