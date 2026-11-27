@@ -255,7 +255,10 @@ assert.match(routineSource,/V\.sh==='routine-calendar'[\s\S]{0,300}calendarSheet
 assert.match(routineSource,/function calendarTouchEnd\(event\)[\s\S]{0,500}calendarShift\(end<start\?1:-1\)/,'O calendário deve aceitar deslize horizontal para navegar.');
 assert.match(routineSource,/\.rt-calendar-day\{[\s\S]{0,500}min-height:58px/,'Os dias do calendário devem manter área de toque confortável.');
 assert.match(routineSource,/\.rt-calendar-dot\.is-late\{background:var\(--no\)\}[\s\S]{0,160}\.is-pending\{background:var\(--pr\)\}[\s\S]{0,100}\.is-done\{background:var\(--ok\)\}/,'Os indicadores devem distinguir atrasadas, pendentes e concluídas por cor.');
-assert.match(routineSource,/\.rt-calendar-sheet-body\{flex:1 1 0%;height:0;min-height:0;max-height:100%;overflow-y:auto/,'O painel inferior do calendário deve rolar sem cortar atividades.');
+assert.match(routineSource,/\.rt-calendar-sheet > \.rt-calendar-sheet-body\{flex:1 1 auto!important;height:auto!important;min-height:0;max-height:none;overflow-y:auto/,'O painel inferior deve ter altura automática e ocupar o espaço restante sem colapsar no Android.');
 assert.match(routineSource,/\.rt-calendar-sheet\{[^}]*height:min\(82dvh,[^}]*\}/,'O painel do calendário deve ter altura delimitada para criar uma área real de rolagem em dias com muitas atividades.');
-assert.match(routineSource,/\.rt-calendar-sheet-body\{[^}]*flex:1 1 0%;height:0;min-height:0;[^}]*overflow-y:auto[^}]*touch-action:pan-y/,'A lista de atividades deve ocupar o espaço restante e aceitar gesto vertical no Android.');
+assert.match(routineSource,/\.rt-calendar-sheet > \.rt-calendar-sheet-body\{[^}]*flex:1 1 auto!important;height:auto!important;min-height:0;[^}]*overflow-y:auto[^}]*touch-action:pan-y/,'A lista de atividades deve ocupar o espaço restante e aceitar gesto vertical no Android.');
+assert.match(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,700}scrollIntoView\(\{block:'nearest'/,'Ao expandir uma pessoa, a lista deve ser trazida para a área visível sem exigir rolagem manual.');
+assert.match(routineSource,/rt-person-card" id="rt-person-card-\'+e\(pid\)/,'Cada pessoa deve ter um alvo estável para revelar suas atividades após a expansão.');
+assert.match(routineSource,/onclick="rtToggleTeamPerson\(\\\'\'+e\(pid\)\+'\\\'\)"/,'A expansão da equipe deve usar o controlador que revela as atividades na tela.');
 assert.doesNotMatch(routineSource,/calendarWeek[\s\S]{0,1000}toISOString/,'O calendário não deve converter datas locais usando toISOString.');
