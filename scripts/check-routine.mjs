@@ -221,6 +221,9 @@ assert.ok(canMarkSource.includes("typeof isFullAccess==='function'&&isFullAccess
 assert.match(routineSource,/function card\(o\)[\s\S]{0,260}allowed=canMark\(o\)/,'A interface deve ocultar ações de marcar/dispensar para perfis sem autorização.');
 assert.match(routineSource,/async function dismiss\(id\)[\s\S]{0,140}!canMark\(o\)/,'A dispensa também deve validar autorização antes de alterar a ocorrência.');
 assert.match(routineSource,/async function complete\(id\)[\s\S]{0,140}!canMark\(o\)/,'A conclusão deve validar autorização antes de salvar foto ou alterar a ocorrência.');
+assert.match(routineSource,/function detailsSheet\(\)[\s\S]{0,350}allowed=canMark\(o\)/,'A janela de detalhes só deve oferecer ações para quem pode marcar a atividade.');
+assert.match(routineSource,/async function undoComplete\(id\)[\s\S]{0,180}status!=='done'[\s\S]{0,100}!canMark\(o\)/,'A desmarcação deve exigir a mesma autorização da marcação.');
+assert.match(routineSource,/async function toggleComplete\(id\)[\s\S]{0,160}!canMark\(o\)/,'O alternador não deve aceitar ações de quem apenas consegue visualizar a equipe.');
 
 const performanceBreakdown=Core.performance([
  {date:'2026-11-24',status:'done',snapshot:{mandatory:true,time:'08:00'}},
