@@ -15,7 +15,7 @@ assert.match(routineAssignmentCloseSource,/coalesce\(o\.data->'value'->>'status'
 assert.match(routineAssignmentCloseSource,/coalesce\(o\.data->'value'->>'date', o\.data->>'date'\) > a\.until_date/,'O histórico até a data final da atribuição deve ser preservado.');
 assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,5000}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
 assert.match(routineSource,/const checklistItems=c=>\{const raw=Array\.isArray\(c\?\.l\)&&c\.l\.length\?c\.l:[\s\S]{0,140}c\.i\.split\('\|'\)/,'Itens legados em formato pipe precisam ser lidos para gerar as atividades.');
-assert.match(routineSource,/function assign\(pid\)[\s\S]{0,700}person\.perm\.includes\('r:rot'\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
+assert.match(routineSource,/function assign\(pid\)[\s\S]{0,800}ensureRoutinePermission\(pid\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
 assert.match(routineSource,/const photoRequired=checklist\.ph===true\|\|checklist\.ph===1\|\|\['true','1','sim','required','obrigatoria'\]/,'O texto false no campo legado de foto não pode virar foto obrigatória.');
 assert.match(routineSource,/function card\(o\)[\s\S]{0,1800}role="checkbox"[\s\S]{0,700}rtDetails/,'A lista de Rotina deve usar um checkbox individual e abrir detalhes ao tocar na atividade.');
 assert.match(routineSource,/function detailsSheet\(\)[\s\S]{0,6000}data-sheet[\s\S]{0,2500}Horário limite[\s\S]{0,1200}Foto na conclusão/,'Os detalhes devem abrir em uma janela inferior arrastável com horário e regra de foto.');
