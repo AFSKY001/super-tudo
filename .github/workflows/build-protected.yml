@@ -2,7 +2,7 @@ name: Prepare deployment distribution
 
 on:
   pull_request:
-    branches: [main, fix/routine-role-sync-permission-20261126, fix/employee-routine-model-picker-rebased-20261127]
+    branches: [main, feature/notas-selecao-paleta, fix/routine-role-sync-permission-20261126, fix/employee-routine-model-picker-rebased-20261127]
   push:
     branches: [main]
   workflow_dispatch:
