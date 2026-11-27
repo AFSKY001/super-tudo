@@ -357,6 +357,7 @@ if (failed.length) {
 }
 
 const personalRoutineSecurityChecks = [
+  ['fila offline converte tipos antigos de pt e done sem alterar operações já bloqueadas', /for\(const op of syncMeta\['queue'\]\|\|\[\]\)if\(op&&!op\['status'\]\)[\s\S]{0,500}'pt'===op\['module'\][\s\S]{0,350}op\['kind'\]='r:rot'[\s\S]{0,250}'done'===op\['module'\][\s\S]{0,250}op\['kind'\]='r:cro'/i.test(source)],
   ['cliente sincroniza atividades pessoais pt como r:rot', /\['pt','r:rot'\]/.test(source)],
   ['classificação altera pt para r:rot e só altera done com três ou mais segmentos', /update public\.app_records[\s\S]*?module = 'pt'[\s\S]*?kind = 'r:rot'[\s\S]*?module = 'done'[\s\S]*?cardinality\(string_to_array\(record_id, '\|'\)\) >= 3/i.test(personalRoutineKindMigration)],
   ['migração mantém done legado de dois segmentos como r:cro', /Legacy cronograma keys have only date\|activity and stay on r:cro/i.test(personalRoutineKindMigration) && /cardinality\(string_to_array\(new\.record_id, '\|'\)\) < 3[\s\S]*?new\.kind is distinct from 'r:cro'/i.test(personalRoutineKindMigration)],
