@@ -298,7 +298,7 @@ if (failedRoutinePermissions.length) {
   process.exitCode = 1;
 }
 const personalRoutineSqlChecks = [
-  ['migration reclassifica pt para r:rot e apenas done com três ou mais partes', /where module = 'pt'[\s\S]{0,100}kind = 'r:cro'[\s\S]{0,350}where r\.module = 'done'[\s\S]{0,250}person\.team_member_id = split_part\(r\.record_id/, personalRoutineClassificationMigration],
+  ['migration reclassifica pt e done pelo identificador final de pessoa da organização', /where module = 'pt'[\s\S]{0,100}kind = 'r:cro'[\s\S]{0,350}where r\.module = 'done'[\s\S]{0,250}person\.team_member_id = split_part\(r\.record_id/, personalRoutineClassificationMigration],
   ['migration inicial já bloqueia Master/admin e limita gerente ao próprio vínculo', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineClassificationMigration],
   ['migration de permissões mantém Master/admin bloqueados e encarregado restrito à equipe', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,350}me\.role = 'encarregado'[\s\S]{0,200}public\.has_perm_for_org\('r:eqp'/, personalRoutineWriteScopeMigration],
   ['rollback da segunda migration mantém a restrição de escrita pessoal da primeira', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineWriteScopeRollback],
