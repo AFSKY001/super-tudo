@@ -64,4 +64,4 @@ check(notes.includes("child.tagName==='IMG'&&c==='nt-drawing-image'")&&notes.inc
 check(html.includes('.nt-draw-panel')&&html.includes('#nt-draw-canvas')&&html.includes('.nt-body .nt-drawing-image'),'drawing controls and responsive image styles must exist.');
 check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-check-item[data-checked="true"]'),'palette and checklist styles must exist.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+47+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+53+' verificações)');
