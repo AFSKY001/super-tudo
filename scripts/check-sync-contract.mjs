@@ -34,6 +34,16 @@ const legacyTombstoneReadMigration = fs.readFileSync(
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
+  ['falha ao carregar fila local pausa sincronização e preserva dados existentes', /syncStorageLoadFailed=!1;try\\{const _0xrawSyncMeta=localStorage\\.getItem\\('st_cloud_sync_v1:'\\+_0x25e5d5\\)/],
+  ['JSON inválido ou estrutura incompleta não é tratado como fila vazia', /if\\(!_0xe0b15c\\|\\|'object'!==typeof _0xe0b15c\\|\\|Array\\.isArray\\(_0xe0b15c\\)\\|\\|_0xe0b15c\\.owner!==_0x25e5d5/],
+  ['persistência retorna falha e não sobrescreve fila ilegível', /function syncPersist\\(\\)\\{if\\(syncStorageLoadFailed\\)return false/],
+  ['flush bloqueia se a fila local não pôde ser carregada', /async function syncFlushRun\\(\\)[\\s\\S]{0,180}if\\(syncStorageLoadFailed\\)return false/],
+  ['flush exige persistência confirmada antes de transmitir operações', /syncMeta\\.queue\\.some\\(op=>!op\\.status\\)&&!syncPersist\\(\\)\\)return false/],
+  ['flush interrompe lote se não persistir remoção local obsoleta', /syncMeta\\['queue'\\]\\['splice'\\]\\(_0x54cb25,0x1\\),syncPersistOrThrow\\('Não foi possível salvar a remoção da operação local\\.'\\)/],
+  ['flush interrompe lote se não persistir confirmação do servidor', /O servidor confirmou o envio, mas não consegui gravar a fila atualizada neste aparelho/],
+  ['pull exige persistência local antes de consultar a nuvem', /async function pullCloudTeamRun\\(\\)[\\s\\S]{0,500}if\\(syncStorageLoadFailed\\)throw[\\s\\S]{0,220}if\\(!syncPersist\\(\\)\\)throw/],
+  ['pull só libera baseline e syncReady depois de persistir snapshot', /Não foi possível persistir os dados recebidos da nuvem\\.'\\);syncBaseline=syncRows\\(S\\);syncReady=!0x0/],
+  ['conflito recebido só é notificado depois de persistido', /syncPersistOrThrow\\('Não foi possível salvar o conflito recebido da nuvem\\.'\\),void syncLocalNotice/],
   ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\[\['tmod',S\.tmod\],\['routineModels',S\.routineModels\]\][\s\S]{0,500}targets\.has/],
   ['checklists auxiliares antigos ficam ocultos e não aparecem como modelos independentes', /function rotChecklistModels\(\)[\s\S]*?=>!_0x[0-9a-f]+\['p'\]&&!_0x[0-9a-f]+\['rc'\]&&!_0x[0-9a-f]+\['rm'\]/],
   ['modelo antigo só é removido depois de checklist com itens e salvamento confirmado', /if\(!converted\)return false;[\s\S]*?S\[module\]=S\[module\]\.filter[\s\S]*?if\(!save\(\)\)/],
