@@ -37,6 +37,7 @@ const checks = [
   ['falha ao carregar fila local pausa sincronização e preserva dados existentes', /syncStorageLoadFailed=!1;try\{const _0xrawSyncMeta=localStorage\.getItem\('st_cloud_sync_v1:'\+_0x25e5d5\)/],
   ['JSON inválido ou estrutura incompleta não é tratado como fila vazia', /if\(!_0xe0b15c\|\|'object'!==typeof _0xe0b15c\|\|Array\.isArray\(_0xe0b15c\)\|\|_0xe0b15c\.owner!==_0x25e5d5/],
   ['persistência retorna falha e não sobrescreve fila ilegível', /function syncPersist\(\)\{if\(syncStorageLoadFailed\)return false/],
+  ['falha ao gravar fila bloqueia novas gravações na sessão para não sobrescrever a cópia persistida', /catch\(error\)\{syncStorageLoadFailed=!0x0;syncReady=!1;syncBaseline=null;syncLastError=message/],
   ['flush bloqueia se a fila local não pôde ser carregada', /async function syncFlushRun\(\)[\s\S]{0,180}if\(syncStorageLoadFailed\)return false/],
   ['flush exige persistência confirmada antes de transmitir operações', /syncMeta\.queue\.some\(op=>!op\.status\)&&!syncPersist\(\)\)return false/],
   ['flush interrompe lote se não persistir remoção local obsoleta', /syncMeta\['queue'\]\['splice'\]\(_0x54cb25,0x1\),syncPersistOrThrow\('Não foi possível salvar a remoção da operação local\.'\)/],
