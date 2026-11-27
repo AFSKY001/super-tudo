@@ -472,6 +472,28 @@ try {
 }
 
 
+// Contrato global dos campos: preservar o padrão existente sem depender de tokens de branches antigas.
+const fieldStyleMatch = html.match(/input:not\\(\\[type="checkbox"\\]\\):not\\(\\[type="radio"\\]\\):not\\(\\[type="range"\\]\\),\\s*select,textarea\\s*\\{[\\s\\S]*?\\}/);
+requireCheck(!!fieldStyleMatch && /min-height:44px/.test(fieldStyleMatch?.[0] || '') &&
+  /border:1px solid var\\(--bd\\)/.test(fieldStyleMatch?.[0] || '') &&
+  /background:var\\(--cd\\)/.test(fieldStyleMatch?.[0] || '') &&
+  /color:var\\(--tx\\)/.test(fieldStyleMatch?.[0] || '') &&
+  /border-radius:var\\(--ui-radius-control\\)/.test(fieldStyleMatch?.[0] || ''),
+  'Text fields, selects and textareas must share the 44px global field contract and semantic theme tokens.');
+requireCheck(/input:not\\(\\[type="checkbox"\\]\\):not\\(\\[type="radio"\\]\\):focus,\\s*select:focus,textarea:focus\\s*\\{[\\s\\S]*?border-color:var\\(--pr\\)[\\s\\S]*?box-shadow:var\\(--ui-focus\\)/.test(html),
+  'Focused editable fields must use the global primary border and focus halo.');
+requireCheck(/button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible\\s*\\{[^}]*outline:2px solid var\\(--vi\\)/.test(html),
+  'Keyboard focus must remain visible on buttons and form controls.');
+requireCheck(html.includes(':where(input,select,textarea)[aria-invalid="true"]{') &&
+  html.includes('.field-error{color:var(--no);font-weight:600}'),
+  'Invalid fields must retain the shared accessible error state.');
+requireCheck(!html.includes('--borda-controle'),
+  'Do not reintroduce the obsolete --borda-controle token from the historical branch.');
+requireCheck(rules.includes('## 15. Contrato global de campos e foco') &&
+  rules.includes('versão 3.74.88'),
+  'The design-system document must describe the current field contract and current app baseline.');
+
+
 for (const name of Object.keys(ceilings)) {
   requireCheck(
     legacyDialogs[name] <= ceilings[name],
