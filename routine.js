@@ -436,10 +436,10 @@ async function endAssignment(id){
 function currentPerson(){return who(V.me?.id||V.cloudIdentity?.team_member_id||'');}
 function visibleTeam(){const p=currentPerson();return p&&typeof teamOf==='function'?teamOf(p):[];}
 function canSee(id){if(typeof isFullAccess==='function'&&isFullAccess())return true;const p=currentPerson();return!!p&&(String(p.id)===String(id)||visibleTeam().some(x=>String(x.id)===String(id)));}
-function canMark(o){if(!o||typeof isFullAccess==='function'&&isFullAccess()||!canSee(o.executorId))return false;const identity=V.cloudIdentity||{},profile=V.me||{},roles=[identity.role,profile.role].map(x=>String(x||'').toLowerCase());if(roles.some(role=>role==='master'||role==='admin'))return false;const permissions=Array.isArray(identity.perm)?identity.perm:Array.isArray(profile.perm)?profile.perm:[];return permissions.includes('r:rot');}
+function canMark(o){if(!o||typeof isFullAccess==='function'&&isFullAccess()||!canSee(o.executorId))return false;const identity=V.cloudIdentity||{},profile=V.me||{},roles=[identity.role,profile.role].map(x=>String(x||'').toLowerCase());if(roles.some(role=>role==='master'||role==='admin'))return false;const permissions=Array.isArray(identity.perm)?identity.perm:Array.isArray(profile.perm)?profile.perm:[];if(!permissions.includes('r:rot'))return false;const own=String(currentPerson()?.id||'')===String(o.executorId);return own||roles.includes('encarregado')&&permissions.includes('r:eqp');}
 function list(ids){const assignments=new Map(db().assignments.map(a=>[String(a.id),a]));return Object.values(db().occurrences).filter(o=>{if(o.date!==day()||o.status==='dismissed'||!ids.includes(String(o.executorId)))return false;const assignment=assignments.get(String(o.assignmentId));return !assignment||Core.activeOn(assignment,day())||o.status==='done';}).sort((a,b)=>(Core.state(a)==='overdue'?-1:0)-(Core.state(b)==='overdue'?-1:0)||Core.hm(a.snapshot.time)-Core.hm(b.snapshot.time));}
 function card(o){
- const st=Core.state(o),s=o.snapshot,master=typeof isFullAccess==='function'&&isFullAccess();
+ const st=Core.state(o),s=o.snapshot;
  const allowed=canMark(o)&&st!=='dismissed'&&!o.viaSystem;
  const checked=o.status==='done',status=st==='overdue'?'Atrasada':st==='dismissed'?'Dispensada':checked?'Concluída':'';
  return '<article class="c rt-task-row" data-routine-id="'+e(o.id)+'"><button type="button" class="rt-task-check '+(checked?'is-checked':'')+'" '+(!allowed?'disabled':'')+' aria-label="'+(checked?'Desmarcar ':'Marcar ')+e(s.title)+'" aria-checked="'+(checked?'true':'false')+'" role="checkbox" onclick="rtToggle(\''+e(o.id)+'\')">'+(checked?'<span aria-hidden="true">✓</span>':'')+'</button><button type="button" class="rt-task-open" onclick="rtDetails(\''+e(o.id)+'\')"><span class="rt-task-copy"><b>'+e(s.title)+'</b><span class="mu">'+(s.time?'Até '+e(s.time):'Sem horário definido')+'</span></span>'+(status?'<span class="rt-task-status '+(st==='overdue'?'is-late':checked?'is-done':'')+'">'+e(status)+'</span>':'')+'<span class="rt-task-chevron" aria-hidden="true">›</span></button></article>';
@@ -457,8 +457,8 @@ function openDetails(id,needsPhoto=false){const o=db().occurrences[id];if(!o)ret
 function closeDetails(){V.rtDetailId='';V.rtDetailNeedsPhoto=false;V.sh=0;rMenu();}
 function detailsSheet(){
  const o=db().occurrences[V.rtDetailId];if(!o)return '';
- const s=o.snapshot,st=Core.state(o),fn=FUNCOES[s.functionId],master=typeof isFullAccess==='function'&&isFullAccess();
- const allowed=!master&&canSee(o.executorId)&&st!=='dismissed'&&!o.viaSystem;
+ const s=o.snapshot,st=Core.state(o),fn=FUNCOES[s.functionId];
+ const allowed=canMark(o)&&st!=='dismissed'&&!o.viaSystem;
  const photoLabel=s.photo==='required'?'Obrigatória':s.photo==='optional'?'Opcional':'Não exigida';
  const recurrence=s.recurrence||{},weekdays=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
  const recurrenceText=recurrence.type==='daily'?'Todos os dias':recurrence.type==='weekly'?'Semanal · '+(recurrence.days||[]).map(day=>weekdays[Number(day)]).filter(Boolean).join(', '):recurrence.type==='monthly'?'Mensal · dia(s) '+(recurrence.days||[]).join(', '):recurrence.type==='date'?'Uma vez · '+(Core.dateValue(recurrence.date)||'data específica'):recurrence.type==='dates'?'Datas específicas · '+(recurrence.dates||[]).map(Core.dateValue).filter(Boolean).join(', '):'Conforme programação';
@@ -561,13 +561,13 @@ async function complete(id){
  catch(err){root.stAlert(err.message||'Não foi possível concluir.');}
 }
 async function undoComplete(id){
- const o=db().occurrences[id];if(!o||o.status!=='done'||o.viaSystem||!canSee(o.executorId)||typeof isFullAccess==='function'&&isFullAccess())return;
+ const o=db().occurrences[id];if(!o||o.status!=='done'||o.viaSystem||!canMark(o))return;
  const photoId=o.photoId,photoPath=o.photoPath;Object.assign(o,{status:'pending',madeAt:null,madeBy:null,madeByName:'',viaSystem:false,photoId:null,photoPath:null,updatedAt:Date.now()});
  try{if(photoId||photoPath)await deletePhoto(photoId,photoPath);}catch(err){console.warn('Não foi possível remover a foto local da marcação desfeita.',err);}
  save();if(V.sh==='routine-details'){V.sh=0;V.rtDetailId='';V.rtDetailNeedsPhoto=false;}if(!refreshTaskRow(id,'is-unchecking'))R();
 }
 async function toggleComplete(id){
- const o=db().occurrences[id];if(!o||!canSee(o.executorId)||typeof isFullAccess==='function'&&isFullAccess()||o.status==='dismissed'||o.viaSystem)return;
+ const o=db().occurrences[id];if(!o||!canMark(o)||o.status==='dismissed'||o.viaSystem)return;
  if(o.status==='done')return undoComplete(id);
  if(o.snapshot.photo==='required'&&!o.photoId&&!o.photoPath){openDetails(id,true);return;}
  return complete(id);
