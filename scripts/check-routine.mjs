@@ -250,7 +250,7 @@ assert.match(routineSource,/function calendarNewActivity\(\)[\s\S]{0,1500}recurr
 assert.match(routineSource,/function calendarNewActivity\(\)[\s\S]{0,1800}source==='manual-extra'[\s\S]{0,700}V\.rtDraft\.activities\.push/,'Novas atividades devem reutilizar o modelo extra individual existente, evitando duplicar atribuições.');
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,3000}calendarMarkup\(tab==='team'\?teamIds:mine/,'O calendário deve respeitar a aba Minha rotina/Equipe e os respectivos responsáveis visíveis.');
 assert.match(routineSource,/V\.sh==='routine-calendar'[\s\S]{0,300}calendarSheet\(\)/,'O painel do calendário deve usar o gerenciador de janelas existente.');
-assert.match(routineSource,/rtCalendarTouchStart\(event\)[\s\S]{0,500}calendarShift\(end<start\?1:-1\)/,'O calendário deve aceitar deslize horizontal para navegar.');
+assert.match(routineSource,/function calendarTouchEnd\(event\)[\s\S]{0,500}calendarShift\(end<start\?1:-1\)/,'O calendário deve aceitar deslize horizontal para navegar.');
 assert.match(routineSource,/\.rt-calendar-day\{[\s\S]{0,500}min-height:58px/,'Os dias do calendário devem manter área de toque confortável.');
 assert.match(routineSource,/\.rt-calendar-dot\.is-late\{background:var\(--no\)\}[\s\S]{0,160}\.is-pending\{background:var\(--pr\)\}[\s\S]{0,100}\.is-done\{background:var\(--ok\)\}/,'Os indicadores devem distinguir atrasadas, pendentes e concluídas por cor.');
 assert.match(routineSource,/\.rt-calendar-sheet-body\{flex:1 1 auto;min-height:0;overflow-y:auto/,'O painel inferior do calendário deve rolar sem cortar atividades.');
