@@ -28,6 +28,8 @@ const requireCheck = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
+requireCheck(html.includes('openAppDiagnostics') && html.includes('refreshAppDiagnostics') && html.includes("configMenuCard('diag','Diagnóstico do aparelho'") && html.includes('navigator.storage.estimate') && html.includes('Nenhum dado será apagado ou enviado.'), 'Settings diagnostics must be a real read-only local inspection without destructive actions.');
+
 requireCheck(/^\d+\.\d+\.\d+$/.test(String(pkg.version || '')), 'package.json must contain a semantic application version.');
 requireCheck(html.includes("'trf':{'n':'Transformação'") && !html.includes("'trf'!==_0x24d848") && html.includes('Restauração de Transformação de produtos'), 'Transformação must remain available in Registro > Lançamentos with its preserved form and release note.');
 requireCheck(html.includes("'trf':'<path d=\"M4 7h15l-3-3m3 3-3 3M20 17H5l3 3m-3-3 3-3\"/>'"), 'Transformação must have a registered vector icon in the shared launch icon map.');
@@ -477,6 +479,28 @@ try {
   failures.push('Cronograma migration fixture test failed: '+error.message);
 }
 
+
+
+requireCheck(html.includes("const THEME_KEY='st_tema',MOTION_KEY='st_mov'") && html.includes("setTheme:value=>{if(['auto','light','dark'].includes(value))") && html.includes("setMotion:value=>{if(['auto','reduce'].includes(value))"), 'Per-device appearance preferences must validate supported theme and motion values before saving.');
+requireCheck(html.includes('function filterConfigMenu(value)') && html.includes('id="config-menu-search"') && html.includes('oninput="filterConfigMenu(this.value)"'), 'Settings search must filter existing menu cards locally without introducing remote requests.');
+requireCheck(html.includes('.config-menu-group[hidden],.config-menu-card[hidden]{display:none!important}'), 'Settings search must hide empty groups and restore them when the query is cleared.');
+requireCheck(html.includes('id="config-menu-no-results"') && html.includes('role="status" aria-live="polite"') && html.includes('if(empty)empty.hidden=total!==0'), 'Settings search must announce when no matching configuration is found.');
+requireCheck(html.includes("configMenuCard('access','Usuários e logins'") && html.includes("configMenuCard('access-profiles','Perfis de acesso'") && html.includes("configMenuCard('access-map','O que cada pessoa acessa'"), 'Administrative access options must be separated into users, access profiles, and per-person access summaries.');
+requireCheck(html.includes("function accessProfilesSummaryHTML()") && html.includes("function accessPeopleSummaryHTML()") && html.includes("Consulta dos modelos existentes") && html.includes("Resumo somente de leitura"), 'Administrative profile and person access screens must remain read-only summaries of stored permissions.');
+requireCheck(html.includes("const people=(S.team||[]).filter(loginRoleOK)") && html.includes("(personItem.perm||[]).filter(key=>ALLK().includes(key))"), 'Per-person access summaries must be limited to eligible people and known permission keys.');
+requireCheck(html.includes('function configProfileHeader()') && html.includes('config-profile-avatar') && html.includes("const name=member&&member.n?member.n:'Minha conta'"), 'Settings profile header must use the signed-in person record and a safe fallback when no team name is available.');
+requireCheck(html.includes("const preferences=[];") && html.includes("const notifications=[];") && html.includes("const help=[") && html.includes("group('Preferências',preferences)+group('Notificações',notifications)+group('Ajuda',help)"), 'Settings must separate account, preferences, notifications, and help into clear groups without removing existing actions.');
+requireCheck(html.includes("configMenuCard('pw','Trocar senha'") && html.includes("configMenuCard('logout','Sair'") && html.includes("configMenuCard('help','Ajuda'") && html.includes("configMenuCard('bug','Relatar problema'"), 'Account and help actions must remain available after regrouping.');
+requireCheck(html.includes('id="config-profile-sync"') && html.includes("profileSync.dataset.state=state;profileSync.textContent=label;"), 'Settings profile header must reflect the existing live synchronization state instead of maintaining a separate status.');
+requireCheck(html.includes('.config-profile-sync[data-state="synced"]') && html.includes('.config-profile-sync[data-state="syncing"]') && html.includes('.config-profile-sync[data-state="error"]'), 'Settings profile header must distinguish synchronized, syncing, and error states.');
+requireCheck(html.indexOf("THEME_KEY='st_tema'")>=0 && html.indexOf("THEME_KEY='st_tema'")<html.indexOf('<style>'), 'Theme and motion preferences must be applied before styles to avoid a visible theme flash.');
+requireCheck(html.includes("configMenuCard('appearance','Aparência e acessibilidade'") && html.includes("REG_MENU_ICON_PATHS['appearance']"), 'Appearance and accessibility must be reachable from Settings with a registered icon.');
+requireCheck(html.includes('html[data-motion="reduce"] *') && html.includes('.st-pref-control:focus-visible'), 'Manual reduced motion and visible keyboard focus must be supported by the appearance controls.');
+requireCheck(html.includes("window.__stAppearanceEsc=event=>{if(event.key==='Escape')") && html.includes("document.removeEventListener('keydown',window.__stAppearanceEsc)"), 'Appearance dialog must close with Escape and remove its temporary keyboard listener.');
+requireCheck(html.includes(`if(event.key==='Tab'){const dialog=host.querySelector('[role="dialog"]')`) && html.includes("event.shiftKey&&document.activeElement===first") && html.includes("!event.shiftKey&&document.activeElement===last"), 'Appearance dialog must keep keyboard focus inside the modal while it is open.');
+requireCheck(html.includes("window.__stAppearanceTrigger=document.activeElement") && html.includes("if(trigger&&trigger.isConnected)trigger.focus()"), 'Closing appearance settings must restore focus to the control that opened it.');
+requireCheck(html.includes("host.insertAdjacentHTML('beforeend','<div class=\"st-pref-overlay\">") && html.includes("host?.querySelector('.st-pref-overlay')?.remove()") && !html.includes("host.innerHTML='';if(window.__stAppearanceEsc"), 'Opening and closing appearance settings must preserve the underlying Settings sheet and remove only the appearance overlay.');
+requireCheck(html.includes(':root[data-theme="dark"]') && html.includes('@media(prefers-color-scheme:dark)') && html.includes(':root:not([data-theme="light"])'), 'Explicit light/dark themes and automatic system theme must use the existing global theme tokens.');
 
 for (const name of Object.keys(ceilings)) {
   requireCheck(
