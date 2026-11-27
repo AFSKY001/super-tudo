@@ -29,7 +29,7 @@ assert.match(indexSource,/window\.stRoutinePhotoDelete=async function\(path\)[\s
 assert.match(routinePhotoPolicySource,/public\.can_read_routine_record\([\s\S]{0,180}split_part\(name, '\/', 3\)/,'A leitura de fotos deve seguir a autorização de leitura da ocorrência da Rotina.');
 assert.match(routinePhotoPolicySource,/create or replace function public\.can_write_routine_photo_path[\s\S]{0,1200}has_perm_for_org\('r:rot'/,'O upload e a exclusão devem exigir permissão de Rotina e atribuição compatível.');
 assert.match(routinePhotoPolicySource,/drop policy if exists rotinas_evidencias_select_org[\s\S]{0,500}create policy rotinas_evidencias_select_routine_access/,'As políticas antigas, abertas a qualquer membro da empresa, devem ser substituídas.');
-assert.match(routineSource,/function installRoutineStyles[\s\S]{0,9000}rt-task-check[\s\S]{0,5000}rt-paper-strike[\s\S]{0,2500}rt-details-sheet/,'A lista deve ter ondas no checkbox e risco animado na legenda.');
+assert.match(routineSource,/function installRoutineStyles[\s\S]{0,9000}rt-task-check[\s\S]{0,5000}rt-paper-strike[\s\S]{0,9000}rt-details-sheet/,'A lista deve ter ondas no checkbox e risco animado na legenda.');
 assert.match(routineSource,/function refreshTaskRow\(id,motion\)[\s\S]{0,900}row\.outerHTML=card\(o\)/,'Marcar e desmarcar devem atualizar somente a linha da atividade, sem redesenhar a tela inteira.');
 assert.match(routineSource,/rt-paper-strike 2s/,'O risco da atividade concluída deve ser desenhado em aproximadamente dois segundos.');
 assert.match(routineSource,/text-decoration-line:line-through;text-decoration-color:transparent;text-decoration-thickness:2px;text-decoration-skip-ink:none/,'O risco deve acompanhar todas as linhas do título, inclusive quando a atividade quebra em duas ou mais linhas.');
@@ -235,3 +235,25 @@ assert.match(routineSource,/const all=Core\.performance\(rows\)/,'O painel de de
 const historySource=routineSource.slice(routineSource.indexOf('function historyScreen()'),routineSource.indexOf('function todayScreen()'));
 assert.doesNotMatch(historySource,/o\.status!=='dismissed'/,'O histórico não deve filtrar dispensadas antes de calcular seus indicadores.');
 assert.match(routineSource,/all\.overdue[\s\S]{0,200}all\.dismissed/,'O resumo deve exibir atrasadas e dispensadas.');
+
+
+assert.deepEqual(Core.calendarWeek('2026-11-27'),['2026-11-22','2026-11-23','2026-11-24','2026-11-25','2026-11-26','2026-11-27','2026-11-28'],'A semana compacta deve iniciar no domingo e manter datas locais.');
+assert.equal(Core.calendarMonthGrid('2026-11-27').length,42,'A grade mensal deve manter seis semanas para não saltar de altura entre meses.');
+assert.equal(Core.calendarMonthGrid('2026-11-27')[0],'2026-11-01','O calendário mensal deve começar no domingo da primeira semana do mês.');
+assert.equal(Core.calendarShiftMonth('2026-01-31',1),'2026-02-28','Avançar mês deve limitar o dia ao último dia existente no mês de destino.');
+assert.match(routineSource,/const calendarWeek=date=>[\s\S]{0,450}getDay\(\)/,'O cálculo da semana deve usar datas locais e semana iniciada no domingo.');
+assert.match(routineSource,/const calendarMonthGrid=date=>[\s\S]{0,650}Array\.from\(\{length:42\}/,'O mês deve renderizar uma grade estável de seis semanas.');
+assert.match(routineSource,/function calendarItemsOn\(date,ids\)[\s\S]{0,1000}Core\.generate\(D,date\)\.created/,'O calendário deve pré-visualizar ocorrências futuras sem gravá-las antecipadamente.');
+assert.match(routineSource,/function calendarMarkup\(ids,canCreate\)[\s\S]{0,3000}aria-pressed/,'Os dias do calendário devem ter estado selecionado acessível.');
+assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,2800}card\(o\)[\s\S]{0,1000}Programada/,'O painel inferior deve exibir registros existentes e prévias de atividades futuras.');
+assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,1800}snapshot\?\.modelName\|\|'Rotina'/,'O painel do dia deve identificar o modelo de Rotina de cada atividade.');
+assert.match(routineSource,/calendarMarkup\(tab==='team'\?teamIds:mine,[\s\S]{0,400}includes\('r:rot'\)/,'A criação rápida deve exigir permissão r:rot e não deve aparecer para Master/admin.');
+assert.match(routineSource,/function calendarNewActivity\(\)[\s\S]{0,1500}recurrence:\{type:'date',date,startDate:date\}/,'Nova atividade deve começar como pontual na data escolhida e permitir alterar a recorrência no editor.');
+assert.match(routineSource,/function calendarNewActivity\(\)[\s\S]{0,1800}source==='manual-extra'[\s\S]{0,700}V\.rtDraft\.activities\.push/,'Novas atividades devem reutilizar o modelo extra individual existente, evitando duplicar atribuições.');
+assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,3000}calendarMarkup\(tab==='team'\?teamIds:mine/,'O calendário deve respeitar a aba Minha rotina/Equipe e os respectivos responsáveis visíveis.');
+assert.match(routineSource,/V\.sh==='routine-calendar'[\s\S]{0,300}calendarSheet\(\)/,'O painel do calendário deve usar o gerenciador de janelas existente.');
+assert.match(routineSource,/function calendarTouchEnd\(event\)[\s\S]{0,500}calendarShift\(end<start\?1:-1\)/,'O calendário deve aceitar deslize horizontal para navegar.');
+assert.match(routineSource,/\.rt-calendar-day\{[\s\S]{0,500}min-height:58px/,'Os dias do calendário devem manter área de toque confortável.');
+assert.match(routineSource,/\.rt-calendar-dot\.is-late\{background:var\(--no\)\}[\s\S]{0,160}\.is-pending\{background:var\(--pr\)\}[\s\S]{0,100}\.is-done\{background:var\(--ok\)\}/,'Os indicadores devem distinguir atrasadas, pendentes e concluídas por cor.');
+assert.match(routineSource,/\.rt-calendar-sheet-body\{flex:1 1 auto;min-height:0;overflow-y:auto/,'O painel inferior do calendário deve rolar sem cortar atividades.');
+assert.doesNotMatch(routineSource,/calendarWeek[\s\S]{0,1000}toISOString/,'O calendário não deve converter datas locais usando toISOString.');
