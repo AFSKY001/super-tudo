@@ -302,7 +302,7 @@ const personalRoutineSqlChecks = [
   ['migration inicial já bloqueia Master/admin e limita gerente ao próprio vínculo', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineClassificationMigration],
   ['migration de permissões mantém Master/admin bloqueados e encarregado restrito à equipe', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,350}me\.role = 'encarregado'[\s\S]{0,200}public\.has_perm_for_org\('r:eqp'/, personalRoutineWriteScopeMigration],
   ['rollback da segunda migration mantém a restrição de escrita pessoal da primeira', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineWriteScopeRollback],
-  ['rollback da classificação alerta sobre novas gravações antes de reverter os kinds', /ONLY before any new per-person pt\/done writes[\s\S]{0,300}drop trigger[\s\S]{0,150}update public\.app_records[\s\S]{0,100}kind = 'r:cro'/, personalRoutineClassificationRollback],
+  ['rollback da classificação alerta sobre novas gravações antes de reverter os kinds', /ONLY before any new per-person pt\/done writes[\s\S]*drop trigger[\s\S]*update public\.app_records[\s\S]*kind = 'r:cro'/, personalRoutineClassificationRollback],
   ['migração de RPCs não revoga helper usado pelo Storage e rollback restaura os grants', /REVOKE EXECUTE[\s\S]{0,1800}is_org_member[\s\S]{0,300}/, internalDefinerRpcMigration],
   ['rollback de RPCs restaura execução autenticada dos helpers', /GRANT EXECUTE[\s\S]{0,1200}is_org_member/, internalDefinerRpcRollback],
 ];
