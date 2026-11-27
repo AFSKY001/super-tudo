@@ -57,6 +57,15 @@ const internalDefinerRpcRollback = fs.readFileSync(
   'utf8',
 );
 
+const routineOccurrenceHistoryMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261127150000_guard_routine_occurrence_history.sql'),
+  'utf8',
+);
+const routineOccurrenceHistoryRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261127150000_undo_guard_routine_occurrence_history.sql'),
+  'utf8',
+);
+
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -321,6 +330,10 @@ const personalRoutineSqlChecks = [
   ['rollback da classificação alerta sobre novas gravações antes de reverter os kinds', /ONLY before any new per-person pt\/done writes[\s\S]*drop trigger[\s\S]*update public\.app_records[\s\S]*kind = 'r:cro'/, personalRoutineClassificationRollback],
   ['migração de RPCs não revoga helper usado pelo Storage e rollback restaura os grants', /REVOKE EXECUTE[\s\S]{0,1800}FROM PUBLIC, anon, authenticated[\s\S]{0,300}is_org_member[\s\S]{0,300}/, internalDefinerRpcMigration],
   ['rollback de RPCs restaura execução autenticada dos helpers', /GRANT EXECUTE[\s\S]{0,1200}is_org_member/, internalDefinerRpcRollback],
+  ['ocorrências concluídas ou dispensadas ficam imutáveis no servidor', /v_old_status is distinct from 'pending'[\\s\\S]{0,260}new\\.data is distinct from old\\.data[\\s\\S]{0,180}new\\.deleted_at is distinct from old\\.deleted_at/, routineOccurrenceHistoryMigration],
+  ['ocorrências pendentes continuam editáveis para foto e encerramento de atribuição', /v_old_status is distinct from 'pending'[\\s\\S]{0,260}new\\.data is distinct from old\\.data/, routineOccurrenceHistoryMigration],
+  ['proteção de histórico roda antes de qualquer atualização de app_records', /create trigger app_records_guard_routine_occurrence_history[\\s\\S]{0,180}before update on public\\.app_records[\\s\\S]{0,120}old\\.module = 'routineOccurrences'/, routineOccurrenceHistoryMigration],
+  ['rollback remove apenas o trigger e a função de proteção do histórico', /drop trigger if exists app_records_guard_routine_occurrence_history[\\s\\S]*drop function if exists public\\.guard_routine_occurrence_history/, routineOccurrenceHistoryRollback],
 ];
 for (const [label, pattern, target] of personalRoutineSqlChecks) {
   const passed = pattern.test(target);
