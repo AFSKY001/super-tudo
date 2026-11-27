@@ -357,6 +357,7 @@ if (failed.length) {
 }
 
 const personalRoutineSecurityChecks = [
+  ['cliente sincroniza atividades pessoais pt como r:rot', /\['pt','r:rot'\]/.test(source)],
   ['classificação altera pt para r:rot e só altera done com três ou mais segmentos', /update public\.app_records[\s\S]*?module = 'pt'[\s\S]*?kind = 'r:rot'[\s\S]*?module = 'done'[\s\S]*?cardinality\(string_to_array\(record_id, '\|'\)\) >= 3/i.test(personalRoutineKindMigration)],
   ['migração mantém done legado de dois segmentos como r:cro', /Legacy cronograma keys have only date\|activity and stay on r:cro/i.test(personalRoutineKindMigration) && /cardinality\(string_to_array\(new\.record_id, '\|'\)\) < 3[\s\S]*?new\.kind is distinct from 'r:cro'/i.test(personalRoutineKindMigration)],
   ['sync_pull filtra ocorrências, marcações pessoais e atribuições por escopo', /can_read_sync_record_for_org[\s\S]*?routineOccurrences[\s\S]*?executorId[\s\S]*?module = 'pt'[\s\S]*?module = 'done'[\s\S]*?routineModels/i.test(personalRoutineKindMigration)],
