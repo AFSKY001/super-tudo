@@ -310,15 +310,15 @@ if (failedRoutinePermissions.length) {
   process.exitCode = 1;
 }
 const personalRoutineSqlChecks = [
-  ['classificação pessoal de done exige chave com pelo menos três segmentos', /cardinality\(string_to_array\(r\.record_id, '\\|'\)\) >= 3/, personalRoutineClassificationMigration],
-  ['trigger inicial preserva done de Cronograma com dois segmentos', /cardinality\(string_to_array\(new\.record_id, '\\|'\)\) < 3/, personalRoutineClassificationMigration],
-  ['rollback reverte apenas done pessoais com pelo menos três segmentos', /cardinality\(string_to_array\(r\.record_id, '\\|'\)\) >= 3/, personalRoutineClassificationRollback],
+  ['classificação pessoal de done exige chave com pelo menos três segmentos', /cardinality\(string_to_array\(r\.record_id, '\x7c'\)\) >= 3/, personalRoutineClassificationMigration],
+  ['trigger inicial preserva done de Cronograma com dois segmentos', /cardinality\(string_to_array\(new\.record_id, '\x7c'\)\) < 3/, personalRoutineClassificationMigration],
+  ['rollback reverte apenas done pessoais com pelo menos três segmentos', /cardinality\(string_to_array\(r\.record_id, '\x7c'\)\) >= 3/, personalRoutineClassificationRollback],
   ['migration reclassifica pt e done pelo identificador final de pessoa da organização', /where module = 'pt'[\s\S]{0,100}kind = 'r:cro'[\s\S]{0,350}where r\.module = 'done'[\s\S]{0,250}person\.team_member_id = split_part\(r\.record_id/, personalRoutineClassificationMigration],
   ['migration inicial já bloqueia Master/admin e limita gerente ao próprio vínculo', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineClassificationMigration],
   ['migration de permissões mantém Master/admin bloqueados e encarregado restrito à equipe', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,350}me\.role = 'encarregado'[\s\S]{0,200}public\.has_perm_for_org\('r:eqp'/, personalRoutineWriteScopeMigration],
   ['rollback da segunda migration mantém a restrição de escrita pessoal da primeira', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineWriteScopeRollback],
   ['rollback da classificação alerta sobre novas gravações antes de reverter os kinds', /ONLY before any new per-person pt\/done writes[\s\S]*drop trigger[\s\S]*update public\.app_records[\s\S]*kind = 'r:cro'/, personalRoutineClassificationRollback],
-  ['migração de RPCs não revoga helper usado pelo Storage e rollback restaura os grants', /REVOKE EXECUTE[\s\S]{0,1800}is_org_member[\s\S]{0,300}/, internalDefinerRpcMigration],
+  ['migração de RPCs não revoga helper usado pelo Storage e rollback restaura os grants', /REVOKE EXECUTE[\s\S]{0,1800}FROM PUBLIC, anon, authenticated[\s\S]{0,300}is_org_member[\s\S]{0,300}/, internalDefinerRpcMigration],
   ['rollback de RPCs restaura execução autenticada dos helpers', /GRANT EXECUTE[\s\S]{0,1200}is_org_member/, internalDefinerRpcRollback],
 ];
 for (const [label, pattern, target] of personalRoutineSqlChecks) {
