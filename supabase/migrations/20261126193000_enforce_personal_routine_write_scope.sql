@@ -120,8 +120,7 @@ when p_module='routineOccurrences' then exists(
 )
 else false
 end;
-$function$
-
+$function$;
 
 create or replace function public.guard_personal_routine_sync_write()
 returns trigger
