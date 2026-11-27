@@ -246,6 +246,8 @@ assert.match(routineSource,/const calendarMonthGrid=date=>[\s\S]{0,650}Array\.fr
 assert.match(routineSource,/function calendarItemsOn\(date,ids\)[\s\S]{0,1000}Core\.generate\(D,date\)\.created/,'O calendário deve pré-visualizar ocorrências futuras sem gravá-las antecipadamente.');
 assert.match(routineSource,/function calendarMarkup\(ids,canCreate\)[\s\S]{0,3000}aria-pressed/,'Os dias do calendário devem ter estado selecionado acessível.');
 assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,2800}card\(o\)[\s\S]{0,1000}Programada/,'O painel inferior deve exibir registros existentes e prévias de atividades futuras.');
+assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,1800}snapshot\?\.modelName\|\|'Rotina'/,'O painel do dia deve identificar o modelo de Rotina de cada atividade.');
+assert.match(routineSource,/calendarMarkup\(tab==='team'\?teamIds:mine,[\s\S]{0,400}includes\('r:rot'\)/,'A criação rápida deve exigir permissão r:rot e não deve aparecer para Master/admin.');
 assert.match(routineSource,/function calendarNewActivity\(\)[\s\S]{0,1500}recurrence:\{type:'date',date,startDate:date\}/,'Nova atividade deve começar como pontual na data escolhida e permitir alterar a recorrência no editor.');
 assert.match(routineSource,/function calendarNewActivity\(\)[\s\S]{0,1800}source==='manual-extra'[\s\S]{0,700}V\.rtDraft\.activities\.push/,'Novas atividades devem reutilizar o modelo extra individual existente, evitando duplicar atribuições.');
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,3000}calendarMarkup\(tab==='team'\?teamIds:mine/,'O calendário deve respeitar a aba Minha rotina/Equipe e os respectivos responsáveis visíveis.');
