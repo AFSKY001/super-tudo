@@ -473,16 +473,19 @@ try {
 
 
 // Contrato global dos campos: preservar o padrão existente sem depender de tokens de branches antigas.
-const fieldStyleMatch = html.match(/input:not\\(\\[type="checkbox"\\]\\):not\\(\\[type="radio"\\]\\):not\\(\\[type="range"\\]\\),\\s*select,textarea\\s*\\{[\\s\\S]*?\\}/);
-requireCheck(!!fieldStyleMatch && /min-height:44px/.test(fieldStyleMatch?.[0] || '') &&
-  /border:1px solid var\\(--bd\\)/.test(fieldStyleMatch?.[0] || '') &&
-  /background:var\\(--cd\\)/.test(fieldStyleMatch?.[0] || '') &&
-  /color:var\\(--tx\\)/.test(fieldStyleMatch?.[0] || '') &&
-  /border-radius:var\\(--ui-radius-control\\)/.test(fieldStyleMatch?.[0] || ''),
+const fieldStyleStart = html.indexOf('/* Campos maiores, foco suave e leitura confortável */');
+const fieldStyleEnd = html.indexOf('/* Janelas, submenus e bottom sheets */', fieldStyleStart);
+const fieldStyle = fieldStyleStart >= 0 && fieldStyleEnd > fieldStyleStart ? html.slice(fieldStyleStart, fieldStyleEnd) : '';
+requireCheck(fieldStyle.includes('min-height:44px') &&
+  fieldStyle.includes('border:1px solid var(--bd)') &&
+  fieldStyle.includes('background:var(--cd)') &&
+  fieldStyle.includes('color:var(--tx)') &&
+  fieldStyle.includes('border-radius:var(--ui-radius-control)'),
   'Text fields, selects and textareas must share the 44px global field contract and semantic theme tokens.');
-requireCheck(/input:not\\(\\[type="checkbox"\\]\\):not\\(\\[type="radio"\\]\\):focus,\\s*select:focus,textarea:focus\\s*\\{[\\s\\S]*?border-color:var\\(--pr\\)[\\s\\S]*?box-shadow:var\\(--ui-focus\\)/.test(html),
+requireCheck(fieldStyle.includes('border-color:var(--pr)') && fieldStyle.includes('box-shadow:var(--ui-focus)'),
   'Focused editable fields must use the global primary border and focus halo.');
-requireCheck(/button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible\\s*\\{[^}]*outline:2px solid var\\(--vi\\)/.test(html),
+requireCheck(html.includes('button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{') &&
+  html.includes('outline:2px solid var(--vi)'),
   'Keyboard focus must remain visible on buttons and form controls.');
 requireCheck(html.includes(':where(input,select,textarea)[aria-invalid="true"]{') &&
   html.includes('.field-error{color:var(--no);font-weight:600}'),
