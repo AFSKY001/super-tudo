@@ -32,6 +32,31 @@ const legacyTombstoneReadMigration = fs.readFileSync(
   'utf8',
 );
 
+const personalRoutineKindMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126180000_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
+const personalRoutineWriteMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261126193000_enforce_personal_routine_write_scope.sql'),
+  'utf8',
+);
+const restrictInternalRpcMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261127110000_restrict_internal_security_definer_rpc.sql'),
+  'utf8',
+);
+const personalRoutineKindRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261126180000_undo_reclassify_personal_routine_sync_kinds.sql'),
+  'utf8',
+);
+const personalRoutineWriteRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261126193000_undo_enforce_personal_routine_write_scope.sql'),
+  'utf8',
+);
+const restrictInternalRpcRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261127110000_undo_restrict_internal_security_definer_rpc.sql'),
+  'utf8',
+);
+
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
   ['modelos de Controle de Qualidade, Prevenção e Encarregado são procurados nas duas fontes legadas', /const sources=\[\['tmod',S\.tmod\],\['routineModels',S\.routineModels\]\][\s\S]{0,500}targets\.has/],
@@ -329,4 +354,29 @@ if (failed.length) {
   process.exitCode = 1;
 } else {
   console.log('Contrato estático de sincronização aprovado: ' + checks.length + ' verificações, além da sintaxe dos scripts inline.');
+}
+
+const personalRoutineSecurityChecks = [
+  ['classificação altera pt para r:rot e só altera done com três ou mais segmentos', /update public\.app_records[\s\S]*?module = 'pt'[\s\S]*?kind = 'r:rot'[\s\S]*?module = 'done'[\s\S]*?cardinality\(string_to_array\(record_id, '\|'\)\) >= 3/i.test(personalRoutineKindMigration)],
+  ['migração mantém done legado de dois segmentos como r:cro', /Legacy cronograma keys have only date\|activity and stay on r:cro/i.test(personalRoutineKindMigration) && /cardinality\(string_to_array\(new\.record_id, '\|'\)\) < 3[\s\S]*?new\.kind is distinct from 'r:cro'/i.test(personalRoutineKindMigration)],
+  ['sync_pull filtra ocorrências, marcações pessoais e atribuições por escopo', /can_read_sync_record_for_org[\s\S]*?routineOccurrences[\s\S]*?executorId[\s\S]*?module = 'pt'[\s\S]*?module = 'done'[\s\S]*?routineModels/i.test(personalRoutineKindMigration)],
+  ['gravação de ocorrências valida modelo, atribuição, atividade, executor e ID determinístico', /routineAssignments[\s\S]*?routineModels[\s\S]*?p_record_id=concat[\s\S]*?executorId[\s\S]*?snapshot/i.test(personalRoutineWriteMigration)],
+  ['Master e admin não recebem permissão para marcar ocorrências ou alterar marcações pessoais', /me\.role not in \('master', 'admin'\)/i.test(personalRoutineWriteMigration) && /new\.module = 'pt'[\s\S]*?me\.role not in \('master', 'admin'\)/i.test(personalRoutineWriteMigration) && /new\.module = 'done'[\s\S]*?me\.role not in \('master', 'admin'\)/i.test(personalRoutineWriteMigration)],
+  ['gerente precisa de r:rot e encarregado precisa também de vínculo e r:eqp para equipe', /has_perm_for_org\('r:rot',p_org_id\)[\s\S]*?me\.role='encarregado'[\s\S]*?has_perm_for_org\('r:eqp',p_org_id\)/i.test(personalRoutineWriteMigration)],
+  ['exceção de dispensa automática só permite pendente para dispensada após encerrar atribuição', /pg_trigger_depth\(\) > 1[\s\S]*?status' = 'dismissed'[\s\S]*?routineAssignments[\s\S]*?active[\s\S]*?until/i.test(personalRoutineWriteMigration)],
+  ['helpers internos revogam RPC direto sem revogar foto ou sync_pull/sync_push', ['can_access_team_member','can_read_kind','can_write_kind','has_module_access','has_perm','is_admin','is_org_admin','is_org_member'].every(name=>restrictInternalRpcMigration.includes('REVOKE EXECUTE ON FUNCTION public.'+name)) && !/REVOKE EXECUTE ON FUNCTION public\.(can_write_routine_photo_path|sync_pull|sync_push)/i.test(restrictInternalRpcMigration)],
+  ['migração preserva a RPC sync_pull multiempresa para authenticated', /revoke all on function public\.sync_pull\(timestamptz, uuid\) from public, anon/i.test(personalRoutineKindMigration) && /grant execute on function public\.sync_pull\(timestamptz, uuid\) to authenticated/i.test(personalRoutineKindMigration)],
+  ['rollback da classificação restaura sync_pull e os kinds anteriores', /create or replace function public\.sync_pull/i.test(personalRoutineKindRollback) && /set kind = 'r:cro'/i.test(personalRoutineKindRollback)],
+  ['rollback das permissões restaura as funções anteriores', /create or replace function public\.can_write_routine_record/i.test(personalRoutineWriteRollback) && /create or replace function public\.guard_personal_routine_sync_write/i.test(personalRoutineWriteRollback)],
+  ['rollback dos RPCs internos restaura os oito grants', ['can_access_team_member','can_read_kind','can_write_kind','has_module_access','has_perm','is_admin','is_org_admin','is_org_member'].every(name=>restrictInternalRpcRollback.includes('GRANT EXECUTE ON FUNCTION public.'+name))],
+  ['migrations de segurança não apagam tabelas nem truncam dados', !/\\b(drop\\s+table|truncate)\\b/i.test(personalRoutineKindMigration+personalRoutineWriteMigration+restrictInternalRpcMigration)],
+];
+const failedPersonalRoutineSecurity = [];
+for (const [label, passed] of personalRoutineSecurityChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) failedPersonalRoutineSecurity.push(label);
+}
+if (failedPersonalRoutineSecurity.length) {
+  console.error('Falhas nas migrations de segurança da Rotina: ' + failedPersonalRoutineSecurity.join('; '));
+  process.exitCode = 1;
 }
