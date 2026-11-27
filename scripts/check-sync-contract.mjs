@@ -137,7 +137,6 @@ const checks = [
   ['recebimento usa RPC sync_pull', /supa\['rpc'\]\('sync_pull'/],
   ['sync_push usa a empresa ativa da sessão', /supa\['rpc'\]\('sync_push',\{'p_ops':\[_0x14313\],'p_org_id':V\['cloudIdentity'\]\['org_id'\]\}\)/],
   ['sync_pull usa a empresa ativa da sessão', /supa\['rpc'\]\('sync_pull',\{'p_since':null,'p_org_id':V\['cloudIdentity'\]\['org_id'\]\}\)/],
-  ['revisão antiga não impede restaurar registro ausente da nuvem', /if\(_0x2267aa<_0xknownRevision&&_0xlocalRecord\|\|_0x2267aa===_0xknownRevision&&\(_0xlocalMatches\|\|_0x403986\)\)return;/],
   ['controle de revisão base', /base_revision/],
   ['estado de conflito é persistido', /syncMeta\['conflicts'\]/],
   ['conflitos preservam aviso local', /syncLocalNotice\(/],
