@@ -23,7 +23,7 @@ when p_module='routineOccurrences' then exists(
  join public.app_records m on m.org_id=p_org_id and m.module='routineModels'
   and m.record_id=coalesce(a.data->'value'->>'modelId',a.data->>'modelId') and m.deleted_at is null
  where me.user_id=auth.uid() and me.org_id=p_org_id and me.active=true and p.active=true
- and me.role <> 'admin'
+ and me.role not in ('master', 'admin')
  and public.has_perm_for_org('r:rot',p_org_id)
  and coalesce(a.data->'value'->>'executorId',a.data->>'executorId')
      =coalesce(p_data->'value'->>'executorId',p_data->>'executorId')
@@ -144,7 +144,7 @@ begin
         and me.org_id = new.org_id
         and me.active = true
         and p.active = true
-        and me.role <> 'admin'
+        and me.role not in ('master', 'admin')
         and public.has_perm_for_org('r:rot', new.org_id)
         and (
           v_person_id = me.team_member_id
@@ -187,7 +187,7 @@ begin
         and me.org_id = new.org_id
         and me.active = true
         and p.active = true
-        and me.role <> 'admin'
+        and me.role not in ('master', 'admin')
         and public.has_perm_for_org('r:rot', new.org_id)
         and (
           v_person_id = me.team_member_id
