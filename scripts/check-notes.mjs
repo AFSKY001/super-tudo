@@ -49,9 +49,9 @@ check(sql.includes("notas_has_permission('l:notes'")&&sql.includes("notas_has_pe
 check(notes.includes('!!n.shared&&canModerate()')&&notes.includes("n.shared&&(allowed('r:notes')||canModerate())"),'moderators must only see and edit notes explicitly shared with the team.');
 check(notes.includes('canToggleShare=!n.id||isOwner(n)')&&notes.includes("readOnly||!canToggleShare?'disabled':''"),'only the note author may change its sharing state.');
 check(notes.includes("b.classList.toggle('on',selected)")&&notes.includes("b.setAttribute('aria-checked',String(selected))"),'selected note color must update both visual and accessible selected states.');
-check(!notes.includes('<input <div id="nt-toolbar"')&&notes.includes('</div><div id="nt-toolbar"'),'note editor toolbar markup must remain valid and must not contain a stray input tag.');
+check(!notes.includes('<input <div id="nt-toolbar"')&&notes.indexOf('id="nt-format-panel"')<notes.indexOf('id="nt-toolbar"')&&notes.includes('id="nt-format-close"'),'formatting controls must stay inside a valid collapsible panel with a persistent close control.');
 check(notes.indexOf('class="nt-editor-footer"')<notes.indexOf('id="nt-title"'),'note sharing controls must stay above the note content and be immediately accessible.');
-check(notes.indexOf('id="nt-toolbar"')<notes.indexOf('id="nt-title"')&&html.includes('.nt-toolbar{position:sticky;top:0;bottom:auto;'),'formatting controls must stay near the top of the editor and remain accessible while scrolling.');
+check(notes.indexOf('id="nt-toolbar"')<notes.indexOf('id="nt-title"')&&html.includes('.nt-toolbar{position:relative;display:flex;')&&html.includes('overflow-x:auto')&&html.includes('.nt-format-close{flex:0 0 38px'),'formatting controls must form a horizontally scrollable row with a fixed close control.');
 check(sql.includes("shared = true\n    and public.notas_has_permission('m:notes', org_id)"),'database moderation policies must not expose or mutate private notes.');
 check(sql.includes('alter publication supabase_realtime add table public.notas'),'notes must be enabled for Realtime.');
 check(hardening.includes('create schema if not exists private')&&hardening.includes('create or replace function private.notas_has_permission'),'permission helper must live in a non-exposed schema.');
@@ -64,8 +64,10 @@ check((hardening.match(/\(select auth\.uid\(\)\)/g)||[]).length>=4,'notes RLS po
 check(notes.includes('MAX_NOTE_BODY_LENGTH=400000')&&notes.includes('length<380000')&&notes.includes('canvas.width=900;canvas.height=360'),'drawing payload and note body limits must allow normal sketches without unbounded data URLs.');
 check(notes.includes('function createChecklist()')&&notes.includes('nt-check-item')&&notes.includes('data-checked'),'selected text must convert to persistent checklist items.');
 check(notes.includes('function persistDraft()')&&notes.includes('await recoverDraft(')&&notes.includes('persistDraft();'),'drawing and checklist editing must retain offline draft persistence.');
+check(notes.includes('state.formatOpen')&&notes.includes("formatOpen?.addEventListener('click',()=>setFormatOpen(true))")&&notes.includes("formatClose?.addEventListener('click',()=>setFormatOpen(false))"),'the formatting panel must open and close without losing the note editor state.');
+check(notes.includes('nt-empty-note-float')&&html.includes('.nt-empty-icon.nt-empty-note-float{animation:nt-note-float')&&html.includes('@keyframes nt-note-float')&&html.includes('prefers-reduced-motion:reduce){.nt-empty-icon.nt-empty-note-float{animation:none!important;'),'the empty personal notes icon must float gently and respect reduced-motion preferences.');
 check(notes.includes("child.tagName==='IMG'&&c==='nt-drawing-image'")&&notes.includes('safeImageSrc'),'only bounded PNG drawings may survive note sanitization.');
 check(html.includes('.nt-draw-panel')&&html.includes('#nt-draw-canvas')&&html.includes('.nt-body .nt-drawing-image'),'drawing controls and responsive image styles must exist.');
-check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-check-item[data-checked="true"]'),'palette and checklist styles must exist.');
+check(html.includes('.nt-editor-tools')&&html.includes('.nt-palette-grid')&&html.includes('.nt-palette{position:sticky;bottom:8px')&&html.includes('.nt-check-item[data-checked="true"]'),'palette must appear as a compact lower panel and checklist styles must exist.');
 if(failures.length){console.error('FAIL - notes contract');failures.forEach(x=>console.error(' - '+x));process.exit(1);}
-console.log('PASS - contrato do Bloco de notas ('+53+' verificações)');
+console.log('PASS - contrato do Bloco de notas ('+55+' verificações)');
