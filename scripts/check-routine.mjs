@@ -261,9 +261,9 @@ assert.match(routineSource,/\.rt-calendar-sheet>\.sheet-body\{flex:1 1 auto!impo
 assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,1800}<div class="sheet-body">[\s\S]{0,2000}<\/div><\/section>/,'O conteúdo do calendário deve usar exatamente a classe sheet-body que recebe a rolagem interna.');
 assert.match(routineSource,/\.rt-calendar-sheet\{[^}]*display:flex;flex-direction:column/,'O calendário deve herdar o limite de altura e os pontos de expansão do gerenciador global.');
 assert.match(routineSource,/\.rt-calendar-sheet-head\{position:sticky;top:0/,'O cabeçalho e o botão de fechar do calendário devem permanecer acessíveis durante a rolagem.');
-assert.match(indexSource,/\.sheet\{display:flex;flex-direction:column;box-sizing:border-box;height:auto;overflow:hidden;transition:max-height 260ms/,'Todas as janelas devem crescer conforme o conteúdo e limitar o excesso ao corpo rolável.');
+assert.match(indexSource,/\.sheet\{display:flex;flex-direction:column;box-sizing:border-box;height:auto;overflow:hidden;transition:max-height 320ms/,'Todas as janelas devem crescer conforme o conteúdo e limitar o excesso ao corpo rolável.');
 assert.match(indexSource,/\.sheet-body\{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain/,'Todas as janelas devem rolar internamente quando atingirem o limite de altura.');
-assert.match(indexSource,/max-height:calc\(50svh \+ var\(--extra\)\)/,'O limite global mobile deve considerar a área visível com as barras do navegador abertas, mantendo o conteúdo excedente rolável.');
+assert.match(indexSource,/max-height:calc\(48svh \+ var\(--extra\)\)/,'O limite global mobile deve considerar a área visível com as barras do navegador abertas, mantendo o conteúdo excedente rolável.');
 assert.doesNotMatch(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,1400}scrollIntoView/,'A expansão não deve forçar a rolagem da página nem provocar reposicionamento global.');
 assert.match(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,900}querySelectorAll\('\.rt-person-card'\)[\s\S]{0,500}aria-expanded/,'Ao abrir uma pessoa, as outras devem ser recolhidas e seus estados acessíveis atualizados.');
 assert.ok(routineSource.includes("class=\"c rt-person-card\" id=\"rt-person-card-\'+e(pid)"),'Cada pessoa deve ter um alvo estável para revelar suas atividades após a expansão.');
