@@ -497,6 +497,18 @@ requireCheck(rules.includes('## 15. Contrato global de campos e foco') &&
   'The design-system document must describe the current field contract and current app baseline.');
 
 
+const navStart = html.indexOf('/* Navegação inferior — vidro do tema');
+const navEnd = html.indexOf('/* Detalhes da Rotina', navStart);
+const navStyles = navStart >= 0 && navEnd > navStart ? html.slice(navStart, navEnd) : '';
+requireCheck(navStyles.includes('background:rgba(17,24,39,.96)') && navStyles.includes('border:1px solid #35445A'),
+  'The mobile bottom navigation must keep its dark navy surface and border in both light and dark app themes.');
+requireCheck(navStyles.includes('#nav button.on,#nav button.on:hover{background:transparent!important') &&
+  navStyles.includes('#nav::before') && navStyles.includes('background:linear-gradient(135deg,#2B3A50 0%,#202C3F 100%)'),
+  'The active navigation item must use the shared rounded navy pill, never an individual square button background.');
+requireCheck(navStyles.includes('font-size:11px!important') && navStyles.includes('flex:0 0 13px') &&
+  navStyles.includes('white-space:nowrap') && navStyles.includes('text-overflow:clip'),
+  'All bottom navigation labels, including Ajustes, must keep the same fixed readable font size without shrinking.');
+
 for (const name of Object.keys(ceilings)) {
   requireCheck(
     legacyDialogs[name] <= ceilings[name],
