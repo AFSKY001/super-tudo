@@ -927,10 +927,11 @@ Os campos de formulário devem reutilizar o bloco global de estilos em `index.ht
 O teste `npm run check:ui` verifica a presença do contrato CSS e dos estados de foco e validação. A alteração desse padrão exige atualização dos testes e validação em tema claro/escuro, celular e desktop.
 
 
-## Padrão global de janelas com conteúdo rolável — 3.74.90
+## Padrão global de janelas com conteúdo rolável — 3.74.91
 
-- Todas as janelas `.sheet` usam altura natural: conteúdo curto não é esticado para preencher a tela.
-- A altura máxima respeita a área visível do dispositivo; em celulares considera `svh` e a área segura superior, mantendo fallback para `vh`.
-- Quando o conteúdo excede o limite, somente `.sheet-body` rola verticalmente, com `min-height: 0`, `overscroll-behavior: contain` e rolagem tátil no mobile. A página de trás não deve assumir o gesto no limite da janela.
-- O calendário da Rotina reutiliza o mesmo contêiner global. O cabeçalho com data e botão Fechar permanece visível durante a rolagem das atividades.
-- Não criar alturas fixas por módulo para simular rolagem; exceções precisam ser justificadas por função específica.
+- Janelas com pouco conteúdo mantêm altura natural.
+- Janelas com conteúdo longo abrem com altura inicial limitada a aproximadamente 50% da área visível; o corpo interno já fica rolável.
+- Arrastar a alça para cima expande a janela até aproximadamente 88% da área visível. Arrastar para baixo recolhe para o ponto inicial; o gesto de fechar permanece separado.
+- A mola usa o controlador físico global existente, sem listeners de arraste duplicados por módulo.
+- A área rolável usa `min-height: 0`, `overscroll-behavior: contain` e rolagem nativa do navegador.
+- O calendário da Rotina reutiliza o mesmo corpo global e não define limites próprios de altura.
