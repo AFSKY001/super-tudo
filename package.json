@@ -23,7 +23,7 @@
     "javascript-obfuscator": "5.10.1",
     "terser": "5.51.4",
     "wrangler": "4.165.0",
-    "acorn": "8.15.0"
+    "acorn": "8.19.0"
   },
   "overrides": {
     "zod": "^4.6.7"
