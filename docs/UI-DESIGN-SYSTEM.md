@@ -935,3 +935,13 @@ O teste `npm run check:ui` verifica a presença do contrato CSS e dos estados de
 - A mola usa o controlador físico global existente, sem listeners de arraste duplicados por módulo.
 - A área rolável usa `min-height: 0`, `overscroll-behavior: contain` e rolagem nativa do navegador.
 - O calendário da Rotina reutiliza o mesmo corpo global e não define limites próprios de altura.
+
+
+## Bottom sheet — três pontos de parada e mola por velocidade — 3.74.95
+
+- O controlador delegado único passa a oferecer três estados: fechado, parcial (aproximadamente 48% da área visível) e expandido (88%), sem criar listeners por janela.
+- Na janela parcial, arrastar para cima expande; na expandida, arrastar para baixo recolhe primeiro para o estado parcial. Um segundo gesto para baixo fecha a janela.
+- A soltura considera a posição e a velocidade recente do dedo. A mola integra posição e velocidade em requestAnimationFrame, com amortecimento, e a resistência no limite superior evita um teto rígido.
+- A alça continua sendo a única área que inicia o gesto; o corpo mantém rolagem nativa independente. O overlay acompanha a expansão sem alterar dados ou sincronização.
+- Setas do teclado alternam os pontos parcial/expandido; Escape fecha e o foco retorna ao acionador quando disponível. Movimento reduzido, inclusive a preferência de Ajustes, remove a mola.
+- A altura expandida permanece em 88%, preservando a alça visível conforme o padrão aprovado anteriormente.
