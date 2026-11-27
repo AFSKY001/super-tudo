@@ -188,7 +188,7 @@ function createChecklist(){
  lines.forEach(line=>{const li=document.createElement('li'),box=document.createElement('span');box.className='nt-check-item';box.dataset.checked='false';box.setAttribute('role','checkbox');box.setAttribute('tabindex','0');box.setAttribute('aria-checked','false');box.setAttribute('aria-label','Marcar tarefa');li.append(box,document.createTextNode(line));list.append(li);});
  range.deleteContents();range.insertNode(list);const sel=root.getSelection();sel?.removeAllRanges();
  state.mode='write';const hint=$('nt-select-hint'),toggle=$('nt-select-mode');if(hint)hint.hidden=true;if(toggle){toggle.classList.remove('on');toggle.setAttribute('aria-pressed','false');}
- state.editor.body=sanitize(body.innerHTML);state.dirty=true;scheduleSave();
+ state.editor.body=sanitize(body.innerHTML);state.dirty=true;persistDraft();scheduleSave();
 }
 function command(name){const body=$('nt-body');if(!body)return;body.focus();document.execCommand(name,false,null);state.editor.body=sanitize(body.innerHTML);state.dirty=true;persistDraft();scheduleSave();}
 function selectionRange(){const sel=root.getSelection();if(!sel?.rangeCount)return null;const range=sel.getRangeAt(0);return $('nt-body')?.contains(range.commonAncestorContainer)?range:null;}
@@ -232,7 +232,7 @@ async function openEditor(id){
  const n=id?state.notes.find(x=>String(x.id)===String(id)):null;
  if(id&&!n){await loadNotes();return;}
  state.editor=n?{...n,body:sanitize(n.body||'')}:{id:null,title:'',body:'',color:'amarelo',pinned:false,archived:false,shared:false};
- state.readOnly=!!n&&!canEdit(n);state.dirty=false;state.recoveredDraft=false;state.lastUpdated=n?.updated_at||null;state.menu=false;
+ state.readOnly=!!n&&!canEdit(n);state.dirty=false;state.recoveredDraft=false;state.mode='write';state.paletteOpen=false;state.drawOpen=false;state.lastUpdated=n?.updated_at||null;state.menu=false;
  if(!state.readOnly){const draft=await recoverDraft(n?.id||'new');if(draft&&(!draft.noteId||String(draft.noteId)===String(n?.id||''))){state.editor={...state.editor,title:draft.title||'',body:sanitize(draft.body||''),color:colors[draft.color]?draft.color:'amarelo',pinned:!!draft.pinned,archived:!!draft.archived,shared:!!draft.shared};state.lastUpdated=draft.baseUpdatedAt||n?.updated_at||null;state.dirty=true;state.recoveredDraft=true;}}
  render();if(state.recoveredDraft){status('Rascunho recuperado deste aparelho');if(root.navigator.onLine)scheduleSave();}
 }
@@ -267,7 +267,7 @@ function open(){
 }
 async function backToRegistry(){const saved=await back();if(saved===false)return;if(state.channel){supa.removeChannel(state.channel);state.channel=null;}V.rs='home';V.reg=null;bridge.R();}
 function setTab(tab){state.tab=tab;state.search='';state.color='';state.menu=false;loadNotes();}
-function setColor(color){if(!state.editor||state.readOnly)return;state.editor.color=color;const el=document.querySelector('.nt-editor');if(el){el.dataset.color=color;el.style.setProperty('--nt-bg',colors[color]);}document.querySelectorAll('.nt-editor-colors button').forEach(b=>{const selected=b.getAttribute('aria-label')===color;b.setAttribute('aria-checked',String(selected));b.classList.toggle('on',selected);});state.dirty=true;persistDraft();scheduleSave();}
+function setColor(color){if(!state.editor||state.readOnly||!colors[color])return;state.editor.color=color;const el=document.querySelector('.nt-editor');if(el){el.dataset.color=color;el.style.setProperty('--nt-bg',colors[color]);}document.querySelectorAll('[data-note-color]').forEach(b=>{const selected=b.dataset.noteColor===color;b.classList.toggle('on',selected);b.setAttribute('aria-pressed',String(selected));});const dot=document.querySelector('.nt-current-color');if(dot)dot.style.setProperty('--nt-dot',colors[color]);state.dirty=true;persistDraft();scheduleSave();}
 function share(value){if(!state.editor||state.readOnly)return;state.editor.shared=!!value;state.dirty=true;persistDraft();scheduleSave();}
 function menu(){state.menu=!state.menu;render();}
 function search(value){state.search=value;const cursor=$('nt-search');render();const input=document.querySelector('.nt-tools input');if(input){input.focus();input.setSelectionRange(value.length,value.length);}}
