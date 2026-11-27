@@ -3007,11 +3007,21 @@ function perfEvaluationStats(_0x3bb407,_0x4b979b,_0x1b3d96){const _0x3a7ebb=_0x2
     String(occurrence.executorId || '') === String(person.id) &&
     String(occurrence.date || '') >= startDate &&
     String(occurrence.date || '') <= endDate &&
-    occurrence.status !== 'dismissed' &&
     !(occurrence.snapshot && occurrence.snapshot.mandatory === false)
   );
-  const done = rows.filter(occurrence => occurrence.status === 'done').length;
-  return { planned: rows.length, done, percent: rows.length ? done / rows.length * 100 : null };
+  const core = window.SuperTudoRoutineCore;
+  const summary = core && typeof core.performance === 'function'
+    ? core.performance(rows)
+    : {
+        done: rows.filter(occurrence => occurrence.status === 'done').length,
+        overdue: 0,
+        pending: rows.filter(occurrence => occurrence.status !== 'done' && occurrence.status !== 'dismissed').length,
+        dismissed: rows.filter(occurrence => occurrence.status === 'dismissed').length,
+        total: rows.filter(occurrence => occurrence.status !== 'dismissed').length,
+        pct: null
+      };
+  return { planned: summary.total, done: summary.done, overdue: summary.overdue,
+    pending: summary.pending, dismissed: summary.dismissed, percent: summary.pct };
 }
 function perfExtraMetricsHTML(people, period) {
   const rows = people.map(person => ({
@@ -3025,21 +3035,28 @@ function perfExtraMetricsHTML(people, period) {
   const quality = qualityN ? qualitySum / qualityN : null;
   const routinePlanned = rows.reduce((sum, row) => sum + row.routines.planned, 0);
   const routineDone = rows.reduce((sum, row) => sum + row.routines.done, 0);
+  const routineOverdue = rows.reduce((sum, row) => sum + row.routines.overdue, 0);
+  const routinePending = rows.reduce((sum, row) => sum + row.routines.pending, 0);
+  const routineDismissed = rows.reduce((sum, row) => sum + row.routines.dismissed, 0);
   const routinePercent = routinePlanned ? routineDone / routinePlanned * 100 : null;
   const personRows = rows.map(row => {
     const qualityText = row.checks.quality === null ? '—' : row.checks.quality.toFixed(1) + '/10';
     const routineText = row.routines.percent === null
       ? '—'
       : row.routines.percent.toFixed(1) + '% (' + row.routines.done + '/' + row.routines.planned + ')';
-    return '<div class="it"><span>' + esc(row.person.n) + '</span><b>Qualidade ' + qualityText + ' · Rotina ' + routineText + '</b></div>';
+    const routineStates = row.routines.planned || row.routines.dismissed
+      ? ' · ' + row.routines.overdue + ' atrasadas · ' + row.routines.pending + ' pendentes · ' + row.routines.dismissed + ' dispensadas'
+      : '';
+    return '<div class="it"><span>' + esc(row.person.n) + '</span><b>Qualidade ' + qualityText + ' · Rotina ' + routineText + routineStates + '</b></div>';
   }).join('');
   return '<div class="c"><h3>Qualidade dos checklists</h3><div class="big">' +
     (quality === null ? '—' : quality.toFixed(1) + '/10') +
     '</div><div class="mu">' + qualityN + ' avaliação(ões) de checklist. A nota considera respostas “Sim” e “Não”; “Não se aplica” fica fora.</div>' +
     '<h3 class="u-mt10">Rotinas atribuídas</h3><div class="big">' +
     (routinePercent === null ? '—' : routinePercent.toFixed(1) + '%') +
-    '</div><div class="mu">' + routineDone + '/' + routinePlanned +
-    ' ocorrências obrigatórias concluídas. A geração histórica da Rotina é limitada a 60 dias.</div>' +
+    '</div><div class="mu">' + routineDone + ' concluídas · ' + routineOverdue + ' atrasadas · ' +
+    routinePending + ' pendentes · ' + routineDismissed + ' dispensadas (fora do percentual). Total considerado: ' +
+    routinePlanned + '. A geração histórica da Rotina é limitada a 60 dias.</div>' +
     personRows +
     '<p class="mu">O Índice síntese /100 continua sendo a média simples das dimensões disponíveis: cronogramas, checklists completos e avaliações (escala 1–4 convertida para 0–10). Qualidade dos checklists e Rotina aparecem separadamente e ainda não alteram esse índice.</p></div>';
 }
