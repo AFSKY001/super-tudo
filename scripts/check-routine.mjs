@@ -66,7 +66,7 @@ assert.match(routineSource,/function canSee\(id\)\{[^}]*visibleTeam\(\)/,'A lide
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,500}teamIds=master\?[\s\S]{0,160}:visibleTeam\(\)\.map/,'A aba Equipe da Rotina deve listar os subordinados da liderança cadastrada em Dados.');
 assert.match(routineSource,/teamIds=master\?\(S\.team\|\|\[\]\)\.filter\(x=>!x\.adm&&\/encarregado\/i\.test\(String\(x\.f\|\|''\)\)\)/,'O painel do Master deve acompanhar somente os encarregados, sem incluir os demais funcionários.');
 const teamToggleSource=routineSource.slice(routineSource.indexOf('function toggleTeamPerson(pid)'),routineSource.indexOf('function todayScreen()'));
-assert.ok(teamToggleSource.includes("V.rtExpandedPerson=opening?key:''")&&teamToggleSource.includes("activities.innerHTML=list([key]).map(card).join('')")&&teamToggleSource.includes('current.appendChild(activities)'),'A expansão deve inserir apenas as atividades da pessoa selecionada, preservando o restante da tela.');
+assert.ok(teamToggleSource.includes("V.rtExpandedPerson=String(V.rtExpandedPerson||'')===key?'':key")&&teamToggleSource.includes('R();')&&!teamToggleSource.includes('current.appendChild')&&!teamToggleSource.includes('querySelectorAll'),'A expansão deve ser renderizada a partir do estado, manter uma pessoa aberta por vez e sobreviver a novas renderizações.');
 assert.ok(routineSource.includes('class="rt-person-progress">\'+completed+\'/\'+total'),'O resumo compacto deve mostrar atividades concluídas sobre o total previsto.');
 assert.match(routineSource,/\.rt-task-status\.is-done\{color:var\(--tx\)\}/,'O status das atividades concluídas deve usar texto branco/neutro, não verde.');
 
