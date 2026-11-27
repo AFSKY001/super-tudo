@@ -65,6 +65,9 @@ const checks = [
   ['revisão só confirma após fila pendente zerar', /const pending=\(syncMeta\.queue\|\|\[\]\)\.filter\(op=>!op\.status\)[\s\S]{0,700}não serão apresentadas como sincronizadas/],
   ['modelos e atribuições de Rotina entram na sincronização multiempresa', /\['routineModels','r:cro'\],\['routineAssignments','r:cro'\]/],
   ['ocorrências da Rotina são sincronizadas como registros idempotentes', /syncAddObject\([^;]{0,180}'routineOccurrences','r:rot'/],
+  ['marcações pessoais usam r:rot e marcas legadas de Cronograma continuam r:cro', /function syncAddDone\(map,values\)[\s\S]{0,350}id\.split\('\|'\)\.length>=3\?'r:rot':'r:cro'[\s\S]{0,1800}syncAddDone\(_0x15b650,_0x4ebf0e\['done'\]\)/],
+  ['criação repetida de ocorrência idêntica é reconhecida sem descartar diferenças de conteúdo', /function syncRoutineCreateEquivalent\(op,record,result,baseRevision\)[\s\S]{0,1000}syncCanon\(normalize\(local\)\)===syncCanon\(normalize\(server\)\)/],
+  ['conflito idempotente só é resolvido automaticamente quando a base não tinha revisão e a nuvem já tem o mesmo registro', /syncRoutineCreateEquivalent\(_0x2b4c27,_0x19c7ed,_0x1134c5,_0x335e74\)[\s\S]{0,500}server_revision/],
   ['cliente aplica modelos, atribuições e ocorrências recebidos da nuvem', /'routineModels'!==_0x3419a0&&'routineAssignments'!==_0x3419a0[\s\S]{0,1100}'routineOccurrences'===_0x3419a0/],
   ['cliente reconhece o fluxo restrito de encarregado em cfg:team', /'encarregado'===_0xrole&&_0x3c2060\['includes'\]\('r:eqp'\)/],
 
