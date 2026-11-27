@@ -277,6 +277,16 @@ for (const [label, pattern] of employeeRoutineModelChecks) {
   if (!passed) process.exitCode = 1;
 }
 
+const routineTaskDetailLayoutChecks = [
+  ['detalhes da Rotina usam contêiner próprio de rolagem vertical', source.includes("return '<section class=\"rot-task-detail-scroll\">") && source.includes("+_0x427603(0x59a)+'</section>';}function addRotTaskPhoto")],
+  ['rolagem dos detalhes respeita viewport e área segura inferior', source.includes('.rot-task-detail-scroll{') && source.includes('max-height:calc(100dvh - 176px)') && source.includes('overflow-y:auto') && source.includes('env(safe-area-inset-bottom,0px)')],
+  ['blocos e etapas dos detalhes mantêm espaçamento confortável', source.includes('.rot-task-detail-scroll > .c{') && source.includes('padding:16px') && source.includes('.rot-task-detail-scroll .it{') && source.includes('margin:10px 0') && source.includes('padding:12px')],
+];
+for (const [label, passed] of routineTaskDetailLayoutChecks) {
+  console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
+  if (!passed) process.exitCode = 1;
+}
+
 const syncCanWriteStart = source.indexOf('function syncCanWrite(');
 const syncCanWriteEnd = source.indexOf('function syncQueueChanges(', syncCanWriteStart);
 if (syncCanWriteStart < 0 || syncCanWriteEnd < 0) {
