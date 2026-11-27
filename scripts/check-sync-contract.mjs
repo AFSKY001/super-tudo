@@ -245,9 +245,9 @@ const internalDefinerRpcChecks = [
     'public.is_org_admin(uuid)',
     'public.is_org_member(uuid)',
   ].every(signature => internalDefinerRpcMigration.includes('REVOKE EXECUTE ON FUNCTION ' + signature + ' FROM authenticated;'))],
-  ['migration preserva a RPC de foto usada pelas políticas do Storage', !/REVOKE EXECUTE ON FUNCTION public\\.can_write_routine_photo_path/.test(internalDefinerRpcMigration)],
-  ['migration preserva as RPCs multiempresa usadas pelo cliente', !/REVOKE EXECUTE ON FUNCTION public\\.sync_(push|pull)/.test(internalDefinerRpcMigration)],
-  ['migration não concede acesso a anon nem altera PUBLIC', !/\\b(GRANT|REVOKE)\\s+EXECUTE[\\s\\S]{0,100}\\b(anon|PUBLIC)\\b/i.test(internalDefinerRpcMigration)],
+  ['migration preserva a RPC de foto usada pelas políticas do Storage', !internalDefinerRpcMigration.includes('REVOKE EXECUTE ON FUNCTION public.can_write_routine_photo_path')],
+  ['migration preserva as RPCs multiempresa usadas pelo cliente', !internalDefinerRpcMigration.includes('REVOKE EXECUTE ON FUNCTION public.sync_')],
+  ['migration não concede acesso a anon nem altera PUBLIC', !internalDefinerRpcMigration.includes(' TO anon') && !internalDefinerRpcMigration.includes(' TO PUBLIC') && !internalDefinerRpcMigration.includes(' FROM anon') && !internalDefinerRpcMigration.includes(' FROM PUBLIC')],
   ['rollback restaura exatamente os oito grants authenticated', [
     'public.can_access_team_member(text)',
     'public.can_read_kind(text, text)',
