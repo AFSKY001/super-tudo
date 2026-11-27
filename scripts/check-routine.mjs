@@ -31,7 +31,7 @@ assert.match(routinePhotoPolicySource,/create or replace function public\.can_wr
 assert.match(routinePhotoPolicySource,/drop policy if exists rotinas_evidencias_select_org[\s\S]{0,500}create policy rotinas_evidencias_select_routine_access/,'As políticas antigas, abertas a qualquer membro da empresa, devem ser substituídas.');
 assert.match(indexSource,/const baseMax=maxHeightFor\(sheet,false\),expandedMax=maxHeightFor\(sheet,true\)/,'Puxar a alça para cima deve expandir a janela até perto do topo.');
 assert.match(indexSource,/state\.sheet\.classList\.add\('st-sheet-expanded'\)/,'A janela deve manter a altura expandida após soltar a alça.');
-assert.match(indexSource,/\.sheet\.st-sheet-expanded\{max-height:calc\(88svh \+ var\(--extra\)\)!important/,'Janelas expandidas devem preservar espaço para rolagem interna quase até o topo.');
+assert.match(indexSource,/\.sheet\.st-sheet-expanded\{max-height:calc\(88vh \+ var\(--extra\)\)!important;max-height:calc\(88svh \+ var\(--extra\)\)!important/,'Janelas expandidas devem preservar espaço para rolagem interna quase até o topo.');
 assert.match(routineSource,/function installRoutineStyles[\s\S]{0,9000}rt-task-check[\s\S]{0,5000}rt-paper-strike[\s\S]{0,9000}rt-details-sheet/,'A lista deve ter ondas no checkbox e risco animado na legenda.');
 assert.match(routineSource,/function refreshTaskRow\(id,motion\)[\s\S]{0,900}row\.outerHTML=card\(o\)/,'Marcar e desmarcar devem atualizar somente a linha da atividade, sem redesenhar a tela inteira.');
 assert.match(routineSource,/rt-paper-strike 2s/,'O risco da atividade concluída deve ser desenhado em aproximadamente dois segundos.');
