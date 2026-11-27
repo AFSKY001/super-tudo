@@ -286,7 +286,7 @@ for (let index = 0; index < inlineScripts.length; index++) {
 
 
 const routineTaskDetailLayoutChecks = [
-  ['detalhes da Rotina usam contêiner próprio de rolagem vertical', source.includes('class="rot-task-detail-scroll"') && source.includes("return '<section class=\\"rot-task-detail-scroll\\">'+_0x23fb43")],
+  ['detalhes da Rotina usam contêiner próprio de rolagem vertical', source.includes('class="rot-task-detail-scroll"') && source.includes(`return '<section class="rot-task-detail-scroll">'+_0x23fb43`)],
   ['rolagem dos detalhes respeita viewport e área segura inferior', source.includes('.rot-task-detail-scroll{') && source.includes('max-height:calc(100dvh - 176px)') && source.includes('overflow-y:auto') && source.includes('env(safe-area-inset-bottom,0px)')],
   ['blocos e etapas dos detalhes mantêm espaçamento confortável', source.includes('.rot-task-detail-scroll > .c{') && source.includes('padding:16px') && source.includes('.rot-task-detail-scroll .it{') && source.includes('margin:10px 0') && source.includes('padding:12px')],
   ['detalhes fecham o contêiner de rolagem sem alterar a conclusão da atividade', source.includes("+_0x427603(0x59a)+'</section>';}function addRotTaskPhoto")],
