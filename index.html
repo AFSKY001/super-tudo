@@ -3773,7 +3773,6 @@ function cancelSpring(sheet){const s=springs.get(sheet);if(!s)return null;cancel
 function visibleHeight(sheet){const extra=parseFloat(getComputedStyle(sheet).getPropertyValue('--extra'))||0;return Math.max(1,sheet.offsetHeight-extra);}
 function ensureSheet(sheet){
  sheet.setAttribute('data-sheet','');
- sheet.classList.remove('st-sheet-expanded');
  let handle=sheet.querySelector(':scope > [data-sheet-handle]')||sheet.querySelector('.st-sheet-handle');
  if(!handle){handle=document.createElement('button');handle.type='button';handle.className='st-sheet-handle';handle.setAttribute('aria-label','Segure e arraste para mover ou fechar a janela');handle.title='Segure e arraste para mover a janela';handle.setAttribute('data-no-ripple','true');}
  if(handle.parentElement!==sheet)sheet.insertBefore(handle,sheet.firstChild);
