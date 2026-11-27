@@ -149,6 +149,18 @@ const performanceRows=[
 ];
 assert.deepEqual(Core.progress(performanceRows),{done:2,total:3,pct:67},'O desempenho deve contar somente atividades obrigatórias não dispensadas, incluindo conclusão automática ou manual como uma única conclusão.');
 assert.deepEqual(Core.progress([{status:'done',snapshot:{mandatory:false}}]),{done:0,total:0,pct:null},'Sem atividades obrigatórias, a porcentagem deve ser indisponível e não 0%.');
+const performanceNow=new Date(2026,10,26,12,0,0);
+const detailedPerformanceRows=[
+ {status:'done',date:'2026-11-26',snapshot:{mandatory:true,time:'08:00'}},
+ {status:'pending',date:'2026-11-25',snapshot:{mandatory:true,time:'08:00'}},
+ {status:'pending',date:'2026-11-26',snapshot:{mandatory:true,time:'10:00'}},
+ {status:'pending',date:'2026-11-26',snapshot:{mandatory:true,time:'14:00'}},
+ {status:'pending',date:'2026-11-27',snapshot:{mandatory:true,time:'08:00'}},
+ {status:'dismissed',date:'2026-11-26',snapshot:{mandatory:true,time:'08:00'}},
+ {status:'done',date:'2026-11-26',snapshot:{mandatory:false,time:'08:00'}}
+];
+assert.deepEqual(Core.performance(detailedPerformanceRows,performanceNow),{done:1,overdue:2,pending:2,dismissed:1,total:5,scheduled:6,pct:20},'O painel deve separar concluídas, atrasadas, pendentes e dispensadas; dispensadas e opcionais não entram no percentual.');
+assert.deepEqual(Core.performance([{status:'dismissed',date:'2026-11-26',snapshot:{mandatory:true,time:'08:00'}},{status:'done',date:'2026-11-26',snapshot:{mandatory:false,time:'08:00'}}],performanceNow),{done:0,overdue:0,pending:0,dismissed:1,total:0,scheduled:1,pct:null},'Período só com dispensadas/ opcionais deve ter percentual indisponível.');
 const historicalDb={models:[{id:'m1',activities:[{id:'a1',title:'Diária',recurrence:{type:'daily'},mandatory:true}]}],assignments:[{id:'as1',modelId:'m1',executorId:'p1',active:true,from:'2026-10-01'}],occurrences:{}};
 const oldDay=Core.generate(historicalDb,'2026-11-25');
 assert.equal(oldDay.created.length,1,'A geração deve criar ocorrência para dia anterior ainda dentro da janela histórica.');
