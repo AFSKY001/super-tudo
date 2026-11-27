@@ -214,6 +214,12 @@ assert.match(indexSource,/\['source'\].{0,20}'employee-profile-model'[\s\S]{0,50
 assert.match(indexSource,/selectedModels=new Set\(_0x40cc98\['ckModels'\]\)[\s\S]{0,700}row\['archivedAt'\]=today\(\)/,'Salvar o cadastro deve arquivar atribuições de modelos que foram retiradas da seleção.');
 assert.match(indexSource,/row\.mid===mid&&!row\.archivedAt[\s\S]{0,300}hadArchived[\s\S]{0,500}hadArchived\?'-'\+uid\(\)/,'Reatribuir um modelo arquivado deve criar uma nova atribuição sem sobrescrever o histórico anterior.');
 
+
+assert.match(routineSource,/function canMark\(o\)\{[\s\S]{0,700}roles\.some\(role=>role==='master'\|\|role==='admin'\)[\s\S]{0,350}permissions\.includes\('r:rot'\)/,'Somente usuários com r:rot e sem perfil Master/admin podem marcar ocorrências.');
+assert.match(routineSource,/function card\(o\)[\s\S]{0,260}allowed=canMark\(o\)/,'A interface deve ocultar ações de marcar/dispensar para perfis sem autorização.');
+assert.match(routineSource,/async function dismiss\(id\)[\s\S]{0,140}!canMark\(o\)/,'A dispensa também deve validar autorização antes de alterar a ocorrência.');
+assert.match(routineSource,/async function complete\(id\)[\s\S]{0,140}!canMark\(o\)/,'A conclusão deve validar autorização antes de salvar foto ou alterar a ocorrência.');
+
 const performanceBreakdown=Core.performance([
  {date:'2026-11-24',status:'done',snapshot:{mandatory:true,time:'08:00'}},
  {date:'2026-11-25',status:'pending',snapshot:{mandatory:true,time:'08:00'}},
