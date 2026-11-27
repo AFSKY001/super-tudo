@@ -4,11 +4,11 @@
 -- Keep can_write_routine_photo_path executable because Storage RLS policies call it.
 -- Keep the two-argument sync RPCs executable because the application calls them.
 
-REVOKE EXECUTE ON FUNCTION public.can_access_team_member(text) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.can_read_kind(text, text) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.can_write_kind(text) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.has_module_access(uuid, text, text) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.has_perm(text) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.is_admin() FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.is_org_admin(uuid) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.is_org_member(uuid) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.can_access_team_member(text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.can_read_kind(text, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.can_write_kind(text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.has_module_access(uuid, text, text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.has_perm(text) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_org_admin(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_org_member(uuid) FROM PUBLIC, anon, authenticated;
