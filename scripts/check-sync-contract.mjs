@@ -31,6 +31,7 @@ const legacyTombstoneReadMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261126123000_allow_owner_read_legacy_checklist_tombstone.sql'),
   'utf8',
 );
+
 const personalRoutineClassificationMigration = fs.readFileSync(
   path.join(root, 'supabase/migrations/20261126180000_reclassify_personal_routine_sync_kinds.sql'),
   'utf8',
@@ -296,7 +297,6 @@ if (failedRoutinePermissions.length) {
   console.error('Falhas nas permissões específicas da Rotina: ' + failedRoutinePermissions.join('; '));
   process.exitCode = 1;
 }
-
 const personalRoutineSqlChecks = [
   ['migration reclassifica pt para r:rot e apenas done com três ou mais partes', /where module = 'pt'[\s\S]{0,100}kind = 'r:cro'[\s\S]{0,350}where module = 'done'[\s\S]{0,140}cardinality\(string_to_array\(record_id, '\|'\)\) >= 3/, personalRoutineClassificationMigration],
   ['migration inicial já bloqueia Master/admin e limita gerente ao próprio vínculo', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineClassificationMigration],
@@ -311,6 +311,7 @@ for (const [label, pattern, target] of personalRoutineSqlChecks) {
   console.log((passed ? 'PASS' : 'FAIL') + ' - ' + label);
   if (!passed) process.exitCode = 1;
 }
+
 
 const inlineScripts = [...source.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
   .filter(([, attrs, body]) => !/\bsrc\s*=/.test(attrs) && body.trim());
