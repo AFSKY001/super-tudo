@@ -4,6 +4,7 @@
 create or replace function public.guard_routine_occurrence_history()
 returns trigger
 language plpgsql
+security definer
 set search_path = ''
 as $function$
 declare
