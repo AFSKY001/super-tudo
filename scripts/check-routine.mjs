@@ -65,7 +65,7 @@ assert.doesNotMatch(routineSource,/rt-leader-|Encarregado<select|verifierId/,'Ro
 assert.match(routineSource,/function canSee\(id\)\{[^}]*visibleTeam\(\)/,'A liderança deve acessar as rotinas dos subordinados pela equipe cadastrada em Dados.');
 assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,500}teamIds=master\?[\s\S]{0,160}:visibleTeam\(\)\.map/,'A aba Equipe da Rotina deve listar os subordinados da liderança cadastrada em Dados.');
 assert.match(routineSource,/teamIds=master\?\(S\.team\|\|\[\]\)\.filter\(x=>!x\.adm&&\/encarregado\/i\.test\(String\(x\.f\|\|''\)\)\)/,'O painel do Master deve acompanhar somente os encarregados, sem incluir os demais funcionários.');
-assert.match(routineSource,/function toggleTeamPerson\\(pid\\)[\\s\\S]{0,250}V\\.rtExpandedPerson=opening\\?key:''[\\s\\S]{0,900}activities\\.innerHTML=list\\(\\[key\\]\\)\\.map\\(card\\)\\.join\\(\\)[\\s\\S]{0,250}current\\.appendChild\\(activities\\)/,'A expansão deve inserir apenas as atividades da pessoa selecionada, preservando o restante da tela.');
+assert.match(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,250}V\.rtExpandedPerson=opening\?key:''[\s\S]{0,900}activities\.innerHTML=list\(\[key\]\)\.map\(card\)\.join\(\)[\s\S]{0,250}current\.appendChild\(activities\)/,'A expansão deve inserir apenas as atividades da pessoa selecionada, preservando o restante da tela.');
 assert.ok(routineSource.includes('class="rt-person-progress">\'+completed+\'/\'+total'),'O resumo compacto deve mostrar atividades concluídas sobre o total previsto.');
 assert.match(routineSource,/\.rt-task-status\.is-done\{color:var\(--tx\)\}/,'O status das atividades concluídas deve usar texto branco/neutro, não verde.');
 
@@ -262,8 +262,8 @@ assert.match(routineSource,/\.rt-calendar-sheet-head\{position:sticky;top:0/,'O 
 assert.match(indexSource,/\.sheet\{display:flex;flex-direction:column;box-sizing:border-box;height:auto;overflow:hidden;transition:max-height 260ms/,'Todas as janelas devem crescer conforme o conteúdo e limitar o excesso ao corpo rolável.');
 assert.match(indexSource,/\.sheet-body\{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain/,'Todas as janelas devem rolar internamente quando atingirem o limite de altura.');
 assert.match(indexSource,/max-height:calc\(88svh \+ var\(--extra\)\)/,'O limite global mobile deve considerar a área visível com as barras do navegador abertas.');
-assert.doesNotMatch(routineSource,/function toggleTeamPerson\\(pid\\)[\\s\\S]{0,1400}scrollIntoView/,'A expansão não deve forçar a rolagem da página nem provocar reposicionamento global.');
-assert.match(routineSource,/function toggleTeamPerson\\(pid\\)[\\s\\S]{0,900}querySelectorAll\\('\.rt-person-card'\\)[\\s\\S]{0,500}aria-expanded/,'Ao abrir uma pessoa, as outras devem ser recolhidas e seus estados acessíveis atualizados.');
+assert.doesNotMatch(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,1400}scrollIntoView/,'A expansão não deve forçar a rolagem da página nem provocar reposicionamento global.');
+assert.match(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,900}querySelectorAll\('\.rt-person-card'\)[\s\S]{0,500}aria-expanded/,'Ao abrir uma pessoa, as outras devem ser recolhidas e seus estados acessíveis atualizados.');
 assert.ok(routineSource.includes("class=\"c rt-person-card\" id=\"rt-person-card-\'+e(pid)"),'Cada pessoa deve ter um alvo estável para revelar suas atividades após a expansão.');
 assert.ok(routineSource.includes(String.raw`onclick="rtToggleTeamPerson(\'`)&&routineSource.includes(String.raw`+e(pid)+'\')"`),'A expansão da equipe deve usar o controlador que revela as atividades na tela.');
 assert.doesNotMatch(routineSource,/calendarWeek[\s\S]{0,1000}toISOString/,'O calendário não deve converter datas locais usando toISOString.');
