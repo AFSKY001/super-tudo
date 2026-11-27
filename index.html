@@ -2027,7 +2027,8 @@ label.st-ios-toggle:has(input:checked)::before{background:var(--ok)}label.st-ios
 @property --p{syntax:"<number>";inherits:false;initial-value:0}
 .sheet{--extra:0px;display:flex;flex-direction:column;max-height:88vh;overflow:hidden;transform:translate3d(0,0,0);transform-origin:bottom center;transition:transform 500ms var(--ease)}
 .sheet.open{transform:translate3d(0,0,0)}
-.sheet.st-sheet-dragging{transition:none!important;will-change:max-height,transform}.sheet.st-sheet-settling{transition:max-height 320ms cubic-bezier(.22,1.12,.36,1),transform 320ms cubic-bezier(.22,1.12,.36,1);will-change:max-height,transform}
+.sheet.st-sheet-dragging{transition:none!important;will-change:max-height,transform}
+.sheet.st-sheet-expanded{max-height:calc(100svh + var(--extra) - 24px)!important;max-height:calc(100vh + var(--extra) - 24px)!important}.sheet.st-sheet-settling{transition:max-height 320ms cubic-bezier(.22,1.12,.36,1),transform 320ms cubic-bezier(.22,1.12,.36,1);will-change:max-height,transform}
 .sheet .st-sheet-handle{display:flex;flex:0 0 44px;align-items:center;justify-content:center;width:100%;height:44px;min-height:44px;margin:-12px 0 -16px;padding:0;border:0;background:transparent;color:var(--mu);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .sheet .st-sheet-handle::before{content:"";display:block;width:38px;height:4px;border-radius:99px;background:var(--bd)}
 .sheet .st-sheet-handle:active{cursor:grabbing;transform:none;filter:none}
@@ -3830,8 +3831,9 @@ function pointerMove(event){
  const now=performance.now(),delta=event.clientY-drag.startY;
  if(delta<0){
   drag.resize=true;drag.y=delta;
-  const pull=Math.min(PHYSICS.PULL_MAX,rubber(-delta));
-  const next=Math.min(drag.baseMax+PHYSICS.PULL_MAX,drag.baseMax+pull);
+  const viewport=window.innerHeight||document.documentElement.clientHeight,extra=parseFloat(getComputedStyle(drag.sheet).getPropertyValue('--extra'))||0;
+  const expandedMax=Math.max(drag.baseMax,viewport+extra-24),progress=Math.min(1,(-delta)/Math.max(120,viewport*.32));
+  const next=drag.baseMax+(expandedMax-drag.baseMax)*progress;
   drag.sheet.style.transform='translate3d(0,0,0)';
   drag.sheet.style.maxHeight=next.toFixed(2)+'px';
   if(drag.overlay){drag.overlay._sheetProgress=drag.baseP;drag.overlay.style.setProperty('--p',String(drag.baseP));}
@@ -3851,7 +3853,7 @@ function finish(event,cancelled){
  try{if(state.handle.hasPointerCapture(event.pointerId))state.handle.releasePointerCapture(event.pointerId);}catch(_){}
  state.sheet.classList.remove('st-sheet-dragging');if(state.overlay)state.overlay.classList.remove('dragging');
  if(state.resize){
-  state.sheet.classList.remove('st-sheet-expanded');
+  state.sheet.classList.add('st-sheet-expanded');
   state.sheet.style.removeProperty('max-height');
   state.sheet.style.removeProperty('transform');
   if(state.overlay){state.overlay.style.removeProperty('--p');state.overlay._sheetProgress=1;}
