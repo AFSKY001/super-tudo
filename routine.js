@@ -525,7 +525,11 @@ function calendarMarkup(ids,canCreate){
  return'<section class="rt-calendar" aria-label="Calendário da Rotina"><div class="rt-calendar-head"><b class="rt-calendar-month">'+e(monthTitle)+'</b><div class="rt-calendar-head-actions"><button type="button" class="bt g" onclick="rtCalendarShift(-1)" aria-label="Período anterior">‹</button><button type="button" class="bt g" onclick="rtCalendarToday()">Hoje</button><button type="button" class="bt g" onclick="rtCalendarToggle()">'+(expanded?'Semana':'Mês')+'</button><button type="button" class="bt g" onclick="rtCalendarShift(1)" aria-label="Próximo período">›</button></div></div><div class="rt-calendar-grid" ontouchstart="rtCalendarTouchStart(event)" ontouchend="rtCalendarTouchEnd(event)">'+headers+cells+'</div><div class="rt-calendar-legend"><span><i class="late"></i>Atrasada</span><span><i class="pending"></i>Pendente</span><span><i class="done"></i>Concluída</span></div></section>';
 }
 function calendarSheet(){
- const date=Core.dateValue(V.rtCalendarDate||day())||day(),ids=Array.isArray(V.rtCalendarIds)?V.rtCalendarIds.map(String):[],data=calendarItemsOn(date,ids),label=calendarDateLabel(date);
+ const date=Core.dateValue(V.rtCalendarDate||day())||day();
+ generateDay(date);
+ const assignedIds=typeof isFullAccess==='function'&&isFullAccess()?db().assignments.filter(a=>Core.activeOn(a,date)).map(a=>String(a.executorId)):[];
+ const ids=[...new Set([...(Array.isArray(V.rtCalendarIds)?V.rtCalendarIds.map(String):[]),...assignedIds])];
+ const data=calendarItemsOn(date,ids),label=calendarDateLabel(date);
  const counts={done:0,late:0,pending:0,dismissed:0};
  data.all.forEach(o=>{const status=o.status==='done'?'done':o.status==='dismissed'?'dismissed':Core.state(o);if(status==='overdue')counts.late++;else if(status==='pending')counts.pending++;else counts[status]++;});
  let html='<div class="ov dim" data-sheet-overlay onclick="rtCalendarClose()"></div><section class="sheet rt-calendar-sheet" data-sheet role="dialog" aria-modal="true" aria-label="Atividades do dia"><div class="rt-calendar-sheet-head"><div><span class="rt-sheet-kicker">ROTINA · CALENDÁRIO</span><h3>'+e(label)+'</h3></div><button type="button" class="bt g" onclick="rtCalendarClose()" aria-label="Fechar calendário">Fechar</button></div><div class="rt-calendar-summary">'+counts.done+' concluídas · '+counts.pending+' pendentes · '+counts.late+' atrasadas'+(counts.dismissed?' · '+counts.dismissed+' dispensadas':'')+'</div><div class="sheet-body">';
