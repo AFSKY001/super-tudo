@@ -23,6 +23,10 @@ check(html.includes("))+(isFullAccess()||can('r:notes')")&&html.includes("</butt
 check(html.includes('data-st-notes-fallback')&&html.includes('window.stNotesOpen=fallback')&&html.includes('script.onerror')&&html.includes('script.onload'),'notes access must recover when the module did not register its global open handler.');
 check(notes.trimEnd().endsWith('})(window);')&&notes.includes("root.__ST_NOTES_MODULE_READY__=true")&&notes.includes("root.__ST_NOTES_BOOT_ERROR__='routine_bridge_missing'"),'notes module must expose an explicit initialization status.');
 check(notes.includes("supa.from('notas')")&&notes.includes("schema:'public',table:'notas'"),'notes must use the Supabase table and Realtime.');
+check(notes.includes('function cleanupViewport()')&&notes.includes("removeEventListener('resize',state.viewportHandler)")&&notes.includes("removeEventListener('scroll',state.viewportHandler)"),'notes must release visual viewport listeners when the editor closes.');
+check(notes.includes('state.viewport=viewport')&&notes.includes('state.viewportHandler=update')&&notes.includes('cleanupViewport();state.editor=null'),'notes must keep only one viewport handler across editor sessions.');
+const notesOpen=notes.slice(notes.indexOf('function open(){'),notes.indexOf('async function backToRegistry'));
+check(notesOpen.includes('cleanupViewport();')&&notesOpen.includes('state.editor=null'),'re-entering the notes module must release the previous viewport listeners before resetting the editor.');
 check(notes.includes("allowed('l:notes')")&&notes.includes("allowed('r:notes')")&&notes.includes("allowed('m:notes')"),'notes UI must check the three permission levels.');
 check(notes.includes('root.stNotesOpen=open')&&notes.includes('onclick="window.stNotes')&&notes.includes('oninput="window.stNotes')&&html.includes('onclick="window.stNotesOpen()'),'notes inline event handlers must explicitly resolve functions from window.');
 check(!notes.includes('appendTileToGrid')&&((html.match(/data-notes-tile/g)||[]).length===1),'notes tile must have one insertion path only.');
