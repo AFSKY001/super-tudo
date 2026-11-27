@@ -255,7 +255,7 @@ assert.match(routineSource,/V\.sh==='routine-calendar'[\s\S]{0,300}calendarSheet
 assert.match(routineSource,/function calendarTouchEnd\(event\)[\s\S]{0,500}calendarShift\(end<start\?1:-1\)/,'O calendário deve aceitar deslize horizontal para navegar.');
 assert.match(routineSource,/\.rt-calendar-day\{[\s\S]{0,500}min-height:58px/,'Os dias do calendário devem manter área de toque confortável.');
 assert.match(routineSource,/\.rt-calendar-dot\.is-late\{background:var\(--no\)\}[\s\S]{0,160}\.is-pending\{background:var\(--pr\)\}[\s\S]{0,100}\.is-done\{background:var\(--ok\)\}/,'Os indicadores devem distinguir atrasadas, pendentes e concluídas por cor.');
-assert.match(routineSource,/\.rt-calendar-sheet>\.sheet-body\{flex:0 1 auto!important;min-height:0;overflow-y:auto/,'O calendário deve usar o contêiner global de rolagem criado pelo gerenciador de janelas.');
+assert.match(routineSource,/\.rt-calendar-sheet>\.sheet-body\{flex:1 1 auto!important;min-height:0;overflow-y:auto/,'O calendário deve preencher a altura inicial da janela e rolar dentro do contêiner global.');
 assert.match(routineSource,/\.rt-calendar-sheet\{[^}]*max-height:calc\(88svh/,'O calendário deve respeitar o limite visível da tela sem impor altura fixa ao conteúdo curto.');
 assert.match(routineSource,/\.rt-calendar-sheet-head\{position:sticky;top:0/,'O cabeçalho e o botão de fechar do calendário devem permanecer acessíveis durante a rolagem.');
 assert.match(indexSource,/\.sheet\{display:flex;flex-direction:column;box-sizing:border-box;height:auto;overflow:hidden\}/,'Todas as janelas devem crescer conforme o conteúdo e limitar o excesso ao corpo rolável.');
