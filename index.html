@@ -3786,6 +3786,13 @@ function enter(node){for(const sheet of sheets(node)){if(sheet.classList.contain
 const observer=new MutationObserver(records=>{const removed=[],added=[];for(const record of records){for(const n of record.removedNodes)if(elements(n))removed.push(n);for(const n of record.addedNodes)if(elements(n))added.push(n);}for(const n of removed)retainForExit(n);for(const n of added){if(n.matches('.ov.dim'))ensureOverlay(n);for(const sheet of sheets(n))ensureSheet(sheet);if(sheets(n).length&&!pending.has(n))enter(n);}});
 observer.observe(host,{childList:true,subtree:true});
 function rubber(distance){const max=PHYSICS.RUBBER_MAX;return max*(1-1/(distance*.55/max+1));}
+function maxHeightFor(sheet,expanded){
+ const was=sheet.classList.contains('st-sheet-expanded');
+ sheet.classList.toggle('st-sheet-expanded',!!expanded);
+ const value=parseFloat(getComputedStyle(sheet).maxHeight);
+ sheet.classList.toggle('st-sheet-expanded',was);
+ return Number.isFinite(value)?value:sheet.getBoundingClientRect().height;
+}
 function pointerDown(event){
  if(drag||event.isPrimary===false||(event.pointerType==='mouse'&&event.button!==0))return;
  const target=event.target instanceof Element?event.target:null,handle=target&&target.closest('[data-sheet-handle]');if(!handle||!host.contains(handle))return;
@@ -3794,14 +3801,29 @@ function pointerDown(event){
  const current=readY(sheet),running=springs.get(sheet),height=visibleHeight(sheet),p=overlay?parseFloat(getComputedStyle(overlay).getPropertyValue('--p')):1;
  const factor=Math.max(.001,1-current/height),baseP=running?running.baseP:Math.max(0,Math.min(1,(Number.isFinite(p)?p:1)/factor));
  cancelSpring(sheet);sheet.classList.remove('st-window-entering','st-sheet-settling');sheet.classList.add('st-sheet-dragging');if(overlay)overlay.classList.add('dragging');
- sheet.style.transform='translate3d(0,'+current.toFixed(2)+'px,0)';sheet._travelHeight=height;
- const now=performance.now();drag={sheet,handle,overlay,pointerId:event.pointerId,startY:event.clientY,startPos:current,y:current,height,baseP,samples:[{t:now,y:event.clientY}]};
+ sheet.style.transform='translate3d(0,'+current.toFixed(2)+'px,0)';
+ const expanded=sheet.classList.contains('st-sheet-expanded'),startMax=parseFloat(getComputedStyle(sheet).maxHeight)||sheet.getBoundingClientRect().height;
+ const baseMax=maxHeightFor(sheet,false),expandedMax=maxHeightFor(sheet,true);
+ sheet._travelHeight=height;
+ const now=performance.now();drag={sheet,handle,overlay,pointerId:event.pointerId,startY:event.clientY,startPos:current,y:current,height,baseP,expanded,startMax,baseMax,expandedMax,resize:false,samples:[{t:now,y:event.clientY}]};
  try{handle.setPointerCapture(event.pointerId);}catch(_){}event.preventDefault();
 }
 function pointerMove(event){
  if(!drag||event.pointerId!==drag.pointerId)return;
- const now=performance.now(),raw=drag.startPos+event.clientY-drag.startY;drag.y=raw>=0?raw:-rubber(-raw);
- render(drag.sheet,drag.y,drag.overlay,drag.baseP);drag.samples.push({t:now,y:event.clientY});
+ const now=performance.now(),delta=event.clientY-drag.startY;
+ if((!drag.expanded&&delta<0)||(drag.expanded&&delta>0)){
+  drag.resize=true;drag.y=delta;
+  const next=drag.expanded?Math.max(drag.baseMax,drag.startMax-delta):Math.min(drag.expandedMax,drag.startMax-delta);
+  drag.sheet.style.transform='translate3d(0,0,0)';
+  drag.sheet.style.maxHeight=Math.max(drag.baseMax,Math.min(drag.expandedMax,next))+'px';
+  if(drag.overlay){const progress=drag.expanded?1:Math.max(0,Math.min(1,(next-drag.baseMax)/Math.max(1,drag.expandedMax-drag.baseMax)));drag.overlay._sheetProgress=drag.baseP+(1-drag.baseP)*progress;drag.overlay.style.setProperty('--p',String(drag.overlay._sheetProgress));}
+ }else if(!drag.expanded&&delta>=0){
+  drag.resize=false;drag.y=drag.startPos+delta;drag.y=drag.y>=0?drag.y:-rubber(-drag.y);
+  drag.sheet.style.removeProperty('max-height');render(drag.sheet,drag.y,drag.overlay,drag.baseP);
+ }else{
+  drag.y=0;drag.sheet.style.transform='translate3d(0,0,0)';
+ }
+ drag.samples.push({t:now,y:event.clientY});
  while(drag.samples.length>2&&now-drag.samples[0].t>PHYSICS.VELOCITY_WINDOW_MS)drag.samples.shift();event.preventDefault();
 }
 function finish(event,cancelled){
@@ -3810,9 +3832,20 @@ function finish(event,cancelled){
  const recent=state.samples.filter(point=>now-point.t<=PHYSICS.VELOCITY_WINDOW_MS),first=recent[0],last=recent[recent.length-1];
  const velocity=!cancelled&&recent.length>1&&last.t>first.t?(last.y-first.y)/(last.t-first.t)*1000:0;
  try{if(state.handle.hasPointerCapture(event.pointerId))state.handle.releasePointerCapture(event.pointerId);}catch(_){}
- const expanded=state.sheet.classList.contains('st-sheet-expanded'),expand=!cancelled&&!expanded&&state.y< -48,collapse=!cancelled&&expanded&&state.y>48&&state.y<=state.height*PHYSICS.CLOSE_DIST;
- if(expand){state.sheet.classList.add('st-sheet-expanded');spring(state.sheet,state.y,0,velocity,PHYSICS.SPRING_BACK,state.overlay,state.baseP,()=>reset(state.sheet,state.overlay));return;}
- if(collapse){state.sheet.classList.remove('st-sheet-expanded');spring(state.sheet,state.y,0,velocity,PHYSICS.SPRING_BACK,state.overlay,state.baseP,()=>reset(state.sheet,state.overlay));return;}
+ state.sheet.classList.remove('st-sheet-dragging');if(state.overlay)state.overlay.classList.remove('dragging');
+ if(state.resize){
+  const expand=!cancelled&&!state.expanded&&state.y< -48;
+  const collapse=!cancelled&&state.expanded&&state.y>48;
+  if(expand)state.sheet.classList.add('st-sheet-expanded');
+  else if(collapse)state.sheet.classList.remove('st-sheet-expanded');
+  state.sheet.style.removeProperty('max-height');
+  state.sheet.style.removeProperty('transform');
+  if(state.overlay){state.overlay.style.removeProperty('--p');state.overlay._sheetProgress=1;}
+  state.sheet.classList.add('st-sheet-settling');
+  const settle=()=>{state.sheet.classList.remove('st-sheet-settling');};
+  if(reduced())settle();else{const done=()=>{state.sheet.removeEventListener('transitionend',onEnd);settle();};const onEnd=e=>{if(e.target===state.sheet&&e.propertyName==='max-height')done();};state.sheet.addEventListener('transitionend',onEnd);setTimeout(done,320);}
+  return;
+ }
  const shouldClose=!cancelled&&(state.y>state.height*PHYSICS.CLOSE_DIST||(state.y>0&&velocity>PHYSICS.CLOSE_VEL));
  if(shouldClose&&state.y>=state.height){render(state.sheet,state.height,state.overlay,state.baseP);closeSheet(state.sheet,state.overlay);return;}
  const target=shouldClose?state.height:0,config=shouldClose?PHYSICS.SPRING_CLOSE:(state.y<0?PHYSICS.SPRING_BOUNCE:PHYSICS.SPRING_BACK);
