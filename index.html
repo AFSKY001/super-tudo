@@ -3761,7 +3761,7 @@ window.addEventListener('online',flush);window.addEventListener('st-user-ready',
 const host=document.getElementById('sh');
 if(!host||host.dataset.stWindowMotion==='1')return;
 host.dataset.stWindowMotion='1';
-const PHYSICS=Object.freeze({RUBBER_MAX:140,PULL_MAX:56,EXTRA_SPACE:220,CLOSE_DIST:.30,CLOSE_VEL:600,VELOCITY_WINDOW_MS:100,SPRING_BACK:{k:320,c:34},SPRING_BOUNCE:{k:300,c:18},SPRING_CLOSE:{k:220,c:30}});
+const PHYSICS=Object.freeze({RUBBER_MAX:140,EXTRA_SPACE:220,CLOSE_DIST:.30,CLOSE_VEL:600,VELOCITY_WINDOW_MS:100,SPRING_BACK:{k:320,c:34},SPRING_BOUNCE:{k:300,c:18},SPRING_CLOSE:{k:220,c:30}});
 host.style.setProperty('--sheet-extra',PHYSICS.EXTRA_SPACE+'px');
 const EXIT_MS=270,pending=new WeakSet(),springs=new Map();
 let drag=null;
@@ -3831,8 +3831,8 @@ function pointerMove(event){
  if(delta<0){
   drag.resize=true;drag.y=delta;
   const viewport=window.innerHeight||document.documentElement.clientHeight,extra=parseFloat(getComputedStyle(drag.sheet).getPropertyValue('--extra'))||0;
-  const expandedMax=Math.max(drag.baseMax,viewport+extra-24),progress=Math.min(1,(-delta)/Math.max(120,viewport*.32));
-  const next=drag.baseMax+(expandedMax-drag.baseMax)*progress;
+  const expandedMax=Math.max(drag.baseMax,viewport+extra-24),expandDistance=Math.max(120,viewport*.32),distance=-delta,progress=Math.min(1,distance/expandDistance),overpull=Math.max(0,distance-expandDistance);
+  const next=drag.baseMax+(expandedMax-drag.baseMax)*progress+rubber(overpull);
   drag.sheet.style.transform='translate3d(0,0,0)';
   drag.sheet.style.maxHeight=next.toFixed(2)+'px';
   if(drag.overlay){drag.overlay._sheetProgress=drag.baseP;drag.overlay.style.setProperty('--p',String(drag.baseP));}
