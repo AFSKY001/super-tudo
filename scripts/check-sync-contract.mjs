@@ -66,6 +66,15 @@ const routineOccurrenceHistoryRollback = fs.readFileSync(
   'utf8',
 );
 
+const routineOccurrenceUndoMigration = fs.readFileSync(
+  path.join(root, 'supabase/migrations/20261127190000_allow_authorized_routine_undo.sql'),
+  'utf8',
+);
+const routineOccurrenceUndoRollback = fs.readFileSync(
+  path.join(root, 'supabase/rollback/20261127190000_undo_authorized_routine_undo.sql'),
+  'utf8',
+);
+
 
 const checks = [
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
@@ -332,6 +341,14 @@ const personalRoutineSqlChecks = [
   ['rollback de RPCs restaura execução autenticada dos helpers', /GRANT EXECUTE[\s\S]{0,1200}is_org_member/, internalDefinerRpcRollback],
   ['ocorrências concluídas ou dispensadas ficam imutáveis no servidor', /v_old_status is distinct from 'pending'[\s\S]{0,260}new\.data is distinct from old\.data[\s\S]{0,180}new\.deleted_at is distinct from old\.deleted_at/, routineOccurrenceHistoryMigration],
   ['ocorrências pendentes continuam editáveis para foto e encerramento de atribuição', /v_old_status is distinct from 'pending'[\s\S]{0,260}new\.data is distinct from old\.data/, routineOccurrenceHistoryMigration],
+  ['desmarcação permite apenas transição done para pending manual', /v_old_status = 'done' and v_new_status = 'pending'[\s\S]{0,1800}viaSystem[\s\S]{0,1800}public\.can_write_routine_record/, routineOccurrenceUndoMigration],
+  ['guard de histórico usa SECURITY DEFINER restrito para validar a permissão de desmarcação', /language plpgsql\s+security definer\s+set search_path = ''/, routineOccurrenceUndoMigration],
+  ['desmarcação mantém identidade do registro', /new\.record_id is not distinct from old\.record_id[\s\S]{0,180}new\.kind is not distinct from old\.kind/, routineOccurrenceUndoMigration],
+  ['desmarcação mantém snapshot e campos não autorizados imutáveis', /new\.data->'value'[\s\S]{0,400}old\.data->'value'/, routineOccurrenceUndoMigration],
+  ['desmarcação não remove tombstone nem altera organização', /new\.deleted_at is not distinct from old\.deleted_at[\s\S]{0,200}new\.data - 'value'/, routineOccurrenceUndoMigration],
+  ['desmarcação exige atribuição ainda ativa e dentro da data final', /a\.module = 'routineAssignments'[\s\S]{0,300}active[\s\S]{0,400}v_occurrence_date <= coalesce/, routineOccurrenceUndoMigration],
+  ['ocorrências dispensadas e conclusões automáticas continuam imutáveis', /v_old_status is distinct from 'pending'[\s\S]{0,300}not v_undo_allowed[\s\S]{0,300}ocorrência concluída ou dispensada da Rotina é imutável/, routineOccurrenceUndoMigration],
+  ['rollback restaura a imutabilidade estrita anterior', /v_old_status is distinct from 'pending'[\s\S]{0,260}new\.data is distinct from old\.data[\s\S]{0,180}new\.deleted_at is distinct from old\.deleted_at/, routineOccurrenceUndoRollback],
   ['proteção de histórico roda antes de qualquer atualização de app_records', /create trigger app_records_guard_routine_occurrence_history[\s\S]{0,180}before update on public\.app_records[\s\S]{0,120}old\.module = 'routineOccurrences'/, routineOccurrenceHistoryMigration],
   ['rollback remove apenas o trigger e a função de proteção do histórico', /drop trigger if exists app_records_guard_routine_occurrence_history[\s\S]*drop function if exists public\.guard_routine_occurrence_history/, routineOccurrenceHistoryRollback],
 ];
