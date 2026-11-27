@@ -257,3 +257,9 @@ assert.match(routineSource,/\.rt-calendar-day\{[\s\S]{0,500}min-height:58px/,'Os
 assert.match(routineSource,/\.rt-calendar-dot\.is-late\{background:var\(--no\)\}[\s\S]{0,160}\.is-pending\{background:var\(--pr\)\}[\s\S]{0,100}\.is-done\{background:var\(--ok\)\}/,'Os indicadores devem distinguir atrasadas, pendentes e concluídas por cor.');
 assert.match(routineSource,/\.rt-calendar-sheet-body\{flex:1 1 auto;min-height:0;overflow-y:auto/,'O painel inferior do calendário deve rolar sem cortar atividades.');
 assert.doesNotMatch(routineSource,/calendarWeek[\s\S]{0,1000}toISOString/,'O calendário não deve converter datas locais usando toISOString.');
+
+
+assert.match(routineSource,/function canMark\(o\)\{[\s\S]{0,900}permissions\.includes\('r:rot'\)[\s\S]{0,350}const own=String\(currentPerson\(\)\?\.id\|\|''\)===String\(o\.executorId\);return own\|\|roles\.includes\('encarregado'\)&&permissions\.includes\('r:eqp'\)/,'Marcação própria exige r:rot; marcação para a equipe exige perfil encarregado e r:eqp.');
+assert.match(routineSource,/function detailsSheet\(\)[\s\S]{0,700}const allowed=canMark\(o\)/,'O painel de detalhes deve ocultar ações quando a permissão de marcação não existe.');
+assert.match(routineSource,/async function undoComplete\(id\)[\s\S]{0,300}!canMark\(o\)/,'Desmarcar uma conclusão deve passar pelo mesmo controle de permissão.');
+assert.match(routineSource,/async function toggleComplete\(id\)[\s\S]{0,250}!canMark\(o\)/,'O atalho de marcar/desmarcar deve validar permissão antes de alterar o estado.');
