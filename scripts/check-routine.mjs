@@ -256,10 +256,10 @@ assert.match(routineSource,/function calendarTouchEnd\(event\)[\s\S]{0,500}calen
 assert.match(routineSource,/\.rt-calendar-day\{[\s\S]{0,500}min-height:58px/,'Os dias do calendário devem manter área de toque confortável.');
 assert.match(routineSource,/\.rt-calendar-dot\.is-late\{background:var\(--no\)\}[\s\S]{0,160}\.is-pending\{background:var\(--pr\)\}[\s\S]{0,100}\.is-done\{background:var\(--ok\)\}/,'Os indicadores devem distinguir atrasadas, pendentes e concluídas por cor.');
 assert.match(routineSource,/\.rt-calendar-sheet>\.sheet-body\{flex:1 1 auto!important;min-height:0;overflow-y:auto/,'O calendário deve preencher a altura inicial da janela e rolar dentro do contêiner global.');
-assert.match(routineSource,/\.rt-calendar-sheet\{[^}]*max-height:calc\(88svh/,'O calendário deve respeitar o limite visível da tela sem impor altura fixa ao conteúdo curto.');
+assert.match(routineSource,/\.rt-calendar-sheet\{[^}]*display:flex;flex-direction:column/,'O calendário deve herdar o limite de altura e os pontos de expansão do gerenciador global.');
 assert.match(routineSource,/\.rt-calendar-sheet-head\{position:sticky;top:0/,'O cabeçalho e o botão de fechar do calendário devem permanecer acessíveis durante a rolagem.');
 assert.match(indexSource,/\.sheet\{display:flex;flex-direction:column;box-sizing:border-box;height:auto;overflow:hidden\}/,'Todas as janelas devem crescer conforme o conteúdo e limitar o excesso ao corpo rolável.');
-assert.match(indexSource,/\.sheet-body\{flex:0 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain/,'Todas as janelas devem rolar internamente quando atingirem o limite de altura.');
+assert.match(indexSource,/\.sheet-body\{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain/,'Todas as janelas devem rolar internamente quando atingirem o limite de altura.');
 assert.match(indexSource,/max-height:calc\(88svh \+ var\(--extra\)\)/,'O limite global mobile deve considerar a área visível com as barras do navegador abertas.');
 assert.match(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,700}scrollIntoView\(\{block:'nearest'/,'Ao expandir uma pessoa, a lista deve ser trazida para a área visível sem exigir rolagem manual.');
 assert.ok(routineSource.includes("class=\"c rt-person-card\" id=\"rt-person-card-\'+e(pid)"),'Cada pessoa deve ter um alvo estável para revelar suas atividades após a expansão.');
