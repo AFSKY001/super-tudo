@@ -269,3 +269,6 @@ assert.match(routineSource,/function todayScreen\(\)[\s\S]{0,5000}expanded=Strin
 assert.ok(routineSource.includes("class=\"c rt-person-card\" id=\"rt-person-card-\'+e(pid)"),'Cada pessoa deve ter um alvo estável para revelar suas atividades após a expansão.');
 assert.ok(routineSource.includes(String.raw`onclick="rtToggleTeamPerson(\'`)&&routineSource.includes(String.raw`+e(pid)+'\')"`),'A expansão da equipe deve usar o controlador que revela as atividades na tela.');
 assert.doesNotMatch(routineSource,/calendarWeek[\s\S]{0,1000}toISOString/,'O calendário não deve converter datas locais usando toISOString.');
+assert.match(routineSource,/function ensureRoutinePermission\(pid\)[\s\S]{0,350}includes\('r:rot'\)/,'A atribuição de atividades individuais deve garantir a permissão de Rotina ao funcionário.');
+assert.match(routineSource,/function saveModel\(\)[\s\S]{0,2200}if\(target\)[\s\S]{0,300}source:'manual-extra'[\s\S]{0,250}ensureRoutinePermission\(target\)/,'Salvar uma atividade extra individual deve criar a atribuição e conceder r:rot antes de sincronizar.');
+assert.match(routineSource,/function assign\(pid\)[\s\S]{0,800}ensureRoutinePermission\(pid\)/,'A atribuição de um modelo também deve usar a mesma regra de permissão.');
