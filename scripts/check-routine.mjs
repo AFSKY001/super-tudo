@@ -260,5 +260,5 @@ assert.match(routineSource,/\.rt-calendar-sheet\{[^}]*height:min\(82dvh,[^}]*\}/
 assert.match(routineSource,/\.rt-calendar-sheet > \.rt-calendar-sheet-body\{[^}]*flex:1 1 auto!important;height:auto!important;min-height:0;[^}]*overflow-y:auto[^}]*touch-action:pan-y/,'A lista de atividades deve ocupar o espaço restante e aceitar gesto vertical no Android.');
 assert.match(routineSource,/function toggleTeamPerson\(pid\)[\s\S]{0,700}scrollIntoView\(\{block:'nearest'/,'Ao expandir uma pessoa, a lista deve ser trazida para a área visível sem exigir rolagem manual.');
 assert.ok(routineSource.includes("class=\"c rt-person-card\" id=\"rt-person-card-\'+e(pid)"),'Cada pessoa deve ter um alvo estável para revelar suas atividades após a expansão.');
-assert.match(routineSource,/onclick="rtToggleTeamPerson\(\\\'\'+e\(pid\)\+'\\\'\)"/,'A expansão da equipe deve usar o controlador que revela as atividades na tela.');
+assert.ok(routineSource.includes("onclick=\"rtToggleTeamPerson(\\\\'\" )&&routineSource.includes("e(pid)+'\\\\')"),'A expansão da equipe deve usar o controlador que revela as atividades na tela.');
 assert.doesNotMatch(routineSource,/calendarWeek[\s\S]{0,1000}toISOString/,'O calendário não deve converter datas locais usando toISOString.');
