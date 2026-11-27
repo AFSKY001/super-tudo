@@ -133,7 +133,7 @@ function installRoutineStyles(){
  .rt-calendar-create{width:100%;min-height:46px;margin-top:10px}
  @media(max-width:380px){.rt-calendar{padding:11px}.rt-calendar-day{min-height:53px}.rt-calendar-head-actions .bt{padding:0 8px;font-size:12px}.rt-calendar-grid{gap:2px}}
  @media(prefers-reduced-motion:reduce){.rt-calendar-day{transition:none!important}}
- .rt-details-sheet{display:flex;flex-direction:column;align-items:stretch;gap:18px;box-sizing:border-box;width:100%;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px)!important;max-height:calc(100svh - env(safe-area-inset-top,0px) - 8px)!important;overflow-y:auto!important;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 16px calc(24px + env(safe-area-inset-bottom,0px));}
+ .rt-details-sheet{display:flex;flex-direction:column;align-items:stretch;gap:18px;box-sizing:border-box;width:100%;overflow:hidden;overscroll-behavior:contain;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 16px calc(24px + env(safe-area-inset-bottom,0px));}
  .rt-details-sheet>*{flex:0 0 auto;min-width:0}
  /* O gerenciador global envolve o conteúdo em .sheet-body; é esse filho que precisa crescer e rolar. */
  .rt-details-sheet>.sheet-body{flex:1 1 auto;min-height:0;width:100%;box-sizing:border-box;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
@@ -152,9 +152,9 @@ function installRoutineStyles(){
  .rt-photo-input{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important}
  .rt-detail-actions{display:flex;gap:10px;flex-wrap:wrap;padding:6px 0 max(4px,env(safe-area-inset-bottom,0px))}
  .rt-detail-actions .bt{flex:1 1 140px;min-height:46px;white-space:normal}
- @media(max-width:1023px){.rt-details-sheet{--sheet-extra:0px;--extra:0px;top:auto!important;bottom:0!important;max-height:calc(100dvh - env(safe-area-inset-top,0px))!important;max-height:calc(100svh - env(safe-area-inset-top,0px))!important}.rt-details-sheet>.sheet-body{flex:1 1 auto;min-height:0}}
+ @media(max-width:1023px){.rt-details-sheet{top:auto!important;bottom:0!important}.rt-details-sheet>.sheet-body{flex:1 1 auto;min-height:0}}
  @media(max-width:420px){.rt-details-sheet{gap:16px;padding-left:16px;padding-right:16px}.rt-detail-grid{gap:12px}.rt-detail-block{min-height:74px;padding:13px 14px}.rt-detail-block>b{font-size:13px}.rt-sheet-head h3{font-size:18px}}
- @media(min-width:700px){.rt-details-sheet{max-height:calc(94dvh - 8px)!important;padding:18px 22px calc(24px + env(safe-area-inset-bottom,0px))}.rt-detail-grid{gap:16px}.rt-detail-block{padding:16px 18px}}
+ @media(min-width:700px){.rt-details-sheet{padding:18px 22px calc(24px + env(safe-area-inset-bottom,0px))}.rt-detail-grid{gap:16px}.rt-detail-block{padding:16px 18px}}
  `;
  root.document.head.appendChild(style);
 }

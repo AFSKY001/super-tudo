@@ -264,6 +264,10 @@ assert.match(routineSource,/\.rt-calendar-sheet>\.sheet-body\{flex:1 1 0!importa
 assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,1800}<div class="sheet-body">[\s\S]{0,2000}<\/div><\/section>/,'O conteúdo do calendário deve usar exatamente a classe sheet-body que recebe a rolagem interna.');
 assert.match(routineSource,/\.rt-calendar-sheet\{[^}]*display:flex;flex-direction:column/,'O calendário deve herdar o limite de altura e os pontos de expansão do gerenciador global.');
 assert.match(routineSource,/\.rt-calendar-sheet-head\{position:sticky;top:0/,'O cabeçalho e o botão de fechar do calendário devem permanecer acessíveis durante a rolagem.');
+assert.match(routineSource,/\.rt-details-sheet\{[^}]*overflow:hidden/,'A janela de detalhes deve deixar a rolagem para o corpo interno, sem competir com o gesto de arrastar.');
+assert.match(routineSource,/\.rt-details-sheet>\.sheet-body\{[^}]*overflow-y:auto/,'Os detalhes devem continuar roláveis dentro do limite global da janela.');
+assert.doesNotMatch(routineSource,/\.rt-details-sheet\{[^}]*max-height:calc\(100(?:dvh|svh)/,'A janela de detalhes não deve ultrapassar o limite global de aproximadamente metade da tela.');
+assert.doesNotMatch(routineSource,/\.rt-details-sheet\{[^}]*--extra:0px/,'A janela de detalhes não deve zerar a expansão elástica controlada pelo gerenciador global.');
 assert.match(indexSource,/\.sheet\{display:flex;flex-direction:column;box-sizing:border-box;height:auto;overflow:hidden;transition:max-height 320ms/,'Todas as janelas devem crescer conforme o conteúdo e limitar o excesso ao corpo rolável.');
 assert.match(indexSource,/\.sheet-body\{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain/,'Todas as janelas devem rolar internamente quando atingirem o limite de altura.');
 assert.match(indexSource,/max-height:calc\(48svh \+ var\(--extra\)\)/,'O limite global mobile deve considerar a área visível com as barras do navegador abertas, mantendo o conteúdo excedente rolável.');
