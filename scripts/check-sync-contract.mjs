@@ -312,6 +312,7 @@ if (failedRoutinePermissions.length) {
 const personalRoutineSqlChecks = [
   ['classificação pessoal de done exige chave com pelo menos três segmentos', /cardinality\(string_to_array\(r\.record_id, '\x7c'\)\) >= 3/, personalRoutineClassificationMigration],
   ['trigger inicial preserva done de Cronograma com dois segmentos', /cardinality\(string_to_array\(new\.record_id, '\x7c'\)\) < 3/, personalRoutineClassificationMigration],
+  ['leitura de done pessoal exige chave com pelo menos três segmentos', /when p_module = 'done' and p_kind = 'r:rot'[\s\S]{0,120}cardinality\(string_to_array\(p_record_id, '\\x7c'\)\) >= 3/, personalRoutineClassificationMigration],
   ['rollback reverte apenas done pessoais com pelo menos três segmentos', /cardinality\(string_to_array\(r\.record_id, '\x7c'\)\) >= 3/, personalRoutineClassificationRollback],
   ['migration reclassifica pt e done pelo identificador final de pessoa da organização', /where module = 'pt'[\s\S]{0,100}kind = 'r:cro'[\s\S]{0,350}where r\.module = 'done'[\s\S]{0,250}person\.team_member_id = split_part\(r\.record_id/, personalRoutineClassificationMigration],
   ['migration inicial já bloqueia Master/admin e limita gerente ao próprio vínculo', /me\.role not in \('master', 'admin'\)[\s\S]{0,180}public\.has_perm_for_org\('r:rot'[\s\S]{0,220}v_person_id = me\.team_member_id/, personalRoutineClassificationMigration],
