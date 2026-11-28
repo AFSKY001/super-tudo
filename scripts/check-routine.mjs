@@ -254,7 +254,14 @@ assert.equal(Core.calendarMonthGrid('2026-11-27')[0],'2026-11-01','O calendário
 assert.equal(Core.calendarShiftMonth('2026-01-31',1),'2026-02-28','Avançar mês deve limitar o dia ao último dia existente no mês de destino.');
 assert.match(routineSource,/const calendarWeek=date=>[\s\S]{0,450}getDay\(\)/,'O cálculo da semana deve usar datas locais e semana iniciada no domingo.');
 assert.match(routineSource,/const calendarMonthGrid=date=>[\s\S]{0,650}Array\.from\(\{length:42\}/,'O mês deve renderizar uma grade estável de seis semanas.');
-assert.match(routineSource,/function calendarItemsOn\(date,ids\)[\s\S]{0,1000}Core\.generate\(D,date\)\.created/,'O calendário deve pré-visualizar ocorrências futuras sem gravá-las antecipadamente.');
+assert.match(routineSource,/function calendarItemsOn\(date,ids\)[\s\S]{0,1000}const previews=Core\.generate\(D,date\)\.created\.filter/,'O calendário deve pré-visualizar atividades de qualquer data sem gravá-las antecipadamente.');
+assert.doesNotMatch(routineSource,/const previews=date>=day\(\)\?Core\.generate/,'A prévia do calendário não deve ser limitada às datas atuais e futuras.');
+const historicalPreviewDb={models:[{id:'m-hist',name:'Rotina histórica',activities:[{id:'a-hist',title:'Atividade histórica',recurrence:{type:'daily',startDate:'2026-01-01'},time:'08:00'}]}],assignments:[{id:'as-hist',modelId:'m-hist',executorId:'p-hist',from:'2026-01-01',active:true}],occurrences:{}};
+const historicalPreviewBefore=JSON.stringify(historicalPreviewDb);
+const historicalPreview=Core.generate(historicalPreviewDb,'2026-01-02');
+assert.equal(historicalPreview.created.length,1,'Uma recorrência ativa deve aparecer como prévia em uma data passada sem ocorrência materializada.');
+assert.equal(historicalPreview.created[0].date,'2026-01-02','A prévia histórica deve respeitar a data selecionada.');
+assert.equal(JSON.stringify(historicalPreviewDb),historicalPreviewBefore,'Gerar prévia histórica não pode gravar nem alterar dados locais.');
 assert.match(routineSource,/function calendarMarkup\(ids,canCreate\)[\s\S]{0,3000}aria-pressed/,'Os dias do calendário devem ter estado selecionado acessível.');
 assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,2800}card\(o\)[\s\S]{0,1000}Programada/,'O painel inferior deve exibir registros existentes e prévias de atividades futuras.');
 assert.match(routineSource,/function calendarSheet\(\)[\s\S]{0,1800}snapshot\?\.modelName\|\|'Rotina'/,'O painel do dia deve identificar o modelo de Rotina de cada atividade.');
