@@ -259,3 +259,11 @@ Essas 32 linhas devem ser tratadas como histórico de tentativas recusadas por r
 **Ação segura:** não apagar nem reclassificar as linhas históricas de `sync_ops`, e não executar resolução em massa. Ao abrir a revisão de conflitos no cliente, buscar o registro remoto atual e apresentar as opções sobre a revisão atual, preservando a cópia local até a escolha do usuário. O teste com dois aparelhos continua necessário para verificar se a interface e as filas locais convergem corretamente.
 
 A execução mais recente do CI para o commit documental anterior, `1cf4d3d9116855d8ec8ec9ea6f8d042c166f871b`, terminou com sucesso no workflow [45221953853](https://github.com/AFSKY001/super-tudo/actions/runs/45221953853). Esta auditoria não alterou a aplicação nem o banco.
+
+
+## Notificações — exclusão consistente entre dispositivos (3.74.97)
+
+- A exclusão em massa aguarda a confirmação da Edge Function antes de remover os itens da interface; em falha ou sessão desconectada, preserva a lista e informa o usuário.
+- A recuperação inicial compara os IDs cloud já armazenados localmente com o snapshot retornado pela ação `list`, removendo cópias locais de notificações que já não existem no servidor e preservando itens locais sem `cloud_id`.
+- O canal Realtime também escuta `DELETE`; o evento entrega a chave primária antiga, e o cliente remove somente o item cujo `cloud_id` corresponde ao ID recebido.
+- Nenhuma alteração de esquema ou exclusão manual de dados foi necessária. A Edge Function existente já executa `delete-all` com escopo por organização e usuário autenticado.
