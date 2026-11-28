@@ -25,6 +25,7 @@ check(catchup.includes("Date.parse(result.clearedAt||'')")&&catchup.includes("ti
 const pushFunction=await fs.readFile('supabase/functions/push-notifications/index.ts','utf8');
 check(pushFunction.includes('app_notification_user_state')&&pushFunction.includes('notifications_cleared_at')&&pushFunction.includes('.lte("created_at", clearedAt)'),'the server must persist each user notification-clear timestamp and delete only notifications at or before it.');
 check(pushFunction.includes('return json({ notifications: data || [], clearedAt });'),'notification list must return the durable dismissal cutoff to every device.');
+check(pushFunction.includes('["env", "tar"].includes(cat)')&&pushFunction.includes('query.not("cat", "in", "(env,tar)")'),'generic sync record-change notices must be suppressed at creation and excluded from notification history.');
 check(!catchup.includes('stNotificationArrival'),'initial notification catch-up must not replay arrival animations.');
 check(start.includes("['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)"),'channel failures must trigger recovery.');
 check(start.includes("setTimeout(()=>{V['pushRetryTimer']=null;pushRecover();},3000)"),'failed channels must retry with a bounded delay.');
