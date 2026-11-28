@@ -1,7 +1,7 @@
 {
   "name": "super-tudo",
   "private": true,
-  "version": "3.75.4",
+  "version": "3.75.5",
   "description": "Protected build tooling for the proprietary Super Tudo application",
   "scripts": {
     "build:protected": "node scripts/build-protected.mjs",
