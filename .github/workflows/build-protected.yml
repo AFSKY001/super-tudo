@@ -35,6 +35,8 @@ jobs:
         run: npm run check:sync
       - name: Verify global UI standards
         run: npm run check:ui
+      - name: Check notification deletion and realtime reliability
+        run: npm run check:notification-reliability
       - name: Check routine domain and recurrence
         run: npm run check:routine
       - name: Check Service Worker offline and HTTP fallback
