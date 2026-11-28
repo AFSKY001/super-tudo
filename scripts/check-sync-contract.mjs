@@ -77,6 +77,8 @@ const routineOccurrenceUndoRollback = fs.readFileSync(
 
 
 const checks = [
+  ['primeira leitura completa estabelece uma referência silenciosa e não gera avisos para alterações históricas', /_0x2e3b27=!!syncMeta\['notificationBaseline'\][\s\S]{0,180}syncNotice\(_0x3e9d29\)/],
+  ['referência de notificações fica persistida após a leitura completa', /syncMeta\['notificationBaseline'\]=true,syncMeta\['lastSync'\]=new Date\(\)\['toISOString'\]\(\)/],
   ['registros legados de notificações não são reaplicados pela sincronização geral', /if\(_0x3419a0==='log:nt'\)return;/],
   ['fila antiga de notificações legadas é descartada ao iniciar a identidade', /syncMeta\.queue=syncMeta\.queue\.filter\(op=>op&&op\.module!=='log:nt'\)/],
   ['reconciliação mantém notificações locais não enviadas e remove cópias legadas ausentes da nuvem', /remoteKeys=new Set\(rows\.map\(item=>String\(item\.dedupe_key\|\|''\)\)\)[\s\S]*?!item\['sent'\]\|\|remoteKeys\.has\(String\(item\['key'\]\|\|''\)\)/],
