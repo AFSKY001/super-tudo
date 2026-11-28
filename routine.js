@@ -503,7 +503,7 @@ function calendarItemsOn(date,ids){
  const allowed=new Set((ids||[]).map(String)),D=db();
  const existing=Object.values(D.occurrences).filter(o=>o&&o.date===date&&allowed.has(String(o.executorId))&&Core.assignmentValidOn(o,D.assignments)).sort((a,b)=>Core.hm(a.snapshot?.time)-Core.hm(b.snapshot?.time));
  const known=new Set(existing.map(o=>String(o.id)));
- const previews=date>=day()?Core.generate(D,date).created.filter(o=>allowed.has(String(o.executorId))&&!known.has(String(o.id))):[];
+ const previews=Core.generate(D,date).created.filter(o=>allowed.has(String(o.executorId))&&!known.has(String(o.id)));
  return{existing,previews,all:[...existing,...previews].sort((a,b)=>Core.hm(a.snapshot?.time)-Core.hm(b.snapshot?.time))};
 }
 function calendarDotMarkup(date,ids){
