@@ -11,6 +11,7 @@ const routinePhotoPolicySource=fs.readFileSync(path.join(rootDir,'supabase/migra
 const routineAssignmentCloseSource=fs.readFileSync(path.join(rootDir,'supabase/migrations/20261126170000_dismiss_routine_occurrences_on_assignment_end.sql'),'utf8');
 const routineSyncGuardFixSource=fs.readFileSync(path.join(rootDir,'supabase/migrations/20261128104700_fix_routine_occurrence_sync_guard.sql'),'utf8');
 const routineHistoryGuardFixSource=fs.readFileSync(path.join(rootDir,'supabase/migrations/20261128105200_fix_routine_occurrence_history_json_shape.sql'),'utf8');
+const routineAppRecordGuardFixSource=fs.readFileSync(path.join(rootDir,'supabase/migrations/20261128105800_fix_routine_app_record_write_guard.sql'),'utf8');
 assert.match(routineAssignmentCloseSource,/after update of data on public\.app_records[\s\S]{0,500}dismiss_pending_routine_occurrences_on_assignment_end/,'Encerrar atribuição deve disparar dispensa no servidor.');
 assert.ok(routineAssignmentCloseSource.includes("to_jsonb('dismissed'::text)"),'O servidor deve dispensar ocorrências pendentes sem exclusão física.');
 assert.match(routineAssignmentCloseSource,/coalesce\(o\.data->'value'->>'status', o\.data->>'status'\) = 'pending'/,'Somente ocorrências pendentes podem ser dispensadas.');
@@ -21,6 +22,9 @@ assert.doesNotMatch(routineSyncGuardFixSource,/\(new\.data->'value'\s*-\s*'statu
 assert.match(routineHistoryGuardFixSource,/coalesce\(new\.data->'value',\s*new\.data\)\s*-\s*'status'\s*-\s*'updatedAt'/,'A proteção do histórico deve normalizar registros planos e envelopados antes de comparar campos.');
 assert.match(routineHistoryGuardFixSource,/coalesce\(old\.data->'value',\s*old\.data\)\s*-\s*'status'\s*-\s*'updatedAt'/,'A proteção do histórico deve normalizar o payload anterior e o novo.');
 assert.doesNotMatch(routineHistoryGuardFixSource,/new\.data->'value'\s*-\s*'status'/,'O histórico não pode subtrair chaves diretamente de value quando o campo não existe.');
+assert.match(routineAppRecordGuardFixSource,/coalesce\(new\.data->'value',\s*new\.data\)\s*-\s*'status'\s*-\s*'updatedAt'\s*-\s*'note'/,'A proteção de escrita deve tratar payload plano e envelopado no caminho de dispensa automática.');
+assert.match(routineAppRecordGuardFixSource,/coalesce\(old\.data->'value',\s*old\.data\)\s*-\s*'status'\s*-\s*'updatedAt'\s*-\s*'note'/,'A proteção de escrita deve normalizar também o payload anterior.');
+assert.doesNotMatch(routineAppRecordGuardFixSource,/new\.data->'value'\s*-\s*'status'/,'A proteção de escrita não pode subtrair chaves de value nulo.');
 assert.match(routineSource,/function migrate\(\)[\s\S]{0,700}bridge\.migrateCronogramaModelsToChecklists\(\)[\s\S]{0,4000}routine-assigned-checklists-v2[\s\S]{0,5000}if\(S\.migrations\.includes\('routine-v1'\)\)return/,'Migração de checklists atribuídos deve rodar mesmo quando routine-v1 já existe.');
 assert.match(routineSource,/const checklistItems=c=>\{const raw=Array\.isArray\(c\?\.l\)&&c\.l\.length\?c\.l:[\s\S]{0,140}c\.i\.split\('\|'\)/,'Itens legados em formato pipe precisam ser lidos para gerar as atividades.');
 assert.match(routineSource,/function assign\(pid\)[\s\S]{0,800}ensureRoutinePermission\(pid\)/,'Atribuir uma Rotina deve liberar a permissão de menu da pessoa.');
