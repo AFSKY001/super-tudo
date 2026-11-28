@@ -77,6 +77,9 @@ const routineOccurrenceUndoRollback = fs.readFileSync(
 
 
 const checks = [
+  ['registros legados de notificações não são reaplicados pela sincronização geral', source.includes("if(_0x3419a0==='log:nt')return;")],
+  ['fila antiga de notificações legadas é descartada ao iniciar a identidade', source.includes("syncMeta.queue=syncMeta.queue.filter(op=>op&&op.module!=='log:nt')")],
+  ['reconciliação mantém notificações locais não enviadas e remove cópias legadas ausentes da nuvem', source.includes("remoteKeys=new Set(rows.map(item=>String(item.dedupe_key||'')))") && source.includes("!item['sent']||remoteKeys.has(String(item['key']||''))")],
   ['fila local de sincronização persistida', /st_cloud_sync_v1/],
   ['falha ao carregar fila local pausa sincronização e preserva dados existentes', /syncStorageLoadFailed=!1;try\{const _0xrawSyncMeta=localStorage\.getItem\('st_cloud_sync_v1:'\+_0x25e5d5\)/],
   ['JSON inválido ou estrutura incompleta não é tratado como fila vazia', /if\(!_0xe0b15c\|\|'object'!==typeof _0xe0b15c\|\|Array\.isArray\(_0xe0b15c\)\|\|_0xe0b15c\.owner!==_0x25e5d5/],
