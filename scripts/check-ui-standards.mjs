@@ -534,6 +534,11 @@ requireCheck(html.includes("group('Preferências',preferences)")&&html.includes(
 requireCheck(html.includes("role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"st-pref-title\"")&&html.includes("window.__stAppearanceEsc")&&html.includes("event.key==='Escape'"), 'Appearance settings must provide a labelled modal, Escape close and keyboard focus containment.');
 requireCheck(html.includes(':root[data-theme="dark"]')&&html.includes('@media(prefers-color-scheme:dark)')&&html.includes('html[data-motion="reduce"] *::before'), 'Manual themes must coexist with automatic system theme and reduced-motion preference.');
 
+requireCheck(html.includes("configProfileHeader()")&&html.includes("filterConfigMenu(this.value)")&&html.includes("config-menu-no-results"), 'Settings must show the signed-in profile and provide an accessible local search with an empty state.');
+requireCheck(html.includes("configMenuCard('diag','Diagnóstico do aparelho'")&&html.includes('function openAppDiagnostics()')&&html.includes('function refreshAppDiagnostics()'), 'Settings must expose a working device diagnostics screen.');
+requireCheck(html.includes('Nenhum dado será apagado ou enviado.')&&html.includes('navigator.storage.estimate')&&html.includes('navigator.serviceWorker.controller')&&html.includes('caches.keys'), 'Device diagnostics must remain read-only and inspect storage, cache and Service Worker state.');
+requireCheck(html.includes("group('Notificações',notifications)")&&html.includes("group('Ajuda',help)"), 'Settings options must be grouped by subject rather than mixing notifications and help into account actions.');
+
 if (failures.length) {
   console.error('Super Tudo UI standards check failed:');
   for (const failure of failures) console.error('- ' + failure);
