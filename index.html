@@ -2783,7 +2783,7 @@ function rConfig(){
  if(V.me&&V.me.role==='master')admin.push(configMenuCard('notify','Distribuição de notificações','Configure quem recebe cada aviso',"V.mn=0;V.sh='ntsettings';rMenu()"));
  if(V.me&&['master','admin','gerente'].includes(V.me.role)){
   system.push(configMenuCard('config-history','Histórico de configurações','Veja alterações feitas no sistema','openConfigHistory()'));
-  system.push(configMenuCard('schedule','Mudanças programadas','Consulte alterações agendadas',"V.mn=0;V.configSchedules=null;V.configSchedulesError=null;V.sh='configschedules';rMenu()'));
+  system.push(configMenuCard('schedule','Mudanças programadas','Consulte alterações agendadas',"V.mn=0;V.configSchedules=null;V.configSchedulesError=null;V.sh='configschedules';rMenu()"));
  }
  const group=(title,cards)=>cards.length?'<section class="config-menu-group"><h3>'+title+'</h3><div class="reg-menu-grid">'+cards.join('')+'</div></section>':'';
  return '<section class="reg-menu-screen config-menu">'+configProfileHeader()+'<div class="reg-menu-head"><h2>Configuração</h2><p>Acesse as opções da sua conta e os recursos liberados para seu perfil.</p></div><label class="sr-only" for="config-menu-search">Buscar configuração</label><input id="config-menu-search" class="config-menu-search" type="search" placeholder="Buscar configuração…" aria-label="Buscar configuração" oninput="filterConfigMenu(this.value)"><p id="config-menu-no-results" class="config-menu-empty" role="status" aria-live="polite" hidden>Nenhuma configuração encontrada.</p>'+group('Conta',account)+group('Preferências',preferences)+group('Notificações',notifications)+group('Ajuda',help)+group('Administração',admin)+group('Sistema',system)+regMenuVersion()+'</section>';
