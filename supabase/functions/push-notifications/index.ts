@@ -273,15 +273,24 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "list") {
-      const { data, error } = await admin
-        .from("app_notifications")
+      const { data: state, error: stateError } = await admin
+        .from("app_notification_user_state")
+        .select("notifications_cleared_at")
+        .eq("org_id", orgId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (stateError) throw stateError;
+      const clearedAt = state?.notifications_cleared_at || null;
+      let query = admin.from("app_notifications")
         .select("id, title, body, ref, cat, dedupe_key, created_at, read_at")
         .eq("org_id", orgId)
-        .eq("recipient_user_id", user.id)
+        .eq("recipient_user_id", user.id);
+      if (clearedAt) query = query.gt("created_at", clearedAt);
+      const { data, error } = await query
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      return json({ notifications: data || [] });
+      return json({ notifications: data || [], clearedAt });
     }
 
     if (action === "mark-read" || action === "mark-all-read") {
@@ -301,10 +310,23 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "delete-all") {
+      // Persist a per-user cutoff so legacy notifications restored from a
+      // shared app_records snapshot cannot reappear after a page refresh.
+      const clearedAt = new Date().toISOString();
+      const { error: stateError } = await admin.from("app_notification_user_state").upsert({
+        org_id: orgId,
+        user_id: user.id,
+        notifications_cleared_at: clearedAt,
+        updated_at: clearedAt,
+      }, { onConflict: "org_id,user_id" });
+      if (stateError) throw stateError;
       const { error } = await admin.from("app_notifications")
-        .delete().eq("org_id", orgId).eq("recipient_user_id", user.id);
+        .delete()
+        .eq("org_id", orgId)
+        .eq("recipient_user_id", user.id)
+        .lte("created_at", clearedAt);
       if (error) throw error;
-      return json({ ok: true });
+      return json({ ok: true, clearedAt });
     }
 
     return json({ error: "Ação desconhecida." }, 400);
