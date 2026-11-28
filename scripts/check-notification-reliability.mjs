@@ -27,6 +27,8 @@ check(pushFunction.includes('app_notification_user_state')&&pushFunction.include
 check(pushFunction.includes('return json({ notifications: data || [], clearedAt });'),'notification list must return the durable dismissal cutoff to every device.');
 check(pushFunction.includes('["env", "tar"].includes(cat)')&&pushFunction.includes('query.not("cat", "in", "(env,tar)")'),'generic sync record-change notices must be suppressed at creation and excluded from notification history.');
 check(!catchup.includes('stNotificationArrival'),'initial notification catch-up must not replay arrival animations.');
+check(!html.includes('function syncNotice(')&&!html.includes('syncNotice(_0x3e9d29)'),'generic cloud record changes must not create local notifications.');
+check(catchup.includes("String(item['key']||'').startsWith('cloud|')"),'legacy generic cloud notifications must be removed from the local notification list during catch-up.');
 check(start.includes("['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)"),'channel failures must trigger recovery.');
 check(start.includes("setTimeout(()=>{V['pushRetryTimer']=null;pushRecover();},3000)"),'failed channels must retry with a bounded delay.');
 check(start.includes("window['addEventListener']('online'")&&start.includes("window['addEventListener']('offline'"),'network transitions must be observed.');
