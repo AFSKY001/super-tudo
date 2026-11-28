@@ -3820,6 +3820,9 @@ function ensureSheet(sheet){
  handle.setAttribute('data-sheet-handle','');
  let body=sheet.querySelector(':scope > .sheet-body');
  if(!body){body=document.createElement('div');body.className='sheet-body';for(const child of Array.from(sheet.childNodes))if(child!==handle)body.appendChild(child);sheet.appendChild(body);}
+ const first=body.firstElementChild;
+ const dragZone=first&&(first.matches('.row,.rt-calendar-sheet-head,.rt-sheet-head')?first:first.querySelector(':scope > .row:first-child'));
+ if(dragZone){dragZone.classList.add('st-sheet-drag-zone');dragZone.style.setProperty('touch-action','none','important');}
  if(!sheet.classList.contains('st-sheet-closing'))sheet.classList.add('open');
 }
 function ensureOverlay(overlay){overlay.setAttribute('data-sheet-overlay','');if(!Number.isFinite(overlay._sheetProgress))overlay._sheetProgress=1;if(!overlay.classList.contains('st-sheet-closing'))overlay.classList.add('open');}
@@ -3862,8 +3865,14 @@ function maxHeightFor(sheet,expanded){
 }
 function pointerDown(event){
  if(drag||event.isPrimary===false||(event.pointerType==='mouse'&&event.button!==0))return;
- const target=event.target instanceof Element?event.target:null,handle=target&&target.closest('[data-sheet-handle]');if(!handle||!host.contains(handle))return;
- const sheet=handle.closest('[data-sheet]');if(!sheet)return;
+ const target=event.target instanceof Element?event.target:null;
+ let handle=target&&target.closest('[data-sheet-handle]'),sheet=handle&&handle.closest('[data-sheet]');
+ if(!handle){
+  const zone=target&&target.closest('.st-sheet-drag-zone');
+  if(!zone||!host.contains(zone)||target.closest('button,a,input,select,textarea,[contenteditable="true"],[role="button"],[data-no-sheet-drag]'))return;
+  sheet=zone.closest('[data-sheet]');handle=sheet&&sheet.querySelector(':scope > [data-sheet-handle]');
+ }
+ if(!handle||!host.contains(handle)||!sheet)return;
  const overlay=sheet.parentElement?.querySelector('[data-sheet-overlay]')||host.querySelector('[data-sheet-overlay]');
  const current=readY(sheet),running=springs.get(sheet),height=visibleHeight(sheet),p=overlay?parseFloat(getComputedStyle(overlay).getPropertyValue('--p')):1;
  const factor=Math.max(.001,1-current/height),baseP=running?running.baseP:Math.max(0,Math.min(1,(Number.isFinite(p)?p:1)/factor));
