@@ -2769,6 +2769,7 @@ function configProfileHeader(){
  const syncButton=document.getElementById('syncStatus'),state=syncButton&&syncButton.dataset.syncState||'unknown',syncLabel=syncButton&&syncButton.title||'Aguardando estado da sincronização';
  return '<section class="config-profile-head"><div class="config-profile-avatar" aria-hidden="true">'+esc(String(name).trim().charAt(0).toLocaleUpperCase('pt-BR')||'•')+'</div><div class="config-profile-copy"><strong>'+esc(name)+'</strong><span>'+esc(roleLabel)+'</span></div><span id="config-profile-sync" class="config-profile-sync" data-state="'+esc(state)+'" role="status" aria-live="polite">'+esc(syncLabel)+'</span></section>';
 }
+function openConfigSchedules(){V.mn=0;V.configSchedules=null;V.configSchedulesError=null;V.sh='configschedules';rMenu();}
 function configMenuCard(icon,label,hint,action){return '<button type="button" class="reg-menu-tile config-menu-card" aria-label="'+esc(label)+'" onclick="'+action+'"><span class="reg-menu-icon">'+regMenuIcon(icon)+'</span><span class="reg-menu-copy"><span class="reg-menu-label">'+esc(label)+'</span><span class="reg-menu-hint">'+esc(hint)+'</span></span><span class="reg-menu-arrow" aria-hidden="true">›</span></button>';}
 function rConfig(){
  const account=[configMenuCard('pw','Trocar senha','Altere a senha da sua conta',"V.mn=0;V.sh='pw';rMenu()"),configMenuCard('logout','Sair','Encerrar sua sessão','logout()')];
@@ -2783,7 +2784,7 @@ function rConfig(){
  if(V.me&&V.me.role==='master')admin.push(configMenuCard('notify','Distribuição de notificações','Configure quem recebe cada aviso',"V.mn=0;V.sh='ntsettings';rMenu()"));
  if(V.me&&['master','admin','gerente'].includes(V.me.role)){
   system.push(configMenuCard('config-history','Histórico de configurações','Veja alterações feitas no sistema','openConfigHistory()'));
-  system.push(configMenuCard('schedule','Mudanças programadas','Consulte alterações agendadas',"V.mn=0;V.configSchedules=null;V.configSchedulesError=null;V.sh='configschedules';rMenu()"));
+  system.push(configMenuCard('schedule','Mudanças programadas','Consulte alterações agendadas','openConfigSchedules()'));
  }
  const group=(title,cards)=>cards.length?'<section class="config-menu-group"><h3>'+title+'</h3><div class="reg-menu-grid">'+cards.join('')+'</div></section>':'';
  return '<section class="reg-menu-screen config-menu">'+configProfileHeader()+'<div class="reg-menu-head"><h2>Configuração</h2><p>Acesse as opções da sua conta e os recursos liberados para seu perfil.</p></div><label class="sr-only" for="config-menu-search">Buscar configuração</label><input id="config-menu-search" class="config-menu-search" type="search" placeholder="Buscar configuração…" aria-label="Buscar configuração" oninput="filterConfigMenu(this.value)"><p id="config-menu-no-results" class="config-menu-empty" role="status" aria-live="polite" hidden>Nenhuma configuração encontrada.</p>'+group('Conta',account)+group('Preferências',preferences)+group('Notificações',notifications)+group('Ajuda',help)+group('Administração',admin)+group('Sistema',system)+regMenuVersion()+'</section>';
