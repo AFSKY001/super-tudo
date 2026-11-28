@@ -20,7 +20,11 @@ check(start.includes("if(!known&&incoming?.['created_by']!==V['cloudIdentity']?.
 check(html.includes('#bl.st-notification-arrival .ic')&&html.includes('@keyframes st-notification-arrival-wave')&&html.includes('window.stNotificationArrival=stNotificationArrival'),'incoming notification feedback must include the bell motion and expanding water-like rings.');
 check(html.includes("@media(prefers-reduced-motion:reduce){#bl.st-notification-arrival .ic,#bl.st-notification-arrival .st-notification-waves i{animation:none!important}}"),'notification arrival motion must respect reduced-motion preferences.');
 const catchup=html.slice(html.indexOf('async function pushSyncNotifications'),html.indexOf('async function pushEnsureSubscription'));
-check(catchup.includes('Array.isArray(result?.notifications)')&&catchup.includes('new Set(rows.map')&&catchup.includes('remoteIds.has')&&catchup.includes("!item['cloud_id']"),'notification catch-up must reconcile stale cloud-backed local copies and preserve local-only entries.');
+check(catchup.includes('Array.isArray(result?.notifications)')&&catchup.includes('new Set(rows.map')&&catchup.includes('remoteIds.has')&&catchup.includes("!item['sent']")&&catchup.includes('remoteKeys.has'),'notification catch-up must reconcile cloud-backed copies while preserving pending local notifications.');
+check(catchup.includes("Date.parse(result.clearedAt||'')")&&catchup.includes("timestamp<=cutoff")&&catchup.includes("dismissed.has(id)"),'notification catch-up must apply the server-side per-user dismissal cutoff to stale legacy copies.');
+const pushFunction=await fs.readFile('supabase/functions/push-notifications/index.ts','utf8');
+check(pushFunction.includes('app_notification_user_state')&&pushFunction.includes('notifications_cleared_at')&&pushFunction.includes('.lte("created_at", clearedAt)'),'the server must persist each user notification-clear timestamp and delete only notifications at or before it.');
+check(pushFunction.includes('return json({ notifications: data || [], clearedAt });'),'notification list must return the durable dismissal cutoff to every device.');
 check(!catchup.includes('stNotificationArrival'),'initial notification catch-up must not replay arrival animations.');
 check(start.includes("['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)"),'channel failures must trigger recovery.');
 check(start.includes("setTimeout(()=>{V['pushRetryTimer']=null;pushRecover();},3000)"),'failed channels must retry with a bounded delay.');
