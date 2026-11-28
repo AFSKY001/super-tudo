@@ -173,6 +173,8 @@ Deno.serve(async (req: Request) => {
       if (!message) return json({ error: "Mensagem vazia." }, 400);
       const key = String(body.key || "").trim().slice(0, 240) || null;
       const cat = String(body.cat || "avi").slice(0, 20);
+      // Alterações genéricas do espelho de sincronização não são notificações úteis.
+      if (["env", "tar"].includes(cat)) return json({ ok: true, inserted: 0, pushSent: 0, suppressed: true });
       const ref = body.ref && typeof body.ref === "object" ? body.ref : null;
       let recipients: Array<{ user_id: string; team_member_id: string | null }> = [];
 
@@ -286,6 +288,7 @@ Deno.serve(async (req: Request) => {
         .eq("org_id", orgId)
         .eq("recipient_user_id", user.id);
       if (clearedAt) query = query.gt("created_at", clearedAt);
+      query = query.not("cat", "in", "(env,tar)");
       const { data, error } = await query
         .order("created_at", { ascending: false })
         .limit(100);
